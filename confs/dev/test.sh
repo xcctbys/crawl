@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PY=/Users/pengxt/Documents/pyenv/dj14/bin/py.test
-WORKDIR=/Users/pengxt/Documents/gitroom/nice-clawer/clawer
+PY=~/Documents/pyenv/dj14/bin/py.test
+WORKDIR=~/Documents/gitroom/cr-clawer/clawer
 
 
 cd ${WORKDIR}; $PY $*

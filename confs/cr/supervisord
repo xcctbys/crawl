@@ -12,7 +12,7 @@ NAME=supervisord
 CONFIG=/etc/supervisor.ini
 if [ ! -f ${CONFIG} ]
 then
-    CONFIG=/home/webapps/nice-clawer/confs/cr/supervisor.ini
+    CONFIG=/home/webapps/cr-clawer/confs/cr/supervisor.ini
 fi
 CMD="/home/virtualenvs/py27/bin/supervisord -c ${CONFIG}"
 PID=/tmp/supervisord.pid
