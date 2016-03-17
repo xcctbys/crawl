@@ -1,0 +1,50 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        
+        <title>Nice Clawer Boss</title>
+        <link rel="stylesheet" href="{% static 'clawer/css/common.css' %}" media="screen">
+        
+        <link rel="stylesheet" type="text/css" href="{% static 'clawer/easyui/themes/default/easyui.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'clawer/easyui/themes/icon.css' %}">
+        
+        <script type="text/javascript" src="{% static 'clawer/easyui/jquery.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'clawer/easyui/jquery.easyui.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'clawer/easyui/locale/easyui-lang-zh_CN.js' %}"></script>
+        <script type="text/javascript" src="{% static 'clawer/form/jquery.form.js' %}"></script>
+        
+        {% block extra_css %}{% endblock %}
+        
+        {% block extra_js %}{% endblock %}
+</head>
+
+
+
+{% block body %}
+
+
+<body class="easyui-layout" data-options="fit: true,border : false">
+
+    {% block content %}{% endblock %}
+    
+    
+    
+ 
+<script>
+
+
+$(document).ready(function(){
+	
+});
+</script>
+<!-- end login window -->
+      
+</body>
+{% endblock %}
+
+</html>

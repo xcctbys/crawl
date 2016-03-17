@@ -1,0 +1,15 @@
+
+
+{% if breadcrumbs %}
+<ul class="breadcrumb">
+    {% for bc in breadcrumbs %}
+    <li {% if bc.is_active %}active{% endif %}>
+        {% if bc.is_active %}
+        {{bc.title|truncatechars:20}}
+        {% else %}
+        <a href="{{bc.link}}" title="{{bc.title}}">{{bc.title|truncatechars:15}}</a>
+        {% endif %}
+    </li>
+    {%endfor %}
+</ul>
+{% endif %}

@@ -1,0 +1,59 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        
+        <!-- site check -->
+		
+		<script src="{% static 'js/jquery-1.11.1.min.js' %}"></script>
+		<script src="{% static 'js/jquery-migrate-1.2.1.min.js' %}"></script>
+		
+		<!-- responsive design -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<script src="{% static 'js/respond.min.js' %}"></script>
+        <link href="{% static 'bootstrap33/css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'bootstrap33/css/bootstrap-theme.min.css' %}" rel="stylesheet">
+        <script src="{% static 'bootstrap33/js/bootstrap.min.js' %}"></script>
+        <!-- end responsive design -->
+        
+		<link href="{% static 'css/jumbotron-narrow.css' %}" rel="stylesheet" media="screen">
+        {% block title %}
+        {% if title %}
+        <title>{{title}}</title>
+        {% else %}
+        <title>普林云爬虫 - Nice Clawer Of Princetechs</title>
+        {% endif %}
+        {% endblock %}
+</head>
+
+<body>
+
+<div class="container">
+      <div class="header clearfix">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation" {% if title == "Home" %}class="active"{% endif %}><a href="/">Home</a></li>
+            <li role="presentation" {% if title == "图片识别" %}class="active"{% endif %}><a href="{% url captcha.views.index %}">图片识别</a></li>
+            <li role="presentation"><a href="#">Contact</a></li>
+          </ul>
+        </nav>
+        <h3 class="text-muted">云爬虫</h3>
+      </div>
+      
+      
+      {% block content %}{% endblock %}
+
+      <footer class="footer">
+        <p>&copy; Princetechs.,LLC 2015</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+</body>
+
+</html>

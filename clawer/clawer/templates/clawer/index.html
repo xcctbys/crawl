@@ -1,0 +1,173 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+
+{% block content %}
+
+    <div data-options="region:'north',border:false" style="height:60px;background: #eff5ff;padding:10px">
+         <strong>Boss Of Nice Clawer </strong>
+         
+         <div style="float: right; margin-left: 10px;"><small id="login_info"></small></div>
+         
+    </div>
+    
+    <div class="easyui-panel" data-options="region:'west',split:true,title:'导航'" style="width:200px; height: 100%;">
+        <ul class="easyui-tree" id="menuTree" >
+            
+        </ul>
+    </div>
+
+    
+    <div class="easyui-tabs" id="tabContainer" data-options="region:'center',title:'内容'" style="width:100%;height:100%;">
+        
+        <div title="Welcome" style="padding:10px" data-options="closable:true">
+            <p>welcome here</p>
+        </div>
+        
+    </div>
+    
+    <!-- login window -->
+    <div id="login_win" class="easyui-window" closed="true" closable="false" collapsible="false" minimizable="false" title="登陆" style="width:300px;height:200px" data-options="iconCls:'icon-save',modal:true">
+        
+        <form id="login_form" method="get" action="{% url clawer.apis.user.login %}">
+            <table style="border: 0px solid #9f9f9f;" cellspacing="10">
+                <tr>
+                    <td><label for="username">用户:</label></td>
+                    <td><input class="easyui-textbox" type="text" name="username" required="required" /></td>
+                </tr>
+                <tr>
+                    <td><label for="password">密码:</label></td>
+                    <td><input class="easyui-textbox" type="password" name="password" required="required" /></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><a href="javascript:void(0)" id="login_btn" class="easyui-linkbutton">登陆</a></td>
+                </tr>
+            </table>
+        </form>
+        
+    </div>
+    <!-- end login window -->
+
+
+<script>
+
+function logout() {
+    var url = "{% url clawer.apis.user.logout %}";
+    
+    $.getJSON(url, function(resp){
+        if(resp.is_ok) {
+            $("#login_info").html("已经退出");
+        }
+    });
+}
+
+function addTab(title, url){
+    var container = $("#tabContainer");
+    
+    if (container.tabs('exists', title)){
+        container.tabs('select', title);
+    } else {
+        var content = '<iframe scrolling="auto" frameborder="0" src="'+url+'" style="padding:10px;width:98%;height:95%;"></iframe>';
+        container.tabs('add',{
+            title:title,
+            content:content,
+            closable:true
+        });
+    }
+}
+
+$(document).ready(function(){
+	
+	
+	function load_menus() {
+		var menu_url = "{% url clawer.apis.user.get_my_menus %}";
+		
+		$("#menuTree").tree({
+			url: menu_url,
+			onClick: function(node){
+				if(!node.url) {
+					return;
+				} 
+				
+				addTab(node.text, node.url);
+			},
+			formatter: function(node){
+				var html = [
+		            "<a href='#'>",
+		            node.text,
+		            "</a>"
+		        ].join(" ");
+		        
+		        return html;
+			}
+		});
+	}	
+	
+	function keepalive() {
+        var keepalive_url = "{% url clawer.apis.user.keepalive %}";
+        
+        $.getJSON(keepalive_url, function(resp){
+            if(resp.is_ok == false) {
+                $("#login_win").window("open");
+                return;
+            }
+        
+            show_user_info(resp.profile);
+            $("#login_win").window("close");
+        });
+    }
+	
+	function show_user_info(profile) {
+		var content = profile.username + ", ";
+		content += "ID:" + profile.id + ", ";
+		
+        content += "<a href='#' onclick='logout();'>退出</a>";
+        $("#login_info").html(content);
+	}
+    
+	load_menus();
+    keepalive();
+    
+	window.setInterval(function(){
+		keepalive();
+	}, 30000);
+	
+	$("#login_btn").bind("click", function(){
+		var url = "{% url clawer.apis.user.login %}";
+		
+		$.ajax({
+	        type: "GET",
+	        url: url,
+	        data:$('#login_form').serialize(),
+	        cache: false,
+	        dataType: "json",
+	        error: function(xhr, status, err) {
+	            $("#login_btn").linkbutton("enable");
+	        },
+	        success: function(data){
+	            $("#login_btn").linkbutton("enable");
+	            
+	            if(data.is_ok == false) {
+	                $.messager.alert("warning", data.reason);
+	            	return;
+	            }
+	            
+	            show_user_info(data.profile);
+	            
+	            $("#login_form").form("reset");
+	            $("#login_form").form("clear");
+	            $("#login_win").window("close");
+	            
+	            load_menus();
+	            
+	            //to reload page
+	            window.location.href = window.location.href;
+	        }
+	    });
+	});
+	
+});
+</script>
+{% endblock %}

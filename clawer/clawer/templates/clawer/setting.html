@@ -1,0 +1,359 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+<div id="toolbar">
+    <a href="#" class="easyui-menubutton" menu="#operate">操作</a>
+    
+    <select id="status_select" class="easyui-combobox" name="status" style="width:200px;">
+	    <option value="">全部</option>
+	    <option value="1">在线</option>
+	    <option value="2">下线</option>
+	</select>
+    
+    <input type="number" id="id_input" name="id" placeholder="ID" class="easyui-textbox" />
+    <a href="javascript:void(0)" id="search_btn" class="easyui-linkbutton" data-options="iconCls:'icon-search'">搜索</a>
+</div>
+
+
+<div id="operate">
+    <div id="update_btn" iconCls="icon-edit">更新</div>
+    <div id="add_btn" iconCls="icon-add">新增</div>
+</div>
+
+
+<table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
+        fitColumns="true" url="{% url clawer.apis.home.clawer_all %}" showFooter="true"
+        data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
+        toolbar="#toolbar" rowStyler="rowStyle">
+        
+    <thead data-options="frozen:true">
+        <tr>
+            <th data-options="field:'id',width:80" sortable="true">ID</th>
+            <th data-options="field:'name',">名称</th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th data-options="field:'status_name',">状态</th>
+            <th data-options="field:'setting'," formatter="formatSettingDispatch">每次分发任务数</th>
+            <th data-options="field:'s1'," formatter="formatSettingAnalysis">每次分析数</th>
+            <th data-options="field:'sproxy'," formatter="formatSettingProxy">Proxy</th>
+            <th data-options="field:'sprior'," formatter="formatSettingPrior">优先级</th>
+            <th data-options="field:'engine'," formatter="formatSettingDownloadEngine">下载引擎</th>
+            <th data-options="field:'cookie'," formatter="formatSettingCookie">Cookie</th>
+            <th data-options="field:'crontab'," formatter="formatCrontab">任务生成器Cron</th>
+            <th data-options="field:'report_mails'," formatter="formatSettingReportMails">报警邮箱</th>
+            <th data-options="field:'s2'," formatter="formatSettingLastUpdateDatetime">最后修改时间</th>
+        </tr>
+    </thead>    
+</table>
+
+
+<!-- update form -->
+<div id="update_win" class="easyui-window" title="更新参数" closed="true" style="width:80%;height:60%;padding:5px;">
+
+    <h1></h1>
+    
+    <form method="post" id="update_form" action="{% url clawer.apis.home.clawer_setting_update %}">
+        <table style="width:100%;">
+            <tr>
+                <td>每次分发任务数</td>
+                <td>
+                    <input name="dispatch" class="easyui-numberbox" style="width: 50%;">
+				    <input id="clawer" name="clawer" type="hidden" />
+				</td>
+            </tr>
+            <tr>
+                <td>每次分析数</td>
+                <td><input name="analysis" class="easyui-numberbox" style="width: 50%;"></td>
+            </tr>
+            <tr>
+                <td>报警邮箱 <small>(多个邮箱以空格分离)</small></td>
+                <td><input name="report_mails" class="easyui-textbox" style="width: 80%; height: 30px;" placeholder="多个邮箱以空格分离" /></td>
+            </tr>
+            <tr>
+                <td>Proxy</td>
+                <td><input name="proxy" class="easyui-textbox" style="width: 60%; height: 80px;" placeholder="多个proxy，请换行" multiline="true" /></td>
+            </tr>
+            <tr>
+                <td>Cookie</td>
+                <td><input name="cookie" class="easyui-textbox" style="width: 60%; height: 80px;" placeholder="Cookie" multiline="true" /></td>
+            </tr>
+            <tr>
+                <td>下载后执行JS</td>
+                <td>
+                    <input name="download_js" class="easyui-textbox" style="width: 60%; height: 100px;" placeholder="Cookie" multiline="true" />
+                    <p><small>只有在下载引擎为selenium时候，才会执行</small></p>
+                </td>
+            </tr>
+            <tr>
+                <td>下载引擎</td>
+                <td>
+                    <select id="id_download_engine" class="easyui-combobox" name="download_engine" style="width:200px;">
+					    <option value="requests">requests</option>
+					    <option value="selenium">selenium</option>
+					    <option value="phantomjs">phantomjs</option>
+					</select>
+                </td>
+            </tr>
+            <tr>
+                <td>状态</td>
+                <td>
+                    <select id="id_status" class="easyui-combobox" name="status" style="width:200px;">
+					    <option value="1">启用</option>
+					    <option value="2">下线</option>
+					</select>
+                </td>
+            </tr>
+            <tr>
+                <td>优先级</td>
+                <td>
+                    <select id="id_prior" class="easyui-combobox" name="prior" style="width:200px;">
+					    <option value="0">普通</option>
+					    <option value="1">紧急</option>
+					    <option value="2">海外</option>
+					</select>
+                </td>
+            </tr>
+            <tr>
+                <td><button class="easyui-linkbutton" style="width: 50px" type="submit">保存</button></td>
+                <td></td>
+            </tr>
+        </table>
+    </form>
+    
+</div>
+<!-- update form end -->
+
+
+<!-- add form -->
+<div id="add_win" class="easyui-window" title="增加爬虫" closed="true" style="width:80%;height:60%;padding:5px;">
+
+    <form method="post" id="add_form" action="{% url clawer.apis.home.clawer_add %}">
+        <table style="width:100%;">
+            <tr>
+                <td>爬虫名</td>
+                <td>
+                    <input name="name" class="easyui-textbox" style="width: 60%; height: 30px;" />
+				</td>
+            </tr>
+            <tr>
+                <td>客户</td>
+                <td><input name="customer" class="easyui-textbox" style="width: 60%; height: 30px;" /></td>
+            </tr>
+            
+            <tr>
+                <td>描述</td>
+                <td><input name="info" class="easyui-textbox" style="width: 70%; height: 80px;" placeholder="多个proxy，请换行" multiline="true" /></td>
+            </tr>
+            <tr>
+                <td><button class="easyui-linkbutton" style="width: 50px" type="submit">增加</button></td>
+                <td></td>
+            </tr>
+        </table>
+    </form>
+    
+</div>
+<!-- add form end -->
+
+
+
+
+
+<script type="text/javascript">
+
+function formatSettingDispatch(val, row) {
+	if(!row.setting) {
+		return "-";
+	}
+	
+	return row.setting.dispatch;
+}
+
+
+function formatSettingReportMails(val, row) {
+	if(!row.setting) {
+		return "-";
+	}
+	
+	return row.setting.report_mails;
+}
+
+
+function formatSettingPrior(val, row) {
+	if(!row.setting) {
+		return "-";
+	}
+	
+	return row.setting.prior_name;
+}
+
+
+function formatSettingCookie(val, row) {
+	if(!row.setting) {
+		return "-";
+	}
+	
+	return row.setting.cookie;
+}
+
+
+function formatSettingAnalysis(val, row) {
+	if(!row.setting) {
+		return "";
+	}
+	return row.setting.analysis;
+}
+
+
+function formatSettingLastUpdateDatetime(val, row) {
+	if(!row.setting) {
+		return "";
+	}
+	return row.setting.last_update_datetime;
+}
+
+function formatSettingProxy(val, row) {
+	if(!row.setting) {
+		return "";
+	}
+	return row.setting.proxy;
+}
+
+function formatSettingDownloadEngine(val, row) {
+	if(!row.setting) {
+		return "";
+	}
+	
+	var js = "-";
+	if(row.setting.download_js) {
+		js = row.setting.download_js.substr(0, 10) + "...";
+	}
+	var content = [
+        row.setting.download_engine,
+        "(",
+        js,
+        ")"
+	];
+	return content.join(" ");
+}
+
+function formatCrontab(val, row) {
+	if(!row.runing_task_generator) {
+		return "";
+	}
+	return row.runing_task_generator.cron;
+}
+
+
+function rowStyle(index, row) {
+	console.debug("index ", index, ", row status ", row.status, ", row ", row);
+	if(row.status == 2) {
+		return {"class":"danger"};
+	}
+}
+
+
+$(document).ready(function(){
+	
+	$("#search_btn").bind("click", function(e){
+		
+        $("#grid").datagrid("load", {
+            obj_id: $("#id_input").val()
+        });
+        
+    });
+	
+	$("#update_btn").bind("click", function(e){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+		$("#update_win").find("#clawer").val(row.id);
+		$("#update_win").find("h1").html("ID: "+ row.id + ", " + row.name);
+		$("#update_form").form("load", {
+			clawer:row.id, 
+		    dispatch: row.setting.dispatch,
+		    analysis: row.setting.analysis,
+		    proxy: row.setting.proxy,
+		    cookie: row.setting.cookie,
+		    download_js: row.setting.download_js,
+		    report_mails: row.setting.report_mails
+		});
+		$("#id_download_engine").combobox("setValue", row.setting.download_engine);
+		$("#id_status").combobox("setValue", row.status);
+		$("#id_prior").combobox("setValue", row.setting.prior);
+		
+		$("#update_win").window("open");
+	});
+	
+	$("#update_form").submit(function(){
+		
+    	$(this).ajaxSubmit({
+            dataType: "json",
+            success: function(resp, status, xhr, frm) {
+                if(!resp.is_ok) {
+                    $.messager.alert('warning', resp.reason);
+                    return;
+                }
+                
+                $("#update_form").form("reset");
+                $("#update_form").form("clear");
+                $("#grid").datagrid("reload");
+                $("#update_win").window("close");
+            }
+        });
+    	
+    	return false;
+    });
+	
+	
+	$("#status_select").combobox({
+		onSelect: function(record) {
+			console.debug(record);
+			$("#grid").datagrid("load", {
+	            status: record.value
+	        });
+		}
+	});
+	
+	
+	$("#add_btn").bind("click", function(e){
+		$("#add_win").window("open");
+	});
+	
+	$("#add_form").submit(function(){
+		
+    	$(this).ajaxSubmit({
+            dataType: "json",
+            success: function(resp, status, xhr, frm) {
+                if(!resp.is_ok) {
+                    $.messager.alert('warning', resp.reason);
+                    return;
+                }
+                
+                $("#add_form").form("reset");
+                $("#add_form").form("clear");
+                
+                $("#grid").datagrid("reload");
+                $("#add_win").window("close");
+            }
+        });
+    	
+    	return false;
+    });
+	
+	
+});
+
+</script>
+
+
+
+</body>
+{% endblock %}

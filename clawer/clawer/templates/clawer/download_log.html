@@ -1,0 +1,216 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+
+<div id="toolbar">
+    <input id="id_input" class="easyui-textbox" data-options="iconCls:'icon-search'" style="width:200px" prompt="根据任务ID搜索">
+    <a href="#" class="easyui-linkbutton" id="search_btn">Go</a>
+    |
+    <select class="easyui-combogrid" type="text" id="id_clawer_select" data-options="required:true" style="width:100px;" ></select>
+    <select class="easyui-combobox" type="text" id="id_status_select" data-options="required:true" style="width:100px;" ></select>
+    
+    <span id="tips"></span>
+</div>
+
+
+<table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
+        url="{% url clawer.apis.home.clawer_download_log %}" showFooter="true"
+        data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
+        toolbar="#toolbar" fitColumns="true">
+        
+    <thead data-options="frozen:true">
+        <tr>
+            <th data-options="field:'id',width:80" sortable="true">ID</th>
+            <th data-options="field:'task',"  formatter="formatTask">任务</th>
+            <th data-options="field:'clawer',"  formatter="formatClawer">爬虫</th>
+            
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th data-options="field:'status'," formatter="formatStatus">状态</th>
+            <th data-options="field:'content_bytes'," formatter="formatBytes">下载内容大小</th>
+            <th data-options="field:'uri'," formatter="formatUri">URI</th>
+            <th data-options="field:'download_engine'," formatter="formatDownloadEngine">下载引擎</th>
+            <th data-options="field:'content_encoding',">文件编码</th>
+            <th data-options="field:'hostname',">主机</th>
+            <th data-options="field:'spend_time'," sortable="true">耗时(毫秒)</th>
+            <th data-options="field:'failed_reason',"  formatter="formatFailedReason">失败原因</th>
+            <th data-options="field:'store'," formatter="formatStore">文件</th>
+            <th data-options="field:'add_datetime',">添加时间</th>
+        </tr>
+    </thead>    
+</table>
+
+
+
+<!-- show failed reason win -->
+<div id="show_failed_reason_win" class="easyui-window" title="失败原因" style="width:80%;height:60%; padding:5px;" data-options="iconCls:'icon-save',modal:true" closed='true'>
+</div>
+<!-- show failed reason win -->
+
+
+
+<script type="text/javascript">
+function formatClawer(val) {
+	if(!val) {
+		return "";
+	}
+	return "ID: "+val.id+"("+val.name+")";
+}
+
+function formatUri(val, row) {
+	if(!row.task) {
+		return "";
+	}
+	return "<a href='"+row.task.uri+"' target='_blank'>查看</a>";
+}
+
+function formatStore(val, row) {
+	if(!row.task) {
+		return "";
+	}
+	
+	return row.task.store;
+}
+
+function formatDownloadEngine(val, row) {
+	if(!row.task) {
+		return "";
+	}
+	return row.task.download_engine;
+}
+
+function formatStatus(val) {
+	if(val == null) {
+		return "";
+	}
+	
+	if(val == 1) {
+		return "×";
+	} else if(val == 2) {
+		return "√";
+	}
+}
+
+function formatBytes(val) {
+	if(!val) {
+		return 0;
+	}
+	
+	var G = 1024*1024*1024;
+	var M = 1024*1024;
+	var K = 1024;
+	
+	if(val > G) {
+		return (val/G).toFixed(2) + "G";
+	} else if(val > M) {
+		return (val/M).toFixed(2) + "M";
+	} else if(val > K) {
+		return (val/K).toFixed(2) + "K";
+	}
+	
+	return val;
+}
+
+function formatTask(val, row) {
+	if(!val) {
+		return "";
+	}
+	
+	return val.id;
+}
+
+function formatFailedReason(val, row) {
+	if(!val) {
+		return "-";
+	}
+	var row_index = $("#grid").datagrid("getRowIndex", row);
+	
+	$("#grid").datagrid("selectRow", row_index);
+	return "<a href='#' onclick='showFailedReason("+row_index+")'>查看</a>";
+}
+
+function showFailedReason(row_index) {
+	var row = $("#grid").datagrid("getSelected");
+	var content = ["<pre class='highlight'>",
+	    "<code>",
+	    row.failed_reason,
+	    "</code>",
+	"</pre>"].join(" ");
+	
+	$("#show_failed_reason_win").html(content);
+	$("#show_failed_reason_win").window('open');
+}
+
+
+function load_clawers() {
+	var url = "{% url clawer.apis.home.clawer_all %}";
+		
+	$("#id_clawer_select").combogrid({
+		panelWidth:450,
+		mode: 'remote',
+		url: url,
+		idField: 'id',
+	    textField: 'name',
+		columns: [[
+			{field:'id',title:'ID',width:80,sortable:true},
+			{field:'name',title:'名称',width:120,sortable:true},
+			{field:'info',title:'简介',width:250,sortable:true}
+		]],
+		onChange: function(new_value, old_value) {
+			reload_datagrid();
+		}
+	});
+	
+	$("#id_status_select").combobox({
+		valueField:'id',
+	    textField:'text',
+	    onSelect: function(item) {
+	    	reload_datagrid();
+	    },
+	    data: [
+            {id:null, text:"全部"},
+	   	    {id:2, text:"成功"},
+		    {id:1, text:"失败"}
+		]
+	});
+	
+}
+
+function reload_datagrid() {
+	var status = $("#id_status_select").combobox("getValue");
+	var clawer_id = $("#id_clawer_select").combobox("getValue");
+	
+	$('#grid').datagrid('load', {
+	    status: status,
+	    clawer: clawer_id
+	});
+}
+
+
+
+$(document).ready(function(){
+	$("#search_btn").bind("click", function(e){
+		var task_id = $("#id_input").val();
+		
+		$("#grid").datagrid("load", {
+			"task_id": task_id
+		});
+	});
+	
+	load_clawers();
+	
+});
+
+</script>
+
+
+
+
+</body>
+{% endblock %}

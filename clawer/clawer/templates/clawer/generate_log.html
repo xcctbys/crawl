@@ -1,0 +1,189 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+
+<div id="toolbar">
+    <select class="easyui-combogrid" type="text" id="id_clawer_select" data-options="required:true" style="width:100px;" ></select>
+    <select class="easyui-combobox" type="text" id="id_status_select" data-options="required:true" style="width:100px;" ></select>
+    
+    <span id="tips"></span>
+</div>
+
+
+
+<table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
+        url="{% url clawer.apis.home.clawer_generate_log %}" showFooter="true"
+        data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
+        toolbar="#toolbar" fitColumns="true">
+        
+    <thead data-options="frozen:true">
+        <tr>
+            <th data-options="field:'id',width:80" sortable="true">ID</th>
+            <th data-options="field:'status'," formatter="formatStatus">状态</th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th data-options="field:'clawer',"  formatter="formatClawer">爬虫</th>
+            <th data-options="field:'task_generator',"  formatter="formatTaskGenerator">生成器</th>
+            <th data-options="field:'content_bytes',"  formatter="formatBytes">返回字节</th>
+            <th data-options="field:'spend_msecs',">耗时毫秒</th>
+            <th data-options="field:'hostname',">主机</th>
+            <th data-options="field:'failed_reason',width:200," formatter="formatFailedReason">失败原因</th>
+            <th data-options="field:'add_datetime',">添加时间</th>
+        </tr>
+    </thead>    
+</table>
+
+
+<!-- failed reason win -->
+<div id="failed_reason_win" class="easyui-window" title="失败详情" closed="true" style="width:80%;height:90%;padding:5px;">
+</div>
+<!-- failed reason win end -->
+
+
+
+<script type="text/javascript">
+
+function formatClawer(val) {
+	if(!val) {
+		return "";
+	}
+	return val.id+"("+val.name+")";
+}
+
+
+function formatTaskGenerator(val, row) {
+	if(!val) {
+		return "";
+	}
+	
+    var row_index = $("#grid").datagrid("getRowIndex", row);
+	
+	return "<a href='#' onclick='javascript:showFailedReasonWin("+row_index+")'>"+val.id+"("+val.add_datetime+")"+"</a>"
+}
+
+
+function formatBytes(val) {
+	if(!val) {
+		return 0;
+	}
+	
+	var G = 1024*1024*1024;
+	var M = 1024*1024;
+	var K = 1024;
+	
+	if(val > G) {
+		return (val/G).toFixed(2) + "G";
+	} else if(val > M) {
+		return (val/M).toFixed(2) + "M";
+	} else if(val > K) {
+		return (val/K).toFixed(2) + "K";
+	}
+	
+	return val;
+}
+
+function formatFailedReason(val, row) {
+	if(!val) {
+		return "-";
+	}
+	
+	var row_index = $("#grid").datagrid("getRowIndex", row);
+	
+	return "<a href='#' onclick='javascript:showFailedReasonWin("+row_index+")'>"+row.failed_reason.substring(0, 50)+"</a>"
+}
+
+function formatStatus(val) {
+	if(val == null) {
+		return "";
+	}
+	
+	if(val == 1) {
+		return "×";
+	} else if(val == 2) {
+		return "√";
+	}
+}
+
+function showFailedReasonWin(row_index) {
+	$("#grid").datagrid("selectRow", row_index);
+	
+	var row = $("#grid").datagrid("getSelected");
+	console.debug("row is ", row);
+	
+	var content = ["<pre class='highlight'>",
+	    "<code>",
+	    row.failed_reason,
+	    "\n--------------------\n\n",
+	    row.task_generator.cron,
+	    "\n--------------------\n\n",
+	    row.task_generator.code,
+	    "</code>",
+	    "</pre>"
+	].join(" ");
+	
+	$("#failed_reason_win").html(content);
+	$("#failed_reason_win").window("open");
+}
+
+
+
+function load_clawers() {
+	var url = "{% url clawer.apis.home.clawer_all %}";
+		
+	$("#id_clawer_select").combogrid({
+		panelWidth:450,
+		mode: 'remote',
+		url: url,
+		idField: 'id',
+	    textField: 'name',
+		columns: [[
+			{field:'id',title:'ID',width:80,sortable:true},
+			{field:'name',title:'名称',width:120,sortable:true},
+			{field:'info',title:'简介',width:250,sortable:true}
+		]],
+		onChange: function(new_value, old_value) {
+			reload_datagrid();
+		}
+	});
+	
+}
+
+function reload_datagrid() {
+	var status = $("#id_status_select").combobox("getValue");
+	var clawer_id = $("#id_clawer_select").combobox("getValue");
+	
+	$('#grid').datagrid('load', {
+	    status: status,
+	    clawer: clawer_id
+	});
+}
+
+
+$(document).ready(function(){
+	load_clawers();
+	
+	$("#id_status_select").combobox({
+		valueField:'id',
+	    textField:'text',
+	    onSelect: function(item) {
+	    	reload_datagrid();
+	    },
+	    data: [
+            {id:null, text:"全部"},
+	   	    {id:2, text:"成功"},
+		    {id:1, text:"失败"}
+		]
+	});
+});
+</script>
+
+
+
+</body>
+{% endblock %}

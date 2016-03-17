@@ -1,0 +1,99 @@
+#!/bin/bash
+#
+# Init file for supervisord
+#
+# chkconfig: 2345 55 25
+# description: supervisor server daemon
+#
+# processname: supervisord
+#
+
+NAME=supervisord
+CONFIG=/etc/supervisor.ini
+if [ ! -f ${CONFIG} ]
+then
+    CONFIG=/home/webapps/nice-clawer/confs/cr/supervisor.ini
+fi
+CMD="/home/virtualenvs/py27/bin/supervisord -c ${CONFIG}"
+PID=/tmp/supervisord.pid
+
+
+wait_for_pid () {
+    try=0
+    while test $try -lt 2 ; do
+        case "$1" in
+            'created')
+            if [ -f "$2" ] ; then
+                try=''
+                break
+            fi
+            ;;
+
+            'removed')
+            if [ ! -f "$2" ] ; then
+                try=''
+                break
+            fi
+            ;;
+        esac
+
+        echo -n .
+        try=`expr $try + 1`
+        sleep 1
+
+    done
+
+}
+
+case "$1" in
+    start)
+        echo -n "Starting ${NAME} " 
+
+        ulimit -n 10240
+        ${CMD}
+        if [ "$?" != 0 ] ; then
+            echo " failed" 
+            exit 1
+        fi
+
+        wait_for_pid created $PID
+
+        if [ -n "$try" ] ; then
+            echo " failed" 
+            exit 1
+        else
+            echo " done" 
+        fi
+    ;;
+    stop)
+        if [ -f ${PID} ]; then
+            pid=`cat ${PID}`
+        else
+            pid=`ps aux | grep ${NAME} | grep -v grep | awk -F " " '{print $2}' | head -n 1`
+        fi
+        
+        rm -f ${PID}
+        kill ${pid}
+
+        echo "Gracefully shutting down ${NAME}, PID ${pid}" 
+    ;;
+    restart)
+        $0 stop
+        sleep 5
+        $0 start
+    ;;
+    reload)
+        echo "Reload ${NAME}"
+        if [ ! -r $PID ] ; then
+            echo "warning, no pid file found - ${NAME} is not running ?" 
+            exit 1
+        fi
+
+        kill -s HUP `cat ${PID}`
+    ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}" 
+        exit 1
+    ;;
+
+esac

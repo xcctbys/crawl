@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+
+{% block content %}
+
+<ul class="list-inline">
+    <li>
+        <!-- Single button -->
+		<div class="btn-group">
+		  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		    {% if category %}{{category.name}}{% else %}请选择分组{% endif %} <span class="caret"></span>
+		  </button>
+		  <ul class="dropdown-menu">
+		    {% for item in categories %}
+		    <li><a href="{% url captcha.views.index %}?category_id={{item.id}}">{{item.name}}</a></li>
+		    {% endfor %}
+		  </ul>
+		</div>
+    </li>
+    <li>已标记：{{labeled_captcha_count}}</li>
+    <li>总图片：{{catpcha_count|default:0}}</li>
+    <li><a href="{% url captcha.views.labeled %}">看看我们的战绩</a></li>
+    <li>图片地址： <a href="{{ category.url }}" target="_blank">{{ category.url }}</a></li>
+</ul>
+
+
+{% if captcha %}
+<div class="panel panel-info">
+    <div class="panel-body">
+    
+        <div id="tips"></div>
+        
+        <ul class="list-inline">
+            <li><img src="{{ captcha.image_url }}" /></li>
+            <li>请写下图片中的文字</li>
+            <li><a href="" class="btn btn-default">换一个</a></li>
+        </ul>
+        
+        <form class="form-inline" style="margin-top:30px;" id="form" method="post">
+		  <div class="form-group">
+		      <input type="hidden" class="form-control" name="captcha_id" value="{{captcha.id}}">
+		      <input type="text" class="form-control" id="id_label" name="label" placeholder="请写下图片中的文字">
+		  </div>
+		  <a class="btn btn-primary" href="javascript:void(0)" id="submitBtn">提交</a>
+		</form>
+		
+    </div>
+</div>
+{% else %}
+<div class="panel panel-info">
+    <div class="panel-body text-center">
+        <h1>大功告成</h1>
+    </div>
+</div>
+{% endif %}
+
+<script>
+$(document).ready(function(){
+	$("#id_label").focus();
+	
+	$("#id_label").keypress(function(e){   
+		var code = e.keyCode || e.which;
+		if(code == 13) { //Enter keycode
+		   doSubmit();
+	       return false;
+		}
+	
+    });
+
+	$("#submitBtn").bind("click", function(e){
+		doSubmit(); 
+	});
+	
+	function doSubmit() {
+		$("#submitBtn").html("提交中");
+		$("#submitBtn").addClass("disabled");
+		
+		var url = "{% url captcha.views.make_label %}";
+		
+		if(!$("#id_label").val()) {
+			show_tips("danger", "文字是空的");
+			return;
+		}
+
+		$.ajax({  
+			 url: url, 
+			 data: $("#form").serialize(),
+			 type: "POST", 
+			 dataType:'json', 
+			 success: function(resp) {
+				 if(resp.is_ok == false) {
+					 show_tips("danger", resp.reason);
+					 return
+				 }
+				 
+				 var timeout = 1000;
+				 show_tips("success", "Thanks! 稍等" + (timeout/1000) + "秒后...刷新");
+				 
+				 window.setTimeout(function() {
+					 window.location.href = window.location.href;
+				 }, timeout);
+				 
+			 }, 
+			  
+		 });
+	}
+	
+});
+
+function show_tips(tag, message) {
+	var content = [];
+	
+	if(tag == "success") {
+		content = [
+		    "<div class='alert alert-success'>",
+		    message,
+		    "</div>"
+		];
+	} else if(tag == "danger") {
+		content = [
+		    "<div class='alert alert-danger'>",
+		    message,
+		    "</div>"
+		];
+	}
+	
+	$("#tips").html(content.join(""));
+	
+	window.setTimeout(function(){
+		close_tips();
+	}, 30000);
+}
+
+function close_tips() {
+	$("#tips").html("");
+}
+
+</script>
+
+
+{% endblock %}

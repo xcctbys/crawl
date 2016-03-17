@@ -1,0 +1,34 @@
+{% load static %}
+
+
+{% if mode == "name" %}
+	<a href="{{user_link}}" target="_blank">
+	    {{profile.display_name}}
+	</a>
+{% elif mode == "img" %}
+	<a href="{{user_link}}" target="_blank">
+	    <img src="{{img_url}}" alt="{{profile.display_name}}" class="img-circle" width="{{size}}" height="{{size}}" />
+	</a>
+{% else %}
+
+    <ul class="list-inline nickname">
+        <li>
+          <a href="{{user_link}}" target="_blank">
+            <img src="{{img_url}}" alt="{{profile.display_name}}" width="{{size}}" height="{{size}}" class="img-circle" />
+          </a>
+        </li>
+        <li>
+            <ul class="list-unstyled" style="margin-bottom: 0px;">
+              <li><a href="{{user_link}}" class="media-heading" target="_blank">{{profile.display_name}}</a></li>
+              <li>
+                  <span class="label {% if profile.sex == profile.SEX_WOMAN %}label-girl{% elif profile.sex == profile.SEX_MAN %}label-boy{% else %}label-disable{% endif %}">{{profile.sex_name}} {{profile.age|default:"0"}}岁</span>
+                  {% if profile.level > 0 %}
+                  <img alt="level{{profile.level}}" src="{% static 'img/level/'%}level_{{profile.level}}.png" />
+                  {% endif %}
+              </li>
+          </ul>
+        </li>
+    </ul>
+	
+{% endif %}
+

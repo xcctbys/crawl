@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block content %}
+<div class="jumbotron">
+  <h1>最nice的爬虫</h1>
+  <p class="lead">现实世界有很多碎片化的数据，它们分散在无数的物理空间和网络空间中</p>
+  <p><a class="btn btn-lg btn-success" href="{% url clawer.views.home.clawer %}" role="button">立刻进入</a></p>
+</div>
+
+<div class="row marketing">
+  <div class="col-lg-6">
+    <h4>机票爬虫</h4>
+    <p>3000多条航线</p>
+
+  </div>
+
+  <div class="col-lg-6">
+    <h4>新闻信息</h4>
+    <p>Sina, Weibo etc.</p>
+  </div>
+</div>
+{% endblock %}

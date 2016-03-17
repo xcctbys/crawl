@@ -1,0 +1,9 @@
+<ul class="nav nav-pills nav-justified">
+	{% for tab in tabs %}
+	    <li {%if tab.name == current_tab%}class="active"{%endif%}>
+	    	<a href="{{ tab.url }}"><span class="{{tab.icon}}"></span> {{ tab.name }}</a>
+	    </li>
+	{% endfor %} 		
+</ul>
+
+<hr />

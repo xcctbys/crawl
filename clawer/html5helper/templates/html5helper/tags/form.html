@@ -1,0 +1,16 @@
+{% load formfield %}
+
+{% for name,error in form.errors.iteritems %}
+    {% if name == '__all__' %}
+	    {{error}}
+	{% endif %}
+{% endfor %}
+
+
+{% for field in form.visible_fields %}
+    {% form_field field %}
+{% endfor %}
+
+{% for field in form.hidden_fields %}
+<div class="hidden">{{ field }}</div>
+{% endfor %}

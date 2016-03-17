@@ -1,0 +1,210 @@
+{
+  "ind_comm_pub_reg_basic": {
+    "regcap": "register_capital",
+    "opscope": "business_scope",
+    "pripid": "credit_code",
+    "opto": "time_end",// 如果opto 为null 则为永久
+    "estdate": "time_start",
+    "regno": "register_num",
+    "dom": "place",
+    "entname": "enter_name",
+    "apprdate": "check_date",
+    "enttype": "enter_type",
+    "opstate": "register_status",
+    "lerep": "corporation",
+    "regorg": "register_gov",
+    //高新区分局>九龙坡区分局,九龙坡局高新区局->九龙坡局
+    //经开区分局->南岸区分局,南岸局经开区局->南岸局
+    "opfrom": "time_start"
+  },
+//
+  "ind_comm_pub_reg_shareholder": {
+    "invtype": "shareholder_type",
+    "blicno": "certificate_number",
+    "accondate": "subscription_date",
+    "lisubconam": "subscription_amount",
+    "acconform": "subscription_type",
+    "acconam": "subscription_money_amount",
+    "conform": "paid_type",
+    "liacconam": "paid_amount",
+    "condate": "paid_date",
+    "subconam": "paid_money_amount",
+    "inv": "shareholder_name",
+    "blictype": "certificate_type"
+  },
+  "ind_comm_pub_reg_modify": {
+    "altitem": "modify_item",
+    "altdate": "modify_date",
+    "altaf": "modify_after",
+    "altbe": "modify_before"
+  },
+  "ind_comm_pub_arch_key_persons": {
+    "序号": "enter_id", // 需要根据主要人员数去获得
+    "name": "name",
+    "position": "postion"
+  },
+  "ind_comm_pub_arch_branch": {
+    "序号": "enter_id",
+    "regorgname": "register_gov",
+    "regno": "enter_code",
+    "brname": "branch_name"
+  },
+  "ind_comm_pub_arch_liquidation": {
+    "清算组成员": "persons",
+    "ligprincipal": "person_in_change"
+  },
+  "ind_comm_pub_movable_property_reg": {
+    "type": "status",
+    "公示日期": "publicity_time",// 重庆没有
+    "regidate": "sharechange_register_date",
+    "morregcno": "register_num",
+    "priclasecam": "guarantee_debt_amount",
+    "序号": "enter_id",
+    "regorg": "register_gov"
+  },
+  "ind_comm_pub_equity_ownership_reg": {
+    "impam": "share_pledge_num",
+    "equpledate": "publicity_time",
+    "type": "status",
+    "imporg": "mortgagee",
+    "pledgor": "pledgor",
+    "blicno": "register_num",
+    "cerno": "pledgor_certificate_code",
+    "变化情况": "change_detail",// 暂时没有
+    "序号": "id"
+  },
+  "ind_comm_pub_administration_sanction": {
+    "authcontent": "penalty_content",
+    "公示日期": "penalty_publicit_date",
+    "penauth": "penalty_decision_gov",
+    "illegacttype": "illegal_type",
+    "pendecissdate": "penalty_decision_date",
+    "详情": "detail",
+    "pendecno": "penalty_decision_num",
+    "序号": "id"
+},
+  "ind_comm_pub_business_exception": {
+    "公示日期": null,//没有
+    "remexcpres": "list_out_reason",
+    "decorg": "list_gov",
+    "specause": "list_on_reason",
+    "abntime": "list_on_date",
+    "remdate": "list_out_date",
+    "序号": "id"
+},
+  "ind_comm_pub_serious_violate_law": {
+    "remexcpres": "list_out_reason",
+    "serillrea": "list_on_reason",
+    "公示日期": null,//没有
+    "decorg": "decision_gov",
+    "lisdate": "list_on_date",
+    "remdate": "list_out_date",
+    "序号": "id"
+  },
+  "ind_comm_pub_spot_check": {
+    "insauth": "check_gov",
+    "公示日期": null,//没有
+    "insresname": "check_result",
+    "instype": "check_type",
+    "insdate": "check_date",
+    "序号": "id"
+  },
+
+  "ent_pub_ent_annual_report": {},
+  "ent_pub_shareholder_capital_contribution": {
+    "condate": "subscription_date",
+    "认缴额（万元）": "subscription_amount",
+    "conform": "subscription_type",
+    "subconam": "subscription_money_amount",
+    "公示日期": "publicity_time",
+    "实缴额（万元）": "paid_amount",
+    "inv": "shareholder_name",
+    "实缴明细": null,
+    "认缴明细": null,
+    "accondate": "paid_date",
+    "acconform": "paid_type",
+    "acconam": "paid_money_amount"
+    },
+  "ent_pub_equity_change": {
+    "stockrightbeforebl": "share_ratio_before",
+    "公示日期": "sharechange_publicity_date",
+    "stockrightchangedate": "share_change_date",
+    "stockrightafterbl": "share_ratio_after",
+    "序号": "id",
+    "stockholder": "shareholder"
+    },
+  "ent_pub_administration_license": {
+    "type": "license_status", // null| 1 有效 2,3,4 无效
+    "valto": "license_end_date",
+    "公示日期": "license_publicity_time",//没有此项
+    "licitem": "license_content",
+    "licname": "license_filename",
+    "licno": "license_num",
+    "详情": "license_detail",
+    "序号": "id",
+    "licanth": "license_authority",
+    "valfrom": "license_begien_date"
+    },
+  "ent_pub_knowledge_property": {
+    "type": "property_status",// null| 1 有效 2,3,4 无效
+    "公示日期": "property_pledge_publicity_time",
+    "tmregno": "credit_code",
+    "pleregperfrom,pleregperto": "mortgage_register_date",// 期限
+    "pledgor": "pledgor_name",
+    "caninfos": "property_pledge_change",
+    "imporg": "mortgagee_name",
+    "tmname": "enter_name",
+    "序号": "id",
+    "coggos": "property_type" //1 商标, 2 版权, 3,著作权
+    },
+  "ent_pub_administration_sanction": {
+    "pentype": "administrative_penalty_content",
+    "公示日期": "penalty_publicity_time",
+    "penauth": "decision_gov",
+    "违法行为类型": "illegal_type",
+    "pendecissdate": "decision_date",
+    "pendecno": "penalty_decision_num",
+    "序号": "id",
+    "penaltinfos": "penalty_comment",
+    "详情":"detail"
+    },
+
+  "other_dept_pub_administration_license": {
+    "type": "license_status",// null | 1 有效   2,3,4 无效
+    "valto": "license_end_date",
+    "licitem": "license_content",
+    "licname": "license_filename",
+    "licno": "license_file_num",
+    "详情": "license_detail",
+    "序号": "id",
+    "licanth": "license_authority_gov",
+    "valfrom": "license_begin_date"
+    },
+  "other_dept_pub_administration_sanction": {
+    "authContent": "administrative_penalty_content",
+    "penauth": "decision_gov",
+    "illegActType": "illegal_type",
+    "pendecissdate": "decision_date",
+    "pendecno": "penalty_decision_num",
+    "序号": "id",
+    "详情":"detail"
+    },
+
+  "judical_assist_pub_equity_freeze": {
+    "frozstate": "freeze_status",
+    "inv": "been_excute_person",
+    "froam": "share_num",
+    "详情": "freeze_detail",// 暂时没有确定
+    "序号": "id",
+    "froauth": "excute_court",
+    "executeno": "notice_num"
+    },
+  "judical_assist_pub_shareholder_modify": {
+    "inv": "been_excute_name",
+    "froam": "share_num",
+    "详情": "detail",// 暂时没有进入界面
+    "序号": "id",// 根据数组序号确定
+    "froauth": "excute_court",
+    "alien": "assignee"
+  }
+}

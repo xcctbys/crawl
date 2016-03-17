@@ -1,0 +1,234 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+<script src="{% static 'echarts/build/dist/echarts.js' %}"></script>
+
+<div id="echarts" style="height:400px;width:98%; margin-bottom:20px;"></div>
+
+
+<div id="toolbar">
+    <select class="easyui-combogrid" type="text" id="id_clawer_select" data-options="required:true" style="width:100px;" ></select>
+    <a class="easyui-linkbutton" href="javascript:void(0)" id="load_btn">加载</a>
+</div>
+
+<table id="grid" class="easyui-datagrid" style="width:100%;height:300px; margin-top:20px;"
+        url="{% url clawer.apis.monitor.day %}" showFooter="true"
+        data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
+        toolbar="#toolbar" fitColumns="true">
+        
+    <thead data-options="frozen:true">
+        <tr>
+            <th data-options="field:'id',width:80" sortable="true">ID</th>
+            <th data-options="field:'day'," sortable="true">时间</th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th data-options="field:'clawer'," formatter="formatClawer">爬虫</th>
+            <th data-options="field:'bytes',"  sortable="true" formatter="formatBytes">返回字节</th>
+            <th data-options="field:'is_exception',"  sortable="true" formatter="formatIsException">是否异常</th>
+            <th data-options="field:'add_datetime'," sortable="true">添加时间</th>
+        </tr>
+    </thead>    
+</table>
+
+
+<!-- echarts win -->
+<div id="echarts_win" class="easyui-window" title="" closed="true" style="width:80%;height:70%;padding:5px;">
+    
+</div>
+<!-- echarts win -->
+
+
+
+<script type="text/javascript">
+
+function formatClawer(val) {
+	if(!val) {
+		return "";
+	}
+	return val.id+"("+val.name+")";
+}
+
+function formatIsException(val) {
+	if(val == null) {
+		return "";
+	}
+	
+	if(!val) {
+		return "×";
+	} else {
+		return "√";
+	}
+}
+
+function formatBytes(val) {
+	if(!val) {
+		return 0;
+	}
+	
+	var G = 1024*1024*1024;
+	var M = 1024*1024;
+	var K = 1024;
+	
+	if(val > G) {
+		return (val/G).toFixed(2) + "G";
+	} else if(val > M) {
+		return (val/M).toFixed(2) + "M";
+	} else if(val > K) {
+		return (val/K).toFixed(2) + "K";
+	}
+	
+	return val;
+}
+
+
+function load_clawers() {
+	var url = "{% url clawer.apis.home.clawer_all %}" + "?status=1";
+		
+	$("#id_clawer_select").combogrid({
+		panelWidth:450,
+		mode: 'remote',
+		url: url,
+		idField: 'id',
+	    textField: 'name',
+		columns: [[
+			{field:'id',title:'ID',width:80,sortable:true},
+			{field:'name',title:'名称',width:120,sortable:true},
+			{field:'info',title:'简介',width:250,sortable:true}
+		]]
+	});
+	
+}
+
+function reload_datagrid() {
+	var clawer_id = $("#id_clawer_select").combobox("getValue");
+	
+	$('#grid').datagrid('load', {
+	    clawer: clawer_id
+	});
+}
+
+
+$(document).ready(function(){
+	load_clawers();
+	
+	function render_echarts(clawer_id) {
+		require.config({
+		    paths: {
+		        echarts: "{% static 'echarts/build/dist' %}"
+		    }
+		});
+
+		require(
+		        [
+		            'echarts',
+		            'echarts/chart/bar',
+		            'echarts/chart/line'
+		        ],
+		        function (ec) {
+		            // 基于准备好的dom，初始化echarts图表
+		            var chart = ec.init(document.getElementById('echarts')); 
+		            
+		            chart.showLoading({
+		                text: '正在努力的读取数据中...',    //loading话术
+		            });
+		                    
+		            function load_data() {
+		            	var url = "{% url clawer.apis.monitor.day_echarts %}";
+		            	
+		            	$.getJSON(url, {clawer_id:clawer_id}, function(resp){
+		            		
+		            		var options = {
+		           				tooltip : {
+		           			        trigger: 'axis'
+		           			    },
+			           			legend: {
+			           		        data:[]
+			           		    },
+			           			xAxis : [
+		                            {
+		                                type : 'category',
+		                                boundaryGap : false,
+		                                data : resp.xAxis
+		                            }
+		                        ],
+		                        yAxis : [
+		                            {
+		                                type : 'value'
+		                            }
+		                        ],
+		                        calculable : true,
+		                        toolbox: {
+		                            show : true,
+		                            feature : {
+		                                mark : {show: true},
+		                                dataView : {show: true, readOnly: false},
+		                                magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+		                                restore : {show: true},
+		                                saveAsImage : {show: true}
+		                            }
+		                        },
+		                        dataZoom : {
+		                            show : true,
+		                            realtime : true,
+		                            start : 0,
+		                            end : 100
+		                        },
+		                        series: [
+		                        ]
+		                    };
+		            		
+		            		for(var i=0; i<resp.clawers.length; i++) {
+		            			var serie = {
+								    name: resp.clawers[i].name, 
+									type:'line',
+									smooth:true,
+									itemStyle: {normal: {areaStyle: {type: 'default'}}},
+									data: resp.series[i]
+								};
+		            			var legend = resp.clawers[i].name + "(ID:" + resp.clawers[i].id + ")";
+		            			
+		            			options.legend.data.push(legend);
+		            			options.series.push(serie);
+		            		}
+		            		
+		            		chart.hideLoading();
+		            		chart.setOption(options); 
+		            	});
+		            }
+		            
+		            load_data();
+		            
+		        }
+		    );
+	}
+	
+	$("#load_btn").bind("click", function(e){
+		var clawer_id = $("#id_clawer_select").combobox("getValue");
+		
+		if(!clawer_id) {
+			$.messager.alert("warning", "请先选择一个爬虫");
+			return;
+		}
+		
+		render_echarts(clawer_id);
+		reload_datagrid();
+	});
+	
+	
+	render_echarts(null);
+	
+	
+	
+});
+</script>
+
+
+
+</body>
+{% endblock %}

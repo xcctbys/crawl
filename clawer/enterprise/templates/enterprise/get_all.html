@@ -1,0 +1,253 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+<script src="{% static 'echarts/build/dist/echarts.js' %}"></script>
+<div id="echarts" style="height:300px;width:98%; margin-bottom:20px;"></div>
+
+
+<div id="toolbar">
+    <a href="#" class="easyui-menubutton" data-options="menu:'#operate',">操作</a>
+    
+    <select id="province_select" class="easyui-combobox" name="province" style="width:200px;">
+	    <option value="">全部</option>
+	    {% for item in Province.choices %}
+	    <option value="{{ item.0 }}">{{ item.1 }}</option>
+	    {% endfor %}
+	</select>
+    
+    <input id="query" name="query" prompt="名称" class="easyui-textbox" />
+    <a href="javascript:void(0)" id="search_btn" class="easyui-linkbutton" data-options="iconCls:'icon-search'">搜索</a>
+</div>
+
+<div id="operate">
+	<div id="new_btn">新增</div>
+</div>
+
+
+<table id="grid" class="easyui-datagrid" style="width:100%;height:400px;"
+        fitColumns="true" url="{% url enterprise.apis.get_all %}" showFooter="true"
+        data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
+        toolbar="#toolbar" rowStyler="rowStyle">
+        
+    <thead data-options="frozen:true">
+        <tr>
+            <th data-options="field:'id',width:80" sortable="true">ID</th>
+            <th data-options="field:'name',">名称</th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th data-options="field:'province_name',">省份</th>
+            <th data-options="field:'register_no',">注册号</th>
+            <th data-options="field:'add_datetime',">添加时间</th>
+        </tr>
+    </thead>    
+</table>
+
+
+<!-- new form -->
+<div id="new_win" class="easyui-window" title="新增名单" closed="true" style="width:80%;height:60%;padding:5px;">
+
+    <form method="post" id="new_form" enctype="multipart/form-data" action="{% url enterprise.apis.add %}">
+
+			<div style="margin-bottom:20px">
+				<div>名单文件:</div>
+				<input name="names_file" class="easyui-filebox" style="width: 50%;" data-options="prompt:'选择csv格式文件'">
+				
+				<ol class="text-muted">
+				    <li>支持多行</li>
+				    <li>
+				        行格式如下：<code>公司名,省份,注册号</code>
+				        <p><small>例子：华安证券股份有限公司,安徽,340000000002071</small></p>
+				    </li>
+				</ol>
+			</div>
+			
+			<div>
+				<button class="easyui-linkbutton" style="width: 50px" type="submit" id="save_btn">保存</button>
+			</div>
+		
+    </form>
+    
+</div>
+<!-- end new form -->
+
+
+
+<script type="text/javascript">
+
+function formatProvince(val) {
+	if(!val) {
+		return "-";
+	}
+	
+	return val.name + "(" + val.label + ")";
+}
+
+function rowStyle(index, row) {
+	
+	if(row.status == 2) {
+		return {"class":"danger"};
+	}
+}
+
+function render_echarts() {
+	console.debug("render echarts");
+	
+	require.config({
+	    paths: {
+	        echarts: "{% static 'echarts/build/dist' %}"
+	    }
+	});
+
+	require(
+	        [
+	            'echarts',
+	            'echarts/chart/bar',
+	            'echarts/chart/line'
+	        ],
+	        function (ec) {
+	            // 基于准备好的dom，初始化echarts图表
+	            var chart = ec.init(document.getElementById('echarts')); 
+	            
+	            chart.showLoading({
+	                text: '正在努力的读取数据中...',    //loading话术
+	            });
+	                    
+	            function load_data() {
+	            	var url = "{% url enterprise.apis.province_echarts %}";
+	            	
+	            	$.getJSON(url, function(resp){
+	            		
+	            		var options = {
+	           				tooltip : {
+	           			        trigger: 'axis'
+	           			    },
+		           			legend: {
+		           		        data:[]
+		           		    },
+		           			xAxis : [
+	                            {
+	                                type : 'category',
+	                                axisLabel:{'interval':0},
+	                                data: resp.xAxis,
+	                                splitLine: {show: true}
+	                            }
+	                        ],
+	                        yAxis : [
+	                            {
+	                                type: 'value',
+	                                name: '企业数'
+	                            }
+	                        ],
+	                        //calculable : true,
+	                        toolbox: {
+	                            show : true,
+	                            feature : {
+	                                mark : {show: true},
+	                                dataView : {show: true, readOnly: false},
+	                                magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+	                                restore : {show: true},
+	                                saveAsImage : {show: true}
+	                            }
+	                        },
+	                        dataZoom : {
+	                            show : false,
+	                            realtime : true,
+	                            start : 0,
+	                            end : 100
+	                        },
+	                        series: [
+	                        ]
+	                    };
+	            	
+            			var serie = {
+						    name: "省份企业数", 
+							type: 'bar',
+							smooth: true,
+							data: resp.series[0]
+						};
+            			
+            			options.legend.data.push("企业数");
+            			options.series.push(serie);
+            		
+	            		chart.hideLoading();
+	            		chart.setOption(options); 
+	            	});
+	            }
+	            
+	            load_data();
+	        }
+	    );
+}
+
+
+$(document).ready(function(){
+	
+	$("#search_btn").bind("click", function(e){
+		
+        $("#grid").datagrid("load", {
+            q: $("#query").val()
+        });
+        
+    });
+	
+	
+	$("#new_btn").bind("click", function(e) {
+		$("#new_win").window("open");
+	});
+	
+	
+	$("#new_form").submit(function(){
+		$("#new_form").find("#save_btn").linkbutton("disable");
+		
+    	$(this).ajaxSubmit({
+            dataType: "json",
+            success: function(resp, status, xhr, frm) {
+                if(!resp.is_ok) {
+                    $.messager.alert('warning', resp.reason);
+                    return;
+                }
+                var content = [
+                    "成功: " + resp.success,
+                    "失败: " + resp.failed,
+                    "重复: " + resp.multiple,
+                ].join(", ");
+                $.messager.alert("success", content);
+                
+                $("#new_form").form("reset");
+                $("#new_form").form("clear");
+                
+                $("#grid").datagrid("reload");
+                
+                $("#new_win").window("close");
+            }
+        });
+    	
+    	return false;
+    });
+	
+	
+	$("#province_select").combobox({
+		onSelect: function(record) {
+			$("#grid").datagrid("reload", {
+	            province: record.value
+	        });
+		}
+	});
+	
+	render_echarts();
+	
+	
+});
+
+</script>
+
+
+
+</body>
+{% endblock %}

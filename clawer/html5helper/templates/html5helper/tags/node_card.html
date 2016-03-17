@@ -1,0 +1,25 @@
+
+
+<div class="row">
+	{% for grid in node_grids %}
+	<div class="col-md-{{col}}">
+		{% for node in grid %}
+            {% if label == "task" %}
+		        {% include node_template with task=node only %}
+            {% elif label == "note" %}
+                {% include node_template with note=node only %}
+            {% elif label == "text_node" %}
+                {% include node_template with text_node=node only %}
+            {% elif label == "question" %}
+                {% include node_template with question=node only %}
+            {% elif label == "fan" %}
+                {% include node_template with fan=node only %}
+            {% elif label == "follow" %}
+                {% include node_template with follow=node request=node_template_data.request only %}
+            {% else %}
+                {% include node_template with data=node  only %}
+            {% endif %}
+		{% endfor %}
+	</div>
+	{% endfor %}
+</div>

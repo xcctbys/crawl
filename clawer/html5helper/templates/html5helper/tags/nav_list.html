@@ -1,0 +1,12 @@
+<div class="list-group">
+	<a href="{{nav.header_link}}" class="list-group-item">
+		<h4 class="list-group-item-heading">{{nav.header}}</h4>
+	</a>	
+    {% for item in nav.items %}
+    <a class="list-group-item {% if item.name == cur_item %}active{%endif%}" href="{{item.link}}">
+    	{% if item.icon %}<span class="{{item.icon}}"></span>{% endif %}
+    	{{ item.name }}
+    	{% if item.number != None %}<span class="badge">{{item.number}}</span>{%endif%}
+    </a>
+    {% endfor %} 
+</div>

@@ -1,0 +1,165 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+<div id="task_stat" style="height:300px;width:90%;"></div>
+
+<div id="task_failed_stat" style="height:200px;width:90%;"></div>
+
+
+<script src="{% static 'echarts/build/dist/echarts.js' %}"></script>
+
+<script>
+
+require.config({
+    paths: {
+        echarts: "{% static 'echarts/build/dist' %}"
+    }
+});
+
+require(
+        [
+            'echarts',
+            'echarts/chart/bar',
+            'echarts/chart/line'
+        ],
+        function (ec) {
+            // 基于准备好的dom，初始化echarts图表
+            var chart = ec.init(document.getElementById('task_stat')); 
+            var failChart = ec.init(document.getElementById('task_failed_stat')); 
+            
+            chart.showLoading({
+                text: '正在努力的读取数据中...',    //loading话术
+            });
+            
+            failChart.showLoading({
+                text: '正在努力的读取警告数据中...',    //loading话术
+            });
+            
+            
+            function load_data() {
+            	var url = "{% url clawer.apis.monitor.task_stat %}";
+            	
+            	$.getJSON(url, function(resp){
+            		
+            		var option = {
+           				tooltip : {
+           			        trigger: 'axis'
+           			    },
+	           			legend: {
+	           		        data: [resp.status[0], resp.status[1], resp.status[3], resp.status[5]]
+	           		    },
+                        xAxis : [
+                            {
+                                type : 'category',
+                                boundaryGap : false,
+                                data : resp.xAxis
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        calculable : true,
+                        toolbox: {
+                            show : true,
+                            feature : {
+                                mark : {show: true},
+                                dataView : {show: true, readOnly: false},
+                                magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                                restore : {show: true},
+                                saveAsImage : {show: true}
+                            }
+                        },
+                        dataZoom : {
+                            show : true,
+                            realtime : true,
+                            start : 0,
+                            end : 100
+                        },
+                        series: []
+                    };
+            		
+            		var fail_option = {
+           				tooltip : {
+           			        trigger: 'axis'
+           			    },
+	           			legend: {
+	           		        data: [resp.status[2], resp.status[4]]
+	           		    },
+	           		    calculable : true,
+                        xAxis : [
+                            {
+                                type : 'category',
+                                boundaryGap : false,
+                                data : resp.xAxis
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        toolbox: {
+                            show : true,
+                            feature : {
+                                mark : {show: true},
+                                dataView : {show: true, readOnly: false},
+                                magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                                restore : {show: true},
+                                saveAsImage : {show: true}
+                            }
+                        },
+                        dataZoom : {
+                            show : true,
+                            realtime : true,
+                            start : 0,
+                            end : 100
+                        },
+                        series: []
+                    };
+            		
+            		for(var i=0; i<resp.status.length; i++) {
+            			var source = resp.series[i];
+            			
+            			var serie = {name:resp.status[i], 
+            				type:'line',
+            				smooth:true,
+            				itemStyle: {normal: {areaStyle: {type: 'default'}}},
+            				data:source
+            			};
+            			if(i==2 || i == 4) {
+            				fail_option.series.push(serie);
+            			} else {
+            				option.series.push(serie);
+            			}
+            			
+            		}
+            		
+            		chart.hideLoading();
+            		chart.setOption(option); 
+            		
+            		failChart.hideLoading();
+            		failChart.setOption(fail_option); 
+            	});
+            }
+            
+            load_data();
+            
+            window.setInterval(function(){
+            	chart.clear();
+            	failChart.clear();
+            	
+            	load_data();
+            }, 60*1000);
+        }
+    );
+
+</script>
+
+</body>
+{% endblock %}

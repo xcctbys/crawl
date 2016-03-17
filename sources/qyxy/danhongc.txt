@@ -1,0 +1,306 @@
+424-Date:   Fri Jan 22 09:30:14 2016 +0800
+425-
+426-    mysql insert and update
+427-
+428-commit 55ae0be6211fcda12effcf5ea29b6e00b2136023
+429:Author: danhongc <danhongc@princetechs.com>
+--
+778-
+779-    fix a bug
+780-
+781-commit 3a8380bd73235e966acca4bc048f02734effe3ad
+782-Merge: 9f4fef4 d04881b
+783:Author: danhongc <danhongc@princetechs.com>
+784-Date:   Wed Jan 20 20:26:51 2016 +0800
+785-
+786-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+787-
+788-commit 9f4fef457ff26ab42424ae8915103cd31e37e27e
+789:Author: danhongc <danhongc@princetechs.com>
+--
+1021-
+1022-    industry_commerce_shareholders
+1023-
+1024-commit 32867dc25bc2a18e07c4bd394db5cd30bc90fad6
+1025-Merge: 5325a24 bdf7fa0
+1026:Author: danhongc <danhongc@princetechs.com>
+--
+1028-
+1029-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+1030-
+1031-commit 5325a244db3ca491d8c7b8937fea90c7e3cbb420
+1032-Merge: 7683ca0 990960b
+1033:Author: danhongc <danhongc@princetechs.com>
+--
+1053-Date:   Wed Jan 20 09:55:03 2016 +0800
+1054-
+1055-    industry_commerce_clear
+1056-
+1057-commit 7683ca0875334d408780b50603b1404910a0e378
+1058:Author: danhongc <danhongc@princetechs.com>
+--
+1622-
+1623-    modify baidu search
+1624-
+1625-commit 97da32e30c07657e140271707bec67bb06ea3226
+1626-Merge: 52cb0ff e216431
+1627:Author: danhongc <danhongc@princetechs.com>
+--
+1636-
+1637-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+1638-
+1639-commit 52cb0ff5b27eb6a7fb03af729c2386a79ee71865
+1640-Merge: bb25c8c 5a50ac2
+1641:Author: danhongc <danhongc@princetechs.com>
+--
+1648-Date:   Fri Jan 15 19:49:38 2016 +0800
+1649-
+1650-    haijunt
+1651-
+1652-commit bb25c8c4cf2d5ceff30b0b925b81ad988dbfa04d
+1653:Author: danhongc <danhongc@princetechs.com>
+--
+1805-Date:   Fri Jan 15 15:05:53 2016 +0800
+1806-
+1807-    add x for all
+1808-
+1809-commit ec85b2eceb7260ad14901c5f283ca1e4514bf98f
+1810:Author: danhongc <danhongc@princetechs.com>
+--
+1818-
+1819-    crawler chongqing
+1820-
+1821-commit b423c9e9a295d3fa7ed4739783e8a55d195b365d
+1822-Merge: b77437b 28af73f
+1823:Author: danhongc <danhongc@princetechs.com>
+1824-Date:   Fri Jan 15 14:40:29 2016 +0800
+1825-
+1826-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+1827-
+1828-commit b77437b6b5f9f2176d51bfe52026514a010e708e
+1829:Author: danhongc <danhongc@princetechs.com>
+--
+2196-Date:   Thu Jan 14 10:25:51 2016 +0800
+2197-
+2198-    更新mappings
+2199-
+2200-commit 706bb8e1c73d74c62827c4ff25d3a2ca77517f1c
+2201:Author: danhongc <danhongc@princetechs.com>
+--
+2203-
+2204-    adjust the output
+2205-
+2206-commit 978430f20453dba5a5027edefd140530b79049a5
+2207-Merge: cc84415 ec2dcff
+2208:Author: danhongc <danhongc@princetechs.com>
+--
+2215-Date:   Wed Jan 13 21:27:43 2016 +0800
+2216-
+2217-    add x for supervisord
+2218-
+2219-commit cc84415ef8d47ad78f3c5762e84c9f356d66c7d6
+2220:Author: danhongc <danhongc@princetechs.com>
+--
+2322-
+2323-    shandong modified 1.12
+2324-
+2325-commit 2a485b873c5719fc6ef6d25f66f6891f96c40867
+2326-Merge: 569397a c719664
+2327:Author: danhongc <danhongc@princetechs.com>
+2328-Date:   Wed Jan 13 15:17:21 2016 +0800
+2329-
+2330-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2331-
+2332-commit 569397a3abfbe844daf8beb2dd5b03172a5b2fa6
+2333:Author: danhongc <danhongc@princetechs.com>
+--
+2413-
+2414-    haijunt
+2415-
+2416-commit 5e4222ee367b19da3cf96bde54c9b189c0e47df3
+2417-Merge: c967c05 7eda0c2
+2418:Author: danhongc <danhongc@princetechs.com>
+2419-Date:   Tue Jan 12 18:17:58 2016 +0800
+2420-
+2421-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2422-
+2423-commit c967c050274bd4b7426db933204dafea7fcdca9b
+2424:Author: danhongc <danhongc@princetechs.com>
+--
+2472-
+2473-    shandong not finished
+2474-
+2475-commit 1afc5b6bc278ea256bd2d652694787b3d3dbaf7d
+2476-Merge: a337443 56e29ee
+2477:Author: danhongc <danhongc@princetechs.com>
+2478-Date:   Mon Jan 11 18:31:25 2016 +0800
+2479-
+2480-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2481-
+2482-commit a3374439a0196dce2ad83b0ae584002bcb6b78ae
+2483:Author: danhongc <danhongc@princetechs.com>
+--
+2561-Date:   Sat Jan 9 15:47:46 2016 +0800
+2562-
+2563-    haijunt
+2564-
+2565-commit d83b9244c85a7537d5a8b1c30c36c35c0aeb6e17
+2566:Author: danhongc <danhongc@princetechs.com>
+--
+2614-
+2615-    tianjin 缺人员表
+2616-
+2617-commit e1c25a3d60a4db91d9337c2239ad35e9fc5066a2
+2618-Merge: a9f3669 3d6f2af
+2619:Author: danhongc <danhongc@princetechs.com>
+2620-Date:   Fri Jan 8 18:43:41 2016 +0800
+2621-
+2622-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2623-
+2624-commit a9f366991434eebfda209de3acc8d90d10ec1c9c
+2625:Author: danhongc <danhongc@princetechs.com>
+--
+2632-Date:   Fri Jan 8 17:49:21 2016 +0800
+2633-
+2634-    update captcha recoginition model
+2635-
+2636-commit eb15bd47f27f93bff4212a7d838d14151908938a
+2637:Author: danhongc <danhongc@princetechs.com>
+2638-Date:   Fri Jan 8 17:17:54 2016 +0800
+2639-
+2640-    fix bug CaptchaRecognition.py
+2641-
+2642-commit 0a8fbb02146bb068fd0957c30716591ba6f65b5f
+2643:Author: danhongc <danhongc@princetechs.com>
+--
+2645-
+2646-    hunan
+2647-
+2648-commit 9836c825fcc43693c02cc7fe3e5a1ad6e2f9c881
+2649-Merge: 134ec95 fa3ffaf
+2650:Author: danhongc <danhongc@princetechs.com>
+2651-Date:   Fri Jan 8 12:55:05 2016 +0800
+2652-
+2653-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2654-
+2655-commit 134ec95422240e9c39c289e4719bcd1119d53dbc
+2656:Author: danhongc <danhongc@princetechs.com>
+--
+2720-Date:   Thu Jan 7 19:02:19 2016 +0800
+2721-
+2722-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2723-
+2724-commit e771bbf03d26dfd2ace94a9d045ea234325e72ac
+2725:Author: danhongc <danhongc@princetechs.com>
+--
+2739-Date:   Thu Jan 7 17:16:44 2016 +0800
+2740-
+2741-    haijunt
+2742-
+2743-commit 046e6079b48358043ad6123be8824ec4b3d83797
+2744:Author: danhongc <danhongc@princetechs.com>
+--
+2823-
+2824-    haijunt
+2825-
+2826-commit 53a2694ed00cb342a1bb282913e46a9469e8ed9c
+2827-Merge: 297cdb3 6dacfef
+2828:Author: danhongc <danhongc@princetechs.com>
+2829-Date:   Wed Jan 6 18:43:45 2016 +0800
+2830-
+2831-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2832-
+2833-commit 297cdb3db444273d8cbc6cafb69a9a3fc1f2fb43
+2834:Author: danhongc <danhongc@princetechs.com>
+--
+2873-
+2874-    add a new python file:no2name for no to name
+2875-
+2876-commit 451fd7b800304e8c3d45744847fa1e6d27ad8f6a
+2877-Merge: 8723b20 c00e411
+2878:Author: danhongc <danhongc@princetechs.com>
+2879-Date:   Tue Jan 5 21:02:10 2016 +0800
+2880-
+2881-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2882-
+2883-commit 8723b200541fe37808a05de798b23f1964db352a
+2884:Author: danhongc <danhongc@princetechs.com>
+--
+2967-
+2968-    add x priviledge
+2969-
+2970-commit 8108e629024f3104e2463e8ac1b2ba952df91188
+2971-Merge: a4540d1 39b1007
+2972:Author: danhongc <danhongc@princetechs.com>
+2973-Date:   Mon Jan 4 21:24:04 2016 +0800
+2974-
+2975-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+2976-
+2977-commit a4540d1090639dc49c3b0fd20ee432b72d3edf82
+2978:Author: danhongc <danhongc@princetechs.com>
+--
+3123-Date:   Fri Jan 1 08:46:06 2016 +0800
+3124-
+3125-    use pro
+3126-
+3127-commit a1f77f347224d0d93ffdb55cd9166aceff3fdbdf
+3128:Author: danhongc <danhongc@princetechs.com>
+--
+3154-Date:   Thu Dec 31 18:44:47 2015 +0800
+3155-
+3156-    guangdongv1
+3157-
+3158-commit 28ed9aedd0d1656318faa4ffa9355ef74c7e6f7c
+3159:Author: danhongc <danhongc@princetechs.com>
+3160-Date:   Thu Dec 31 17:36:34 2015 +0800
+3161-
+3162-    baidu_company_search
+3163-
+3164-commit 783a8205613d3b8309f91cd740f24ebf84b572c4
+3165:Author: danhongc <danhongc@princetechs.com>
+3166-Date:   Thu Dec 31 17:32:36 2015 +0800
+3167-
+3168-    baidu_company_search
+3169-
+3170-commit eb2dd12f3d7379212eab358e818ba936640221b2
+3171:Author: danhongc <danhongc@princetechs.com>
+--
+3173-
+3174-    optimized search
+3175-
+3176-commit dd8bd6086916acba6b5fd008c934728ed2a1ba68
+3177-Merge: b099672 a11f6c1
+3178:Author: danhongc <danhongc@princetechs.com>
+3179-Date:   Wed Dec 30 14:56:27 2015 +0800
+3180-
+3181-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+3182-
+3183-commit b099672b8e117606f23eab66bf0f6aab4e0cdcd5
+3184:Author: danhongc <danhongc@princetechs.com>
+--
+4175-Date:   Sat Nov 14 08:10:19 2015 +0800
+4176-
+4177-    support foreign generator
+4178-
+4179-commit 88933a0f43382fc2367d603fae7297d66cb3850c
+4180:Author: danhongc <danhongc@princetechs.com>
+--
+4182-
+4183-    local_getUrl
+4184-
+4185-commit 8a95fdef8cef89e1076e4a19a68f235a07b594b0
+4186-Merge: f650a0e 6c81a5d
+4187:Author: danhongc <danhongc@princetechs.com>
+4188-Date:   Thu Nov 12 10:41:49 2015 +0800
+4189-
+4190-    Merge branch 'master' of git.princetechs.com:/data/repos/nice-clawer
+4191-
+4192-commit f650a0e01c88371350829dc949e8a070aac0e38f
+4193:Author: danhongc <danhongc@princetechs.com>
+--
+4200-Date:   Tue Nov 10 15:38:52 2015 +0800
+4201-
+4202-    add 4 keywords
+4203-
+4204-commit 39b8568ea96ceb546b6c0247be9c121353e26a66
+4205:Author: danhongc <danhongc@princetechs.com>

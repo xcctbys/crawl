@@ -1,0 +1,34 @@
+
+
+<div class="bdsharebuttonbox" data-tag="{{tag}}">
+    <a class="bds_qzone" data-cmd="qzone" href="#"></a>
+    <a class="bds_tsina" data-cmd="tsina"></a>
+    <a class="bds_weixin" data-cmd="weixin"></a>
+    <a class="bds_taobao" data-cmd="taobao"></a>
+    <a class="bds_tqq" data-cmd="tqq"></a>
+    <a class="bds_more" data-cmd="more">更多</a>
+    <a class="bds_count" data-cmd="count"></a>
+</div>
+
+<script>
+
+window._bd_share_config = {
+    common : {
+        bdText:"{{title}}, {{description}}",
+        bdDesc:"{{description}}",
+        bdUrl :"{{link}}",
+    },
+    share : [
+		//此处放置分享按钮设置
+		{tag:"{{tag}}", bdSize:{{size}}}
+		
+	],
+	image : [
+		//此处放置图片分享设置
+	],
+};
+
+ with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=86835285.js?cdnversion='+~(-new Date()/36e5)];    
+</script>
+
+

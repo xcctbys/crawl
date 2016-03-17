@@ -1,0 +1,12 @@
+
+<div class="form-group" style="{% if is_hidden %}display: none;{% endif %}">
+	{% if is_show_label %}
+	<label>{{field.label}}</label>
+	{% endif %}
+	
+	{{field}} 
+	
+	{% if field.help_text %}<span class="help-block">{{field.help_text}}</span>{% endif %}
+	
+	{{field.errors}}
+</div>

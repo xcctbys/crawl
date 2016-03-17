@@ -1,0 +1,257 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+
+<div id="toolbar">
+    <input id="id_input" class="easyui-textbox" data-options="iconCls:'icon-search'" style="width:200px" prompt="根据任务ID搜索">
+    <a href="#" class="easyui-linkbutton" id="search_btn">Go</a>
+    |
+    <a href="#" class="easyui-menubutton" data-options="menu:'#date_choices',">操作</a>
+    
+    <select class="easyui-combogrid" type="text" id="id_clawer_select" data-options="required:true" style="width:100px;" ></select>
+    <select class="easyui-combobox" type="text" id="id_status_select" data-options="required:true" style="width:100px;" ></select>
+    
+    <span id="tips"></span>
+</div>
+
+<div id="date_choices">
+    <div id="select_date_btn">选择日期</div>
+</div>
+
+
+<table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
+        url="{% url clawer.apis.home.clawer_analysis_log %}" showFooter="true"
+        data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
+        toolbar="#toolbar" fitColumns="true">
+        
+    <thead data-options="frozen:true">
+        <tr>
+            <th data-options="field:'id',width:80" sortable="true">ID</th>
+            <th data-options="field:'status'," formatter="formatStatus">状态</th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th data-options="field:'result',width:200," formatter="formatResult">结果</th>
+            <th data-options="field:'clawer',"  formatter="formatClawer">爬虫</th>
+            <th data-options="field:'hostname'," >主机名</th>
+            <th data-options="field:'task',"  formatter="formatTask">任务</th>
+            <th data-options="field:'failed_reason',width:200," formatter="formatFailedReason">失败原因</th>
+            <th data-options="field:'add_datetime',">添加时间</th>
+        </tr>
+    </thead>    
+</table>
+
+
+<!-- result win -->
+<div id="result_win" class="easyui-window" title="结果详情" closed="true" style="width:80%;height:90%;padding:5px;">
+</div>
+<!-- result win end -->
+
+
+<!-- failed reason win -->
+<div id="failed_reason_win" class="easyui-window" title="失败详情" closed="true" style="width:80%;height:90%;padding:5px;">
+</div>
+<!-- failed reason win end -->
+
+
+<!-- calendar win -->
+<div id="calendar_win" class="easyui-window" title="日历" closed="true" style="width:80%;height:90%;padding:5px;">
+    <div id="cc" class="easyui-calendar" style="width:60%;height:80%;"></div>
+</div>
+<!-- calendar win end -->
+
+
+
+
+<script type="text/javascript">
+
+function formatClawer(val) {
+	if(!val) {
+		return "";
+	}
+	return "ID: "+val.id+"("+val.name+")";
+}
+
+function formatTask(val) {
+	if(!val) {
+		return "";
+	}
+	return "ID: "+val.id+"("+val.store+")";
+}
+
+
+function formatFailedReason(val, row) {
+	if(!val) {
+		return "-";
+	}
+	
+	var row_index = $("#grid").datagrid("getRowIndex", row);
+	
+	return "<a href='#' onclick='javascript:showFailedReasonWin("+row_index+")'>"+row.failed_reason.substring(0, 50)+"</a>"
+}
+
+function formatStatus(val) {
+	if(val == null) {
+		return "";
+	}
+	
+	if(val == 1) {
+		return "×";
+	} else if(val == 2) {
+		return "√";
+	}
+}
+
+function showFailedReasonWin(row_index) {
+	$("#grid").datagrid("selectRow", row_index);
+	
+	var row = $("#grid").datagrid("getSelected");
+	console.debug("row is ", row);
+	
+	var content = ["<pre class='highlight'>",
+	    "<code>",
+	    row.failed_reason,
+	    "</code>",
+	    "</pre>"
+	].join(" ");
+	
+	$("#failed_reason_win").html(content);
+	$("#failed_reason_win").window("open");
+}
+
+
+function formatResult(val, row) {
+	if(!val) {
+		return "-";
+	}
+	
+	var row_index = $("#grid").datagrid("getRowIndex", row);
+	
+	return "<a href='#' onclick='javascript:showResultWin("+row_index+")'>"+row.result.substring(0, 50)+"</a>"
+}
+
+function showResultWin(row_index) {
+	$("#grid").datagrid("selectRow", row_index);
+	
+	var row = $("#grid").datagrid("getSelected");
+	console.debug("row is ", row);
+	
+	var result = JSON.stringify($.parseJSON(row.result), null, 4);
+	
+	var content = ["<pre class='highlight'>",
+	    "<code>",
+	    result,
+	    "</code>",
+	    "</pre>"
+	].join(" ");
+	
+	$("#result_win").html(content);
+	$("#result_win").window("open");
+}
+
+function formatDate(date) {
+	var year = date.getFullYear();
+	var month = date.getMonth() + 1;
+	var day = date.getDate();
+	
+	var result = "";
+	
+	result += year;
+	result += "-";
+	if(month < 10) {
+		result += "0" + month;
+	} else {
+		result += month;
+	}
+	result += "-";
+	if(day < 10) {
+		result += "0" + day;
+	} else {
+		result += day;
+	}
+	
+	return result;
+}
+
+
+function load_clawers() {
+	var url = "{% url clawer.apis.home.clawer_all %}";
+		
+	$("#id_clawer_select").combogrid({
+		panelWidth:450,
+		mode: 'remote',
+		url: url,
+		idField: 'id',
+	    textField: 'name',
+		columns: [[
+			{field:'id',title:'ID',width:80,sortable:true},
+			{field:'name',title:'名称',width:120,sortable:true},
+			{field:'info',title:'简介',width:250,sortable:true}
+		]],
+		onChange: function(new_value, old_value) {
+			reload_datagrid();
+		}
+	});
+	
+	$("#id_status_select").combobox({
+		valueField:'id',
+	    textField:'text',
+	    onSelect: function(item) {
+	    	reload_datagrid();
+	    },
+	    data: [
+            {id:null, text:"全部"},
+	   	    {id:2, text:"成功"},
+		    {id:1, text:"失败"}
+		]
+	});
+	
+}
+
+function reload_datagrid() {
+	var status = $("#id_status_select").combobox("getValue");
+	var clawer_id = $("#id_clawer_select").combobox("getValue");
+	
+	$('#grid').datagrid('load', {
+	    status: status,
+	    clawer: clawer_id
+	});
+}
+
+
+$(document).ready(function(){
+	
+	$("#select_date_btn").bind("click", function(e){
+		$("#calendar_win").window("open");
+		$("#calendar_win").calendar({
+			onSelect: function(date) {
+				$("#grid").datagrid("load", {date: formatDate(date)});
+				$("#calendar_win").window("close");
+				$("#tips").html(formatDate(date));
+			}
+		});
+	});
+
+	
+	$("#search_btn").bind("click", function(e){
+		var task_id = $("#id_input").val();
+		
+		$("#grid").datagrid("load", {
+			"task_id": task_id
+		});
+	});
+	
+	load_clawers();
+	
+});
+</script>
+
+
+
+</body>
+{% endblock %}

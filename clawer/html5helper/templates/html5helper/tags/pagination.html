@@ -1,0 +1,41 @@
+
+{% if pager and pager.paginator.num_pages > 1 %}
+  <ul class="pagination pagination-sm">
+  	  {% if pager.has_previous%}
+  	  <li><a href="{{prefix}}/{{pager.previous_page_number}}/{{params}}">上一页</a></li>
+  	  {% endif %}
+  	  
+  	  {% for page in first_pages %}
+  	  <li {% if pager.number == page %}class="active"{% endif %}>
+  	  	<a href="{{prefix}}/{{page}}/{{params}}">{{page}}</a>
+  	  </li>
+  	  {% endfor %}
+  	  {% if first_pages %}
+  	  <li><a href="javascript:void(0)">....</a></li>
+  	  {% endif %}
+  	  
+  	  {% for page in pages %}
+  	  <li {% if pager.number == page %}class="active"{% endif %}>
+  	  	<a href="{{prefix}}/{{page}}/{{params}}">{{page}}</a>
+  	  </li>
+  	  {% endfor %}
+  	  
+  	  {% if last_pages %}
+  	  <li><a href="javascript:void(0)">....</a></li>
+  	  {% endif %}
+  	  {% for page in last_pages %}
+  	  <li {% if pager.number == page %}class="active"{% endif %}>
+  	  	<a href="{{prefix}}/{{page}}/{{params}}">{{page}}</a>
+  	  </li>
+  	  {% endfor %}
+  	  
+  	  
+  	  
+  	  {% if pager.has_next %}
+  	  <li><a href="{{prefix}}/{{pager.next_page_number}}/{{params}}">下一页</a></li>
+  	  {% endif %}
+  	  
+  	  <li class="disabled"><a href="javascript:void(0);">{{pager.paginator.count}}条 {{pager.paginator.num_pages}}页</a></li>
+  </ul>
+  
+{% endif %}

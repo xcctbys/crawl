@@ -1,0 +1,504 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+<div id="toolbar">
+    <a href="#" class="easyui-menubutton" menu="#task_generators">任务生成器</a>
+    <a href="#" class="easyui-menubutton" menu="#analysis">分析器</a> 
+    <a href="#" class="easyui-menubutton" data-options="menu:'#operate',">操作</a>
+    
+    <select id="status_select" class="easyui-combobox" name="status" style="width:200px;">
+	    <option value="">全部</option>
+	    <option value="1">在线</option>
+	    <option value="2">下线</option>
+	</select>
+	
+    <input type="number" id="id_input" name="id" prompt="ID" class="easyui-textbox" />
+    <a href="javascript:void(0)" id="search_btn" class="easyui-linkbutton" data-options="iconCls:'icon-search'">搜索</a>
+</div>
+
+<div id="task_generators">
+    <div id="task_generator_update_btn" iconCls="icon-edit">更新</div>
+	<div class="menu-sep"></div>
+	<div id="task_generator_info_btn" iconCls="">运行中</div>
+	<div id="task_generator_history_btn" iconCls="">历史版本</div>
+</div>
+
+<div id="analysis">
+    <div id="analysis_update_btn" iconCls="icon-edit">更新</div>
+	<div class="menu-sep"></div>
+	<div id="analysis_runing_btn" iconCls="">运行中</div>
+	<div id="analysis_history_btn" iconCls="">历史版本</div>
+</div>
+
+<div id="operate">
+	<div id="analysis_failed_reset_btn">重设分析失败的任务</div>
+	<div id="analysis_success_reset_btn">重设分析成功的任务</div>
+	<div id="process_reset_btn">重设进行中的任务</div>
+</div>
+
+<table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
+        fitColumns="true" url="{% url clawer.apis.home.clawer_all %}" showFooter="true"
+        data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
+        toolbar="#toolbar" rowStyler="rowStyle">
+        
+    <thead data-options="frozen:true">
+        <tr>
+            <th data-options="field:'id',width:80" sortable="true">ID</th>
+            <th data-options="field:'name',">名称</th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th data-options="field:'status_name',">状态</th>
+            <th data-options="field:'customer',">客户名</th>
+            <th data-options="field:'info',">简介</th>
+            <th data-options="field:'runing_task_generator'" formatter="formatTaskGenerator">运行中的任务生成器</th>
+            <th data-options="field:'runing_analysis'" formatter="formatAnalysis">运行中的分析器</th>
+            <th data-options="field:'result_url'" formatter="formatResultUrl">下载数据</th>
+            <th data-options="field:'add_datetime'," width="200px">添加时间</th>
+        </tr>
+    </thead>    
+</table>
+
+
+<!-- update task generator form -->
+<div id="task_generator_update_win" class="easyui-window" title="更新任务生成器" closed="true" style="width:80%;height:60%;padding:5px;">
+    <form method="post" id="task_generator_update_form" enctype="multipart/form-data" action="{% url clawer.apis.home.clawer_task_generator_update %}">
+
+			<div style="margin-bottom:20px">
+				<div>Python 文件:</div>
+				<input id="code_file" name="code_file" class="easyui-filebox" style="width: 50%;" data-options="prompt:'选择Python文件'">
+				<input id="clawer" name="clawer" type="hidden" />
+				<ol class="text-muted">
+				    <li>支持<code>requests, Beautiful Soup, python标准库</code></li>
+				    <li>
+				        根据Crontab调度，执行后输出到stdout。每行一个完整的json串，json格式如下：{"uri":"", "cookie":"", "args":""}。 
+				        <p><small>例子：{"url":"http://www.github.com", "cookie":"kkk", "args":"kk=ss"}</small></p>
+				    </li>
+				    <li>
+				        支持如下三种下载引擎：
+				        <ul>
+				            <li>requests: 支持使用requests库下载，不渲染页面js。</li>
+				            <li>phantomjs: 支持使用phantomjs库下载，渲染页面js。</li>
+				            <li>selenium: use firefox.</li>
+				        </ul>
+				    </li>
+				    <li>支持协议http、https、enterprise(企业信用数据下载协议)</li>
+				</ol>
+			</div>
+			
+			<div style="margin-bottom:20px">
+				<div>Crontab: <small class="text-muted">5     10      *     *       *</small></div>
+				<input id="cron" name="cron" class="easyui-textbox" style="width: 50%" data-options="">
+				
+			</div>
+			
+			<div>
+				<button class="easyui-linkbutton" style="width: 50px" type="submit">保存</button>
+			</div>
+		
+    </form>
+    
+</div>
+<!-- update task generator form end -->
+
+
+
+<!-- task generator runing -->
+<div id="task_generator_info_win" class="easyui-window" title="任务生成器详情" closed="true" style="width:80%;height:90%;padding:5px;">
+</div>
+<!-- task generator runing end -->
+
+
+<!-- task generator history window -->
+<div id="task_generator_history_win" class="easyui-window" title="任务生成器历史版本" closed="true" style="width:80%;height:90%;padding:5px;">
+    
+</div>
+<!-- task generator history window end -->
+
+
+
+<!-- update analysis form -->
+<div id="analysis_update_win" class="easyui-window" title="更新分析器" closed="true" style="width:80%;height:60%;padding:5px;">
+    <form method="post" id="analysis_update_form" enctype="multipart/form-data" action="{% url clawer.apis.home.clawer_analysis_update %}">
+
+			<div style="margin-bottom:20px">
+				<div>Python 文件:</div>
+				<input id="code_file" name="code_file" class="easyui-filebox" style="width: 50%;" data-options="prompt:'选择Python文件'">
+				<input id="clawer" name="clawer" type="hidden" />
+				<ol class="text-muted">
+				    <li>支持<code>requests, Beautiful Soup, python标准库</code></li>
+				    <li>
+				        从stdin读取json数据，格式： {"path":"文件路径", "url":"", "args":""}
+				        <ul>
+				            <li>path: 文件路径</li>
+				            <li>url: 生成器的任务url</li>
+				            <li>args: 生成器生成的args</li>
+				        </ul>
+				    </li>
+				    <li>执行后输出json串到stdout。<small>例子：{"name":"hello"}</small></li>
+				    <li>运行时间不能超过120秒</li>
+				</ol>
+			</div>
+			
+			<div>
+				<button class="easyui-linkbutton" style="width: 50px" type="submit">保存</button>
+			</div>
+		
+    </form>
+    
+</div>
+<!-- update task generator form end -->
+
+<!-- analysis runing -->
+<div id="analysis_runing_win" class="easyui-window" title="运行中的分析器" closed="true" style="width:80%;height:90%;padding:5px;">
+</div>
+<!-- analysis runing end -->
+
+
+<!-- analysis history window -->
+<div id="analysis_history_win" class="easyui-window" title="分析器历史版本" closed="true" style="width:80%;height:90%;padding:5px;">
+    
+</div>
+<!-- analysis history window end -->
+
+
+<script type="text/javascript">
+
+function formatResultUrl(val) {
+	if(!val) {
+		return "";
+	}
+	return "<a href='"+val+"' target='_blank'>下载</a>";
+}
+
+function formatTaskGenerator(val) {
+	console.debug("task generator is: ", val);
+	
+	if(!val) {
+		return "-";
+	}
+	
+	var result = val.id;
+	if(val.last_failed_datetime) {
+		result += " (最后失败时间："+val.last_failed_datetime+")";
+	} else {
+		result += " ("+val.add_datetime+")";
+	}
+	
+	return result;
+}
+
+function formatAnalysis(val) {
+	if(!val) {
+		return "-";
+	}
+	
+	return "ID: " + val.id + "(" + val.add_datetime + ")";
+}
+
+function rowStyle(index, row) {
+	console.debug("index ", index, ", row status ", row.status, ", row ", row);
+	if(row.status == 2) {
+		return {"class":"danger"};
+	}
+}
+
+
+$(document).ready(function(){
+	
+	$("#search_btn").bind("click", function(e){
+		
+        $("#grid").datagrid("load", {
+            obj_id: $("#id_input").val()
+        });
+        
+    });
+	
+	$("#task_generator_update_btn").bind("click", function(e){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+		$("#task_generator_update_win").find("#clawer").val(row.id);
+		$("#task_generator_update_win").window("open");
+	});
+	
+	$("#task_generator_update_form").submit(function(){
+    	$(this).ajaxSubmit({
+            dataType: "json",
+            success: function(resp, status, xhr, frm) {
+                if(!resp.is_ok) {
+                    $.messager.alert('warning', resp.reason);
+                    return;
+                }
+                
+                $("#task_generator_update_form").form("reset");
+                $("#task_generator_update_form").form("clear");
+                $("#grid").datagrid("reload");
+                $("#task_generator_update_win").window("close");
+            }
+        });
+    	
+    	return false;
+    });
+	
+	$("#task_generator_info_btn").bind("click", function(e){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+		var item = row.runing_task_generator;
+		var html = [
+		    "<h4>",
+		    "ID: ",
+		    item.id,
+		    ", ",
+		    item.add_datetime,
+		    "<small class='text-muted'>",
+		    "    Crontab: ",
+		    item.cron,
+		    "</small>",
+		    "</h4>",
+		    "<pre class='highlight'>",
+		    "<code>",
+		    item.code,
+		    "</code>",
+		    "</pre>",
+		].join("");
+		$("#task_generator_info_win").html(html);
+		
+		$("#task_generator_info_win").window("open");
+		
+	});
+	
+	$("#task_generator_history_btn").bind("click", function(e){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+		var url = "{% url clawer.apis.home.clawer_task_generator_history %}";
+		
+		$.getJSON(url, {"clawer_id":row.id}, function(resp){
+			if(resp.is_ok == false) {
+				return $.messager.alert("warning", resp.reason);
+			}
+			
+			var content = "";
+			
+			for(var i=0; i<resp.rows.length; i++) {
+				var item = resp.rows[i];
+				var code = ["<div>",
+				    "<h4>",
+				    "ID: ",
+				    item.id,
+				    ", ",
+				    item.add_datetime,
+				    " <small>",
+				    item.status_name,
+				    "</small>",
+				    "</h4>",
+				    "<small>",
+				    "Crontab：",
+				    item.cron,
+				    "</small>",
+				    
+				    "<pre class='highlight'>",
+				    "<code>",
+				    item.code,
+				    "</code>",
+				    "</pre>",
+				    "</div>",
+				].join("");
+				content = content + code;
+			}
+			console.debug("content is ", content);
+			$("#task_generator_history_win").html(content);
+			
+		});
+		
+		$("#task_generator_history_win").window("open");
+		
+	});
+	
+	//analysis
+	$("#analysis_update_btn").bind("click", function(e){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+		$("#analysis_update_win").find("#clawer").val(row.id);
+		$("#analysis_update_win").window("open");
+		
+		
+		$("#analysis_update_form").submit(function(){
+	    	$(this).ajaxSubmit({
+	            dataType: "json",
+	            success: function(resp, status, xhr, frm) {
+	                if(!resp.is_ok) {
+	                    $.messager.alert('warning', resp.reason);
+	                    return;
+	                }
+	                
+	                $("#analysis_update_form").form("reset");
+	                $("#analysis_update_form").form("clear");
+	                $("#grid").datagrid("reload");
+	                $("#analysis_update_win").window("close");
+	            }
+	        });
+	    	
+	    	return false;
+	    });
+		
+	});
+	
+	$("#analysis_runing_btn").bind("click", function(e){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+		var item = row.runing_analysis;
+		var html = [
+		    "<h4>",
+		    "ID: ",
+		    item.id,
+		    ", ",
+		    item.add_datetime,
+		    "</h4>",
+		    "<pre class='highlight'>",
+		    "<code>",
+		    item.code,
+		    "</code>",
+		    "</pre>",
+		].join("");
+		$("#analysis_runing_win").html(html);
+		
+		$("#analysis_runing_win").window("open");
+		
+	});
+	
+
+	$("#analysis_history_btn").bind("click", function(e){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+		var url = "{% url clawer.apis.home.clawer_analysis_history %}";
+		
+		$.getJSON(url, {"clawer_id":row.id}, function(resp){
+			if(resp.is_ok == false) {
+				return $.messager.alert("warning", resp.reason);
+			}
+			
+			var content = "";
+			
+			for(var i=0; i<resp.rows.length; i++) {
+				var item = resp.rows[i];
+				var code = ["<div>",
+				    "<h4>",
+				    "ID: ",
+				    item.id,
+				    ", ",
+				    item.add_datetime,
+				    " <small>",
+				    item.status_name,
+				    "</small>",
+				    "</h4>",
+				    "<pre class='highlight'>",
+				    "<code>",
+				    item.code,
+				    "</code>",
+				    "</pre>",
+				    "</div>",
+				].join("");
+				content = content + code;
+			}
+			console.debug("content is ", content);
+			$("#analysis_history_win").html(content);
+			
+		});
+		
+		$("#analysis_history_win").window("open");
+		
+	});
+	
+	$("#analysis_failed_reset_btn").bind("click", function(){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+	     var url = "{% url clawer.apis.home.clawer_task_reset %}";
+		 $.getJSON(url, {"clawer":row.id, "status":5}, function(resp){
+		     if(resp.is_ok) {
+				 $.messager.alert("success", "影响数据: " + resp.ret);
+		     } else {
+		    	 $.messager.alert("warning", "failed: "+resp.reason);
+		     }
+		     
+		 });
+	});
+	
+	$("#analysis_success_reset_btn").bind("click", function(){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+	     var url = "{% url clawer.apis.home.clawer_task_reset %}";
+		 $.getJSON(url, {"clawer":row.id, "status":6}, function(resp){
+		     if(resp.is_ok) {
+				 $.messager.alert("success", "影响数据: " + resp.ret);
+		     } else {
+		    	 $.messager.alert("warning", "failed: "+resp.reason);
+		     }
+		     
+		 });
+	});
+	
+	$("#process_reset_btn").bind("click", function(){
+		var row = $("#grid").datagrid("getSelected");
+		if(!row) {
+			return $.messager.alert('Warning', '请先选择一条数据');
+		}
+		
+	     var url = "{% url clawer.apis.home.clawer_task_reset %}";
+		 $.getJSON(url, {"clawer":row.id, "status":2}, function(resp){
+		     if(resp.is_ok) {
+				 $.messager.alert("success", "影响数据: " + resp.ret);
+		     } else {
+		    	 $.messager.alert("warning", "failed: "+resp.reason);
+		     }
+		     
+		 });
+	});
+	
+	
+	$("#status_select").combobox({
+		onSelect: function(record) {
+			console.debug(record);
+			$("#grid").datagrid("load", {
+	            status: record.value
+	        });
+		}
+	});
+	
+	
+});
+
+</script>
+
+
+
+</body>
+{% endblock %}

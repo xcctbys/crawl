@@ -1,0 +1,98 @@
+{% extends "clawer/base.html"%}
+{% load static %}
+
+
+{% block body %}
+<body>
+
+<table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
+        fitColumns="true"  fit="false" url="{% url clawer.apis.logger.all %}" showFooter="true"
+        data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true">
+        
+    <thead data-options="frozen:true">
+        <tr>
+            <th data-options="field:'id',width:80" sortable="true">ID</th>
+            <th data-options="field:'user_profile'," formatter="format_user">操作人</th>
+            <th data-options="field:'category'," sortable="true">分类</th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th data-options="field:'from_ip'," sortable="true">来自IP</th>
+            <th data-options="field:'title',">名称</th>
+            <th data-options="field:'content',width:200" sortable="true" formatter="formatContent">内容</th>
+            <th data-options="field:'add_at'," sortable="true">添加时间</th>
+            <th data-options="field: 'action', formatter:formatAction">详细</th>
+        </tr>
+    </thead>    
+</table>
+
+
+<!--  detail windows -->
+<div id="detail_win" class="easyui-window" title="内容" closed="true" style="width:80%;height:60%;padding:5px;">
+    
+</div>
+<!--  detail windows end -->
+
+<script type="text/javascript">
+
+function format_user(val, row) {
+	if(!val) {
+		return "";
+	}
+	return val.username + "(ID: "+val.id+")";
+}
+
+function formatAction(val, row) {
+	var row_index = $("#grid").datagrid("getRowIndex", row);
+	console.debug("row index", row_index);
+	
+    var content = "<a href='javascript:void(0)' onclick='showDetailWin("+row.id+", " + row_index + ")'>详细</a>";
+    return content;
+}
+
+function formatContent(val, row) {
+	if(!val) {
+		return val;
+	}
+	
+    var max_length = 100;
+    if(val.length > max_length) {
+    	return val.substring(0, max_length) + "...."
+    }
+    return val;
+}
+
+
+function showDetailWin(log_id, row_index) {
+	$("#grid").datagrid("selectRow", row_index);
+	
+    $("#detail_win").window({
+        title: "查看第"+log_id+"号内容"
+    });
+    
+    var row = $("#grid").datagrid("getSelected");
+    console.debug("select row ", row);
+    
+    var json_content = "";
+    try {
+    	var json = $.parseJSON(row.content);
+        json_content = JSON.stringify(json, null, 4);
+    } catch(e) {
+    	json_content = "";
+    }
+    
+    var content = "<p>" + row.content + "</p>";
+    content += "<p>格式化内容：</p>" 
+    content += "<pre><code>" + json_content + "</code></pre>";
+    $("#detail_win").html(content);
+    
+    $('#detail_win').window('open');
+}
+
+</script>
+
+
+
+</body>
+{% endblock %}
