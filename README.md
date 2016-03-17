@@ -94,16 +94,6 @@ Run in China
       # mkdir /data/media
       # chown -R nginx:nginx /data/media
 
-      ln -s /home/webapps/nice-clawer/confs/production/supervisord
+      ln -s /home/webapps/cr-clawer/confs/cr/supervisord
       chkconfig supervisord on
       service supervisord restart
-
-
-Run out China
-
-      ln -s /home/webapps/nice-clawer/confs/production/supervisord
-      ln -s /home/webapps/nice-clawer/confs/production/supervisor-foreign.ini supervisor.ini
-      chkconfig supervisord on
-      service supervisord restart
-
-
