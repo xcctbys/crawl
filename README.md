@@ -24,7 +24,7 @@ Install python. Install virtualenv.
 
     #clone code at here
     
-    cd nice-clawer/clawer && ~/Documents/pyenv/dj14/bin/pip install -r requirements.txt
+    cd cr-clawer/clawer && ~/Documents/pyenv/dj14/bin/pip install -r requirements.txt
 
 Migrate django db
 
