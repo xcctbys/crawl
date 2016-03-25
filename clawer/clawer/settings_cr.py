@@ -37,7 +37,7 @@ MEDIA_URL = "http://10.100.90.51/media/"
 
 PYTHON = "/home/virtualenvs/py27/bin/python"
 CRONTAB_USER = "nginx"
-CRONTAB_HOME = "/home/webapps/nice-clawer/confs/cr"
+CRONTAB_HOME = "/home/webapps/cr-clawer/confs/cr"
 CLAWER_SOURCE = "/data/clawer/"
 CLAWER_RESULT = "/data/clawer_result/"
 CLAWER_RESULT_URL = "http://10.100.90.51/media/clawer_result/"
@@ -89,7 +89,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join("/home/web_log/nice-clawer/", "clawer.pro.log"),
+            'filename': os.path.join("/home/web_log/cr-clawer/", "clawer.pro.log"),
             'backupCount': 24,
             'formatter': 'verbose',
             'level': 'ERROR',
