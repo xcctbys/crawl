@@ -1,4 +1,4 @@
-WORKDIR=/home/webapps/nice-clawer/sources/qyxy/structured
+WORKDIR=/home/webapps/cr-clawer/sources/qyxy/structured
 PYTHON=/home/virtualenvs/dj18/bin/python
 
 
