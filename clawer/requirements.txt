@@ -27,5 +27,6 @@ greenlet
 eventlet
 gevent
 django-smtp-ssl
+django-smart-autoregister
 pillow
 Django==1.8

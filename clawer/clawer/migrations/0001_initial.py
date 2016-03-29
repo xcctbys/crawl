@@ -1,137 +1,194 @@
 # -*- coding: utf-8 -*-
-from south.utils import datetime_utils as datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+from django.conf import settings
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'UserProfile'
-        db.create_table('clawer_userprofile', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
-            ('nickname', self.gf('django.db.models.fields.CharField')(max_length=64)),
-        ))
-        db.send_create_signal('clawer', ['UserProfile'])
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
 
-        # Adding model 'Clawer'
-        db.create_table('clawer_clawer', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('info', self.gf('django.db.models.fields.CharField')(max_length=1024)),
-            ('add_datetime', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('clawer', ['Clawer'])
-
-        # Adding model 'ClawerTaskGenerator'
-        db.create_table('clawer_clawertaskgenerator', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('clawer', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['clawer.Clawer'])),
-            ('code', self.gf('django.db.models.fields.TextField')()),
-            ('cron', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('status', self.gf('django.db.models.fields.IntegerField')(default=4)),
-            ('add_datetime', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('clawer', ['ClawerTaskGenerator'])
-
-        # Adding model 'ClawerTask'
-        db.create_table('clawer_clawertask', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('clawer', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['clawer.Clawer'])),
-            ('clawer_generator', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['clawer.ClawerTaskGenerator'])),
-            ('uri', self.gf('django.db.models.fields.CharField')(max_length=4096)),
-            ('status', self.gf('django.db.models.fields.IntegerField')(default=1)),
-            ('add_datetime', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('done_datetime', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('clawer', ['ClawerTask'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'UserProfile'
-        db.delete_table('clawer_userprofile')
-
-        # Deleting model 'Clawer'
-        db.delete_table('clawer_clawer')
-
-        # Deleting model 'ClawerTaskGenerator'
-        db.delete_table('clawer_clawertaskgenerator')
-
-        # Deleting model 'ClawerTask'
-        db.delete_table('clawer_clawertask')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'clawer.clawer': {
-            'Meta': {'object_name': 'Clawer'},
-            'add_datetime': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'info': ('django.db.models.fields.CharField', [], {'max_length': '1024'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'clawer.clawertask': {
-            'Meta': {'object_name': 'ClawerTask'},
-            'add_datetime': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'clawer': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['clawer.Clawer']"}),
-            'clawer_generator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['clawer.ClawerTaskGenerator']"}),
-            'done_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'status': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
-            'uri': ('django.db.models.fields.CharField', [], {'max_length': '4096'})
-        },
-        'clawer.clawertaskgenerator': {
-            'Meta': {'object_name': 'ClawerTaskGenerator'},
-            'add_datetime': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'clawer': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['clawer.Clawer']"}),
-            'code': ('django.db.models.fields.TextField', [], {}),
-            'cron': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'status': ('django.db.models.fields.IntegerField', [], {'default': '4'})
-        },
-        'clawer.userprofile': {
-            'Meta': {'object_name': 'UserProfile'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'nickname': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        }
-    }
-
-    complete_apps = ['clawer']
+    operations = [
+        migrations.CreateModel(
+            name='Clawer',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128)),
+                ('info', models.CharField(max_length=1024)),
+                ('customer', models.CharField(max_length=128, null=True, blank=True)),
+                ('status', models.IntegerField(default=1, choices=[(1, '\u542f\u7528'), (2, '\u4e0b\u7ebf')])),
+                ('add_datetime', models.DateTimeField(auto_now_add=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ClawerAnalysis',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('code', models.TextField()),
+                ('status', models.IntegerField(default=1, choices=[(1, '\u542f\u7528'), (2, '\u4e0b\u7ebf')])),
+                ('add_datetime', models.DateTimeField(auto_now_add=True)),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ClawerAnalysisLog',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('status', models.IntegerField(default=0, choices=[(1, '\u5931\u8d25'), (2, '\u6210\u529f')])),
+                ('failed_reason', models.CharField(max_length=10240, null=True, blank=True)),
+                ('hostname', models.CharField(max_length=16, null=True, blank=True)),
+                ('result', models.TextField(null=True, blank=True)),
+                ('add_datetime', models.DateTimeField(auto_now_add=True)),
+                ('analysis', models.ForeignKey(to='clawer.ClawerAnalysis')),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ClawerDayMonitor',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('day', models.DateField()),
+                ('bytes', models.IntegerField(default=0)),
+                ('is_exception', models.BooleanField(default=False)),
+                ('add_datetime', models.DateTimeField(auto_now_add=True)),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+            options={
+                'ordering': ['-id'],
+            },
+        ),
+        migrations.CreateModel(
+            name='ClawerDownloadLog',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('status', models.IntegerField(default=0, choices=[(1, '\u5931\u8d25'), (2, '\u6210\u529f')])),
+                ('failed_reason', models.CharField(max_length=10240, null=True, blank=True)),
+                ('content_bytes', models.IntegerField(default=0)),
+                ('content_encoding', models.CharField(max_length=32, null=True, blank=True)),
+                ('hostname', models.CharField(max_length=16, null=True, blank=True)),
+                ('spend_time', models.IntegerField(default=0)),
+                ('add_datetime', models.DateTimeField(auto_now=True)),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ClawerGenerateLog',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('status', models.IntegerField(default=0, choices=[(1, '\u5931\u8d25'), (2, '\u6210\u529f')])),
+                ('failed_reason', models.CharField(max_length=10240, null=True, blank=True)),
+                ('content_bytes', models.IntegerField(default=0)),
+                ('spend_msecs', models.IntegerField(default=0)),
+                ('hostname', models.CharField(max_length=16, null=True, blank=True)),
+                ('add_datetime', models.DateTimeField(auto_now=True)),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ClawerHourMonitor',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('hour', models.DateTimeField()),
+                ('bytes', models.IntegerField(default=0)),
+                ('is_exception', models.BooleanField(default=False)),
+                ('add_datetime', models.DateTimeField(auto_now_add=True)),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+            options={
+                'ordering': ['-id'],
+            },
+        ),
+        migrations.CreateModel(
+            name='ClawerSetting',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('dispatch', models.IntegerField(default=100, verbose_name='\u6bcf\u6b21\u5206\u53d1\u4e0b\u8f7d\u4efb\u52a1\u6570')),
+                ('analysis', models.IntegerField(default=200, verbose_name='\u6bcf\u6b21\u5206\u6790\u4efb\u52a1\u6570')),
+                ('proxy', models.TextField(null=True, blank=True)),
+                ('cookie', models.TextField(null=True, blank=True)),
+                ('download_engine', models.CharField(default=b'requests', max_length=16, choices=[(b'requests', b'REQUESTS'), (b'phantomjs', b'PHANTOMJS'), (b'selenium', b'SELENIUM')])),
+                ('download_js', models.TextField(null=True, blank=True)),
+                ('prior', models.IntegerField(default=0)),
+                ('last_update_datetime', models.DateTimeField(auto_now=True)),
+                ('report_mails', models.CharField(max_length=256, null=True, blank=True)),
+                ('add_datetime', models.DateTimeField(auto_now_add=True)),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+            options={
+                'ordering': ['-id'],
+            },
+        ),
+        migrations.CreateModel(
+            name='ClawerTask',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('uri', models.CharField(max_length=1024)),
+                ('cookie', models.CharField(max_length=1024, null=True, blank=True)),
+                ('args', models.CharField(max_length=1024, null=True, blank=True)),
+                ('status', models.IntegerField(default=1, choices=[(1, '\u65b0\u589e'), (2, '\u8fdb\u884c\u4e2d'), (3, '\u4e0b\u8f7d\u5931\u8d25'), (4, '\u4e0b\u8f7d\u6210\u529f'), (5, '\u5206\u6790\u5931\u8d25'), (6, '\u5206\u6790\u6210\u529f')])),
+                ('store', models.CharField(max_length=512, null=True, blank=True)),
+                ('add_datetime', models.DateTimeField(auto_now_add=True)),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+            options={
+                'ordering': ['-id'],
+            },
+        ),
+        migrations.CreateModel(
+            name='ClawerTaskGenerator',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('code', models.TextField()),
+                ('cron', models.CharField(max_length=128)),
+                ('status', models.IntegerField(default=1, choices=[(1, 'alpha'), (2, 'beta'), (3, 'production'), (4, '\u542f\u7528'), (5, '\u4e0b\u7ebf'), (6, '\u6d4b\u8bd5\u5931\u8d25')])),
+                ('add_datetime', models.DateTimeField(auto_now_add=True)),
+                ('clawer', models.ForeignKey(to='clawer.Clawer')),
+            ],
+            options={
+                'ordering': ['-id'],
+            },
+        ),
+        migrations.CreateModel(
+            name='Logger',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('category', models.CharField(max_length=64)),
+                ('title', models.CharField(max_length=512)),
+                ('content', models.TextField()),
+                ('from_ip', models.GenericIPAddressField()),
+                ('add_at', models.DateTimeField(auto_now=True)),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='UserProfile',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('nickname', models.CharField(max_length=64)),
+                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.AddField(
+            model_name='clawertask',
+            name='task_generator',
+            field=models.ForeignKey(blank=True, to='clawer.ClawerTaskGenerator', null=True),
+        ),
+        migrations.AddField(
+            model_name='clawergeneratelog',
+            name='task_generator',
+            field=models.ForeignKey(to='clawer.ClawerTaskGenerator'),
+        ),
+        migrations.AddField(
+            model_name='clawerdownloadlog',
+            name='task',
+            field=models.ForeignKey(to='clawer.ClawerTask'),
+        ),
+        migrations.AddField(
+            model_name='claweranalysislog',
+            name='task',
+            field=models.ForeignKey(to='clawer.ClawerTask'),
+        ),
+    ]
