@@ -125,7 +125,6 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'raven.contrib.django.raven_compat',
-    "south",
     #"djcelery",
     "html5helper",
     "captcha",

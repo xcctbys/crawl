@@ -4,11 +4,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from html5helper import autoregister
-
 from clawer import models
-from captcha import models as captcha_models
-from enterprise import models as enterprise_models
 
 
 class UserProfileInline(admin.StackedInline):
@@ -36,8 +32,4 @@ class UserAdmin(DjangoUserAdmin):
 
 admin.site.unregister(DjangoUser)
 admin.site.register(DjangoUser, UserAdmin)
-
-autoregister.autoregister_admin(models)
-autoregister.autoregister_admin(captcha_models)
-autoregister.autoregister_admin(enterprise_models)
 

@@ -1,5 +1,4 @@
 MySQL-python
-south
 raven
 python-memcached
 django-debug-toolbar
@@ -23,11 +22,10 @@ scipy
 scikit-learn
 chardet
 Markdown
-uwsgi
 gunicorn
 greenlet
 eventlet
 gevent
 django-smtp-ssl
-Django==1.4.15
 pillow
+Django==1.8
