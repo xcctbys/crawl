@@ -6,7 +6,7 @@
 - RQ
 
 
-# Start Develop environment
+# How To Setup Develop environment
 
 
 ## Install Mariadb in CentOS 7
@@ -46,7 +46,7 @@ Run server. Then visit http://localhost:8000/admin/
     ./run.sh rq
 
 
-# Create Database on MySQL
+## Create Database on MySQL
 
        CREATE DATABASE `clawer` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
@@ -58,7 +58,7 @@ Run server. Then visit http://localhost:8000/admin/
        GRANT ALL ON *.* TO 'cacti'@'%';
 
 
-# Crontab
+## Install Crontab
 
       #############################
       # topologic #
@@ -82,7 +82,7 @@ Run server. Then visit http://localhost:8000/admin/
 
 
 
-# Supervisor for Clawer worker
+## Install Worker
 
 
       ## start download worker
@@ -96,3 +96,27 @@ Run server. Then visit http://localhost:8000/admin/
       ln -s /home/webapps/cr-clawer/confs/cr/supervisord
       chkconfig supervisord on
       service supervisord restart
+
+      
+      
+# Program Dir
+
+## clawer
+
+this is main app.
+
+## collector
+
+About uri generator, download etc.
+
+## structure
+
+About analysis data, which from collector.
+
+# storage
+
+Used by collector and structure. It will store original data and middle data etc. Also it will contain some runtime log.
+
+# html5helper
+
+Some utils.
