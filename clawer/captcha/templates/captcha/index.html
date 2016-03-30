@@ -14,14 +14,14 @@
 		  </button>
 		  <ul class="dropdown-menu">
 		    {% for item in categories %}
-		    <li><a href="{% url captcha.views.index %}?category_id={{item.id}}">{{item.name}}</a></li>
+		    <li><a href="{% url 'captcha.views.index' %}?category_id={{item.id}}">{{item.name}}</a></li>
 		    {% endfor %}
 		  </ul>
 		</div>
     </li>
     <li>已标记：{{labeled_captcha_count}}</li>
     <li>总图片：{{catpcha_count|default:0}}</li>
-    <li><a href="{% url captcha.views.labeled %}">看看我们的战绩</a></li>
+    <li><a href="{% url 'captcha.views.labeled' %}">看看我们的战绩</a></li>
     <li>图片地址： <a href="{{ category.url }}" target="_blank">{{ category.url }}</a></li>
 </ul>
 
@@ -77,7 +77,7 @@ $(document).ready(function(){
 		$("#submitBtn").html("提交中");
 		$("#submitBtn").addClass("disabled");
 		
-		var url = "{% url captcha.views.make_label %}";
+		var url = "{% url 'captcha.views.make_label' %}";
 		
 		if(!$("#id_label").val()) {
 			show_tips("danger", "文字是空的");

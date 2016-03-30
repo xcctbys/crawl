@@ -114,3 +114,52 @@ Setting indexes
 	            ('pub_date', '+question')
 	        ]
 	    }
+
+
+## How to Setting
+
+### Mysql 
+
+We only use one mysql server. 
+	
+	DATABASES = {
+	    'default': {
+	        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+	        'NAME': 'clawer',                      # Or path to database file if using sqlite3.
+	        'USER': 'cacti',                      # Not used with sqlite3.
+	        'PASSWORD': 'cacti',                  # Not used with sqlite3.
+	        'HOST': '10.100.80.50',                      # Set to empty string for localhost. Not used with sqlite3.
+	        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+	    }
+	}
+	    
+## MongoDB
+
+    MongoDBS = {
+        'default': {
+            'username': "",
+            'password': '',
+            'host': '',
+        },
+        'log': {
+            'username': "",
+            'password': '',
+            'host': '',
+        },
+        'source': {
+            'username': "",
+            'password': '',
+            'host': '',
+        },
+        'structure': {
+            'username': "",
+            'password': '',
+            'host': '',
+        }
+    }
+    
+- default: default mongodb server
+- log: store all log, include generate log, analysis log etc
+- source: data from source. For example website www.51job.com
+- structure: after analysis, output structured data
+

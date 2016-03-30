@@ -18,7 +18,7 @@
 
 
 <table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
-        url="{% url clawer.apis.home.clawer_download_log %}" showFooter="true"
+        url="{% url 'clawer.apis.home.clawer_download_log' %}" showFooter="true"
         data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
         toolbar="#toolbar" fitColumns="true">
         
@@ -149,7 +149,7 @@ function showFailedReason(row_index) {
 
 
 function load_clawers() {
-	var url = "{% url clawer.apis.home.clawer_all %}";
+	var url = "{% url 'clawer.apis.home.clawer_all' %}";
 		
 	$("#id_clawer_select").combogrid({
 		panelWidth:450,

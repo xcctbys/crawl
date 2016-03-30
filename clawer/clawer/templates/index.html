@@ -6,7 +6,7 @@
 <div class="jumbotron">
   <h1>最nice的爬虫</h1>
   <p class="lead">现实世界有很多碎片化的数据，它们分散在无数的物理空间和网络空间中</p>
-  <p><a class="btn btn-lg btn-success" href="{% url clawer.views.home.clawer %}" role="button">立刻进入</a></p>
+  <p><a class="btn btn-lg btn-success" href="{% url 'clawer.views.home.clawer' %}" role="button">立刻进入</a></p>
 </div>
 
 <div class="row marketing">
@@ -21,4 +21,5 @@
     <p>Sina, Weibo etc.</p>
   </div>
 </div>
+
 {% endblock %}

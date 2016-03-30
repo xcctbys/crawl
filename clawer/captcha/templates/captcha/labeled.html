@@ -7,10 +7,11 @@
 
 <div>
     <pre>
-    接口地址： {% url captcha.views.all_labeled %}
+    接口地址： {% url 'captcha.views.all_labeled' %}
     参数：category=${category}
     </pre>
 </div>
+
 
 <table class="table table-striped">
     {% for item in pager %}

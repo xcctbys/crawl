@@ -41,7 +41,7 @@
 </div>
 
 <table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
-        fitColumns="true" url="{% url clawer.apis.home.clawer_all %}" showFooter="true"
+        fitColumns="true" url="{% url 'clawer.apis.home.clawer_all' %}" showFooter="true"
         data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
         toolbar="#toolbar" rowStyler="rowStyle">
         
@@ -67,7 +67,7 @@
 
 <!-- update task generator form -->
 <div id="task_generator_update_win" class="easyui-window" title="更新任务生成器" closed="true" style="width:80%;height:60%;padding:5px;">
-    <form method="post" id="task_generator_update_form" enctype="multipart/form-data" action="{% url clawer.apis.home.clawer_task_generator_update %}">
+    <form method="post" id="task_generator_update_form" enctype="multipart/form-data" action="{% url 'clawer.apis.home.clawer_task_generator_update' %}">
 
 			<div style="margin-bottom:20px">
 				<div>Python 文件:</div>
@@ -124,7 +124,7 @@
 
 <!-- update analysis form -->
 <div id="analysis_update_win" class="easyui-window" title="更新分析器" closed="true" style="width:80%;height:60%;padding:5px;">
-    <form method="post" id="analysis_update_form" enctype="multipart/form-data" action="{% url clawer.apis.home.clawer_analysis_update %}">
+    <form method="post" id="analysis_update_form" enctype="multipart/form-data" action="{% url 'clawer.apis.home.clawer_analysis_update' %}">
 
 			<div style="margin-bottom:20px">
 				<div>Python 文件:</div>
@@ -284,7 +284,7 @@ $(document).ready(function(){
 			return $.messager.alert('Warning', '请先选择一条数据');
 		}
 		
-		var url = "{% url clawer.apis.home.clawer_task_generator_history %}";
+		var url = "{% url 'clawer.apis.home.clawer_task_generator_history' %}";
 		
 		$.getJSON(url, {"clawer_id":row.id}, function(resp){
 			if(resp.is_ok == false) {
@@ -393,7 +393,7 @@ $(document).ready(function(){
 			return $.messager.alert('Warning', '请先选择一条数据');
 		}
 		
-		var url = "{% url clawer.apis.home.clawer_analysis_history %}";
+		var url = "{% url 'clawer.apis.home.clawer_analysis_history' %}";
 		
 		$.getJSON(url, {"clawer_id":row.id}, function(resp){
 			if(resp.is_ok == false) {
@@ -438,7 +438,7 @@ $(document).ready(function(){
 			return $.messager.alert('Warning', '请先选择一条数据');
 		}
 		
-	     var url = "{% url clawer.apis.home.clawer_task_reset %}";
+	     var url = "{% url 'clawer.apis.home.clawer_task_reset' %}";
 		 $.getJSON(url, {"clawer":row.id, "status":5}, function(resp){
 		     if(resp.is_ok) {
 				 $.messager.alert("success", "影响数据: " + resp.ret);
@@ -455,7 +455,7 @@ $(document).ready(function(){
 			return $.messager.alert('Warning', '请先选择一条数据');
 		}
 		
-	     var url = "{% url clawer.apis.home.clawer_task_reset %}";
+	     var url = "{% url 'clawer.apis.home.clawer_task_reset' %}";
 		 $.getJSON(url, {"clawer":row.id, "status":6}, function(resp){
 		     if(resp.is_ok) {
 				 $.messager.alert("success", "影响数据: " + resp.ret);
@@ -472,7 +472,7 @@ $(document).ready(function(){
 			return $.messager.alert('Warning', '请先选择一条数据');
 		}
 		
-	     var url = "{% url clawer.apis.home.clawer_task_reset %}";
+	     var url = "{% url 'clawer.apis.home.clawer_task_reset' %}";
 		 $.getJSON(url, {"clawer":row.id, "status":2}, function(resp){
 		     if(resp.is_ok) {
 				 $.messager.alert("success", "影响数据: " + resp.ret);
