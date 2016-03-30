@@ -1,4 +1,4 @@
-MySQL-python
+
 raven
 python-memcached
 django-debug-toolbar
@@ -29,4 +29,9 @@ gevent
 django-smtp-ssl
 django-smart-autoregister
 pillow
+
+#storage
+mongoengine
+MySQL-python
+
 Django==1.8
