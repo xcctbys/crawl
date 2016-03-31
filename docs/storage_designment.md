@@ -1,19 +1,15 @@
+
 # Statement of Goals
 
 方便开发人员使用，进行各类的数据存储，而不用关心数据路由、调度的问题。能够支持MySQL、MongoDB，主要客户是采集层、结构化层、系统层。
 
-# Functional Description
+# Functional Description 
 
-- mysql orm
-- mongo orm
-
-# User Interface
-
-## How to define mysql model?
+## MySQL ORM
 
 You must inherit `BaseModel`. You can use all standard apis from Django 1.8.
 
-### Save Example
+### Example
 
 Define class `Job`
 
@@ -38,8 +34,7 @@ give some value and save
     
 table job will have a row with name is beijing.
 
-
-### Update Example
+update
 
     job = Job()
     job.name = "a"
@@ -47,12 +42,26 @@ table job will have a row with name is beijing.
     
     job.name = "b"
     job.save()
+    
+jsonable. Will return dict.
+
+    job.as_json()
 
 
+### Failure
 
-## how to define mongodb model?
+如果没有在settings.py中配置DATABASE，功能不可用
+
+### Limit
+
+None
+
+
+## MongoDB ORM
 
 You must inherit `BaseDocument`. We use `mongoengine` as basic, you can use standard apis from it.
+
+### Example
 
     from mongoengine import *
     
@@ -119,7 +128,38 @@ Setting indexes
 	    }
 
 
-## How to Setting
+### Failure
+
+如果没有在settings.py中配置MongoDBS，功能不可用
+
+### Limit
+
+None
+
+
+# User Interface
+
+## BaseModel
+
+You must add 
+
+    from storage.models import BaseModel
+
+## BaseDocument
+
+You must add 
+
+    from storage.models import BaseDocument
+
+## BaseEmbeddedDocument
+
+You must add 
+
+    from storage.models import BaseEmbeddedDocument
+
+## Setting 
+
+You must modify settings.py
 
 ### Mysql 
 
@@ -165,6 +205,34 @@ We only use one mysql server.
 - log: store all log, include generate log, analysis log etc
 - source: data from source. For example website www.51job.com
 - structure: after analysis, output structured data
+
+
+# Internel
+
+## Directory
+
+    -- storage
+    ---- models.py    # all class here
+    
+
+## Object Description
+
+None
+
+# Test
+
+## Testcase of MySQL ORM
+
+- 环境相关: 已经正常安装，并得到所有代码
+- 输入： 定义一个`Job`类继承`BaseModel`，只有一个`name`属性，执行`job.save()`
+- 输出: 能在 `storage_job`中插入一条数据
+
+## Testcase of MongoDB ORM
+
+- 环境相关: 已经正常安装，并得到所有代码
+- 输入： 定义一个`Job`类继承`BaseDocumentModel`，只有一个`name`属性，执行`job.save()`
+- 输出: 能在`mongodb`中插入一条文档
+
 
 
 
