@@ -1,10 +1,13 @@
-# Storage Designment
+# Statement of Goals
 
-## Functions
+方便开发人员使用，进行各类的数据存储，而不用关心数据路由、调度的问题。能够支持MySQL、MongoDB，主要客户是采集层、结构化层、系统层。
+
+# Functional Description
 
 - mysql orm
 - mongo orm
 
+# User Interface
 
 ## How to define mysql model?
 
@@ -162,4 +165,6 @@ We only use one mysql server.
 - log: store all log, include generate log, analysis log etc
 - source: data from source. For example website www.51job.com
 - structure: after analysis, output structured data
+
+
 
