@@ -1,0 +1,4 @@
+*.pyc
+.setting
+.cache
+.DS_Store
