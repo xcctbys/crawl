@@ -14,8 +14,22 @@
 			if test_OK(each):
 				insert_into_database((ip:port,province))
 			
-- 利用单进程在测试代理ip的速度有点慢。
-- 源网页结构如果出错，得有测试做好这方面的检测，并调整源代码。
+- 性能：利用单进程在测试代理ip的速度有点慢。
+- 可能出现的问题：源网页结构如果出错，得有测试做好这方面的检测，并调整源代码。
+
+## 2.轮询database,维持有效ip及数量
+- 输入：crontab 定时运行触发
+- 输出：数据库里某些字段值改变。
+- 逻辑流程
+		
+		total_count = proxy.object.all().count() #获得数据库里数量
+		for id in range(1, total_count):
+			self.change_vaild(id)
+		if total_count > setting.MAX_PROXY_NUM:
+			delete_data(setting.MAX_PROXY_NUM - total_count)#轮询后，删除多余无效数据
+- 性能：数据库需要维持的数量越少，检测周期性越快，数据的有效性越高
+- 限制：需要维持，轮询的量不宜过长
+
 	
 ## 2. 为开发人员提供获取代理ip接口
 - 输入：
@@ -31,9 +45,9 @@
 				return [item.ip_port for item in proxy_list][:num] #返回指定数量，默认为5.
 			
 
-- 响应速度快
-- 如果返回为False([],None),需要重新调用（不传参）
-- 每次需要获取的列表长度不应太长。在设置文件中可设置最大库存量。用户检测返回的列表是否为空列表。
+- 性能：响应速度快
+- 可能出现的问题：如果返回为False([],None),需要重新调用（不传参）
+- 限制：每次需要获取的列表长度不应太长。在设置文件中可设置最大库存量。用户检测返回的列表是否为空列表。
 
 
 # User Interface 用户界面
