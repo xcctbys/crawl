@@ -37,18 +37,19 @@ class Crawler(object):
             self.requests.headers.update(headers)
         self.ents = []
         self.json_dict={}
+        self.timeout = 20
 
 
     def crawl_xingzhengchufa_page(self, url, text):
         data = self.analysis.analyze_xingzhengchufa(text)
-        r = self.requests.post( url, data)
+        r = self.requests.post( url, data, timeout =self.timeout)
         if r.status_code != 200:
             return False
         #html_to_file("xingzhengchufa.html",r.text)
         return r.text
     def crawl_biangengxinxi_page(self, url, text):
         datas = self.analysis.analyze_biangengxinxi(text)
-        r2 = self.requests.post( url, datas, headers = {'X-Requested-With': 'XMLHttpRequest', 'X-MicrosoftAjax': 'Delta=true', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',})
+        r2 = self.requests.post( url, datas, timeout=self.timeout, headers = {'X-Requested-With': 'XMLHttpRequest', 'X-MicrosoftAjax': 'Delta=true', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',})
         if r2.status_code != 200:
             return False
         return r2.text
@@ -141,7 +142,7 @@ class Crawler(object):
         pass
 
     def crawl_page_by_url(self, url):
-        r = self.requests.get( url)
+        r = self.requests.get( url, timeout=self.timeout)
         if r.status_code != 200:
             logging.error(u"Getting page by url:%s\n, return status %s\n"% (url, r.status_code))
             return False

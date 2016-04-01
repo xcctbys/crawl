@@ -55,10 +55,12 @@ class GuangdongClawer(object):
         #self.json_restore_path = settings.json_restore_path + '/guangdong.json'
         #验证码图片的存储路径
         self.path_captcha = settings.json_restore_path + '/guangdong/ckcode.jpg'
+        self.timeout = 20
+
 
     # 破解搜索页面
     def crawl_page_search(self, url):
-        r = self.requests.get( url)
+        r = self.requests.get( url, timeout = self.timeout)
         if r.status_code != 200:
             logging.error(u"Something wrong when getting the url:%s , status_code=%d", url, r.status_code)
             return
@@ -67,7 +69,7 @@ class GuangdongClawer(object):
         self.html_search = r.text
     #获得搜索结果展示页面
     def get_page_showInfo(self, url, datas):
-        r = self.requests.post( url, data = datas )
+        r = self.requests.post( url, data = datas , timeout = self.timeout)
         if r.status_code != 200:
             return False
         r.encoding = "utf-8"
@@ -94,7 +96,7 @@ class GuangdongClawer(object):
         count = 0
         while True:
             count+= 1
-            r = self.requests.get( url_Captcha)
+            r = self.requests.get( url_Captcha, timeout = self.timeout)
             if r.status_code != 200:
                 logging.error(u"Something wrong when getting the Captcha url:%s , status_code=%d", url_Captcha, r.status_code)
                 return
@@ -121,7 +123,7 @@ class GuangdongClawer(object):
         return
     #获得验证的结果信息
     def get_check_response(self, url, datas):
-        r = self.requests.post( url, data = datas )
+        r = self.requests.post( url, data = datas, timeout =self.timeout)
         if r.status_code != 200:
             return False
         #print r.json()
@@ -199,25 +201,6 @@ class GuangdongClawer(object):
             raise e
         finally:
             return sub_json_dict
-
-
-    def crawl_page_by_url(self, url):
-        r = self.requests.get( url)
-        if r.status_code != 200:
-            logging.error(u"Getting page by url:%s\n, return status %s\n"% (url, r.status_code))
-            return False
-        # 为了防止页面间接跳转，获取最终目标url
-        return {'page' : r.text, 'url': r.url}
-
-    def crawl_page_by_url_post(self, url, data, header={}):
-        if header:
-            r = self.requests.post(url, data, headers= header)
-        else :
-            r = self.requests.post(url, data)
-        if r.status_code != 200:
-            logging.error(u"Getting page by url with post:%s\n, return status %s\n"% (url, r.status_code))
-            return False
-        return {'page': r.text, 'url': r.url}
 
     # main function
     def run(self, ent_num):
