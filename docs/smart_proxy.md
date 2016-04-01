@@ -41,8 +41,8 @@
 				pass
 			def get_proxy(num=5, province=None): #接口
 				proxy_ip = ProxyIp() #实例ORM对象
-				proxy_list = proxy_ip.object.filter(province=Nonu, is_valid=True) #过滤代理 ip 地址。
-				return [item.ip_port for item in proxy_list][:num] #返回指定数量，默认为5.
+				proxy_list = proxy_ip.object.filter(province=province, is_valid=True).order_by('?')[:num] #过滤代理 ip 地址。
+				return [item.ip_port for item in proxy_list] #返回指定数量，默认为5.
 			
 
 - 性能：响应速度快
@@ -74,6 +74,7 @@
 │   ├── __init__.py
 │   └── xici.py
 └── tests
+    |—— __init__.py
 	|__test_proxy.py		# 测试文件。
     
 view.py: 为该模块的视图文件，实现视图的展现。
@@ -138,7 +139,7 @@ Define class `ProxyIp`
     		for item in address:
         		if test_ok(item):
             		add_data(item)
-    
+    	@generator
 		def run(self):
     		#得到有多少个爬虫，多少个插件。
     		proxy_list = os.listdir(os.path.join(os.getcwd(), proxy)).pop('__init__.py')
@@ -302,7 +303,7 @@ crontab -e
 ### 使用代理ip
 * example use `get_proxy` 开发人员使用获取代理ip接口
 
-		from api import Proxy
+		from smart_proxy.api import Proxy
 		proxy = Proxy()
 		proxy_list = proxy.get_proxy(5,'Beijing') #['ip:port', ...]
 
