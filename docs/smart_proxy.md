@@ -230,12 +230,14 @@ class TestProxy(unittest.TestCase):
 </pre>
 
 - 环境相关
-- 
+ 
 		django 1.8.2
 		json
 		mysql-python
+
+
 - 输入：django-admin manage.py test tests/test_proxy.TestProxy.tes_valid
-- 输出：返回未经检测有效性的代理ip,并且整个过程没有出现错误。
+- 期望输出：整个过程没有出现错误，返回未经检测有效性的代理ip。
 - 输入:django-admin manage.py test tests/test_proxy.TestProxy.test_api
 - 期望输出: 返回代理ip列表['ip:port', ...]。
 
