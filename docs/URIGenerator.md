@@ -305,10 +305,10 @@ def download_uri_task(uri_generator_doc, *args, **kwargs):
 正确性测试，容错性测试，数据库测试
 
  
-TestCase | 测试功能 | 输入	| 预期输出
------------- | ------------------------ | --------------------------- 
-1 |数据预处理 | 仅包含URI的CSV或TXT文件 | MongoDB数据库中CrawlerTask中存入文件中的URI内容。
-2 | 数据预处理 | Python文件或者Shell脚本 | MongoDB数据库中CrawlerTaskGenerator中存入输入文件内容
+|TestCase | 测试功能 | 输入	| 预期输出 |
+|---------|-------- | ------------------------ | --------------------------- |
+|1 |数据预处理 | 仅包含URI的CSV或TXT文件 | MongoDB数据库中CrawlerTask中存入文件中的URI内容。|
+|2 | 数据预处理 | Python文件或者Shell脚本 | MongoDB数据库中CrawlerTaskGenerator中存入输入文件内容|
 
 
 
