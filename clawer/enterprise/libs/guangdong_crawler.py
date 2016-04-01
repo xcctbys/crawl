@@ -94,7 +94,7 @@ class GuangdongClawer(object):
     def crawl_page_captcha(self, url_Captcha, url_CheckCode,url_showInfo,  textfield= '440301102739085'):
 
         count = 0
-        while True:
+        while count < 15:
             count+= 1
             r = self.requests.get( url_Captcha, timeout = self.timeout)
             if r.status_code != 200:
