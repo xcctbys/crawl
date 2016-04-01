@@ -1,6 +1,7 @@
 # Statement of Goals 目标描述
 
-程序通过直接读入用户手工输入的URI数组、导入的包含URI的CSV或者TXT文件、Python或者Shell的脚本文件，通过处理，直接将包含特定的URI的JSON文件输出到MongoDB数据库中。
+程序通过 直接读入用户手工输入的URI数组、导入的包含URI的CSV或者TXT文件、Python或者Shell的脚本文件，通过处理，直接将包含特定的URI的JSON文件输出到MongoDB数据库中。
+
 
 # Functional Description 功能说明
 
