@@ -14,8 +14,22 @@
 			if test_OK(each):
 				insert_into_database((ip:port,province))
 			
-- 利用单进程在测试代理ip的速度有点慢。
-- 源网页结构如果出错，得调整源代码。
+- 性能：利用单进程在测试代理ip的速度有点慢。
+- 可能出现的问题：源网页结构如果出错，得有测试做好这方面的检测，并调整源代码。
+
+## 2.轮询database,维持有效ip及数量
+- 输入：crontab 定时运行触发
+- 输出：数据库里某些字段值改变。
+- 逻辑流程
+		
+		total_count = proxy.object.all().count() #获得数据库里数量
+		for id in range(1, total_count):
+			self.change_vaild(id)
+		if total_count > setting.MAX_PROXY_NUM:
+			delete_data(setting.MAX_PROXY_NUM - total_count)#轮询后，删除多余无效数据
+- 性能：数据库需要维持的数量越少，检测周期性越快，数据的有效性越高
+- 限制：需要维持，轮询的量不宜过长
+
 	
 ## 2. 为开发人员提供获取代理ip接口
 - 输入：
@@ -31,9 +45,9 @@
 				return [item.ip_port for item in proxy_list][:num] #返回指定数量，默认为5.
 			
 
-- 响应速度快
-- 如果返回为False([],None),需要重新调用（不传参）
-- 每次需要获取的列表长度不应太长。用户检测返回的列表是否为空列表。
+- 性能：响应速度快
+- 可能出现的问题：如果返回为False([],None),需要重新调用（不传参）
+- 限制：每次需要获取的列表长度不应太长。在设置文件中可设置最大库存量。用户检测返回的列表是否为空列表。
 
 
 # User Interface 用户界面
@@ -47,6 +61,15 @@
 ├── view.py					# 视图文件。
 |-- models.py				# 模型文件。
 |-- urls.py					# 控制文件。
+|—— api.py 					# 提供接口的文件。
+|-- script/
+|   |__ run.sh				# 运行命令的脚本。
+|-- management/				# 实现让django 方法自动定期执行
+|   |__ __init__.py
+|   |__ commands/
+|	     |__ __init__.py
+|        |__ roundproxyip.py 	#manage.py roundproxyip 命令
+|        |__ crawerproxyip.py  #manage.py crawerproxyip 命令
 ├── plugins					# 包，装载各个插件。
 │   ├── __init__.py
 │   └── xici.py
@@ -58,6 +81,8 @@ models.py: 数据库模型的建立，及接口的定义。
 urls.py: 控制文件，定义url与响应函数的映射。
 test_proxy.py: 对各个功能进行单元测试。
 plugins/: 包，装载个各插件，即对应抓取有IP代理网址的各个爬虫。每个爬虫对网页进行分析，返回[(ip,port,province),...]。
+management/: 实现让django 方法自动定期执行
+script/run.sh：安全运行django命令，实现代理ip抓取与轮询的定时执行。
 </pre>
 
 ## Object Description 对象描述
@@ -100,11 +125,10 @@ Define class `ProxyIp`
 `crawer_proxy_ip.py` # 实现插件化的代理ip抓取
 
 	from . proxy import *
-	from multiprocessing import Pool
 	from models import ProxyIp
 	
 	class Crawer(object):
-		def do_with(func):
+		def do_with(self, func):
     		#每个插件返回的是代理IP地址加端口号的列表
     		try:
         		address = func.run()
@@ -115,7 +139,7 @@ Define class `ProxyIp`
         		if test_ok(item):
             		add_data(item)
     
-		def run():
+		def run(self):
     		#得到有多少个爬虫，多少个插件。
     		proxy_list = os.listdir(os.path.join(os.getcwd(), proxy)).pop('__init__.py')
     		for item in porxy_list:
@@ -125,10 +149,14 @@ Define class `ProxyIp`
     	crawer.run()
  
 `Round data` #轮询数据库 api 封装，使得时刻更新数据库里数据。
-
-	def change_valid(id):
-		proxy = ProxyIp.object.filter(id=id) #得到对应id的代理。
-		proxy = {'http':'http://'+proxy}
+<pre>
+	####round_proxy_ip.py 
+from models import ProxyIp
+class RoundProxy(object):
+	def change_valid(self, id):
+		proxy = ProxyIp()
+		one_ip = proxy.object.filter(id=id) #得到对应id的代理。
+		one_ip = {'http':'http://'+ one_ip}
 		try:
 			resp = reqst.get(url, proxies=proxy)
 		except:
@@ -138,13 +166,16 @@ Define class `ProxyIp`
 			return True
 		update_data(id, falg=False)
 		return False
-	total_count = ProxyIp.object.all().count() #获得数据库里数量
-	#pool.map(test_OK, range(1, total_count))
-	for id in range(1, total_count):
-		change_vaild(id)
+	def run(self):
+		total_count = proxy.object.all().count() #获得数据库里数量
+		#pool.map(test_OK, range(1, total_count))
+		for id in range(1, total_count):
+			self.change_vaild(id)
+		if total_count > setting.MAX_PROXY_NUM:
+			delete_data(setting.MAX_PROXY_NUM - total_count)#删除多余无效数据
+</pre>
 	
-###  对外提供的调用接口
-#### 云爬虫调用接口
+#### 云爬虫调用接口实现
 实现 `get_proxy` data # 接口，返回 [ip:port,...]
 
 <pre>
@@ -174,7 +205,7 @@ calss Proxy(object):
 		
 
 	
-#### url api 调用接口
+#### url api 调用接口实现
 `urls.py` # 实现用户 url api 接口实现
 
 	urls = patterns("start_proxy", 
@@ -204,6 +235,8 @@ import unittest
 class TestProxy(unittest.TestCase):
 	def setUp(self):
 		pass
+	def test_valid(self):
+		pass #测试抓取爬虫是否有效
 	def test_api(self):
 		pass #测试接口
 	def tearDown(self):
@@ -211,28 +244,79 @@ class TestProxy(unittest.TestCase):
 </pre>
 
 - 环境相关
-- 
+ 
 		django 1.8.2
 		json
 		mysql-python
+
+
+- 输入：django-admin manage.py test tests/test_proxy.TestProxy.tes_valid
+- 期望输出：整个过程没有出现错误，返回未经检测有效性的代理ip。
 - 输入:django-admin manage.py test tests/test_proxy.TestProxy.test_api
-- 期望输出: 返回代理ip列表。
+- 期望输出: 返回代理ip列表['ip:port', ...]。
 
 #布署运行
-### 获取代理ip
-* 使用 crontab 定时运行crawer_ip_proxy.py脚本调用抓取代理IP并测试后入库 。
-* 使用 crontab 定时运行轮询脚本清理 数据库表的数据，也可以根据 timestamp 字段及 flag 字段定时删除无效数据。
+### 获取代理ip与检测代理ip
+* 0.将app添加到项目目录中
+
+* 1.首先把需要自动执行的django method写成django command
+
+		#### crawerproxyip.py #抓取命令
+		from django.core.management.base import BaseCommand,commandError
+		from crawer_proxy_ip import Crawer           
+		class Command(BaseCommand):
+    		def handle(self, *args, **options):         
+        		crawer = Crawer()
+    			crawer.run()
+        ### roundproxyip.py  #轮询命令
+        from django.core.management.base import BaseCommand,commandError    
+        from round_proxy_ip import RoundProxy       
+		class Command(BaseCommand):
+    		def handle(self, *args, **options):
+    			rounds = RoundProxy()
+    			rounds.run()         
+        		
+* 2.将自己定义的django command添加到用sh封装并使用cron服务实现定期执行
+
+<pre>
+WORKDIR=/home/webapps/cr-clawer/smart_proxy/ #指定哪个项目
+PYTHON=/home/virtualenvs/dj18/bin/python #指定哪个python
+function safe_run() #安全执行，加锁，设置时间，及运行django命令 python django-admin manage.py roundproxyip
+{
+    file="/tmp/structure_$1.lock"
+
+    (
+        flock -xn -w 10 200 || exit 1
+        cd ${WORKDIR}; ${PYTHON} manage.py $*
+    ) 200>${file}
+}
+time safe_run  $*
+</pre> 
+crontab -e
+	
+		*/20 * * * * cd /home/webapps/cr-clawer/smart_proxy/script/ run.sh crawerproxyip
+		*/10 * * * * cd /home/webapps/cr-clawer/smart_proxy/script/ run.sh roundproxyip
+
+	
 
 ### 使用代理ip
 * example use `get_proxy` 开发人员使用获取代理ip接口
 
 		from api import Proxy
-		porxy = Porxy()
+		proxy = Proxy()
 		proxy_list = proxy.get_proxy(5,'Beijing') #['ip:port', ...]
 
 * example use url  使用url获取json格式的代理ip
 	
 		input: ‘http://.../show_ip?province=Beijing&num=5'
 		output: {'id_1':'127.0.0.1:8080', ...}
-- 参考文档: <https://www.toptal.com/freelance/why-design-documents-matter>
+
+## 已经找到有免费代理的网址
+1. 好代理 ：[http://www.haodailiip.com/guonei](http://www.haodailiip.com/guonei)
+2. 西刺代理：[http://www.xicidaili.com/nn/](http://www.xicidaili.com/nn/)
+3. 快代理：[http://www.kuaidaili.com/free/](http://www.kuaidaili.com/free/)
+4. 有代理：[http://www.youdaili.net/Daili/guonei/4296.html](http://www.youdaili.net/Daili/guonei/4296.html)
+5. 66免费代理：[http://www.66ip.cn/](http://www.66ip.cn/)
+6. IPCN：[http://proxy.ipcn.org/country/](http://proxy.ipcn.org/country/)
+
 
