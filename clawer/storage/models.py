@@ -1,3 +1,67 @@
-from django.db import models
+#encoding=utf-8
 
-# Create your models here.
+import datetime
+
+from django.db import models
+from django.contrib.auth.models import User as DjangoUser
+
+from mongoengine import Document, EmbeddedDocument
+
+
+
+class BaseModel(models.Model):
+    
+    class Meta:
+        abstract = True
+        ordering = ["-id"]
+        
+    def as_json(self):
+        data = {}
+        
+        field_names = self._meta.get_all_field_names()
+        for name in field_names:
+            if hasattr(self, name) is False:
+                continue
+            field = getattr(self, name)
+            
+            if isinstance(field, datetime.datetime):
+                data[name] = field.strftime("%Y-%m-%d %H:%M:%S")
+            elif isinstance(field, datetime.date):
+                data[name] = field.strftime("%Y-%m-%d")
+            elif field == None:
+                data[name] = None
+            else:
+                data[name] = u"%s" % getattr(self, name)
+                
+        return data
+    
+    
+    def _get_choice(self, choices, select_id):
+        for item in choices:
+            if item[0] == select_id:
+                return item
+        
+        return None
+    
+
+class BaseDocument(Document):
+    meta = {'abstract': True}
+    
+    
+class BaseEmbeddedDocument(EmbeddedDocument):
+    meta = {'abstract': True}
+    
+
+class Job(BaseModel):
+    (STATUS_ON, STATUS_OFF) = range(1, 3)
+    STATUS_CHOICES = (
+        (STATUS_ON, u"启用"),
+        (STATUS_OFF, u"下线"),
+    )
+    
+    creator = models.ForeignKey(DjangoUser)
+    name = models.CharField(max_length=128)
+    info = models.CharField(max_length=1024)
+    customer = models.CharField(max_length=128, blank=True, null=True)
+    status = models.IntegerField(default=STATUS_ON, choices=STATUS_CHOICES)
+    add_datetime = models.DateTimeField(auto_now_add=True)

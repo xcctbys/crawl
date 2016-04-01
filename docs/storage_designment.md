@@ -180,26 +180,24 @@ We only use one mysql server.
 
     MongoDBS = {
         'default': {
-            'username': "",
-            'password': '',
             'host': '',
         },
         'log': {
-            'username': "",
-            'password': '',
             'host': '',
         },
         'source': {
-            'username': "",
-            'password': '',
             'host': '',
         },
         'structure': {
-            'username': "",
-            'password': '',
             'host': '',
         }
     }
+    
+    from mongoengine import connect
+    
+    for name, db in MongoDBS.iteritems():
+        connect(name=name, host=db['host'], name=name)
+    
     
 - default: default mongodb server
 - log: store all log, include generate log, analysis log etc

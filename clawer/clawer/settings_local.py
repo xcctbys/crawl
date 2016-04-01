@@ -55,6 +55,29 @@ USE_TLS = True
 CAPTCHA_STORE = os.path.join(os.path.dirname(__file__), "captcha")
 
 
+# for storage
+
+MongoDBS = {
+    'default': {
+        'host': 'mongodb://localhost/default',
+    },
+    'log': {
+        'host': 'mongodb://localhost/log',
+    },
+    'source': {
+        'host': 'mongodb://localhost/source',
+    },
+    'structure': {
+        'host': 'mongodb://localhost/structure',
+    }
+}
+
+from mongoengine import connect
+
+for name, db in MongoDBS.iteritems():
+    connect(host=db['host'])
+
+
 """
 RAVEN_CONFIG = {
     'dsn': '',
