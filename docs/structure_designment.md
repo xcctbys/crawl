@@ -39,7 +39,7 @@
 - 逻辑流程
 
         @handle_error
-        notify_dispatcher(job_id)
+        notify_dispatcher(job_id):
             conf = read_config(job_id)
             parser = generate_parser(conf)
             server_id = load_balance(priority)
@@ -55,7 +55,7 @@
 - 逻辑流程
 
         @handle_error
-        parse_to_json(job_id)
+        parse_to_json(job_id):
             keys = read_mongo(job_id)
             source = read_mongo(job_id)
             target = parse_source(source, keys)
@@ -73,37 +73,18 @@
 - 逻辑流程
 
         @handle_error
-        create
+        create_mysql_schema(job_id):
+            conf = read_mongo(job_id)
+            tables = parse(conf)
+            for table in tables:
+                insert(table)
 
         @handle_error
-        extract_fields_to_mysql(job_id)
+        extract_fields_to_mysql(job_id):
             source = read_mongo(job_id)
             target = extract_fields(source)
             write_mysql(target)
             write_log(succeed)
-
-## TODO: Rewrite
-
-- 输入: MongoDB
-- 输出: MongoDB、MySQL
-- 逻辑流程
-
-        ## in slave
-
-        # parser
-        source_data = read_mongo(job_id)
-        target_mongo_data = parse_source(source_data)
-        write_mongo(target_mongo_data)
-        target_mysql_data = parse_target(target_mongo_data)
-        write_mysql(target_mysql_data)
-        write_log(succeed)
-
-- 性能
-- 有哪些失败可能，失败后如何处理
-    * slave节点解析器解析失败，失败后重启指定次数并记录错误日志，仍然解析失败生成报警日志
-    * 其他失败记录错误日志
-
-- 有哪些限制
 
 # User Interface 用户界面
 
