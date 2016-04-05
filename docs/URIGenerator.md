@@ -58,10 +58,88 @@ def data_preprocess( *args, **kwargs):
 
 
 
+## URI生成器定时任务
+### 输入
+- 无
+
+### 输出
+- 无
+
+### 流程
+
+```
+	# 通过task_generator_install这个定时任务触发此函数
+	kill the last process
+	crons = get all crons of all valid jobs 
+	for cron in crons:
+		# schedule.insert(" * * * * *", commond )
+		schedule.every(*).minutes.do(cron.command)
+		or
+		schedule.every().at(time_str).do(cron.command)
+	while True:
+		schedule.run_pending()
+		time.sleep(1)
+```
+
+以下为参考。
+
+schedule是不将定时任务写入到cron系统文件中，而是将其放入schedule此对象中，通过调用every()来写入定时时间，do()来写入命令。
+
+```
+import schedule
+import time
+def job(message='stuff'):
+    print("I'm working on:", message)
+schedule.every(10).minutes.do(job)
+schedule.every().hour.do(job, message='things')
+schedule.every().day.at("10:30").do(job)
+while True:
+    schedule.run_pending()
+    time.sleep(1)
+```
+
+
+
+
+python-crontab将定时任务写入到cron系统文件中。
+
+```
+Write CronTab back to system or filename:
+
+cron.write()
+Write CronTab to new filename:
+
+cron.write( 'output.tab' )
+Write to this user’s crontab (unix only):
+
+cron.write_to_user( user=True )
+Write to some other user’s crontab:
+
+cron.write_to_user( user='bob' )
+```
+
+
+
+
+### 失败处理
+
+
+
+### 前提条件
+
+系统将task_generator_install写入了定时任务中，定期更新所有的新任务。通过task_generator_install这个定时任务触发此函数。
+
+
+```
+  for root	
+  */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_install
+```
+
+
 ##  URI生成器调度
 
 ### 输入
-- URI生成器任务标志， 可以为MongoDB的ObjectID对象$_id。
+- URI生成器任务所属的job的ID， 可以为MongoDB的ObjectID对象$_id。
 
 ### 输出
 - RQ 队列	
@@ -69,11 +147,11 @@ def data_preprocess( *args, **kwargs):
 - 失败日志
 		
 ### 流程(伪代码)
-Master从MongoDB的URI生成器Collection中获取_id为$_id的文档，定义URI下载队列，将URI生成器函数，作为参数压入URI任务下载队列中，并返回URI下载队列对象。
+Master从MongoDB的URI生成器Collection中获取job 为job_id的文档，定义URI下载队列，将URI生成器函数，作为参数压入URI任务下载队列中，并返回URI下载队列对象。
 
 ```
-def dispatch_uri($_id, *args, **kwargs):
-	uri_object = uri_generator_mongodb.get_document_filter({_id : $_id})
+def dispatch_uri(job_id, *args, **kwargs):
+	uri_object = uri_generator_mongodb.get_document_according_job( job_id )
 	download_uri_queue = DownloadURIQueue()
 	# 获取此文档的父job的优先级
 	priority = uri_generator_mongodb.get_job_priority({_id : $_id})
@@ -97,6 +175,8 @@ q.enqueue_call(func=count_words_at_url,
                args=('http://nvie.com',),
                timeout=30)
 ```
+
+
 
 ### 失败处理
 
@@ -283,7 +363,7 @@ class CrawlerUriLog(Document):
  
 ## 接口2
 - 接口说明	
-	Master从MongoDB的CrawlerTaskGenerator中获取_id为$_id的文档，定义URI下载队列DownloadQueue，将URI生成器函数，文档作为参数压入URI任务下载队列中，并返回URI下载队列对象。
+	Master从MongoDB的CrawlerTaskGenerator中获取Job的_id为$_id的文档，定义URI下载队列DownloadQueue，将URI生成器函数，文档作为参数压入URI任务下载队列中，并返回URI下载队列对象。
 - 调用方式
 
 ```
@@ -309,19 +389,30 @@ def download_uri_task(uri_generator_doc, *args, **kwargs):
 |---------|-------- | ------------------------ | --------------------------- |
 |1 |数据预处理 | 仅包含URI的CSV或TXT文件 | MongoDB数据库中CrawlerTask中存入文件中的URI内容。|
 |2 | 数据预处理 | Python文件或者Shell脚本 | MongoDB数据库中CrawlerTaskGenerator中存入输入文件内容|
-
-
+|3 | 数据预处理 | 仅包含URI的字符串，字符串以回车做分隔符 | MongoDB数据库中CrawlerTask中存入文件中的URI内容。|
+|4 | 数据预处理 | 包含URI字符串的其他文件，如word文件 | 系统报文件类型错误|
+|5 | 数据预处理 | 非Python文件或者Shell脚本，如javascript脚本 | 系统报脚本类型错误|
+|6 | 数据预处理 | 包含其他非URI的字符串的CSV或TXT文件 | 系统会将此条错误格式的URI写入到错误日志中去|
+|7 | 数据预处理 | 包含非法URI的字符串的CSV或TXT文件，如字符串长度太长 | 系统会将此条非法的URI写入到错误日志中去|
+|8 | 数据预处理 | 仅包含URI的字符串，字符串以逗号做分隔符 | 系统报输入格式错误，要求重新输入|
+|9 | 数据预处理 | 包含非法URI的字符串，字符串以换行符做分隔符 | 系统报URI非法格式错误，系统会将此条错误格式的URI写入到错误日志中去|
+|10 | 数据预处理 | Python文件或者Shell脚本的执行周期按照crontab的格式输入，如 '* * * * *' | MongoDB数据库中CrawlerTaskGenerator中存入cron内容|
+|11 | 数据预处理 | Python文件或者Shell脚本的执行周期未按照crontab的格式输入，如 '* * * * * *' | 系统将错误信息写入到错误日志中，并给出错误提示|
+|12 | URI生成器调度 | 数据库中集合Job的_id字段值 | 得到包含URI任务生成器函数的rq队列|
+|13 | URI生成器调度 | 输入_id不存在于数据库中集合Job中 | 系统提示_id未找到，请重新输入|
+|14 | URI生成 | 输入URI生成器集合CrawlerTaskGenerator的一条文档。 | MongoDB中的CrawlerTask中存入生成器生成的URI|
+|15 | URI生成 | 短时间内重复输入URI生成器集合的一条文档 | MongoDB的CrawlerTask集合中不会有重复的URI插入|
+|16 | URI生成 | 输入非URI生成器集合CrawlerTaskGenerator的一条文档。 | 系统会报错，找不到某某字段|
 
 ## Testcase 1	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
-- 测试功能	
-数据预处理
+- 测试功能		
+	数据预处理
 
 - 输入	
-	
-仅包含URI的CSV或TXT文件
-- 期望输出
+	仅包含URI的CSV或TXT文件。
 
+- 期望输出	
 MongoDB数据库中CrawlerTask中存入内容。
 
 ## Testcase 2	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
@@ -330,16 +421,25 @@ MongoDB数据库中CrawlerTask中存入内容。
 数据预处理
 
 - 输入	
-	
-Python文件或者Shell脚本 
-- 期望输出
+Python文件或者Shell脚本。
 
+- 期望输出	
 MongoDB数据库中CrawlerTaskGenerator中存入输入文件内容
 
 
 
 
-# Other
+# 参考资料
 
-- 参考文档: <https://www.toptal.com/freelance/why-design-documents-matter>
+
+- Python job scheduling for humans. https://github.com/dbader/schedule
+-  Mongoengine. http://mongoengine.org/
+- RQ. http://python-rq.org/docs/
+- MongoDB. http://www.mongoing.com/
+- Redis. http://redis.io/
+- Managing Cron Jobs with Python-Crontab. http://blog.appliedinformaticsinc.com/managing-cron-jobs-with-python-crontab/
+
+
+
+ 
 
