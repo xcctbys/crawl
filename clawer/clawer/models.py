@@ -345,7 +345,7 @@ class Logger(models.Model):
     category = models.CharField(max_length=64)
     title = models.CharField(max_length=512)
     content = models.TextField() # must is json format
-    from_ip = models.IPAddressField()
+    from_ip = models.GenericIPAddressField()
     add_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -429,7 +429,7 @@ class ClawerSetting(models.Model):
     download_engine = models.CharField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
     download_js = models.TextField(blank=True, null=True)
     prior = models.IntegerField(default=PRIOR_NORMAL)
-    last_update_datetime = models.DateTimeField(auto_now_add=True, auto_now=True)
+    last_update_datetime = models.DateTimeField(auto_now=True)
     report_mails = models.CharField(blank=True, null=True, max_length=256)
     add_datetime = models.DateTimeField(auto_now_add=True)
 

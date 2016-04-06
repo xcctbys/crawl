@@ -39,6 +39,7 @@ class Crawler(object):
 
         self.ents = []
         self.json_dict={}
+        self.timeout = 20
 
     # 爬取 工商公示信息 页面
     def crawl_ind_comm_pub_pages(self, url, post_data= {}):
@@ -128,7 +129,7 @@ class Crawler(object):
         pass
 
     def crawl_page_by_url(self, url):
-        r = self.requests.get( url)
+        r = self.requests.get( url, timeout=self.timeout)
         if r.status_code != 200:
             logging.error(u"Getting page by url:%s\n, return status %s\n"% (url, r.status_code))
             return False
@@ -137,9 +138,9 @@ class Crawler(object):
 
     def crawl_page_by_url_post(self, url, data, header={}):
         if header:
-            r = self.requests.post(url, data, headers= header)
+            r = self.requests.post(url, data, headers= header, timeout=self.timeout)
         else :
-            r = self.requests.post(url, data)
+            r = self.requests.post(url, data, timeout=self.timeout)
         if r.status_code != 200:
             logging.error(u"Getting page by url with post:%s\n, return status %s\n"% (url, r.status_code))
             return False

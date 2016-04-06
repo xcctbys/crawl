@@ -38,7 +38,7 @@
         <nav>
           <ul class="nav nav-pills pull-right">
             <li role="presentation" {% if title == "Home" %}class="active"{% endif %}><a href="/">Home</a></li>
-            <li role="presentation" {% if title == "图片识别" %}class="active"{% endif %}><a href="{% url captcha.views.index %}">图片识别</a></li>
+            <li role="presentation" {% if title == "图片识别" %}class="active"{% endif %}><a href="{% url 'captcha.views.index' %}">图片识别</a></li>
             <li role="presentation"><a href="#">Contact</a></li>
           </ul>
         </nav>

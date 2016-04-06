@@ -1,7 +1,7 @@
 #!/bin/bash
 
 WORKDIR=/d/gitroom/cr-clawer/clawer
-PY=~/Documents/pyenv/dj14/bin/python
+PY=~/Documents/pyenv/dj18/bin/python
 
 if [ ! -d ${WORKDIR} ]; then
     WORKDIR=~/Documents/gitroom/cr-clawer/clawer

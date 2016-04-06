@@ -5,13 +5,13 @@
 
 import csv
 import types
+import json
 from urlparse import urljoin
 
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse
-from django.utils import simplejson
 from django.utils.encoding import smart_str
 from django.core.urlresolvers import reverse
 from django.templatetags.static import PrefixNode
@@ -43,8 +43,8 @@ def render_json(view_func):
             retval.mimetype = 'application/json; charset=utf-8'
             return retval
         else:
-            json = simplejson.dumps(retval)
-            return HttpResponse(json, mimetype='application/json; charset=utf-8')
+            js = json.dumps(retval)
+            return HttpResponse(js, content_type='application/json; charset=utf-8')
     return wrap
 
 
@@ -84,4 +84,5 @@ def reverse_site_url(name, args = None, kwargs = None):
 
 
 def static(path):
-     return urljoin(PrefixNode.handle_simple("STATIC_URL"), path)
+    return urljoin(PrefixNode.handle_simple("STATIC_URL"), path)
+ 

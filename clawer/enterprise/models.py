@@ -94,7 +94,7 @@ class Province(object):
 
 class Enterprise(models.Model):
     name = models.CharField(max_length=128)
-    province = models.IntegerField(max_length=128, choices=Province.choices)
+    province = models.IntegerField(choices=Province.choices)
     register_no = models.CharField(max_length=128)
     add_datetime = models.DateTimeField(auto_now_add=True)
 

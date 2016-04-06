@@ -1,12 +1,12 @@
 # Prequired
 
-- Django 1.4.x
+- Django 1.8
 - Redis
 - Memcached
 - RQ
 
 
-# Start Develop environment
+# How To Setup Develop environment
 
 
 ## Install Mariadb in CentOS 7
@@ -18,7 +18,7 @@
 Install python. Install virtualenv.
 
     cd ~/Documents/pyenv/
-    virtualenv dj14
+    virtualenv dj18
 
     cd ~/Documents/gitroom
 
@@ -46,7 +46,7 @@ Run server. Then visit http://localhost:8000/admin/
     ./run.sh rq
 
 
-# Create Database on MySQL
+## Create Database on MySQL
 
        CREATE DATABASE `clawer` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
@@ -58,37 +58,36 @@ Run server. Then visit http://localhost:8000/admin/
        GRANT ALL ON *.* TO 'cacti'@'%';
 
 
-# Crontab
+## Install Crontab
 
       #############################
       # topologic #
 
-
-      # 中证服务器配置
       ## master
+      
       ### for root
-      */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_install
-      20     *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh clawer_monitor_hour
-      40     3    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh clawer_monitor_day
-      */50   *    *    *    * cd /home/webapps/nice-clawer/sources/qyxy/structured/scripts/cr/; sh run.sh structured
+      */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_generator_install
+      20     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh clawer_monitor_hour
+      40     3    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh clawer_monitor_day
+      */50   *    *    *    * cd /home/webapps/cr-clawer/sources/qyxy/structured/scripts/cr/; sh run.sh structured
+
       ### for nginx user
-      */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_dispatch
-      30     *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_analysis_merge
+      */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_dispatch
+      30     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_analysis_merge
 
 
       ##slave
-      */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_analysis --thread=2 --run=290
-      30     *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./shrink_tmp.sh
+      */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_analysis --thread=2 --run=290
+      30     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./shrink_tmp.sh
 
 
 
-# Supervisor for Clawer worker
+## Install Worker
 
-Run in China
 
       ## start download worker
-      # mkdir /home/web_log/nice-clawer
-      # chown -R nginx:nginx /home/web_log/nice-clawer
+      # mkdir /home/web_log/cr-clawer
+      # chown -R nginx:nginx /home/web_log/cr-clawer
       # mkdir /data/clawer
       # chown -R nginx:nginx /data/clawer
       # mkdir /data/media
@@ -97,3 +96,27 @@ Run in China
       ln -s /home/webapps/cr-clawer/confs/cr/supervisord
       chkconfig supervisord on
       service supervisord restart
+
+      
+      
+# Program Dir
+
+## clawer
+
+this is main app.
+
+## collector
+
+About uri generator, download etc.
+
+## structure
+
+About analysis data, which from collector.
+
+# storage
+
+Used by collector and structure. It will store original data and middle data etc. Also it will contain some runtime log.
+
+# html5helper
+
+Some utils.

@@ -12,7 +12,10 @@ DATABASES = {
         "USER": "cacti",
         "PASSWORD": "cacti",
         "HOST": "127.0.0.1",
-        'TEST_CHARSET': 'utf8',
+        'TEST':{
+            'CHARSET':"utf8",
+            'COLLATION':"utf8_general_ci"
+        }
     }
 }
 
@@ -50,6 +53,29 @@ USE_TLS = True
 
 #captcha
 CAPTCHA_STORE = os.path.join(os.path.dirname(__file__), "captcha")
+
+
+# for storage
+
+MongoDBS = {
+    'default': {
+        'host': 'mongodb://localhost/default',
+    },
+    'log': {
+        'host': 'mongodb://localhost/log',
+    },
+    'source': {
+        'host': 'mongodb://localhost/source',
+    },
+    'structure': {
+        'host': 'mongodb://localhost/structure',
+    }
+}
+
+from mongoengine import connect
+
+for name, db in MongoDBS.iteritems():
+    connect(host=db['host'])
 
 
 """

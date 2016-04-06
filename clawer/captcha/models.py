@@ -111,7 +111,7 @@ class Captcha(models.Model):
 class LabelLog(models.Model):
     captcha = models.ForeignKey(Captcha)
     label = models.CharField(max_length=32)
-    ip = models.IPAddressField()
+    ip = models.GenericIPAddressField()
     add_datetime = models.DateTimeField(auto_now_add=True)
     
     class Meta:
