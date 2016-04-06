@@ -122,7 +122,9 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
                             "python" \
                             "python-devel" \
                             "zlib-devel" \
-                            "libjpeg-turbo-devel"
+                            "libjpeg-turbo-devel" \
+			    "libxml2" \
+ 			    "libxslt"
 
   init_mysql_root_password
   create_mysql_dev_account
