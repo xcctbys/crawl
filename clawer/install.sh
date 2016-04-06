@@ -38,8 +38,7 @@ init_mysql_root_password() {
 }
 
 eval_sql() {
-  sql="$1"
-  mysql -u root -p"plkj" -e $sql
+  mysql -uroot -pplkj -e "$1"
 }
 
 create_mysql_dev_account() {
@@ -53,7 +52,7 @@ create_mysql_dev_account() {
 
 create_mysql_dev_database() {
   db="$1"
-  eval_sql "CREATE DATABASE `$db` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+  eval_sql "CREATE DATABASE $db DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
   ret="$?"
   success "Create mysql dev database $db done."
 }
@@ -108,36 +107,58 @@ change_dir_to_project() {
   dir=$1
   cd $dir
 }
+
+create_mysql_schem() {
+  virtualenv_name=$1 
+  if [ -e $virtualenv_name ]; then
+    source $virtualenv_name/bin/active
+    python manage.py migrate
+  fi
+}
 ############################ MAIN()
 if [ "$(uname)" == "Darwin" ]; then
-  msg "Mac"
+  init_mysql_root_password
+  create_mysql_dev_account
+  create_mysql_dev_database "clawer"
+  easy_install_python_lib   "pip" \
+                            "setuptools"
+  clone_projects
+  change_dir_to_project     "$APP_PATH/clawer"
+  create_virtualenv         "dj18"
+  pip_install_python_lib    "dj18" \
+                            "requirements.txt"
+  create_mysql_schem        "dj18"
+
+  msg                       "\nThanks for installing $app_name."
+  msg                       "© `date +%Y` http://www.princetechs.com"
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-  # install_deps_on_centos    "gcc" \
-  #                           "gcc-c++" \
-  #                           "blas-devel" \
-  #                           "lapack-devel" \
-  #                           "mariadb" \
-  #                           "mariadb-server" \
-  #                           "mysql-devel" \
-  #                           "python" \
-  #                           "python-devel" \
-  #                           "zlib-devel" \
-  #                           "libjpeg-turbo-devel" \
-  #                           "libxml2" \
-  #                           "libxml2-devel" \
-  #                           "libxslt" \
-  #                           "libxslt-devel"
+  install_deps_on_centos    "gcc" \
+                            "gcc-c++" \
+                            "blas-devel" \
+                            "lapack-devel" \
+                            "mariadb" \
+                            "mariadb-server" \
+                            "mysql-devel" \
+                            "python" \
+                            "python-devel" \
+                            "zlib-devel" \
+                            "libjpeg-turbo-devel" \
+                            "libxml2" \
+                            "libxml2-devel" \
+                            "libxslt" \
+                            "libxslt-devel"
 
   init_mysql_root_password
   create_mysql_dev_account
   create_mysql_dev_database "clawer"
-  # easy_install_python_lib   "pip" \
-  #                           "setuptools"
-  # clone_projects
-  # change_dir_to_project     "$APP_PATH/clawer"
-  # create_virtualenv         "dj18"
-  # pip_install_python_lib    "dj18" \
-  #                           "requirements.txt"
+  easy_install_python_lib   "pip" \
+                            "setuptools"
+  clone_projects
+  change_dir_to_project     "$APP_PATH/clawer"
+  create_virtualenv         "dj18"
+  pip_install_python_lib    "dj18" \
+                            "requirements.txt"
+  create_mysql_schem        "dj18"
 
   msg                       "\nThanks for installing $app_name."
   msg                       "© `date +%Y` http://www.princetechs.com"
