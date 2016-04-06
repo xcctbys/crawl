@@ -39,14 +39,14 @@ init_mysql_root_password() {
 
 eval_sql() {
   sql="$1"
-  mysql -u root -p "plkj" -e $sql
+  mysql -u root -p"plkj" -e $sql
 }
 
 create_mysql_dev_account() {
-  eval_sql "CREATE USER 'cacti'@'localhost' IDENTIFIED BY 'cacti';
-            GRANT ALL ON *.* TO 'cacti'@'localhost';
-            CREATE USER 'cacti'@'%' IDENTIFIED BY 'cacti';
-            GRANT ALL ON *.* TO 'cacti'@'%';"
+  eval_sql "CREATE USER 'cacti'@'localhost' IDENTIFIED BY 'cacti';"
+  eval_sql "GRANT ALL ON *.* TO 'cacti'@'localhost';"
+  eval_sql "CREATE USER 'cacti'@'%' IDENTIFIED BY 'cacti';"
+  eval_sql "GRANT ALL ON *.* TO 'cacti'@'%';"
   ret="$?"
   success "Create mysql dev account 'cacti' done. Password is 'cacti' too."
 }
@@ -112,32 +112,32 @@ change_dir_to_project() {
 if [ "$(uname)" == "Darwin" ]; then
   msg "Mac"
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-  install_deps_on_centos    "gcc" \
-                            "gcc-c++" \
-                            "blas-devel" \
-                            "lapack-devel" \
-                            "mariadb" \
-                            "mariadb-server" \
-                            "mysql-devel" \
-                            "python" \
-                            "python-devel" \
-                            "zlib-devel" \
-                            "libjpeg-turbo-devel" \
-			    "libxml2" \
-			    "libxml2-devel" \
- 			    "libxslt" \
- 			    "libxslt-devel"
+  # install_deps_on_centos    "gcc" \
+  #                           "gcc-c++" \
+  #                           "blas-devel" \
+  #                           "lapack-devel" \
+  #                           "mariadb" \
+  #                           "mariadb-server" \
+  #                           "mysql-devel" \
+  #                           "python" \
+  #                           "python-devel" \
+  #                           "zlib-devel" \
+  #                           "libjpeg-turbo-devel" \
+  #                           "libxml2" \
+  #                           "libxml2-devel" \
+  #                           "libxslt" \
+  #                           "libxslt-devel"
 
   init_mysql_root_password
   create_mysql_dev_account
   create_mysql_dev_database "clawer"
-  easy_install_python_lib   "pip" \
-                            "setuptools"
-  clone_projects
-  change_dir_to_project     "$APP_PATH/clawer"
-  create_virtualenv         "dj18"
-  pip_install_python_lib    "dj18" \
-                            "requirements.txt"
+  # easy_install_python_lib   "pip" \
+  #                           "setuptools"
+  # clone_projects
+  # change_dir_to_project     "$APP_PATH/clawer"
+  # create_virtualenv         "dj18"
+  # pip_install_python_lib    "dj18" \
+  #                           "requirements.txt"
 
   msg                       "\nThanks for installing $app_name."
   msg                       "© `date +%Y` http://www.princetechs.com"
