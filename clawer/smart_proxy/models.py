@@ -2,8 +2,8 @@ from django.db import models
 
 # Create your models here.
 
-class ProxyIp(BaseModel):
-    ip_port = models.CharField(max_length=20, unique=True)
+class ProxyIp(models.Model):
+    ip_port = models.CharField(max_length=24, unique=True, blank=False)
     province = models.CharField(max_length=20)
     is_valid = models.BooleanField()
     creade_datetime = models.DateTimeField(auto_now_add=True)
