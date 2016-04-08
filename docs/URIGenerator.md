@@ -16,7 +16,7 @@
 ### 输出
 - MongoDB数据库	
 - 错误日志	
-- 失败日志
+- 生成日志
 		
 ### 流程(伪代码)
 Master读入配置信息包括URI文件或者URI生成脚本等。若为URI文件，则逐一进行合法性校验，去重校验，保存进入MongoDB中；若为URI生成器脚本，连通其他信息（如crontab信息）保存进MongoDB中。
@@ -43,7 +43,7 @@ def data_preprocess( *args, **kwargs):
 - 手工输入单条URI超过约束，将异常URI保存到错误日志中，并给出提示。
 - 合法性校验失败后，将失败结果记录到错误日志中，继续处理。
 - 去重校验检查出重复结果后，将重复结果记录到错误日志中，不保存并继续处理。
-- 单条URI保存失败，将此条URI保存进失败日志中。并在保存后统一提示。
+- 单条URI保存失败，将此条URI保存进生成日志中。并在保存后统一提示。
 - URI脚本保存失败，将此文件保存进失败日志中，并在保存后给出提示。
 - 输入数据不在要求范围内，直接报错。
 
@@ -59,6 +59,11 @@ def data_preprocess( *args, **kwargs):
 
 
 ## URI生成器定时任务
+
+### 说明	
+由于crontab是并发执行，当用户的crontab命令过多时，系统同一时间触发过多任务就可能无法进行下去，所有当前任务要解决 crontab命令串行执行。
+
+
 ### 输入
 - 无
 
@@ -144,10 +149,40 @@ cron.write_to_user( user='bob' )
 ### 输出
 - RQ 队列	
 - 错误日志	
-- 失败日志
+- 生成日志
 		
 ### 流程(伪代码)
 Master从MongoDB的URI生成器Collection中获取job 为job_id的文档，定义URI下载队列，将URI生成器函数，作为参数压入URI任务下载队列中，并返回URI下载队列对象。
+
+将优先级分成-1, 0，1，2，3，4，5共7个优先级，-1, 为最高优先级，5为最低优先级；默认优先级为5。
+共设4个优先级通道，队列头优先级高，队列尾优先级低。
+
+very high
+
+<===============< -1
+
+
+high
+
+0 <=============< 1
+
+medium
+
+2 <=============< 3
+
+low
+
+4 <=============< 5
+
+启动worker按如下格式启动，workers将会顺序从给定的队列中无限循环读入jobs，而且会按照very_high, high, medium， low顺序。
+
+```
+rq worker very_high, high medium low
+```
+其中，very_high通道只有在特殊情况下使用，特别急用的job才能启用此通道。
+
+设置每个队列的长度`rq_length`,防止无限向rq队列中添加job导致内存被占用太多。假若当前队列已满，需要优先向低优先级通道队列头添加job，否则向高优先级通道队列尾添加。如果所有队列都满，则报警。
+
 
 ```
 def dispatch_uri(job_id, *args, **kwargs):
@@ -155,12 +190,39 @@ def dispatch_uri(job_id, *args, **kwargs):
 	download_uri_queue = DownloadURIQueue()
 	# 获取此文档的父job的优先级
 	priority = uri_generator_mongodb.get_job_priority({_id : $_id})
-	# priority includes (very high, high, medium, low)
+	# priority includes range（-1，6)
 	# 根据优先级插入
-	if priority == 'very high':
-		download_queue.enqueue('high', download_uri_task, args=[item, *args, **kwargs, at_front=True])
-	else priority in (high, medium, low):
-		download_queue.enqueue( priority , download_uri_task, args=[item, *args, **kwargs])
+	if priority == -1:
+		try insert into very high queue at the back,
+		{
+			# 判断very high通道是否已满
+			if length('very_high' queue ) equal rq_length:
+				# 尝试插入 high队列头,如果high队列满，则尝试插入 medium,依次类推，直到所有队列都满，则停止插入，将此条job放弃，
+				return False
+			else
+				download_queue.enqueue('very_high', download_uri_task, args=[item, *args, **kwargs])
+				return True
+		}
+		# 添加到错误日志中去，并给出警告。
+		if insertion is not succesful:
+			insert job into error log
+	else if priority == 0:
+		#
+		try insert into high queue at the front,
+		{
+			# 判断high通道是否已满
+			if length('high' queue ) equal rq_length:
+				# 尝试插入 high队列头,如果high队列满，则尝试插入 medium,依次类推，直到所有队列都满，则停止插入，将此条job放弃.
+				return False
+			else
+				download_queue.enqueue('high', download_uri_task, args=[item, *args, **kwargs, at_front = True])
+				return True
+		}
+		# 添加到错误日志中去，并给出警告。
+		if insertion is not succesful:
+			insert job into error log
+	else if priority == 2:
+	...
 	update uri_object status
 	return download_queue
 ```
@@ -174,6 +236,7 @@ q = Queue('low', connection=redis_conn)
 q.enqueue_call(func=count_words_at_url,
                args=('http://nvie.com',),
                timeout=30)
+# 同时rq 队列是没有长度限制的。
 ```
 
 
@@ -181,7 +244,7 @@ q.enqueue_call(func=count_words_at_url,
 ### 失败处理
 
 - 若$_id不在URI生成器的Collection中，保存此信息到错误日志中，并给出提示。
-- 若入队列没有成功，则将错误消息写入失败日志中。
+- 若入队列没有成功，则将错误消息写入错误日志中。
 
 ### 前提条件
 
@@ -202,7 +265,8 @@ q.enqueue_call(func=count_words_at_url,
 - 其他配置信息（到时候在定）
 
 ### 输出
-- None
+- 错误日志
+- 生成日志
 		
 ### 流程(伪代码)
 
@@ -281,7 +345,6 @@ class CrawlerTask(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
     task_generator = ReferenceField(CrawlerTaskGenerator, null=True)
     uri = StringField(max_length=1024)
-    cookie = StringField(max_length=1024,  null=True)
     args = StringField(max_length=1024, null=True)
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
     store = StringField(max_length=512, blank=True, null=True)
@@ -330,21 +393,13 @@ class GrawlerGeneratorLog(Document):
     add_datetime = DateTimeField(default=datetime.datetime.now())
 ```
 
-## CrawlerUriLog
+## CrawlerErrorLog
 ``` 
 
 class CrawlerUriLog(Document):
-    (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
-    STATUS_CHOICES = (
-        (STATUS_FAIL, u"失败"),
-        (STATUS_SUCCESS, u"成功"),
-    )
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    task_generator = ReferenceField(CrawlerTaskGenerator, null= True)
-    status = IntField(default=0, choices=STATUS_CHOICES)
     failed_reason = StringField(max_length=10240, null=True)
     content_bytes = IntField(default=0)
-    spend_msecs = IntField(default=0) #unit is microsecond
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 ```
