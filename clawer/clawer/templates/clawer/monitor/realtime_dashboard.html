@@ -41,7 +41,7 @@ require(
             
             
             function load_data() {
-            	var url = "{% url clawer.apis.monitor.task_stat %}";
+            	var url = "{% url 'clawer.apis.monitor.task_stat' %}";
             	
             	$.getJSON(url, function(resp){
             		

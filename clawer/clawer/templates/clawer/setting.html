@@ -26,7 +26,7 @@
 
 
 <table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
-        fitColumns="true" url="{% url clawer.apis.home.clawer_all %}" showFooter="true"
+        fitColumns="true" url="{% url 'clawer.apis.home.clawer_all' %}" showFooter="true"
         data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
         toolbar="#toolbar" rowStyler="rowStyle">
         
@@ -58,7 +58,7 @@
 
     <h1></h1>
     
-    <form method="post" id="update_form" action="{% url clawer.apis.home.clawer_setting_update %}">
+    <form method="post" id="update_form" action="{% url 'clawer.apis.home.clawer_setting_update' %}">
         <table style="width:100%;">
             <tr>
                 <td>每次分发任务数</td>
@@ -133,7 +133,7 @@
 <!-- add form -->
 <div id="add_win" class="easyui-window" title="增加爬虫" closed="true" style="width:80%;height:60%;padding:5px;">
 
-    <form method="post" id="add_form" action="{% url clawer.apis.home.clawer_add %}">
+    <form method="post" id="add_form" action="{% url 'clawer.apis.home.clawer_add' %}">
         <table style="width:100%;">
             <tr>
                 <td>爬虫名</td>

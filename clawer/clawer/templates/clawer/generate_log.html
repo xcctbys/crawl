@@ -16,7 +16,7 @@
 
 
 <table id="grid" class="easyui-datagrid" style="width:100%;height:100%"
-        url="{% url clawer.apis.home.clawer_generate_log %}" showFooter="true"
+        url="{% url 'clawer.apis.home.clawer_generate_log' %}" showFooter="true"
         data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
         toolbar="#toolbar" fitColumns="true">
         
