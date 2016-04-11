@@ -54,7 +54,7 @@
 <script>
 
 function logout() {
-    var url = "{% url clawer.apis.user.logout %}";
+    var url = "{% url 'clawer.apis.user.logout' %}";
     
     $.getJSON(url, function(resp){
         if(resp.is_ok) {
@@ -82,7 +82,7 @@ $(document).ready(function(){
 	
 	
 	function load_menus() {
-		var menu_url = "{% url clawer.apis.user.get_my_menus %}";
+		var menu_url = "{% url 'clawer.apis.user.get_my_menus' %}";
 		
 		$("#menuTree").tree({
 			url: menu_url,
@@ -106,7 +106,7 @@ $(document).ready(function(){
 	}	
 	
 	function keepalive() {
-        var keepalive_url = "{% url clawer.apis.user.keepalive %}";
+        var keepalive_url = "{% url 'clawer.apis.user.keepalive' %}";
         
         $.getJSON(keepalive_url, function(resp){
             if(resp.is_ok == false) {
@@ -135,7 +135,7 @@ $(document).ready(function(){
 	}, 30000);
 	
 	$("#login_btn").bind("click", function(){
-		var url = "{% url clawer.apis.user.login %}";
+		var url = "{% url 'clawer.apis.user.login' %}";
 		
 		$.ajax({
 	        type: "GET",

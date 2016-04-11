@@ -16,7 +16,7 @@
 </div>
 
 <table id="grid" class="easyui-datagrid" style="width:100%;height:300px; margin-top:20px;"
-        url="{% url clawer.apis.monitor.day %}" showFooter="true"
+        url="{% url 'clawer.apis.monitor.day' %}" showFooter="true"
         data-options="singleSelect:true,collapsible:true,method:'get'" rownumbers="true" pagination="true"
         toolbar="#toolbar" fitColumns="true">
         
@@ -88,7 +88,7 @@ function formatBytes(val) {
 
 
 function load_clawers() {
-	var url = "{% url clawer.apis.home.clawer_all %}" + "?status=1";
+	var url = "{% url 'clawer.apis.home.clawer_all' %}" + "?status=1";
 		
 	$("#id_clawer_select").combogrid({
 		panelWidth:450,
@@ -139,7 +139,7 @@ $(document).ready(function(){
 		            });
 		                    
 		            function load_data() {
-		            	var url = "{% url clawer.apis.monitor.day_echarts %}";
+		            	var url = "{% url 'clawer.apis.monitor.day_echarts' %}";
 		            	
 		            	$.getJSON(url, {clawer_id:clawer_id}, function(resp){
 		            		

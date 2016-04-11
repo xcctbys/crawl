@@ -152,6 +152,7 @@ INSTALLED_APPS = (
     "storage",
     "boss",
     "clawer",
+    'smart_proxy',
 )
 
 
@@ -168,3 +169,5 @@ UPDATE_BY = "day" # "hour" | "day"
 # UPDATE_BY = "hour" # "hour" | "day"
 
 MULTIPROCESS = True # True | False
+
+MAX_PROXY_NUM = 100
