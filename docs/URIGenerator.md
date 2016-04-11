@@ -65,48 +65,150 @@ def data_preprocess( *args, **kwargs):
 
 
 ### 输入
-- 无
+- Mongodb中已经存储的job的生成器CrawlerTaskGenerator。
 
 ### 输出
 - 无
 
 ### 流程
 
-```
-	# 通过task_generator_install这个定时任务触发此函数
-	kill the last process
-	crons = get all crons of all valid jobs 
-	for cron in crons:
-		# schedule.insert(" * * * * *", commond )
-		schedule.every(*).minutes.do(cron.command)
-		or
-		schedule.every().at(time_str).do(cron.command)
-	while True:
-		schedule.run_pending()
-		time.sleep(1)
-```
-
-以下为参考。
-
-schedule是不将定时任务写入到cron系统文件中，而是将其放入schedule此对象中，通过调用every()来写入定时时间，do()来写入命令。
+定期更新所有job的生成器crontab的本地文件信息
 
 ```
-import schedule
-import time
-def job(message='stuff'):
-    print("I'm working on:", message)
-schedule.every(10).minutes.do(job)
-schedule.every().hour.do(job, message='things')
-schedule.every().day.at("10:30").do(job)
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+def task_generator_install():
+	#提前从本地tabfile中删除移除的job的命令
+	remove_all_job
+	# 从数据库中获取所有job信息
+	get_jobs
+	for job in jobs:
+		# 获得更新的生成器脚本和crontab等信息
+		job.get_latest_generator
+		# 更新最新的generator状态为on，并修改上个版本的generator状态为off
+		update_all_status
+	# 将crontab信息更新回本地crontab文件中
+	save_cron
+```
+每分钟运行例程
+
+```
+def task_generator_run():
+	# 获取出当前分钟 需要执行的任务列表
+	last_time = datetime.now()
+	# 从本地文件读入当前需要执行的crontab任务列表
+	cron.read_from_file(tabfile)
+	# 多线程执行任务列表
+	cron.run_scheduler()
+	# 预警机制
+    end_time = datetime.now()
+    if end_time - last_time > 60s
+    	writing_alert_log
+```
+读入tabfile文件
+
+```
+# 文件内容的格式：    * * * * * cmd #comment #last_time
+def read_from_file(self, filename= None)
+	with codecs.open(filename, 'r', encoding='utf-8') as fhl:
+		lines = fhl.readlines()
+	for line in lines:
+		cron = CronItem(line, cron=self)
+		# 获得当前需要运行的cron任务
+		now = datetime.now()
+		next_time = croniter(cron.clean_render() ,cron.last_time).get_next()
+		if next_time < now:
+			cron.last_time = now
+			self.append(cron, line, read=True)     
+	# 将本次运行的cron任务的上次运行时间写回到tabfile文件中
+    write_back(self.crons)   
+```
+将单条的cron信息追加到crontab对象列表中。
+
+```
+    def append(self, cron, line='', read=False):
+        """Append a CronItem object to this CronTab"""
+        if cron.is_valid():
+            if read and not cron.comment and self.lines and \
+              self.lines[-1] and self.lines[-1][0] == '#':
+                cron.set_comment(self.lines.pop()[1:].strip())
+            self.crons.append(cron)
+            self.lines.append(cron)
+            return cron
+        if '=' in line:
+            if ' ' not in line or line.index('=') < line.index(' '):
+                (name, value) = line.split('=', 1)
+                self.env[name.strip()] = value.strip()
+                return None
+        self.lines.append(line.replace('\n', ''))
+```
+运行例程函数, 采用多进程进行执行。
+
+```
+import multiprocessing
+def run_scheduler(self, **kwargs):
+	    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+	for job in self.crons:
+		try:
+			pool.apply_async(job.run_pending, (args)))
+        except:
+        	raise
+    print "ALL DONE! \n"
+    pool.close()
+    pool.join()
+    print "Sub processes done! \n"
+
+```
+job.run_pending执行单独的命令。
+
+```
+# 
+import shlex
+import subprocess
+def run_pending():
+	# 获得shell
+	shell = SHELL
+        if self.cron and 'SHELL' in self.cron.env:
+            shell = self.cron.env['SHELL']
+        (out, err) = open_pipe(shell, '-c', self.command).communicate()
+        if err:
+            LOG.error(err.decode("utf-8"))
+        return out.decode("utf-8").strip()
+# 创建子进程
+def open_pipe(cmd, *args, **flags):
+    """Runs a program and orders the arguments for compatability.
+
+    a. keyword args are flags and always appear /before/ arguments for bsd
+    """
+    cmd_args = tuple(shlex.split(cmd))
+    for (key, value) in flags.items():
+        if len(key) == 1:
+            cmd_args += ("-%s" % key),
+            if value is not None:
+                cmd_args += str(value),
+        else:
+            cmd_args += ("--%s=%s" % (key, value)),
+    args = tuple(arg for arg in (cmd_args + tuple(args)) if arg)
+    return subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 ```
 
 
 
+以下为参考内容，不作为流程处理过程：
 
-python-crontab将定时任务写入到cron系统文件中。
+```
+# 添加行
+cronitem =cron.new(command, comment, user)
+删除job，通过comment
+# 查找行
+cronitem = cron.find_comment('some comment')
+# 删除行
+cron.remove(cronitem)
+cron.remove_all(comment='')
+cron.remove_all(time='')
+# 写入文件中
+cron.write(filename='', user='')
+```
+python-crontab将定时任务写入到cron系统文件中, 或者写入到本地文件。
+
 
 ```
 Write CronTab back to system or filename:
@@ -123,21 +225,18 @@ Write to some other user’s crontab:
 cron.write_to_user( user='bob' )
 ```
 
+### 失败处理	
+无
 
-
-
-### 失败处理
-
-
-
-### 前提条件
-
+### 前提条件	
 系统将task_generator_install写入了定时任务中，定期更新所有的新任务。通过task_generator_install这个定时任务触发此函数。
 
 
 ```
   for root	
   */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_install
+  
+  *    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_run
 ```
 
 
@@ -281,6 +380,9 @@ def download_uri_task(uri_generator_doc, other_settings):
 	URI_lists = get  uris from new file
 	for uri in URI_lists:
 		try:
+			if not 符合格式
+				insert into uri_genera_log
+				continue
 			if not 判断uri在redis缓存中
 				insert uri into URI Collection
 			else:
@@ -345,9 +447,9 @@ class CrawlerTask(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
     task_generator = ReferenceField(CrawlerTaskGenerator, null=True)
     uri = StringField(max_length=1024)
-    args = StringField(max_length=1024, null=True)
+    args = StringField(max_length=2048, null=True) # 存储cookie， header等信息
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
-    store = StringField(max_length=512, blank=True, null=True)
+    from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
 ```
