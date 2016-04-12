@@ -99,13 +99,16 @@ def task_generator_run():
 	last_time = datetime.now()
 	# 从本地文件读入当前需要执行的crontab任务列表
 	cron.read_from_file(tabfile)
-	# 多线程执行任务列表
+	# 多进程执行任务列表
 	cron.run_scheduler()
 	# 预警机制
     end_time = datetime.now()
     if end_time - last_time > 60s
     	writing_alert_log
 ```
+
+
+
 读入tabfile文件
 
 ```
@@ -147,8 +150,13 @@ def read_from_file(self, filename= None)
 
 ```
 import multiprocessing
+pool = None
 def run_scheduler(self, **kwargs):
-	    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+	# 定时任务，时间到60s强制退出。
+	timer = threading.Timer(60, force_exit)
+	timer.start()
+
+	pool = multiprocessing.Pool(multiprocessing.cpu_count())
 	for job in self.crons:
 		try:
 			pool.apply_async(job.run_pending, (args)))
@@ -160,10 +168,30 @@ def run_scheduler(self, **kwargs):
     print "Sub processes done! \n"
 
 ```
-job.run_pending执行单独的命令。
+强制退出函数：	
 
 ```
-# 
+def force_exit():
+    pgid = os.getpgid(0)
+    if pool is not None:
+        pool.terminate()
+    os.killpg(pgid, 9)
+    os._exit(1)
+```
+
+
+job.run_pending执行单独的命令。
+**提供两种方案，第一：命令为函数，第二：命令为执行脚本。** 这里可以采用直接执行函数。
+
+方案一：		
+
+```
+ * * * * * dispatch_uri 4 # job4 # 2016-04-11 12:00:00
+```
+
+方案二：
+
+```
 import shlex
 import subprocess
 def run_pending():
