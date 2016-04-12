@@ -68,7 +68,10 @@ def data_preprocess( *args, **kwargs):
 - Mongodb中已经存储的job的生成器CrawlerTaskGenerator。
 
 ### 输出
-- 无
+- 存储在本地的crontab文件
+- 生成器定时日志
+- 报警日志
+- 错误日志
 
 ### 流程
 
@@ -76,7 +79,7 @@ def data_preprocess( *args, **kwargs):
 
 ```
 def task_generator_install():
-	#提前从本地tabfile中删除移除的job的命令
+	#提前从本地tabfile中删除下线的job的命令
 	remove_all_job
 	# 从数据库中获取所有job信息
 	get_jobs
@@ -226,10 +229,11 @@ cron.write_to_user( user='bob' )
 ```
 
 ### 失败处理	
-无
+- 若task_generator_run 的运行时间超过1min，则报警，并将报警信息写入报警日志中。
+- 若task_generator_run 读入的crontab文件内容格式不符合，则将格式错误信息写入错误日志中。
 
 ### 前提条件	
-系统将task_generator_install写入了定时任务中，定期更新所有的新任务。通过task_generator_install这个定时任务触发此函数。
+系统将task_generator_install写入了定时任务中，定期更新所有的新任务。通过task_generator_install这个定时任务触发此函数。	将task_generator_run写入定时任务，并每分钟都激活此函数来代替系统的crond守护进程。
 
 
 ```
@@ -256,29 +260,27 @@ Master从MongoDB的URI生成器Collection中获取job 为job_id的文档，定�
 将优先级分成-1, 0，1，2，3，4，5共7个优先级，-1, 为最高优先级，5为最低优先级；默认优先级为5。
 共设4个优先级通道，队列头优先级高，队列尾优先级低。
 
-very high
-
+very high	
 <===============< -1
 
-
-high
-
+high 	
 0 <=============< 1
 
-medium
-
+medium	
 2 <=============< 3
 
-low
-
+low		
 4 <=============< 5
 
 启动worker按如下格式启动，workers将会顺序从给定的队列中无限循环读入jobs，而且会按照very_high, high, medium， low顺序。
 
+启动的worker的命令为：
+
 ```
-rq worker very_high, high medium low
+rq worker uri_very_high uri_high uri_medium uri_low
 ```
-其中，very_high通道只有在特殊情况下使用，特别急用的job才能启用此通道。
+
+其中，uri_very_high通道只有在特殊情况下使用，特别急用的job才能启用此通道。
 
 设置每个队列的长度`rq_length`,防止无限向rq队列中添加job导致内存被占用太多。假若当前队列已满，需要优先向低优先级通道队列头添加job，否则向高优先级通道队列尾添加。如果所有队列都满，则报警。
 
@@ -414,7 +416,9 @@ def download_uri_task(uri_generator_doc, other_settings):
 
 mongodb当中的数据库定义。
 
-## Job
+## Job	
+*此处不对Job做详细设计，Job设计放在系统层。*
+
 ```
 from mongoengine import *
 
@@ -495,12 +499,40 @@ class GrawlerGeneratorLog(Document):
     add_datetime = DateTimeField(default=datetime.datetime.now())
 ```
 
-## CrawlerErrorLog
+## CrawlerGeneratorCronLog
+
+```
+class GrawlerGeneratorCronLog(Document):
+    (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
+    STATUS_CHOICES = (
+        (STATUS_FAIL, u"失败"),
+        (STATUS_SUCCESS, u"成功"),
+    )
+    job = ReferenceField(Job, reverse_delete_rule=CASCADE)
+    status = IntField(default=0, choices=STATUS_CHOICES)
+    cron = StringField(max_length=128)
+    failed_reason = StringField(max_length=10240, null=True, blank=True)
+    spend_msecs = IntField(default=0) #unit is microsecond
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+```
+
+## CrawlerGeneratorErrorLog
 ``` 
 
-class CrawlerUriLog(Document):
+class CrawlerGeneratorUriLog(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
     failed_reason = StringField(max_length=10240, null=True)
+    content_bytes = IntField(default=0)
+    hostname = StringField(null=True, max_length=16)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+```
+
+## CrawlerGeneratorAlertLog
+``` 
+class CrawlerGeneratorAlertLog(Document):
+    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
+    type = StringField(max_length=128)
+    reason = StringField(max_length=10240, null=True)
     content_bytes = IntField(default=0)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
@@ -538,6 +570,27 @@ def download_uri_task(uri_generator_doc, *args, **kwargs):
 	return None
 ```
 
+## 接口4
+- 接口说明	
+	例行任务，生成器更新脚本。
+- 调用方式
+
+```
+	def task_generator_install():
+		return None
+```
+
+## 接口5
+- 接口说明
+	例行性任务，生成器
+- 调用方式	
+
+```
+def task_generator_run():
+	return None
+```
+
+
 # 测试计划
 正确性测试，容错性测试，数据库测试
 
@@ -560,31 +613,10 @@ def download_uri_task(uri_generator_doc, *args, **kwargs):
 |14 | URI生成 | 输入URI生成器集合CrawlerTaskGenerator的一条文档。 | MongoDB中的CrawlerTask中存入生成器生成的URI|
 |15 | URI生成 | 短时间内重复输入URI生成器集合的一条文档 | MongoDB的CrawlerTask集合中不会有重复的URI插入|
 |16 | URI生成 | 输入非URI生成器集合CrawlerTaskGenerator的一条文档。 | 系统会报错，找不到某某字段|
-
-## Testcase 1	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-
-- 测试功能		
-	数据预处理
-
-- 输入	
-	仅包含URI的CSV或TXT文件。
-
-- 期望输出	
-MongoDB数据库中CrawlerTask中存入内容。
-
-## Testcase 2	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-
-- 测试功能	
-数据预处理
-
-- 输入	
-Python文件或者Shell脚本。
-
-- 期望输出	
-MongoDB数据库中CrawlerTaskGenerator中存入输入文件内容
-
-
-
+|17 | 生成器更新 | 向MongoDB中某一Job对应的CrawlerTaskGenerator插入一条新的文档。 | 系统将新插入的脚本更新为启动状态，如果存在旧的脚本，则旧的脚本改为停止状态|
+|18 | 生成器例行性任务 | 按照指定格式存储的本地crontab文件。 | 系统会成功执行完所有需要本次执行的crontab命令。|
+|19 | 生成器例行性任务 | 未按照指定格式存储的本地crontab文件。 | 系统会报格式错误，并写入错误日志|
+|20 | 生成器例行性任务 | 按照指定格式存储的本地crontab文件，crontab内同一时间需要执行的命令数量超过10000, 目的让所有cron命令执行完时间超过1分钟。 | 系统会报超时预警，并写入预警日志|
 
 # 参考资料
 
@@ -595,7 +627,7 @@ MongoDB数据库中CrawlerTaskGenerator中存入输入文件内容
 - MongoDB. http://www.mongoing.com/
 - Redis. http://redis.io/
 - Managing Cron Jobs with Python-Crontab. http://blog.appliedinformaticsinc.com/managing-cron-jobs-with-python-crontab/
-
+- python-crontab 2.0.1. https://pypi.python.org/pypi/python-crontab/2.0.1
 
 
  
