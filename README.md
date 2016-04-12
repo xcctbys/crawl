@@ -9,9 +9,18 @@
 # How To Setup Develop environment
 
 
-## Install Mariadb in CentOS 7
+## Install MySQL
 
+ in CentOS 7
+
+      yum install -y mysql 
+      #or 
       yum install -y mariadb*
+      
+in macos
+
+     brew install mysql
+      
 
 ## Install some python libs
 
@@ -43,7 +52,14 @@ Create two group in http://localhost:8000/admin/
 Run server. Then visit http://localhost:8000/admin/
 
     ./run.sh app
-    ./run.sh rq
+    
+Start RQ worker
+
+    ./run.sh rq [Queue....]
+    
+For example:
+
+    ./run.sh rq clawer download analysis 
 
 
 ## Create Database on MySQL
