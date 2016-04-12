@@ -546,8 +546,7 @@ class GrawlerGeneratorCronLog(Document):
 
 ## CrawlerGeneratorErrorLog
 ``` 
-
-class CrawlerGeneratorUriLog(Document):
+class CrawlerGeneratorErrorLog(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
     failed_reason = StringField(max_length=10240, null=True)
     content_bytes = IntField(default=0)
