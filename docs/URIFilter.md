@@ -54,13 +54,20 @@ def URIFilter():
   
 ```
     ###先在本地redis进行 set array[i] =1 操作，然后定期写回##
-    
+    read   wback_bitmap_cycle   from  settings
+    when   time  =  wback_time
+    update  bit-map  in   mongodb
+
+
+
     
   
 ```
   
   
-  #### 去重服务器初始化
+
+
+#### 去重服务器初始化
   
   
 - 初始化
