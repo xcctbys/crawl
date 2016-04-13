@@ -25,6 +25,7 @@ class Job(Document):
     name = StringField(max_length=128)
     status = IntField(default=STATUS_ON, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default= datetime.datetime.now())
+    meta = {"db_alias": "source"}
 
 class CrawlerTaskGenerator(Document):
     """ collection of generator scripts """
@@ -42,6 +43,7 @@ class CrawlerTaskGenerator(Document):
     cron = StringField(max_length=128)
     status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"}
 
 class CrawlerTask(Document):
     """ collecton of uri  """
@@ -61,7 +63,7 @@ class CrawlerTask(Document):
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
     from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
     add_datetime = DateTimeField(default=datetime.datetime.now())
-
+    meta = {"db_alias": "source"}
 
 class GrawlerGeneratorLog(Document):
     """log : execution results of generator scripts  """
@@ -79,6 +81,8 @@ class GrawlerGeneratorLog(Document):
     hostname = StringField(null=True, blank=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
+    meta = {"db_alias": "source"}
+
 class GrawlerGeneratorCronLog(Document):
     """ log: execution results of crontab command """
     (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
@@ -93,12 +97,16 @@ class GrawlerGeneratorCronLog(Document):
     spend_msecs = IntField(default=0) #unit is microsecond
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
+    meta = {"db_alias": "source"}
+
 class CrawlerGeneratorErrorLog(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
     failed_reason = StringField(max_length=10240, null=True)
     content_bytes = IntField(default=0)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+
+    meta = {"db_alias": "source"}
 
 class CrawlerGeneratorAlertLog(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
@@ -107,4 +115,6 @@ class CrawlerGeneratorAlertLog(Document):
     content_bytes = IntField(default=0)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+
+    meta = {"db_alias": "source"}
 

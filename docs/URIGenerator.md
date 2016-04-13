@@ -30,11 +30,10 @@ def data_preprocess( *args, **kwargs):
 	if file is script:
 		save file with settings to uri_genenrator_collection
 	else:
-		uri_lists = read file
-		for uri in lists:
-			validate uri
-			dereplicate uri
-			save uri in mongodb
+		uri_lists = read file or textarea
+		validate uris
+		dereplicate uris
+		save uri in mongodb
 	return None
 ```
 
@@ -483,7 +482,7 @@ class CrawlerTask(Document):
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
     from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
     add_datetime = DateTimeField(default=datetime.datetime.now())
-
+	meta = {"db_alias": "source"} # 默认连接的数据库
 ```
 
 
@@ -506,6 +505,7 @@ class CrawlerTaskGenerator(Document):
     cron = StringField(max_length=128)
     status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库
 ```
 ## CrawlerGeneratorLog
 
@@ -525,6 +525,7 @@ class GrawlerGeneratorLog(Document):
     spend_msecs = IntField(default=0) #unit is microsecond
     hostname = StringField(null=True, blank=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 ## CrawlerGeneratorCronLog
@@ -542,6 +543,7 @@ class GrawlerGeneratorCronLog(Document):
     failed_reason = StringField(max_length=10240, null=True, blank=True)
     spend_msecs = IntField(default=0) #unit is microsecond
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 ## CrawlerGeneratorErrorLog
@@ -552,6 +554,7 @@ class CrawlerGeneratorErrorLog(Document):
     content_bytes = IntField(default=0)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 ## CrawlerGeneratorAlertLog
@@ -563,6 +566,7 @@ class CrawlerGeneratorAlertLog(Document):
     content_bytes = IntField(default=0)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 # 接口

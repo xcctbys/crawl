@@ -17,6 +17,7 @@ DATABASES = {
             'COLLATION':"utf8_general_ci"
         }
     }
+
 }
 
 
@@ -46,9 +47,9 @@ MONITOR_REDIS = "redis://localhost:6379//0"
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtp.exmail.qq.com'
-EMAIL_PORT = 465   
-EMAIL_HOST_USER='robot@princetechs.com'  
-EMAIL_HOST_PASSWORD='Robot0023' 
+EMAIL_PORT = 465
+EMAIL_HOST_USER='robot@princetechs.com'
+EMAIL_HOST_PASSWORD='Robot0023'
 USE_TLS = True
 
 #captcha
@@ -75,7 +76,7 @@ MongoDBS = {
 from mongoengine import connect
 
 for name, db in MongoDBS.iteritems():
-    connect(host=db['host'])
+    connect(host=db['host'], alias= name)
 
 
 """
