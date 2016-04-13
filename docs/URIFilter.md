@@ -228,16 +228,21 @@ def insert(self, value):
 -  `filter_typeid`
 -  `URI_list`
 
-#### 调用
+#### 开发者调用
 ```
   URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
 
 ```
 
 #### URL
-- ##### **读取settings 配置**
+-  **读取settings 配置**
+   得到远程服务器url,发送request  
 ```
 eg： http://princetechs.com:8000/cr-clawr/uri_filter/api/uri_filter
+
+
+
+
 ```
 
 ####  格式
@@ -252,7 +257,8 @@ eg： http://princetechs.com:8000/cr-clawr/uri_filter/api/uri_filter
 #### SDK 调用api 处理 ：
      
 ```
- api = FilterAPIClient(filter_typeid,URI_list, access_token = princetechs)
+ api = FilterAPIClient(filter_typeid,URI_list, access_token = 'princetechs')
+ json.dumps (URI_list)
  put URI_list in  request body
  send request
  connect  to  remote   URIFilter server
@@ -265,6 +271,55 @@ eg： http://princetechs.com:8000/cr-clawr/uri_filter/api/uri_filter
  - API调用异常，抛出`error_code`
 
 
+
+HTTPConnection.request(method,url[,body[,header]])
+
+通过Http的POST请求 server-client 通信
+
+####SDK与URIFilter  通信
+
+**Client** :
+
+  
+```
+  import urllib
+
+  import urllib2
+
+  URI_list = {[www.baidu.com ,  www.princetechs.com, ....,]}
+
+  URL_listencode = urllib.urlencode(URI_list)
+
+  URI_listencode =json.dumps(URI_listencode)
+
+  //传递json
+
+  requrl = ${url} //从settings中得到request  url
+
+  res = urllib2.Request(url = requrl,data =URI_listencode)
+
+  print       res
+```
+   
+
+    
+
+**Server**:
+
+     
+```
+if request.method == "POST":
+
+     // 可进行校验if self.check_auth(access_token):
+URIFilter() //调用去重
+self.send_response('')
+self.send_header('Content-Type', 'application/json')
+ReturnHttpResponse(json.dumps(data),content_type='application/json')”
+
+```
+       
+
+
  
 # Directory 代码目录结构
 # Database 数据库
@@ -274,7 +329,7 @@ eg： http://princetechs.com:8000/cr-clawr/uri_filter/api/uri_filter
   
 # Test 测试
 
-   输入                                                                                                输出
+输入                                                                            输出
 去重类型`filter_typeid` 和 元素类型不限的list                             筛选后的list
 
    
