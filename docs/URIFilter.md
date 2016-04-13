@@ -131,35 +131,6 @@ uri_list=[ https://www.baidu.com/，...http://www.2cto.com ...]
 ### URIFilter  server 守护进程
 
 ```
-def URIFilterfd():    
-        import os
-          //进程1     
-        try:
-                if os.fork() > 0:
-                        os._exit(0)
-        except OSError, error:
-                print 'fork #1 failed: %d (%s)' % (error.errno, error.strerror)
-            os._exit(1)
-    
-        //分离进程
-        os.chdir('/')
-        os.setsid()
-        os.umask(0)
-    
-             URIFilter() 
-        
-def URIFilter():
-    
-        {
-    
-          ...//去重器实现
-        }
-if __name__ == '__main__':
-    
-        URIFilter()
-
-
-
 ```
 
 
@@ -236,6 +207,7 @@ def insert(self, value):
 
 #### 开发者调用
 ```
+  from crawlerfilter.api  import  FilterAPI
   URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
 
 ```
@@ -332,7 +304,7 @@ ReturnHttpResponse(json.dumps(data),content_type='application/json')”
 # Database 数据库
 - Mongodb 
 - Redis
-FilterBitMap
+## FilterBitMap
 ```
 from mongoengine import *
 
@@ -346,13 +318,13 @@ class FilterBitMap(Document):
     creat_datetime = DateTimeField(default= datetime.datetime.now())
 ```
 
-CrawlerFilterErrorLog
+## CrawlerFilterErrorLog
 
 ```
 class CrawlerFilterErrorLog(Document):
         failed_reason = StringField(max_length=10240, null=True)
         filtertype_id = IntField(default=0)
-        add_datetime = DateTimeField(default=datetime.datetime.now())
+        err_datetime = DateTimeField(default=datetime.datetime.now())
 
 
 ```
