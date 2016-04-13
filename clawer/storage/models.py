@@ -58,10 +58,23 @@ class Job(BaseModel):
         (STATUS_ON, u"启用"),
         (STATUS_OFF, u"下线"),
     )
+    (PRIOR_0, PRIOR_1, PRIOR_2, PRIOR_3, PRIOR_4, PRIOR_5, PRIOR_6, PRIOR_7) = range(8)
+    PRIOR_CHOICES = (
+        (PRIOR_0, u"0"),
+        (PRIOR_1, u"1"),
+        (PRIOR_2, u"2"),
+        (PRIOR_3, u"3"),
+        (PRIOR_4, u"4"),
+        (PRIOR_5, u"5"),
+        (PRIOR_6, u"6"),
+        (PRIOR_7, u"7"),
+    )
     
     creator = models.ForeignKey(DjangoUser)
     name = models.CharField(max_length=128)
     info = models.CharField(max_length=1024)
     customer = models.CharField(max_length=128, blank=True, null=True)
     status = models.IntegerField(default=STATUS_ON, choices=STATUS_CHOICES)
+    prior = models.IntegerField(default=PRIOR_0, choices=PRIOR_CHOICES)
     add_datetime = models.DateTimeField(auto_now_add=True)
+    
