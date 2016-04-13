@@ -68,7 +68,8 @@ def dispatch_download(*args, **kwargs):
 	for item in download_object:
 		prioirity = item.get('priority')
 		if priority == -1:
-			down_tasks = db.ClawerTask.find({'status:ClawerTask.STATUS_LIVE'})[:DownloadSetting.dispatch]
+			down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:DownloadSetting.dispatch]
+			sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'times':{'$lt':5}})[:DownloadSetting.dispatch]
 			for task in down_task:
 				try:
 					download_queue.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )
@@ -80,6 +81,21 @@ def dispatch_download(*args, **kwargs):
 		...
 		
 	return download_queue
+
+
+```
+
+download_clawer_task
+
+```
+def download_clawer_task():
+	setting downloader
+	try:
+		downloader.download()
+	except:
+		fail_log
+		sentry.except()
+	success_log
 
 ```
 
@@ -111,12 +127,12 @@ q.enqueue_call(func=count_words_at_url,
 - 错误日志	
 - 下载日志
 				
+### 流程(伪代码)
 
+```
+connect rq
+```
 
-### 失败处理
-
-- 如果子进程执行失败，则将失败信息写入到错误日志中，并返回False。
-- 若在讲uri插入到 collection中出错，则将错误信息写入到错误日志中，并继续执行。
 
 ### 前提条件
 
@@ -141,7 +157,7 @@ class ClawerDownloadLog(Document):
         (STATUS_FAIL, u"失败"),
         (STATUS_SUCCESS, u"成功"),
     )
-    clawer = models.ForeignKey(Clawer)
+    job = models.ForeignKey(Job)
     task = models.ForeignKey('ClawerTask')
     status = models.IntegerField(default=0, choices=STATUS_CHOICES)
     failed_reason = models.CharField(max_length=10240, null=True, blank=True)
@@ -183,29 +199,7 @@ class DownloadSetting(Document):
 - 调用方式	
 
 ```
-	def data_preprocess(files, settings, *args, **kwargs):
-		return None
-```
- 
-## 接口2
-- 接口说明	
-	Master从MongoDB的collections中获取需要下载的url
-- 调用方式
-
-```
-def dispatch_download($_id, *args, **kwargs):
-	return DownloadQueue()
-```
-
-## 接口3
-- 接口说明	
-	Slave从URI任务生成器队列中获取任务，执行URI生成器脚本并将输出的URI结果保存进MongoDB中。
-- 调用方式
-
-```
-def download_task(uri_generator_doc, *args, **kwargs):
-	connect redis.rq
-	return args
+	
 ```
 
 # 测试计划
@@ -215,25 +209,11 @@ def download_task(uri_generator_doc, *args, **kwargs):
 
 ## Testcase 1	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
-- 测试功能		
-	数据预处理
 
-- 输入	
-	仅包含URI的CSV或TXT文件。
-
-- 期望输出	
-MongoDB数据库中CrawlerTask中存入内容。
 
 ## Testcase 2	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
-- 测试功能	
-数据预处理
 
-- 输入	
-Python文件或者Shell脚本。
-
-- 期望输出	
-MongoDB数据库中CrawlerTaskGenerator中存入输入文件内容
 
 
 
