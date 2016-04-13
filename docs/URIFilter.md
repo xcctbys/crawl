@@ -319,10 +319,10 @@ class FilterBitMap(Document):
     creat_datetime = DateTimeField(default= datetime.datetime.now())
 ```
 
-## CrawlerFilterErrorLog
+## URIFilterErrorLog
 
 ```
-class CrawlerFilterErrorLog(Document):
+class URIFilterErrorLog(Document):
         failed_reason = StringField(max_length=10240, null=True)
         filtertype_id = IntField(default=0)
         err_datetime = DateTimeField(default=datetime.datetime.now())
@@ -330,6 +330,79 @@ class CrawlerFilterErrorLog(Document):
 
 ```
 
+# Deploy 部署
+
+```
+from datetime import datetime
+from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
+def deploy():  // ' 定义一个部署任务 ', run远程操作
+fab deploy
+
+env.user = 'root'
+env.hosts = ['${主机host}] //user@ip:port',] ，ssh要用到的参数
+
+env.password = ' 9527'
+def setting_urifilter():
+   commit  settings in local
+def update_urifilter_setting_remote():
+      with cd('~/cr-clawer/uri_filter'):   #cd进入目录
+      run('ls -l | wc -l')  #远程操作用run
+def update():
+    setting_urifilter()
+    update_urifilter_setting_remote()
+
+
+
+def bitmap_init():
+    bitmap = "/home/admin/cr-clawer/uri_filter/bitmap"
+    if files.exists(bitmap) is False:
+        sudo("mkdir %s )
+
+    with cd("mkdir"):
+        sudo(“creat bitmap”)
+
+
+def bitmap_update():
+    with cd("/home/admin/cr-clawer/uri_filter/bitmap"):
+      ")
+         sudo(“read bitmap_new”)
+
+def urifilter_start():
+    with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+        sudo("chmod ")
+        sudo("service urifilter start")
+
+
+def urifilter_stop():
+     with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+        sudo("chmod ")
+        sudo("service urifilter stop")
+
+
+```
+
+        # install system environment
+```
+def install_settings():
+    installer.install_settings()
+
+
+def install_env():
+    installer.install_env()
+
+
+def install_django():
+    installer.install_django()
+
+
+def install_mongodb():
+    installer.install_mongodb()
+
+def install_redis():
+    installer.install_redis()
+
+
+```
 
   
 # Test 测试
