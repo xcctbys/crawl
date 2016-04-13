@@ -1,11 +1,10 @@
 # Statement of Goals
-
-开发人员使用URIGenerator调URIFilter,  输入 URI_List, 返回URI_list_unique
+开发人员输入由URIGenerator等产生的URI_List, 返回去重后的URI_list_unique。
 
 # Functional Description
 
 ## 功能
-
+-避免爬虫重复爬取,浪费资源,将相同的URI进行过滤，同时支持其它数据类型去重。
 ### 输入
 - URIGenerator产生的URI _list。
 
@@ -53,7 +52,7 @@ def URIFilter():
   - 定时写回
   
 ```
-    ###先在本地redis进行 set array[i] =1 操作，然后定期写回##
+    #先在本地redis进行 set array[i] =1 操作，然后定期写回##
     read   wback_bitmap_cycle   from  settings
     when   time  =  wback_time
     update  bit-map  in   mongodb
@@ -291,7 +290,6 @@ HTTPConnection.request(method,url[,body[,header]])
 
   
 ```
-  import urllib
 
   import urllib2
 
@@ -334,11 +332,37 @@ ReturnHttpResponse(json.dumps(data),content_type='application/json')”
 # Database 数据库
 - Mongodb 
 - Redis
+FilterBitMap
+```
+from mongoengine import *
+
+class FilterBitMap(Document):
+    (STATUS_ON, STATUS_OFF) = range(1, 3)
+    STATUS_CHOICES = (
+        (STATUS_ON, u"启用"),
+        (STATUS_OFF, u"弃用"),
+     )
+    bitmap_type = StringField(max_length=128)
+    creat_datetime = DateTimeField(default= datetime.datetime.now())
+```
+
+CrawlerFilterErrorLog
+
+```
+class CrawlerFilterErrorLog(Document):
+        failed_reason = StringField(max_length=10240, null=True)
+        filtertype_id = IntField(default=0)
+        add_datetime = DateTimeField(default=datetime.datetime.now())
+
+
+```
+
 
   
 # Test 测试
 
-输入                                                                            输出
-去重类型`filter_typeid` 和 元素类型不限的list                             筛选后的list
+| 输入|                                                                      |输出|
+|-----------------------------------------------------------|---------------------------------------------|
+|去重类型`filter_typeid` 和 元素类型不限的list           |                  筛选后的list|
 
    
