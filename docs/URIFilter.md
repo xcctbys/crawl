@@ -32,14 +32,14 @@ URIFilter( )内部
 - md5 加密后：
 ```
       16位 大写	49545C5F7D247B3A  
-  ```
+```
   
   
   
   
   - 去重过程
 
-  ```  
+```  
 def URIFilter():
     del_list = [ ]
     for  uri  in   uri_list   :
@@ -48,16 +48,16 @@ def URIFilter():
     url_list = url_list – del_list
     return  url_list_new 
   
-  ```
+```
   
   - 定时写回
   
-  ```
+```
     ###先在本地redis进行 set array[i] =1 操作，然后定期写回##
     
     
   
-  ```
+```
   
   
   #### 去重服务器初始化
@@ -65,12 +65,12 @@ def URIFilter():
   
 - 初始化
    
-   ```
+```
      connect  to  mongodb
      if    bit-map  not  exist mongodb  
            read   settings
             creat   bit-map  in mongodb  //读取设置，新建bit-map
-   ```
+```
 
 - START
 
