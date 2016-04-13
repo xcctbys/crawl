@@ -105,7 +105,8 @@ def URIFilter():
 
 ## 调用方式
 
-            URI_list_unique = URIFilter(uri_list)
+         from crawlerfilter.api  import  FilterAPI
+         URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
 
 ###  example:
 
