@@ -129,8 +129,8 @@ uri_list=[ https://www.baidu.com/，...http://www.2cto.com ...]
 
 
 ### URIFilter  server 守护进程
-
 ```
+Django 开启 守护进程运行服务
 ```
 
 
