@@ -339,7 +339,7 @@ class URIFilterErrorLog(Document):
 
 
 #### 安装
-- SSH安装
+#### - SSH安装
 
 ####linux在终端:
 ```
@@ -352,30 +352,32 @@ ps -e |grep ssh //确认sshserver是否启动
 sudo /etc/init.d/ssh restart //重启SSH服务
 ```
 
--利用 PuTTy 通过证书认证登录服务
+- 利用 PuTTy 通过证书认证登录服务
 
-＃##首先修改 sshd_config 文件，开启证书认证选项：
+＃### 首先修改 sshd_config 文件，开启证书认证选项：
 ```　　
 RSAAuthentication yes PubkeyAuthentication yes AuthorizedKeysFile %h/.ssh/authorized_keys
 ```
-###修改完成后重新启动 ssh 服务。
+修改完成后重新启动 ssh 服务。
+
 - **服务器设置**
-为 SSH 用户建立私钥和公钥。首先登录到需要建立密钥的账户下，注意要退出 root 用户（可用 su 命令切换到其它用户）
-``　　
+- 为 SSH 用户建立私钥和公钥。首先登录到需要建立密钥的账户下，注意要退出 root 用户（可用 su 命令切换到其它用户）
+```　　
 ssh-keygen
 ```　
-###将生成的 key 存放在默认目录下即可。过程中会提示输入 passphrase，用来给证书加个密码，提高安全性。如果此项留空，后面即可实现PuTTy 通过证书认证自动登录。
+- 将生成的 key 存放在默认目录下即可。过程中会提示输入 passphrase，用来给证书加个密码，提高安全性。如果此项留空，后面即可实现PuTTy 通过证书认证自动登录。
 ```　
 ssh-keygen // 命令会生成两个密钥，首先我们需要将公钥改名留在服务器上：
 cd ~/.ssh mv id_rsa.pub authorized_keys //将私钥 id_rsa 从服务器上复制出来，并删除掉服务器上的id_rsa文件。
 ```
 
-- **客户端设置
-###我们需要利用PuTTyGEN 这个工具,将 id_rsa 文件转化为PuTTy支持的格式.
+- **客户端设置**
+
+- 我们需要利用PuTTyGEN 这个工具,将 id_rsa 文件转化为PuTTy支持的格式.
 点击 PuTTyGen 界面中的 Load 按钮，选择 id_rsa 文件，输入 passphrase（如果前面设置过）,然后点击 `Save PrivateKey`,生成这PuTTy 接受的私钥。
 打开 PuTTy，在 Session 中输入服务器的IP地址，在 `Connection->SSH->Auth` 下点击 `Browse` 按钮，选择刚才生成好的私钥。回到`Connection`选项，在 `Auto-login username` 中输入证书所属的用户名。回到`Session` 选项卡，输入个名字点 Save 保存下这个 Session。点击底部的 Open 应该就可以通过证书认证登录到服务器了。
 
-###如果有 passphrase 的话，登录过程中会要求输入 passphrase，否则可以直接登录到服务器上。
+-如果有 passphrase 的话，登录过程中会要求输入 passphrase，否则可以直接登录到服务器上。
 
 
 
