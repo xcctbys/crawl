@@ -1,5 +1,9 @@
 # Statement of Goals
-开发人员输入由URIGenerator等产生的URI_List,返回去重后的URI_list_unique。
+
+开发人员输入由URIGenerator等产生的URI _list,返回去重后的URI _list _unique。
+
+
+
 
 # Functional Description
 
@@ -9,7 +13,7 @@
 - URIGenerator产生的URI _list。
 
 ### 输出
-- URI_list_unique
+- URI _list _unique
 
 ### 流程（伪代码）
 
@@ -301,7 +305,7 @@ ReturnHttpResponse(json.dumps(data),content_type='application/json')”
 
 
  
-# Directory 代码目录结构
+
 # Database 数据库
 - Mongodb 
 - Redis
@@ -315,14 +319,15 @@ class FilterBitMap(Document):
         (STATUS_ON, u"启用"),
         (STATUS_OFF, u"弃用"),
      )
+    bitmap_array = IntArray(bits_size)
     bitmap_type = StringField(max_length=128)
     creat_datetime = DateTimeField(default= datetime.datetime.now())
 ```
 
-## CrawlerFilterErrorLog
+## URIFilterErrorLog
 
 ```
-class CrawlerFilterErrorLog(Document):
+class URIFilterErrorLog(Document):
         failed_reason = StringField(max_length=10240, null=True)
         filtertype_id = IntField(default=0)
         err_datetime = DateTimeField(default=datetime.datetime.now())
@@ -330,6 +335,91 @@ class CrawlerFilterErrorLog(Document):
 
 ```
 
+# Deploy 部署
+
+```
+def deploy():  // ' 定义一个部署任务 ', run远程操作
+fab deploy
+```
+
+
+```
+from datetime import datetime
+from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
+
+env.user = 'root'
+env.hosts = ['${主机host}] //user@ip:port',] ，ssh要用到的参数
+
+env.password = ' 9527'
+def setting_urifilter():
+   commit  settings in local
+def update_urifilter_setting_remote():
+      with cd('~/cr-clawer/uri_filter'):   #cd进入目录
+      run('ls -l | wc -l')  #远程操作用run
+def update():
+    setting_urifilter()
+    update_urifilter_setting_remote()
+
+
+
+def bitmap_init():
+    bitmap = "/home/admin/cr-clawer/uri_filter/bitmap"
+    if files.exists(bitmap) is False:
+        sudo("mkdir %s )
+
+    with cd("mkdir"):
+        sudo(“creat bitmap”)
+
+
+def bitmap_update():
+    with cd("/home/admin/cr-clawer/uri_filter/bitmap"):
+      ")
+         sudo(“read bitmap_new”)
+
+def urifilter_down():
+    if files.exists(urifilter) is False:
+        sudo("mkdir %s )
+    with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+        sudo("git pull")
+        sudo("urifilter init")
+
+
+def urifilter_start():
+    with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+        sudo("chmod ")
+        sudo("service urifilter start")
+
+
+def urifilter_stop():
+     with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+        sudo("chmod ")
+        sudo("service urifilter stop")
+
+
+```
+
+#### install system environment
+```
+def install_settings():
+    installer.install_settings()
+
+
+def install_env():
+    installer.install_env()
+
+
+def install_django():
+    installer.install_django()
+
+
+def install_mongodb():
+    installer.install_mongodb()
+
+def install_redis():
+    installer.install_redis()
+
+
+```
 
   
 # Test 测试

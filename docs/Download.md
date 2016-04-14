@@ -8,7 +8,7 @@
 ##  Master将下载器入库
 
 ### 输入
-- 下载器程序(python, shell,...)
+- 下载器
 - 配置信息(分发数量...)
 
 ### 输出
@@ -26,6 +26,7 @@ def data_preprocess( *args, **kwargs):
 	validate_files_with_settings
 	if file is valid:
 		save file with settings to mongodb
+		return db.collections.findOne()
 	else:
 		save log in mongodb
 		report error
@@ -56,26 +57,44 @@ def data_preprocess( *args, **kwargs):
 - rq
 - 错误日志
 
+### 相关说明
+- 2G内存大约可以维持rq队列的数量。
+	- 1024 \*1024 \* 2 / 250 = 8000 条（250=str(40)+function(120)+list(72+16)）
+- 200万条/天 的数据。达到目标需要每5分钟分发多少条
+	- 2000000/(24*60/5) = 7000 条
+- 测试rq 入队列 7000 条需要的时间，及top监控内存状态
+	- queue_lens: 7000     use_time: 9.0135269165
+	- MemRegions: 82496 total, 2783M resident, 111M private, 2488 shared
+	- 分发时 入队所需要的时间不是很长，从mongobd里获取所需要的时间(还在测试，查询1000万条数据？)，以及slaver消化的时间很长(4个bash,近10分钟)
+
+
 ### 流程(伪代码)
 
 ```
 def dispatch_download(*args, **kwargs):
 
 	#从集合中获取新增的，优先级较高的任务。
-	download_object = db.Job.find({'status:Job.STATUS_ON'})	download_queue = DownloadQueue()
+	if setting_by_priority:
+		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:max_total_dispatch_count_once]	
+	download_queue = DownloadQueue()
 	# priority includes range（-1，6)
 	# 根据优先级插入
 	for item in download_object:
 		prioirity = item.get('priority')
-		if priority == -1:
-			down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:DownloadSetting.dispatch]
-			sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'times':{'$lt':5}})[:DownloadSetting.dispatch]
+		dispatch = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('dispatch')
+		max_download_times = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('max_download_times')
+		if priority == -1:		
+			down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:dispatch]
+			sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'download_times':{'$lt': max_download_times}})[:dispatch]
+			if setting_by_hostname:
+				down_task.sort({'$ClawerTask.host_name', -1})
 			for task in down_task:
 				try:
 					download_queue.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )
 				except:
 					write_log
 			update item.status == START
+			update item.download_times += 1
 		elif priority == -2:
 			pass
 		...
@@ -114,7 +133,7 @@ q.enqueue_call(func=count_words_at_url,
 
 ```
   for root	
-  */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh dispatch
+  */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh dispatch
 ```
 
 ##  Slave下载数据
@@ -148,24 +167,45 @@ connect rq
 # 数据库设计
 
 mongodb当中的数据库定义。
+## DownloadTask
 
-## DownloadLog
 ```
-class ClawerDownloadLog(Document):
-    (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
-    STATUS_CHOICES = (
+class DownloadTask(Document):
+	(STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
+   	 STATUS_CHOICES = (
         (STATUS_FAIL, u"失败"),
         (STATUS_SUCCESS, u"成功"),
     )
-    job = models.ForeignKey(Job)
-    task = models.ForeignKey('ClawerTask')
-    status = models.IntegerField(default=0, choices=STATUS_CHOICES)
-    failed_reason = models.CharField(max_length=10240, null=True, blank=True)
-    content_bytes = models.IntegerField(default=0)
-    content_encoding = models.CharField(null=True, blank=True, max_length=32)
+	belog_job_id = ReferenceField(Job)
+    code = StringField()  #python code
+    status = IntField()
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+```
+
+## DownloadData
+```
+class DownloadData(Document):
+	belog_job_id = ReferenceField(Job)
+	downloadtor_id = ReferenceField(DownloadTask)
+	json_data = StringField()
+	host_name = StringField()
+```
+
+## DownloadLog
+```
+class DownloadLog(Document):
+    (STATUS_ON, STATUS_OFF) = range(1, 3)
+     STATUS_CHOICES = (
+		(STATUS_ON, u"启用"),
+    	(STATUS_OFF, u"下线"),
+    )
+    belog_job_id = ReferenceField(Job)
+    belog_task_id = ReferenceField(ClawerTask)
+    status = IntField(default=0, choices=STATUS_CHOICES)
+    failed_reason = StringField(max_length=10240, null=True, blank=True)
     hostname = models.CharField(null=True, blank=True, max_length=16)
-    spend_time = models.IntegerField(default=0) #unit is microsecond
-    add_datetime = models.DateTimeField(auto_now=True)
+    spend_time = IntField(default=0) #unit is microsecond
+    add_datetime = DateTimeField(auto_now=True)
 ```
 ## DownloadSetting
 
@@ -177,16 +217,16 @@ class DownloadSetting(Document):
         (PRIOR_URGENCY, "urgency"),
         (PRIOR_FOREIGN, "foreign"),
     )
-    dispatch = models.IntegerField(u"每次分发下载任务数", default=100)
-    download_code = models.TextField(blank=True, null=True)
-    proxy = models.TextField(blank=True, null=True)
-    cookie = models.TextField(blank=True, null=True)
-    download_engine = models.CharField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
-    download_js = models.TextField(blank=True, null=True)
-    prior = models.IntegerField(default=PRIOR_NORMAL)
-    last_update_datetime = models.DateTimeField(auto_now=True)
-    report_mails = models.CharField(blank=True, null=True, max_length=256)
-    add_datetime = models.DateTimeField(auto_now_add=True)
+    dispatch = IntField(u"每次分发下载任务数", default=100)
+    download_code = TextField(blank=True, null=True)
+    proxy = TextField(blank=True, null=True)
+    cookie = TextField(blank=True, null=True)
+    download_engine = StringField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
+    download_js = TextField(blank=True, null=True)
+    prior = IntField(default=PRIOR_NORMAL)
+    last_update_datetime = DateTimeField(auto_now=True)
+    report_mails = StringField(blank=True, null=True, max_length=256)
+    add_datetime = DateTimeField(auto_now_add=True)
 
 ```
 
@@ -199,9 +239,24 @@ class DownloadSetting(Document):
 - 调用方式	
 
 ```
-	
+	from collection import downloadtor
+	data = downloadtor.data_preprocess()
+	print data
 ```
+## 接口2
+- 接口说明：返回刚分发的数据
 
+```
+	from collection import downloadtor
+	def get_dispatchs():
+		downloadtor.dispatch_download()
+		json_data = colletion.find({'$sort': natural})[:dispatch]
+		for item in json_data:
+			print item
+```
+- 调用方式：
+- 
+	 print get_dispatchs()
 # 测试计划
 正确性测试，容错性测试，数据库测试
 
