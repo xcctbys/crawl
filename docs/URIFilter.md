@@ -7,7 +7,7 @@
 
 # Functional Description
 
-URI及其它数据类型去重。
+### URI及其它数据类型去重。
 ### 输入
 - URIGenerator产生的uri_list。
 
