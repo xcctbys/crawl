@@ -1,5 +1,5 @@
 # Statement of Goals
-开发人员输入由URIGenerator等产生的URI_ist,返回去重后的URI_list_unique。
+开发人员输入由URIGenerator等产生的URIlist,返回去重后的URIlist_unique。
 
 # Functional Description
 
