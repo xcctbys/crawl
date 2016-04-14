@@ -326,7 +326,7 @@ class FilterBitMap(Document):
         (STATUS_OFF, u"弃用"),
      )
     bitmap_array = IntArray(bits_size)
-    bitmap_type = StringField(max_length=128)
+    bitmap_type= StringField(max_length=128)
     creat_datetime = DateTimeField(default= datetime.datetime.now())
 ```
 
@@ -344,7 +344,7 @@ class URIFilterErrorLog(Document):
 # Deploy 部署
 
 ## 利用fabric进行远程部署
-## **1-安装步骤**
+### **1-安装步骤**
 #### - SSH安装
 
 ####linux在终端:
@@ -405,7 +405,7 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 
 
 
-### 2-本地客户机终端部署URIFilter服务到本地或远程服务器
+### **2-本地客户机终端部署URIFilter服务到本地或远程服务器**
 ```
 
 # fab -f deploy_filter.py  deploy_name   //在终端 execute 对应deploy_name的部署脚步
@@ -430,7 +430,7 @@ fab -f new_name deploy  //重命名后执行deploy脚本
 - def deploy():  // 定义一个部署任务 , `run`远程操作 ,`local` 执行本地操作
 ```
 
-**example** :
+**Example** :
 ```
 [root ]fab -f deploy_filter.py  update
  ...
@@ -438,7 +438,7 @@ fab -f new_name deploy  //重命名后执行deploy脚本
 [user@ip:port]Executing task update_urifilter_setting_remote // 更新远程服务器 urifilter settings
 
 ```
-- deploy脚本示例
+- **deploy脚本示例**
 ```
 
 from datetime import datetime
@@ -447,15 +447,15 @@ from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,c
 env.user = 'root'
 env.hosts = ['${主机host}] //user@ip:port',]  //ssh要用到的参数,远程主机ip和端口号
 env.password = '  '//可以不使用明文配置,打通ssh即可
-env.password = '  '//可以不使用明文配置,打通ssh即可
 
 
 
-def setting_urifilter():
-   commit  settings in local
+
+def setting_urifilter():  //设置本地urifilter
+    commit  settings in local
 def update_urifilter_setting_remote():
-      with cd(${`uri_filter_dir`}):   #cd进入目录
-      run('ls -l | wc -l')  //远程操作用run
+      with cd(${`uri_filter_setting_dir`}):   #cd进入目录
+      run('commit settings in remote server')  //远程操作用run
 def update():
     setting_urifilter()
     update_urifilter_setting_remote()
@@ -480,7 +480,7 @@ def urifilter_down():
         sudo("mkdir %s )
     with cd("${urifilter_dir}"):
         sudo("git pull")
-        sudo("urifilter init")
+        sudo("bitmap_init")
 
 
 def urifilter_start():
