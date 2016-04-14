@@ -336,6 +336,8 @@ class URIFilterErrorLog(Document):
 def deploy():  // ' 定义一个部署任务 ', run远程操作
 fab deploy
 ```
+
+
 ```
 from datetime import datetime
 from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
@@ -370,6 +372,8 @@ def bitmap_update():
          sudo(“read bitmap_new”)
 
 def urifilter_down():
+    if files.exists(urifilter) is False:
+        sudo("mkdir %s )
     with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
         sudo("git pull")
         sudo("urifilter init")
