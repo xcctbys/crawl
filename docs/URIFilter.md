@@ -439,6 +439,10 @@ fab -f new_name deploy  //重命名后执行deploy脚本
 
 ```
 **Deploy脚本文件**
+
+
+
+**初始导入及设置**
 ```
 
 from datetime import datetime
@@ -456,7 +460,12 @@ def update_urifilter_setting_remote():
 def update():           //更新urifilter的settings
     setting_urifilter()
     update_urifilter_setting_remote()
+```
 
+
+**初始化bitmap**
+
+```
 def bitmap_init():  //初始化用于去重的bitmap
     bitmap = "${bitmap_dir}"
     if files.exists(bitmap) is False:
@@ -477,7 +486,12 @@ def urifilter_get():  //get去重模块
         sudo("git pull")
         sudo("bitmap_init")
 
+```
 
+
+**去重服务**
+
+```
 def urifilter_start()://去重开启
     with cd("${urifilter_dir}"):
         sudo("chmod ")
