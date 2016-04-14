@@ -1,20 +1,17 @@
 # Statement of Goals
 
-开发人员输入由URIGenerator等产生的uri_list,返回去重后的uri_list_unique。
-
-
-
+开发人员调用去重SDK,输入由URIGenerator等产生的uri_list,返回去重后的uri_list_unique。运维人员对去重器进行本地或远程部署.
 
 # Functional Description
 
-### URI及其它数据类型去重。
+### URI及其它数据类型的去重。
 ### 输入
 - URIGenerator产生的uri_list。
-
+ 元素形式uri的list
 ### 输出
 - uri_list_unique
-
-### 流程（伪代码）
+ 去重后的list:
+### 流程（伪代:码）
 
 ```
 uri_list_unique   =  URIFilter(uri_list)
@@ -35,11 +32,10 @@ URIFilter( )内部
 ```
       16位 大写	49545C5F7D247B3A  
 ```
+
   
   
-  
-  
-  - 去重过程
+- 去重过程
 
 ```  
 def URIFilter():
@@ -344,10 +340,10 @@ class URIFilterErrorLog(Document):
 # Deploy 部署
 
 ## 利用fabric进行远程部署
-### **1-安装步骤**
+### **1-部署工具安装**
 #### - SSH安装
 
-####linux在终端:
+####linux终端下:
 ```
 rpm-qa |grep ssh //查看当前系统是否已经安装
 sudo apt-get install openssh-server//如果未安装,允许此命令安装ssh
@@ -382,8 +378,8 @@ cd ~/.ssh mv id_rsa.pub authorized_keys //将私钥 id_rsa 从服务器上复制
 #### 客户端设置
 
 - 我们需要利用PuTTyGEN 这个工具,将 id_rsa 文件转化为PuTTy支持的格式.
-点击 PuTTyGen 界面中的 Load 按钮，选择 id_rsa 文件，输入 passphrase（如果前面设置过）,然后点击 `Save PrivateKey`,生成这PuTTy 接受的私钥。
-打开 PuTTy，在 Session 中输入服务器的IP地址，在 `Connection->SSH->Auth` 下点击 `Browse` 按钮，选择刚才生成好的私钥。回到`Connection`选项，在 `Auto-login username` 中输入证书所属的用户名。回到`Session` 选项卡，输入个名字点 Save 保存下这个 Session。点击底部的 Open 应该就可以通过证书认证登录到服务器了。
+点击 PuTTyGen 界面中的 `Load` 按钮，选择 `id_rsa` 文件，输入 `passphrase`（如果前面设置过）,然后点击 `Save PrivateKey`,生成这PuTTy 接受的私钥。
+打开 PuTTy，在 Session 中输入服务器的IP地址，在 `Connection->SSH->Auth` 下点击 `Browse` 按钮，选择刚才生成好的私钥。回到`Connection`选项，在 `Auto-login username` 中输入证书所属的用户名。回到`Session` 选项卡，输入名字点 `Save` 保存下这个 `Session`。点击底部的 `Open` 应该就可以通过证书认证登录到服务器了。
 
 - 如果有 passphrase 的话，登录过程中会要求输入 passphrase，否则可以直接登录到服务器上。
 
@@ -405,14 +401,14 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 
 
 
-### **2-本地客户机终端部署URIFilter服务到本地或远程服务器**
+## **本地客户机终端部署URIFilter服务到本地或远程服务器**
 
 
-#### `利用fab 命令 auto deploy`
+### 利用fab 命令 auto deploy
 
 
 ```
-# fab -f deploy_filter.py  deploy_name   //在终端 execute 对应deploy_name的部署脚步
+# fab -f deploy_filter.py  deploy_name   //在终端 execute 对应deploy_name的部署脚本
 ```
 - `deploy_name` 表示要部署的服务名称
  例如 `urifilter_start` 去重器开启, `bitmap_update` 位图更新
