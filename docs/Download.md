@@ -33,10 +33,6 @@ def data_preprocess( *args, **kwargs):
 	return None
 ```
 
-### 失败处理
-
-
-
 ### 前提条件
 
 - MongoDB数据库表已经建立。
@@ -69,39 +65,55 @@ def data_preprocess( *args, **kwargs):
 
 
 ### 流程(伪代码)
+可以按照job优先级，或者 主机号 进行分发。（都是利用 rq 队列）。简单思路：配置设备好的机器 rq worker high mid low
+可以设置一次内总的分发数量，可以设置单个job的分发数量。
+用多进程进行任务分发。
+有回收机制。
+有错误及警告机制。
 
 ```
-def dispatch_download(*args, **kwargs):
+def dispatch_use_pool(item)
+	prioirity = item.get('priority')
+	dispatch = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('dispatch')
+	max_download_times = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('max_try_download_times')
+	if priority == -1:
+		if len(q1) + dispatch > settings.Q1_LEN:
+			write_alter_log		
+		down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:dispatch]
+		sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'download_times':{'$lt': max_download_times}})[:dispatch]
+		if setting_by_hostname:
+			down_task.sort({'$ClawerTask.host_name', -1})
+		for task in down_task:
+			try:
+				download_queue.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )	
+				update time.status = STATUS_DISPATCH
+				write_success_dispatch_log
+			except:
+				write_fail_dispatch_log
+		update item.status == START
+		update item.download_times += 1
+	elif priority == -2:
+		pass
+		...
+	return
 
+
+def dispatch_download(*args, **kwargs):
 	#从集合中获取新增的，优先级较高的任务。
 	if setting_by_priority:
-		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:max_total_dispatch_count_once]	
+		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:settings.max_total_dispatch_count_once]
+	elif setting_by_priority and setting_by_host:
+		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:settings.max_total_dispatch_count_once]
+		download_object = download_object.sort({'$Job.hostname', -1})
+	else:
+		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.hostname, -1})[:settings.max_total_dispatch_count_once]	
 	download_queue = DownloadQueue()
 	# priority includes range（-1，6)
 	# 根据优先级插入
-	for item in download_object:
-		prioirity = item.get('priority')
-		dispatch = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('dispatch')
-		max_download_times = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('max_download_times')
-		if priority == -1:		
-			down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:dispatch]
-			sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'download_times':{'$lt': max_download_times}})[:dispatch]
-			if setting_by_hostname:
-				down_task.sort({'$ClawerTask.host_name', -1})
-			for task in down_task:
-				try:
-					download_queue.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )
-				except:
-					write_log
-			update item.status == START
-			update item.download_times += 1
-		elif priority == -2:
-			pass
-		...
-		
+	pool.map(dispatch_use_pool, download_object)
+	pool.close()
+	pool.join()
 	return download_queue
-
-
 ```
 
 download_clawer_task
@@ -124,9 +136,8 @@ rq 队列定义样例:
 # rq的命名规则可以根据优先级来 high, medium, low,
 # rq.enqueue()的option: timeout, result_ttl, at_front等
 q = Queue('low', connection=redis_conn)
-q.enqueue_call(func=count_words_at_url,
-               args=('http://nvie.com',),
-               timeout=30)
+q.enqueue(func=count_words_at_url,
+               args=('http://nvie.com',))
 # 同时rq 队列是没有长度限制的。
 ```
 执行分发器
@@ -149,7 +160,7 @@ q.enqueue_call(func=count_words_at_url,
 ### 流程(伪代码)
 
 ```
-connect rq
+rq worker high mid low
 ```
 
 
@@ -167,56 +178,31 @@ connect rq
 # 数据库设计
 
 mongodb当中的数据库定义。
-## DownloadTask
+## CrawlerDownload
 
 ```
-class DownloadTask(Document):
-	(STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
-   	 STATUS_CHOICES = (
-        (STATUS_FAIL, u"失败"),
-        (STATUS_SUCCESS, u"成功"),
-    )
-	belog_job_id = ReferenceField(Job)
-    code = StringField()  #python code
-    status = IntField()
-    add_datetime = DateTimeField(default=datetime.datetime.now())
-```
-
-## DownloadData
-```
-class DownloadData(Document):
-	belog_job_id = ReferenceField(Job)
-	downloadtor_id = ReferenceField(DownloadTask)
-	json_data = StringField()
-	host_name = StringField()
-```
-
-## DownloadLog
-```
-class DownloadLog(Document):
-    (STATUS_ON, STATUS_OFF) = range(1, 3)
+class CrawlerDownload(Document):
+	 (STATUS_ON, STATUS_OFF) = range(1, 3)
      STATUS_CHOICES = (
 		(STATUS_ON, u"启用"),
     	(STATUS_OFF, u"下线"),
     )
-    belog_job_id = ReferenceField(Job)
-    belog_task_id = ReferenceField(ClawerTask)
+	job = ReferenceField(Job)
+    code = StringField()  #python code
     status = IntField(default=0, choices=STATUS_CHOICES)
-    failed_reason = StringField(max_length=10240, null=True, blank=True)
-    hostname = models.CharField(null=True, blank=True, max_length=16)
-    spend_time = IntField(default=0) #unit is microsecond
-    add_datetime = DateTimeField(auto_now=True)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库
 ```
-## DownloadSetting
-
+## CrawlerDownloadSetting
 ```
-class DownloadSetting(Document):
+class CrawlerDownloadSetting(Document):
     (PRIOR_NORMAL, PRIOR_URGENCY, PRIOR_FOREIGN) = range(0, 3)
     PRIOR_CHOICES = (
         (PRIOR_NORMAL, "normal"),
         (PRIOR_URGENCY, "urgency"),
         (PRIOR_FOREIGN, "foreign"),
     )
+    job = ReferenceField(Job)
     dispatch = IntField(u"每次分发下载任务数", default=100)
     download_code = TextField(blank=True, null=True)
     proxy = TextField(blank=True, null=True)
@@ -227,36 +213,67 @@ class DownloadSetting(Document):
     last_update_datetime = DateTimeField(auto_now=True)
     report_mails = StringField(blank=True, null=True, max_length=256)
     add_datetime = DateTimeField(auto_now_add=True)
-
+	meta = {"db_alias": "source"} # 默认连接的数据库
 ```
 
+## DownloadData
+```
+class DownloadData(Document):
+	job = ReferenceField(Job)
+	downloader = ReferenceField(CrawlerDownload)
+	crawler_generator = ReferenceField(CrawlerTaskGenerator)
+	origin_url = StringField()
+	origin_data = StringField()
+	requests_headers = StringField()
+	response_headers = StringField()
+	download_host_name = StringField()
+	other_party_ip = StringField()
+	add_datetime = DateTimeField(default=datetime.datetime.now())
+	meta = {"db_alias": "source"} # 默认连接的数据库
+```
 
-# 接口
-## 接口1
-- 接口说明：	
-此接口是Master服务器调用，用于将传入的下载器进行校验后 存储进入MongoDB中。
-	
-- 调用方式	
+## CrawlerDownloadLog
+```
+class CrawlerDownloadLog(Document):
+    (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
+   	STATUS_CHOICES = (
+        (STATUS_FAIL, u"失败"),
+        (STATUS_SUCCESS, u"成功"),
+    )
+    job = ReferenceField(Job)
+    belog_task_id = ReferenceField(ClawerTask)
+    status = IntField(default=0, choices=STATUS_CHOICES)
+    requests_size = IntField()
+    response_size = IntField()
+    failed_reason = StringField(max_length=10240, null=True, blank=True)
+    download_host_name = StringField(null=True, blank=True, max_length=16)
+    spend_time = IntField(default=0) #unit is microsecond
+    add_datetime = DateTimeField(auto_now=True)
+    meta = {"db_alias": "log"} # 默认连接的数据库
+```
 
+## CrawlerDownloadErrorLog
+``` 
+class CrawlerDownloadErrorLog(Document):
+    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
+    failed_reason = StringField(max_length=10240, null=True)
+    content_bytes = IntField(default=0)
+    hostname = StringField(null=True, max_length=16)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
-	from collection import downloadtor
-	data = downloadtor.data_preprocess()
-	print data
+## CrawlerDownloadAlertLog
+``` 
+class CrawlerDownloadAlertLog(Document):
+    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
+    type = StringField(max_length=128)
+    reason = StringField(max_length=10240, null=True)
+    content_bytes = IntField(default=0)
+    hostname = StringField(null=True, max_length=16)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
-## 接口2
-- 接口说明：返回刚分发的数据
 
-```
-	from collection import downloadtor
-	def get_dispatchs():
-		downloadtor.dispatch_download()
-		json_data = colletion.find({'$sort': natural})[:dispatch]
-		for item in json_data:
-			print item
-```
-- 调用方式：
-- 
-	 print get_dispatchs()
 # 测试计划
 正确性测试，容错性测试，数据库测试
 
