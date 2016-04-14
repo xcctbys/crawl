@@ -301,7 +301,7 @@ ReturnHttpResponse(json.dumps(data),content_type='application/json')”
 
 
  
-# Directory 代码目录结构
+
 # Database 数据库
 - Mongodb 
 - Redis
@@ -366,6 +366,12 @@ def bitmap_update():
     with cd("/home/admin/cr-clawer/uri_filter/bitmap"):
       ")
          sudo(“read bitmap_new”)
+
+def urifilter_down():
+    with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+        sudo("git pull")
+        sudo("urifilter init")
+
 
 def urifilter_start():
     with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
