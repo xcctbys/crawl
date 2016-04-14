@@ -347,16 +347,16 @@ rpm-qa |grep ssh //查看当前系统是否已经安装
 sudo apt-get install openssh-server//如果未安装,允许此命令安装ssh
 ps -e |grep ssh //确认sshserver是否启动
 ```
-##如果看到sshd说明ssh-server已启动,如果只有ssh-agent 则未启动 ,需要/etc/init.d/ssh start
+如果看到sshd说明ssh-server已启动,如果只有ssh-agent 则未启动 ,需要/etc/init.d/ssh start
 
-##ssh-server配置文件位于/etc/ssh/sshd_config,可以定义SSH服务端口,默认端口22
+ssh-server配置文件位于/etc/ssh/sshd_config,可以定义SSH服务端口,默认端口22
 ```
 sudo /etc/init.d/ssh restart //重启SSH服务
 ```
 
-- 利用 PuTTy 通过证书认证登录服务
+- **利用 PuTTy 通过证书认证登录服务**
 
-##首先修改 sshd_config 文件，开启证书认证选项：
+首先修改 sshd_config 文件，开启证书认证选项：
 ```　　
 RSAAuthentication yes PubkeyAuthentication yes AuthorizedKeysFile %h/.ssh/authorized_keys
 ```
@@ -386,7 +386,7 @@ cd ~/.ssh mv id_rsa.pub authorized_keys //将私钥 id_rsa 从服务器上复制
 
 
 
-本地客户机执行URIFilter部署
+####本地客户机终端部署URIFilter服务
 ```
 
 fab deploy
@@ -394,7 +394,7 @@ fab deploy
 
 
 
-#### fabric deploy 内部
+### fabric deploy 内部
 
 - def deploy():  // ' 定义一个部署任务 ', run远程操作
 
