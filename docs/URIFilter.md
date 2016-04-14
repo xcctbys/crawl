@@ -387,7 +387,7 @@ def urifilter_stop():
 
 ```
 
-        # install system environment
+# install system environment
 ```
 def install_settings():
     installer.install_settings()
