@@ -26,6 +26,7 @@ def data_preprocess( *args, **kwargs):
 	validate_files_with_settings
 	if file is valid:
 		save file with settings to mongodb
+		return db.collections.findOne()
 	else:
 		save log in mongodb
 		report error
@@ -64,7 +65,7 @@ def data_preprocess( *args, **kwargs):
 - 测试rq 入队列 7000 条需要的时间，及top监控内存状态
 	- queue_lens: 7000     use_time: 9.0135269165
 	- MemRegions: 82496 total, 2783M resident, 111M private, 2488 shared
-	- 分发时 入队所需要的时间不是很长，从mongobd里获取所需要的时间，以及slaver消化的时间很长(4个bash,近10分钟)
+	- 分发时 入队所需要的时间不是很长，从mongobd里获取所需要的时间(还在测试，查询1000万条数据？)，以及slaver消化的时间很长(4个bash,近10分钟)
 
 
 ### 流程(伪代码)
@@ -73,7 +74,8 @@ def data_preprocess( *args, **kwargs):
 def dispatch_download(*args, **kwargs):
 
 	#从集合中获取新增的，优先级较高的任务。
-	download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:max_total_dispatch_count_once]	
+	if setting_by_priority:
+		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:max_total_dispatch_count_once]	
 	download_queue = DownloadQueue()
 	# priority includes range（-1，6)
 	# 根据优先级插入
@@ -81,9 +83,11 @@ def dispatch_download(*args, **kwargs):
 		prioirity = item.get('priority')
 		dispatch = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('dispatch')
 		max_download_times = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('max_download_times')
-		if priority == -1:
+		if priority == -1:		
 			down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:dispatch]
 			sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'download_times':{'$lt': max_download_times}})[:dispatch]
+			if setting_by_hostname:
+				down_task.sort({'$ClawerTask.host_name', -1})
 			for task in down_task:
 				try:
 					download_queue.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )
@@ -235,9 +239,24 @@ class DownloadSetting(Document):
 - 调用方式	
 
 ```
-	
+	from collection import downloadtor
+	data = downloadtor.data_preprocess()
+	print data
 ```
+## 接口2
+- 接口说明：返回刚分发的数据
 
+```
+	from collection import downloadtor
+	def get_dispatchs():
+		downloadtor.dispatch_download()
+		json_data = colletion.find({'$sort': natural})[:dispatch]
+		for item in json_data:
+			print item
+```
+- 调用方式：
+- 
+	 print get_dispatchs()
 # 测试计划
 正确性测试，容错性测试，数据库测试
 
