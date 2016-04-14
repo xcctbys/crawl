@@ -337,8 +337,8 @@ class URIFilterErrorLog(Document):
 
 # Deploy 部署
 
-
-#### 安装
+## 利用fabric进行远程部署
+## **安装**
 #### - SSH安装
 
 ####linux在终端:
