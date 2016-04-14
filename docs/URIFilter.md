@@ -1,29 +1,28 @@
 # Statement of Goals
 
-开发人员输入由URIGenerator等产生的URI _list,返回去重后的URI _list _unique。
+开发人员输入由URIGenerator等产生的uri_list,返回去重后的uri_list_unique。
 
 
 
 
 # Functional Description
 
-## 功能
--避免爬虫重复爬取,浪费资源,将相同的URI进行过滤，同时支持其它数据类型去重。
+URI及其它数据类型去重。
 ### 输入
-- URIGenerator产生的URI _list。
+- URIGenerator产生的uri_list。
 
 ### 输出
-- URI _list _unique
+- uri_list_unique
 
 ### 流程（伪代码）
 
 ```
-URI_list_unique   =  URIFilter(URI_list)  
+uri_list_unique   =  URIFilter(uri_list)
   #URIGenerator 传入URI_list，调用URIFilter
   
   
 URIFilter( )内部
-   for  URI in URI_list
+   for  uri in uri_list
         #md5 加密
         m = hashlib.md5()    
 	    m.update('URI’)
@@ -108,19 +107,25 @@ def URIFilter():
 # User Interface
 
 ## 调用方式
+#### 传入参数
+- `filter_typeid` 用int值标识要过滤数据类型,uri =1,ip =2(可扩展)
+- `uri_list` 将多条uri以list形式传入
+- `access_token`调用接口的token验证,可不传入
 
+```
          from crawlerfilter.api  import  FilterAPI
          URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
-
+```
 ###  example:
 
 - Input : 
 ```
+filter_typeid = 1
 uri_list= [ https://www.baidu.com/，...http://www.2cto.com，... https://www.baidu.com/ ...] 
           //与千万或上亿条历史数据对比后去重
+access_token = ''
 ```
 - Output:  
-
 
 ```
 uri_list=[ https://www.baidu.com/，...http://www.2cto.com ...]
@@ -202,13 +207,14 @@ def insert(self, value):
 
 ## SDK 使用
    
-     
-    **URIGenerator  ----> URIFilter SDK------> URIFilter Server**
+
+**URIGenerator  ----> URIFilter SDK------> URIFilter Server**
  
 #### 参数
 
--  `filter_typeid`
--  `URI_list`
+- `filter_typeid` 用int值标识要过滤数据类型,uri =1,ip =2(可扩展)
+- `uri_list` 将多条uri以list形式传入
+- `access_token`调用接口的token验证,可不传入
 
 #### 开发者调用
 ```
@@ -338,7 +344,7 @@ class URIFilterErrorLog(Document):
 # Deploy 部署
 
 ## 利用fabric进行远程部署
-## **安装步骤**
+## **1-安装步骤**
 #### - SSH安装
 
 ####linux在终端:
@@ -399,7 +405,7 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 
 
 
-### 本地客户机终端部署URIFilter服务到本地或远程服务器
+### 2-本地客户机终端部署URIFilter服务到本地或远程服务器
 ```
 
 # fab -f deploy_filter.py  deploy_name   //在终端 execute 对应deploy_name的部署脚步
@@ -409,7 +415,7 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 ### fabric deploy 任务
 
 
- 新建文件fabfile.py
+ 脚本文件默认为fabfile.py
 ```
 fab deploy_name //执行deploy脚本
 ``` 
@@ -425,13 +431,14 @@ fab -f new_name deploy  //重命名后执行deploy脚本
 ```
 
 **example** :
+```
 [root ]fab -f deploy_filter.py  update
  ...
 [localhost] Executing task setting_urifilter //本地执行urifilter
 [user@ip:port]Executing task update_urifilter_setting_remote // 更新远程服务器 urifilter settings
 
-
-- deploy脚本事例
+```
+- deploy脚本示例
 ```
 
 from datetime import datetime
@@ -447,7 +454,7 @@ env.password = '  '//可以不使用明文配置,打通ssh即可
 def setting_urifilter():
    commit  settings in local
 def update_urifilter_setting_remote():
-      with cd('~/cr-clawer/uri_filter'):   #cd进入目录
+      with cd(${`uri_filter_dir`}):   #cd进入目录
       run('ls -l | wc -l')  //远程操作用run
 def update():
     setting_urifilter()
@@ -456,7 +463,7 @@ def update():
 
 
 def bitmap_init():
-    bitmap = "/home/admin/cr-clawer/uri_filter/bitmap"
+    bitmap = "${bitmap_dir}"
     if files.exists(bitmap) is False:
         sudo("mkdir %s )
 
@@ -465,26 +472,25 @@ def bitmap_init():
 
 
 def bitmap_update():
-    with cd("/home/admin/cr-clawer/uri_filter/bitmap"):
-      ")
+    with cd("${bitmap_dir}"):
          sudo(“read bitmap_new”)
 
 def urifilter_down():
     if files.exists(urifilter) is False:
         sudo("mkdir %s )
-    with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+    with cd("${urifilter_dir}"):
         sudo("git pull")
         sudo("urifilter init")
 
 
 def urifilter_start():
-    with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+    with cd("${urifilter_dir}"):
         sudo("chmod ")
         sudo("service urifilter start")
 
 
 def urifilter_stop():
-     with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+     with cd("${urifilter_dir}"):
         sudo("chmod ")
         sudo("service urifilter stop")
 
