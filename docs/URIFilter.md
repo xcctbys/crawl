@@ -1,22 +1,21 @@
 # Statement of Goals
 
-开发人员调用去重SDK,输入由URIGenerator等产生的uri_list,返回去重后的uri_list_unique。运维人员对去重器进行本地或远程部署.
+开发人员调用去重SDK,输入由 URIGenerator 等产生的 uri_list ,返回去重后的 uri_list_unique。运维人员对去重器进行本地或远程部署.
 
 # Functional Description
 
 ### URI及其它数据类型的去重。
 ### 输入
 - URIGenerator产生的uri_list。
- 元素形式uri的list
+元素形式uri的list
 ### 输出
 - uri_list_unique
- 去重后的list:
+去重后的list.
 ### 流程（伪代:码）
 
 ```
 uri_list_unique   =  URIFilter(uri_list)
   #URIGenerator 传入URI_list，调用URIFilter
-  
   
 URIFilter( )内部
    for  uri in uri_list
