@@ -406,11 +406,22 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 
 
 ### **2-本地客户机终端部署URIFilter服务到本地或远程服务器**
-```
 
+
+#### `利用fab 命令 auto deploy`
+
+
+```
 # fab -f deploy_filter.py  deploy_name   //在终端 execute 对应deploy_name的部署脚步
 ```
+- `deploy_name` 表示要部署的服务名称
+ 例如 `urifilter_start` 去重器开启, `bitmap_update` 位图更新
 
+- Example :
+```
+fab -f deploy_filter.py bitmap_init   //在远程server 上初始化用于去重的 bitmap
+
+```
 
 ### fabric deploy 任务
 
