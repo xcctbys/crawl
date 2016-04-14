@@ -333,10 +333,12 @@ class URIFilterErrorLog(Document):
 # Deploy 部署
 
 ```
-from datetime import datetime
-from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
 def deploy():  // ' 定义一个部署任务 ', run远程操作
 fab deploy
+```
+```
+from datetime import datetime
+from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
 
 env.user = 'root'
 env.hosts = ['${主机host}] //user@ip:port',] ，ssh要用到的参数
@@ -387,7 +389,7 @@ def urifilter_stop():
 
 ```
 
-# install system environment
+#### install system environment
 ```
 def install_settings():
     installer.install_settings()
