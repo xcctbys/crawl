@@ -1,5 +1,9 @@
 # Statement of Goals
-开发人员输入由URIGenerator等产生的URIlist,返回去重后的URIlist_unique。
+
+开发人员输入由URIGenerator等产生的URI _list,返回去重后的URI _list _unique。
+
+
+
 
 # Functional Description
 
@@ -9,7 +13,7 @@
 - URIGenerator产生的URI _list。
 
 ### 输出
-- URI_list_unique
+- URI _list _unique
 
 ### 流程（伪代码）
 
@@ -315,6 +319,7 @@ class FilterBitMap(Document):
         (STATUS_ON, u"启用"),
         (STATUS_OFF, u"弃用"),
      )
+    bitmap_array = IntArray(bits_size)
     bitmap_type = StringField(max_length=128)
     creat_datetime = DateTimeField(default= datetime.datetime.now())
 ```

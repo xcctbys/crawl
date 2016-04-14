@@ -54,6 +54,7 @@ def data_preprocess( *args, **kwargs):
 ### 限制条件
 
 - 此函数运行在Master服务器上。
+- CSV与TXT 只包含一列，每一列只包含URI，不含标题栏。
 
 
 
@@ -570,18 +571,35 @@ class CrawlerGeneratorAlertLog(Document):
 ```
 
 # 接口
-## 接口1
+## 数据预处理
 - 接口说明：	
 此接口是Master服务器调用，用于将传入的文件和配置信息进行校验后 存储进入MongoDB中。
 	
 - 调用方式	
 
 ```
-	def data_preprocess(files, settings, *args, **kwargs):
+引入包：
+	from collector.utils_generator import DataPreprocess
+创建对象：
+	dp = DataPreprocess(job_id_stirng)
+```
+调用接口：
+
+```
+	def save(text=None, script=None, settings=None):
 		return None
 ```
+- 输入	
+	text: 字符串变量，为用户输入的textarea文本或者是CSV、TXT文件内容。        
+	script：字符串变量，为用户输入的脚本内容。		
+	settings：字典类型，当输入string时，settings包含URI的schemes参数，schemes为列表类型；但输入script时，settings包含cron信息，cron为字符串类型。        
+
+	
+- 输出		
+ 	None
  
 ## 接口2
+
 - 接口说明	
 	Master从MongoDB的CrawlerTaskGenerator中获取Job的_id为$_id的文档，定义URI下载队列DownloadQueue，将URI生成器函数，文档作为参数压入URI任务下载队列中，并返回URI下载队列对象。
 - 调用方式
