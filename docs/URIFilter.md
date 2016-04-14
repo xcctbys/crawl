@@ -418,7 +418,7 @@ fab -f deploy_filter.py bitmap_init   //在远程server 上初始化用于去重
 
 ```
 
-### fabric deploy 任务
+### 用fabric deploy 任务
 
 
  脚本文件默认为fabfile.py
@@ -426,14 +426,16 @@ fab -f deploy_filter.py bitmap_init   //在远程server 上初始化用于去重
 fab deploy_name //执行deploy脚本
 ``` 
 文件名不为fabfile.py时需进行指定
+
+```
 mv fafile.py new_name.py //指定新自定义文件名
 
-
-```
 fab -f new_name deploy  //重命名后执行deploy脚本
 ```
+
+定义一个部署任务
 ```
-- def deploy():  // 定义一个部署任务 , `run`远程操作 ,`local` 执行本地操作
+- def deploy():  //  `run`远程操作 ,`local` 执行本地操作
 ```
 
 **Example** :
