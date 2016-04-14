@@ -338,7 +338,7 @@ class URIFilterErrorLog(Document):
 # Deploy 部署
 
 ## 利用fabric进行远程部署
-## **安装**
+## **安装步骤**
 #### - SSH安装
 
 ####linux在终端:
@@ -382,35 +382,73 @@ cd ~/.ssh mv id_rsa.pub authorized_keys //将私钥 id_rsa 从服务器上复制
 - 如果有 passphrase 的话，登录过程中会要求输入 passphrase，否则可以直接登录到服务器上。
 
 
+#### - fabric 安装
+1.安装命令
+```
+pip install fabric
+```
+测试安装是否成功
+python -c "from fabric.api import * ; print env.version"
+显示出版本说明安装成功
 
 
-
-
-####本地客户机终端部署URIFilter服务
+2.创建连接（否则会报错提示“命令不存在”）
+```
+ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 ```
 
-fab deploy
+
+
+### 本地客户机终端部署URIFilter服务到本地或远程服务器
+```
+
+# fab -f deploy_filter.py  deploy_name   //在终端 execute 对应deploy_name的部署脚步
 ```
 
 
+### fabric deploy 任务
 
-### fabric deploy 内部
 
-- def deploy():  // ' 定义一个部署任务 ', run远程操作
+ 新建文件fabfile.py
+```
+fab deploy_name //执行deploy脚本
+``` 
+文件名不为fabfile.py时需进行指定
+mv fafile.py new_name.py //指定新自定义文件名
+
 
 ```
+fab -f new_name deploy  //重命名后执行deploy脚本
+```
+```
+- def deploy():  // 定义一个部署任务 , `run`远程操作 ,`local` 执行本地操作
+```
+
+**example** :
+[root ]fab -f deploy_filter.py  update
+ ...
+[localhost] Executing task setting_urifilter //本地执行urifilter
+[user@ip:port]Executing task update_urifilter_setting_remote // 更新远程服务器 urifilter settings
+
+
+- deploy脚本事例
+```
+
 from datetime import datetime
 from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
 
 env.user = 'root'
-env.hosts = ['${主机host}] //user@ip:port',] ，ssh要用到的参数
+env.hosts = ['${主机host}] //user@ip:port',]  //ssh要用到的参数,远程主机ip和端口号
+env.password = '  '//可以不使用明文配置,打通ssh即可
+env.password = '  '//可以不使用明文配置,打通ssh即可
 
-env.password = ' 9527'
+
+
 def setting_urifilter():
    commit  settings in local
 def update_urifilter_setting_remote():
       with cd('~/cr-clawer/uri_filter'):   #cd进入目录
-      run('ls -l | wc -l')  #远程操作用run
+      run('ls -l | wc -l')  //远程操作用run
 def update():
     setting_urifilter()
     update_urifilter_setting_remote()
