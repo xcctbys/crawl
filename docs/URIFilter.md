@@ -1,5 +1,9 @@
 # Statement of Goals
+
 开发人员输入由URIGenerator等产生的URI _List,返回去重后的URI_list_unique。
+
+
+
 
 # Functional Description
 
@@ -9,7 +13,7 @@
 - URIGenerator产生的URI _list。
 
 ### 输出
-- URI _list_unique
+- URI _list _unique
 
 ### 流程（伪代码）
 
@@ -301,7 +305,7 @@ ReturnHttpResponse(json.dumps(data),content_type='application/json')”
 
 
  
-# Directory 代码目录结构
+
 # Database 数据库
 - Mongodb 
 - Redis
@@ -333,10 +337,14 @@ class URIFilterErrorLog(Document):
 # Deploy 部署
 
 ```
-from datetime import datetime
-from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
 def deploy():  // ' 定义一个部署任务 ', run远程操作
 fab deploy
+```
+
+
+```
+from datetime import datetime
+from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
 
 env.user = 'root'
 env.hosts = ['${主机host}] //user@ip:port',] ，ssh要用到的参数
@@ -367,6 +375,14 @@ def bitmap_update():
       ")
          sudo(“read bitmap_new”)
 
+def urifilter_down():
+    if files.exists(urifilter) is False:
+        sudo("mkdir %s )
+    with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
+        sudo("git pull")
+        sudo("urifilter init")
+
+
 def urifilter_start():
     with cd("/home/admin/cr-clawer/uri_filter/urifilter"):
         sudo("chmod ")
@@ -381,7 +397,7 @@ def urifilter_stop():
 
 ```
 
-        # install system environment
+#### install system environment
 ```
 def install_settings():
     installer.install_settings()
