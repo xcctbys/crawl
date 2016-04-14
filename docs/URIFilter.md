@@ -438,7 +438,7 @@ fab -f new_name deploy  //重命名后执行deploy脚本
 [user@ip:port]Executing task update_urifilter_setting_remote // 更新远程服务器 urifilter settings
 
 ```
-- **deploy脚本示例**
+**Deploy脚本文件**
 ```
 
 from datetime import datetime
@@ -448,21 +448,16 @@ env.user = 'root'
 env.hosts = ['${主机host}] //user@ip:port',]  //ssh要用到的参数,远程主机ip和端口号
 env.password = '  '//可以不使用明文配置,打通ssh即可
 
-
-
-
 def setting_urifilter():  //设置本地urifilter
     commit  settings in local
 def update_urifilter_setting_remote():
       with cd(${`uri_filter_setting_dir`}):   #cd进入目录
       run('commit settings in remote server')  //远程操作用run
-def update():
+def update():           //更新urifilter的settings
     setting_urifilter()
     update_urifilter_setting_remote()
 
-
-
-def bitmap_init():
+def bitmap_init():  //初始化用于去重的bitmap
     bitmap = "${bitmap_dir}"
     if files.exists(bitmap) is False:
         sudo("mkdir %s )
@@ -471,11 +466,11 @@ def bitmap_init():
         sudo(“creat bitmap”)
 
 
-def bitmap_update():
+def bitmap_update():  //更新bitmap
     with cd("${bitmap_dir}"):
          sudo(“read bitmap_new”)
 
-def urifilter_down():
+def urifilter_get():  //get去重模块
     if files.exists(urifilter) is False:
         sudo("mkdir %s )
     with cd("${urifilter_dir}"):
@@ -483,16 +478,23 @@ def urifilter_down():
         sudo("bitmap_init")
 
 
-def urifilter_start():
+def urifilter_start()://去重开启
     with cd("${urifilter_dir}"):
         sudo("chmod ")
         sudo("service urifilter start")
 
 
-def urifilter_stop():
+def urifilter_stop()://去重关闭
      with cd("${urifilter_dir}"):
         sudo("chmod ")
         sudo("service urifilter stop")
+
+
+
+def urifilter_restart()://去重重启
+    with cd("${urifilter_dir}"):
+        sudo("chmod ")
+        sudo("service urifilter  restart")
 
 
 ```
