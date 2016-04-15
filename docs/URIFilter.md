@@ -2,7 +2,7 @@
 
 开发人员调用去重器接口,输入由 URIGenerator 等产生的uri列表 ,`uri_list` ,返回去重后的 `uri_list_unique`。运维人员对去重器进行本地或远程部署.
 
-# Functional Description
+# aFunctional Description
 
 ### URI及其它数据类型的去重。
 ### 输入
@@ -116,7 +116,7 @@ def URIFilter():
 
 # User Interface
 
-## 去重器调用方式
+## URI去重器
 
 ```
          from crawlerfilter.api  import  FilterAPI
@@ -128,12 +128,12 @@ def URIFilter():
 - `uri_list` 将多条uri以list形式传入
 - `access_token`调用接口的token验证,可不传入
 
-#### 限制条件
-`uri_list`的规模由用户决定,传入uri的条数会决定处理时间.每次传入1000条以内uri,处理时间在s(秒)级.
-
 
 #### 输出
 - `URIFilter_list` 去重后的 uri列表
+
+#### 限制条件
+`uri_list`的规模由用户决定,传入uri的条数会决定处理时间.每次传入1000条以内uri,处理时间在s(秒)级.
 
 
 ###  example:
@@ -588,10 +588,11 @@ def install_redis():
   
 # Test 测试
 
-| 输入            |                                                                      |输出|
+| 输入            |                                                                      |          输出       |
 |-----------------------------------------------------------|---------------------------------------------|
 |去重类型`filter_typeid` (`int`类型)和 成员数据类型不限的list (列表)           |                   |筛选后的list  |
 
 - 限制条件
-  输入的格式为list,uri条数越多处理耗时越多,1000左右uri处理用时在s(秒)级.
+
+  输入的格式为list,uri条数越多处理耗时越多,一般1000条左右uri处理用时在s(秒)级.
 
