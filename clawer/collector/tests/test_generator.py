@@ -18,7 +18,9 @@ from django.conf import settings
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, GrawlerGeneratorCronLog
 # from mongoengine import *
 from mongoengine.context_managers import switch_db
-from collector.utils_generator import DataPreprocess
+from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue
+from redis import Redis
+from rq import Queue
 
 class TestMongodb(TestCase):
     def setUp(self):
@@ -33,6 +35,7 @@ class TestMongodb(TestCase):
         job.save()
         count = Job.objects(name='job').count()
         self.assertGreater(count, 0)
+        # job.delete()
 
     def test_task_save(self):
         jobs = Job.objects(id='570ded84c3666e0541c9e8d9').first()
@@ -41,7 +44,12 @@ class TestMongodb(TestCase):
         task.save()
         result = CrawlerTask.objects.first()
         self.assertTrue(result)
+        jobs.delete()
 
+    def test_get_generator_with_job_id(self):
+        job_id = '570f73f6c3666e0af4a9efad'
+        generator_object =  CrawlerTaskGenerator.objects(job=job_id ,status = 4).first()
+        self.assertTrue(generator_object)
 
     def test_job_find_by_name(self):
         job = Job.objects(name='job')
@@ -71,11 +79,13 @@ class TestMongodb(TestCase):
 class TestPreprocess(TestCase):
     def setUp(self):
         TestCase.setUp(self)
-        job_id ='570ded84c3666e0541c9e8d9'
-        self.pre = DataPreprocess(job_id= job_id)
+        self.job = Job(name='job')
+        self.job.save()
+        self.pre = DataPreprocess(job_id= self.job.id)
 
     def tearDown(self):
         TestCase.tearDown(self)
+        self.job.delete()
 
     def test_read_from_string(self):
         inputs = """
@@ -161,4 +171,27 @@ class TestPreprocess(TestCase):
         self.pre.save(script= script, settings={'cron': cron})
         script_doc = CrawlerTaskGenerator.objects.first()
         self.assertTrue(script_doc)
-        script_doc.delete()
+        # script_doc.delete()
+
+class TestDispatch(TestCase):
+    """Test for GeneratorDispatch"""
+    def setUp(self):
+        TestCase.setUp(self)
+        # self.job = Job(name='job')
+        # self.job.save()
+        # gd = GeneratorDispatch(job_id = self.job.id)
+        self.gd = GeneratorDispatch(job_id = '570f73f6c3666e0af4a9efad')
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+        # self.job.delete()
+
+    def test_get_generator_object(self):
+        generator_object = self.gd.get_generator_object()
+        print generator_object
+        self.assertTrue(generator_object)
+    def test_dispatch_uri(self):
+        queue = self.gd.dispatch_uri()
+        print queue
+        self.assertTrue(queue)
+

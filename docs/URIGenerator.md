@@ -288,7 +288,7 @@ Master从MongoDB的URI生成器Collection中获取job 为job_id的文档，定�
 将优先级分成-1, 0，1，2，3，4，5共7个优先级，-1, 为最高优先级，5为最低优先级；默认优先级为5。
 共设4个优先级通道，队列头优先级高，队列尾优先级低。
 
-very high	
+super	
 <===============< -1
 
 high 	
@@ -300,22 +300,22 @@ medium
 low		
 4 <=============< 5
 
-启动worker按如下格式启动，workers将会顺序从给定的队列中无限循环读入jobs，而且会按照very_high, high, medium， low顺序。
+启动worker按如下格式启动，workers将会顺序从给定的队列中无限循环读入jobs，而且会按照super, high, medium， low顺序。
 
 启动的worker的命令为：
 
 ```
-rq worker uri_very_high uri_high uri_medium uri_low
+rq worker uri_super uri_high uri_medium uri_low
 ```
 
-其中，uri_very_high通道只有在特殊情况下使用，特别急用的job才能启用此通道。
+其中，uri_super通道只有在特殊情况下使用，特别急用的job才能启用此通道。
 
 设置每个队列的长度`rq_length`,防止无限向rq队列中添加job导致内存被占用太多。假若当前队列已满，需要优先向低优先级通道队列头添加job，否则向高优先级通道队列尾添加。如果所有队列都满，则报警。
 
 
 ```
-def dispatch_uri(job_id, *args, **kwargs):
-	uri_object = uri_generator_mongodb.get_document_according_job( job_id )
+def dispatch_uri_generator(job_id, *args, **kwargs):
+	generator_object = uri_generator_mongodb.get_document_according_job( job_id )
 	download_uri_queue = DownloadURIQueue()
 	# 获取此文档的父job的优先级
 	priority = uri_generator_mongodb.get_job_priority({_id : $_id})
@@ -324,12 +324,12 @@ def dispatch_uri(job_id, *args, **kwargs):
 	if priority == -1:
 		try insert into very high queue at the back,
 		{
-			# 判断very high通道是否已满
-			if length('very_high' queue ) equal rq_length:
+			# 判断super通道是否已满
+			if length('super' queue ) equal rq_length:
 				# 尝试插入 high队列头,如果high队列满，则尝试插入 medium,依次类推，直到所有队列都满，则停止插入，将此条job放弃，
 				return False
 			else
-				download_queue.enqueue('very_high', download_uri_task, args=[item, *args, **kwargs])
+				download_queue.enqueue('super', download_uri_task, args=[item, *args, **kwargs])
 				return True
 		}
 		# 添加到错误日志中去，并给出警告。
@@ -352,7 +352,7 @@ def dispatch_uri(job_id, *args, **kwargs):
 			insert job into error log
 	else if priority == 2:
 	...
-	update uri_object status
+	update generator_object status
 	return download_queue
 ```
 
@@ -467,9 +467,10 @@ class Job(Document):
 
 ```
 class CrawlerTask(Document):
-	(STATUS_LIVE, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 7)
+	(STATUS_LIVE, STATUS_DISPATCH, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 8)
     STATUS_CHOICES = (
         (STATUS_LIVE, u"新增"),
+        (STATUS_DISPATCH, u'分发中')
         (STATUS_PROCESS, u"进行中"),
         (STATUS_FAIL, u"下载失败"),
         (STATUS_SUCCESS, u"下载成功"),
@@ -483,6 +484,7 @@ class CrawlerTask(Document):
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
     from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    retry_times = IntField(default=0)
 	meta = {"db_alias": "source"} # 默认连接的数据库
 ```
 
