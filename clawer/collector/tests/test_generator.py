@@ -15,12 +15,13 @@ import unittest
 
 from django.test import TestCase
 from django.conf import settings
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, GrawlerGeneratorCronLog
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
 # from mongoengine import *
 from mongoengine.context_managers import switch_db
-from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue
+from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess
 from redis import Redis
 from rq import Queue
+import subprocess
 
 class TestMongodb(TestCase):
     def setUp(self):
@@ -59,6 +60,14 @@ class TestMongodb(TestCase):
         job = Job.objects(id='570ded84c3666e0541c9e8d9')
         self.assertGreater(len(job), 0)
 
+    def test_job_find_by_generator(self):
+        generator = CrawlerTaskGenerator.objects.first()
+        job = generator.job
+        print job
+        print job.id
+        print job.priority
+        self.assertEqual(job.id, '570f73f6c3666e0af4a9efad')
+
     def test_job_delete(self):
         job = Job.objects(name='job')
         job.delete()
@@ -75,6 +84,15 @@ class TestMongodb(TestCase):
             self.assertTrue(invalid_job)
         except Exception as e:
             pass
+    def test_generator_code_dir(self):
+        generator = CrawlerTaskGenerator.objects.first()
+        path = generator.code_dir()
+        self.assertEqual(path, "/data/media/codes")
+
+    def test_generator_product_path(self):
+        generator = CrawlerTaskGenerator.objects.first()
+        path = generator.product_path()
+        self.assertTrue(path)
 
 class TestPreprocess(TestCase):
     def setUp(self):
@@ -194,4 +212,66 @@ class TestDispatch(TestCase):
         queue = self.gd.dispatch_uri()
         print queue
         self.assertTrue(queue)
+
+class TestGenerateTask(TestCase):
+    """ Test for GenerateCrawlerTask """
+    def setUp(self):
+        TestCase.setUp(self)
+        # script = """
+        #     print json.dumps({'uri':"http://www.baidu.com"})
+        # """
+        generator = CrawlerTaskGenerator.objects.first()
+        self.gt = GenerateCrawlerTask(generator)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+
+    def test_generate_task(self):
+        result = self.gt.generate_task()
+        self.assertTrue(result)
+
+    def test_generate_task_failed(self):
+        result = self.gt.generate_task_failed()
+        self.assertTrue(result)
+
+class TestSafeProcess(TestCase):
+    """ Test for SafeProcess Class """
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_popen(self):
+        child1 = subprocess.Popen(["ls","-l"], stdout=subprocess.PIPE)
+        child2 = subprocess.Popen(["wc"], stdin=child1.stdout,stdout=subprocess.PIPE)
+        out = child2.communicate()
+        print(out)
+        self.assertTrue(out)
+
+    def test_popen_python(self):
+        path = "~/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
+        out_path = "/tmp/task_generator_570f6bc5c3666e095ed99d90"
+        out_f = open(out_path, "w")
+        process = subprocess.Popen(['~/Documents/virtualenv/bin/python', path])
+        self.assertTrue(process)
+
+    def test_run(self):
+        path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
+        out_f = "/tmp/task_generator_570f6bc5c3666e095ed99d90"
+        safe_process = SafeProcess(['~/Documents/virtualenv/bin/python', path], stdout=out_f, stderr=subprocess.PIPE)
+        try:
+            p = safe_process.run(1800)
+        except OSError , e:
+            print type(e)
+            # safe_process.failed(e.child_traceback)
+        except Exception, e:
+            print type(e)
+            # safe_process.failed(e)
+        self.assertNotEqual(p,0)
+
+
+
+
 

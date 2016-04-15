@@ -470,7 +470,7 @@ class CrawlerTask(Document):
 	(STATUS_LIVE, STATUS_DISPATCH, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 8)
     STATUS_CHOICES = (
         (STATUS_LIVE, u"新增"),
-        (STATUS_DISPATCH, u'分发中')
+        (STATUS_DISPATCH, u'分发中'),
         (STATUS_PROCESS, u"进行中"),
         (STATUS_FAIL, u"下载失败"),
         (STATUS_SUCCESS, u"下载成功"),
