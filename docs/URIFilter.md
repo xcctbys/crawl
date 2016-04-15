@@ -1,13 +1,13 @@
 # Statement of Goals
 
-开发人员调用去重SDK,输入由 URIGenerator 等产生的 `uri_list` ,返回去重后的 `uri_list_unique`。运维人员对去重器进行本地或远程部署.
+开发人员调用去重器接口,输入由 URIGenerator 等产生的uri列表 ,`uri_list` ,返回去重后的 `uri_list_unique`。运维人员对去重器进行本地或远程部署.
 
 # Functional Description
 
 ### URI及其它数据类型的去重。
 ### 输入
 - URIGenerator产生的`uri_list`。
-元素形式为uri的list
+成员为uri的list
 ### 输出
 - `uri_list_unique`
 去重后的list.
@@ -50,14 +50,11 @@ def URIFilter():
   - 定时写回
   
 ```
-    #先在本地redis进行 set array[i] =1 操作，然后定期写回##
-    read   wback_bitmap_cycle   from  settings
-    when   time  =  wback_time
-    update  bit-map  in   mongodb
+    #先在本地redis进行 set array[i] =1 操作，然后每月1号0点0分定期写回##
 
 
+    0 0 1 * * /user/cr-clawer/uri_filter   update  bit-map  in   mongodb
 
-    
   
 ```
   
@@ -109,7 +106,7 @@ def URIFilter():
 
 ```
          from crawlerfilter.api  import  FilterAPI
-         URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
+         uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
 ```
 ###  example:
 
@@ -214,7 +211,7 @@ def insert(self, value):
 #### 开发者调用
 ```
   from crawlerfilter.api  import  FilterAPI
-  URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
+  uri_filter_list = FilterAPI (filter_typeid, uri_list, access_token = princetechs)
 
 ```
 
@@ -242,9 +239,9 @@ eg： http://princetechs.com:8000/cr-clawr/uri_filter/api/uri_filter
  #### SDK 调用api 处理 ：
      
 ```
- api = FilterAPIClient(filter_typeid,URI_list, access_token = 'princetechs')
- json.dumps (URI_list)
- put URI_list in  request body
+ api = FilterAPIClient(filter_typeid,uri_list, access_token = 'princetechs')
+ json.dumps (uri_list)
+ put uri_list in  request body
  send request
  connect  to  remote   URIFilter server
  get data  by  POST
@@ -271,17 +268,17 @@ HTTPConnection.request(method,url[,body[,header]])
 
   import urllib2
 
-  URI_list = {[www.baidu.com ,  www.princetechs.com, ....,]}
+  uri_list = {[www.baidu.com ,  www.princetechs.com, ....,]}
 
-  URL_listencode = urllib.urlencode(URI_list)
+  uri_listencode = urllib.urlencode(uri_list)
 
-  URI_listencode =json.dumps(URI_listencode)
+  uri_listencode =json.dumps(uri_listencode)
 
   //传递json
 
   requrl = ${url} //从settings中得到request  url
 
-  res = urllib2.Request(url = requrl,data =URI_listencode)
+  res = urllib2.Request(url = requrl,data =uri_listencode)
 
   print       res
 ```
@@ -400,7 +397,7 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 
 
 
-## **本地客户机终端部署URIFilter服务到本地或远程服务器**
+## **本地客户机终端部署URIFilter服务到远程服务器**
 
 
 ### 利用fab 命令 auto deploy
@@ -412,7 +409,7 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 - `deploy_name` 表示要部署的服务名称
  例如 `urifilter_start` 去重器开启, `bitmap_update` 位图更新
 
-- Example :
+#### **Example** :
 ```
 fab -f deploy_filter.py bitmap_init   //在远程server 上初始化用于去重的 bitmap
 
@@ -457,7 +454,8 @@ from datetime import datetime
 from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
 
 env.user = 'root'
-env.hosts = ['${主机host}] //user@ip:port',]  //ssh要用到的参数,远程主机ip和端口号
+#ssh要用到的参数,远程主机ip和端口号
+env.hosts = ['${主机host}] //user@ip:port',]
 env.password = '  '//可以不使用明文配置,打通ssh即可
 
 def setting_urifilter():  //设置本地urifilter
@@ -474,7 +472,8 @@ def update():           //更新urifilter的settings
 **初始化bitmap**
 
 ```
-def bitmap_init():  //初始化用于去重的bitmap
+#初始化用于去重的bitmap
+def bitmap_init():
     bitmap = "${bitmap_dir}"
     if files.exists(bitmap) is False:
         sudo("mkdir %s )
@@ -482,12 +481,12 @@ def bitmap_init():  //初始化用于去重的bitmap
     with cd("mkdir"):
         sudo(“creat bitmap”)
 
-
-def bitmap_update():  //更新bitmap
+#更新bitmap
+def bitmap_update():
     with cd("${bitmap_dir}"):
          sudo(“read bitmap_new”)
-
-def urifilter_get():  //get去重模块
+#get去重模块
+def urifilter_get():
     if files.exists(urifilter) is False:
         sudo("mkdir %s )
     with cd("${urifilter_dir}"):
@@ -521,7 +520,7 @@ def urifilter_restart()://去重重启
 
 ```
 
-#### install system environment
+#### 安装 system environment
 ```
 def install_settings():
     installer.install_settings()
@@ -549,6 +548,6 @@ def install_redis():
 
 | 输入|                                                                      |输出|
 |-----------------------------------------------------------|---------------------------------------------|
-|去重类型`filter_typeid` 和 元素类型不限的list           |                  筛选后的list|
+|去重类型`filter_typeid` 和 成员数据类型不限的list           |                  筛选后的list|
 
    
