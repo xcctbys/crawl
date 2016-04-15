@@ -251,10 +251,10 @@ class TestSafeProcess(TestCase):
         self.assertTrue(out)
 
     def test_popen_python(self):
-        path = "~/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
+        path = "/User/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
         out_path = "/tmp/task_generator_570f6bc5c3666e095ed99d90"
         out_f = open(out_path, "w")
-        process = subprocess.Popen(['~/Documents/virtualenv/bin/python', path])
+        process = subprocess.Popen(['/User/princetechs5/Documents/virtualenv/bin/python', path])
         self.assertTrue(process)
 
     def test_run(self):
