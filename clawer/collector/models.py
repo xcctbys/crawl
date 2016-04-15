@@ -25,6 +25,7 @@ class Job(Document):
     name = StringField(max_length=128)
     status = IntField(default=STATUS_ON, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default= datetime.datetime.now())
+    priority= IntField(default=5, choices= range(-1, 6))
     meta = {"db_alias": "source"}
 
 class CrawlerTaskGenerator(Document):

@@ -45,6 +45,9 @@ CLAWER_RESULT_URL = "http://10.100.90.51/media/clawer_result/"
 REDIS = "redis://10.100.90.51/0"
 URL_REDIS = "redis://10.100.90.52/0"
 MONITOR_REDIS = "redis://10.100.90.51/0"
+# add by wang ziyang 2016-04-14
+MAX_QUEUE_LENGTH = 2000
+
 
 
 #captcha
