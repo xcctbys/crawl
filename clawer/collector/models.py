@@ -46,11 +46,33 @@ class CrawlerTaskGenerator(Document):
     add_datetime = DateTimeField(default=datetime.datetime.now())
     meta = {"db_alias": "source"}
 
+    def status_name(self):
+        for item in self.STATUS_CHOICES:
+            if item[0] == self.status:
+                return item[1]
+        return ""
+
+    def code_dir(self):
+        path = os.path.join(settings.MEDIA_ROOT, "codes")
+        if os.path.exists(path) is False:
+            os.makedirs(path, 0775)
+        return path
+
+    def alpha_path(self):
+        return os.path.join(self.code_dir(), "%s_alpha.py" % str(self.job.id))
+
+    def product_path(self):
+        return os.path.join(self.code_dir(), "%s_product.py" % str(self.job.id))
+
+    def write_code(self, path):
+        with codecs.open(path, "w", "utf-8") as f:
+            f.write(self.code)
+
 class CrawlerTask(Document):
-    """ collecton of uri  """
-    (STATUS_LIVE, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 7)
+    (STATUS_LIVE, STATUS_DISPATCH, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 8)
     STATUS_CHOICES = (
         (STATUS_LIVE, u"新增"),
+        (STATUS_DISPATCH, u'分发中'),
         (STATUS_PROCESS, u"进行中"),
         (STATUS_FAIL, u"下载失败"),
         (STATUS_SUCCESS, u"下载成功"),
@@ -64,9 +86,10 @@ class CrawlerTask(Document):
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
     from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
     add_datetime = DateTimeField(default=datetime.datetime.now())
-    meta = {"db_alias": "source"}
+    retry_times = IntField(default=0)
+    meta = {"db_alias": "source"} # 默认连接的数据库
 
-class GrawlerGeneratorLog(Document):
+class CrawlerGeneratorLog(Document):
     """log : execution results of generator scripts  """
     (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
     STATUS_CHOICES = (
@@ -84,7 +107,7 @@ class GrawlerGeneratorLog(Document):
 
     meta = {"db_alias": "source"}
 
-class GrawlerGeneratorCronLog(Document):
+class CrawlerGeneratorCronLog(Document):
     """ log: execution results of crontab command """
     (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
     STATUS_CHOICES = (
