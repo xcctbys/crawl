@@ -99,12 +99,14 @@ def URIFilter():
 
 - Bloom Filter 允许插入和查询，不允许删除（需要删除时要用改进的Counting Bloom Filter,同时用于bit－map需要原来4倍空间大小，可保证溢出率逼近0）。
 
+
+
   
-- 去重性能
+## 去重性能
 
    使用BloomFilter 实现防重器,时间复杂度O(1), 空间复杂度 O(1) ,远小于数据库索引查找 和 Hashtable等.误差率可控制在0.01%以下.占用内存与待去重uri条数成正比.
 
-Example:
+**Example:**
 
     设置uri数量规模n=1000000 ,控制误差率 p=0.01%, 可计算出
     m = 19170116.754734 bits = 2.28 mb
@@ -126,11 +128,6 @@ Example:
 - `uri_list` 将多条uri以list形式传入
 - `access_token`调用接口的token验证,可不传入
 
-
-```
-         from crawlerfilter.api  import  FilterAPI
-         URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
-```
 #### 限制条件
 `uri_list`的规模由用户决定,传入uri的条数会决定处理时间.每次传入1000条以内uri,处理时间在s(秒)级.
 
