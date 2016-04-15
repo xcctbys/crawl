@@ -94,10 +94,20 @@ def URIFilter():
    
    
 - 限制条件
-  
+
   Bloom Filter 允许插入和查询，不允许删除（需要删除时要用改进的Counting Bloom Filter,同时用于bit－map需要原来4倍空间大小，可保证溢出率逼近0）。
   
-  
+- 去重性能
+
+   使用BloomFilter 实现防重器,时间复杂度O(1), 空间复杂度 O(1) ,远小于数据库索引查找 和 Hashtable等.误差率可控制在0.01%以下.占用内存与待去重uri条数成正比.
+
+Example:
+
+    设置uri数量规模n=1000000 ,控制误差率 p=0.01%, 可计算出
+    m = 19170116.754734 bits = 2.28 mb
+    100万条uri去重需要空间约2.38MB.
+    m ∝ n , 即 1千万uri去重需要22.9mb (bit-map) ,1 亿uri 需要229 mb 位图(bit-map) .
+
 
 # User Interface
 
@@ -111,6 +121,12 @@ def URIFilter():
          from crawlerfilter.api  import  FilterAPI
          URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
 ```
+#### 限制条件
+`uri_list`的规模由用户决定,传入uri的条数会决定处理时间.每次传入1000条以内uri,处理时间在s(秒)级.
+
+
+#### 输出
+- `URIFilter_list` 去重后的 uri列表
 ###  example:
 
 - Input : 
@@ -135,7 +151,7 @@ uri_list=[ https://www.baidu.com/，...http://www.2cto.com ...]
 
 ### URIFilter  server 守护进程
 ```
-Django 开启 守护进程运行服务
+Django 开启守护进程运行服务
 ```
 
 
