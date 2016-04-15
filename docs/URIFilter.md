@@ -116,7 +116,7 @@ def URIFilter():
 
 # User Interface
 
-## 调用方式
+## 去重器调用方式
 
 ```
          from crawlerfilter.api  import  FilterAPI
