@@ -1,17 +1,17 @@
 # Statement of Goals
 
-开发人员调用去重SDK,输入由 URIGenerator 等产生的 `uri_list` ,返回去重后的 `uri_list_unique`。运维人员对去重器进行本地或远程部署.
+开发人员调用去重器接口,输入由 URIGenerator 等产生的uri列表 ,`uri_list` ,返回去重后的 `uri_list_unique`。运维人员对去重器进行本地或远程部署.
 
 # Functional Description
 
 ### URI及其它数据类型的去重。
 ### 输入
 - URIGenerator产生的`uri_list`。
-元素形式为uri的list
+成员为uri的list
 ### 输出
 - `uri_list_unique`
 去重后的list.
-### 流程（伪代:码）
+### 流程（伪代码）
 
 ```
 uri_list_unique   =  URIFilter(uri_list)
@@ -24,7 +24,7 @@ URIFilter( )内部
 	    m.update('URI’)
         psw = m.hexdigest()
 ```
-- eg:
+#### Example:
    uri = www.baidu.com
  
 - md5 加密后：
@@ -50,14 +50,11 @@ def URIFilter():
   - 定时写回
   
 ```
-    #先在本地redis进行 set array[i] =1 操作，然后定期写回##
-    read   wback_bitmap_cycle   from  settings
-    when   time  =  wback_time
-    update  bit-map  in   mongodb
+    #先在本地redis进行 set array[i] =1 操作，然后每月1号0点0分定期写回##
 
 
+    0 0 1 * * /user/cr-clawer/uri_filter   update  bit-map  in   mongodb
 
-    
   
 ```
   
@@ -87,15 +84,21 @@ def URIFilter():
 
 ```
 
--  失败处理
+#### 失败处理
    
-   布隆过滤器有一定误报率（false positive rate），可以严格防止漏报（false negative）。通过控制bit－map的大小和hash函数的个数，可以将误报率控制在0.01%以下。
+- 布隆过滤器有一定误报率（false positive rate），可以严格防止漏报（false negative）。通过控制bit－map的大小和hash函数的个数，可以将误报率控制在0.01%以下。
    
    
    
-- 限制条件
 
-  Bloom Filter 允许插入和查询，不允许删除（需要删除时要用改进的Counting Bloom Filter,同时用于bit－map需要原来4倍空间大小，可保证溢出率逼近0）。
+
+
+
+
+#### 限制条件
+
+- Bloom Filter 允许插入和查询，不允许删除（需要删除时要用改进的Counting Bloom Filter,同时用于bit－map需要原来4倍空间大小，可保证溢出率逼近0）。
+
   
 - 去重性能
 
@@ -112,10 +115,17 @@ Example:
 # User Interface
 
 ## 调用方式
+
+```
+         from crawlerfilter.api  import  FilterAPI
+         uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
+
+```
 #### 传入参数
 - `filter_typeid` 用int值标识要过滤数据类型,uri =1,ip =2(可扩展)
 - `uri_list` 将多条uri以list形式传入
 - `access_token`调用接口的token验证,可不传入
+
 
 ```
          from crawlerfilter.api  import  FilterAPI
@@ -127,6 +137,8 @@ Example:
 
 #### 输出
 - `URIFilter_list` 去重后的 uri列表
+
+
 ###  example:
 
 - Input : 
@@ -216,32 +228,17 @@ def insert(self, value):
 
 ```
 
-## SDK 使用
+## SDK 内部
    
 
 **URIGenerator  ----> URIFilter SDK------> URIFilter Server**
  
-#### 参数
-
-- `filter_typeid` 用int值标识要过滤数据类型,uri =1,ip =2(可扩展)
-- `uri_list` 将多条uri以list形式传入
-- `access_token`调用接口的token验证,可不传入
-
-#### 开发者调用
-```
-  from crawlerfilter.api  import  FilterAPI
-  URIFilter_list = FilterAPI (filter_typeid,URI_list, access_token = princetechs)
-
-```
 
 #### URL
 -  **读取settings 配置**
    得到远程服务器url,发送request  
 ```
 eg： http://princetechs.com:8000/cr-clawr/uri_filter/api/uri_filter
-
-
-
 
 ```
 
@@ -258,9 +255,9 @@ eg： http://princetechs.com:8000/cr-clawr/uri_filter/api/uri_filter
  #### SDK 调用api 处理 ：
      
 ```
- api = FilterAPIClient(filter_typeid,URI_list, access_token = 'princetechs')
- json.dumps (URI_list)
- put URI_list in  request body
+ api = FilterAPIClient(filter_typeid,uri_list, access_token = 'princetechs')
+ json.dumps (uri_list)
+ put uri_list in  request body
  send request
  connect  to  remote   URIFilter server
  get data  by  POST
@@ -287,17 +284,17 @@ HTTPConnection.request(method,url[,body[,header]])
 
   import urllib2
 
-  URI_list = {[www.baidu.com ,  www.princetechs.com, ....,]}
+  uri_list = {[www.baidu.com ,  www.princetechs.com, ....,]}
 
-  URL_listencode = urllib.urlencode(URI_list)
+  uri_listencode = urllib.urlencode(uri_list)
 
-  URI_listencode =json.dumps(URI_listencode)
+  uri_listencode =json.dumps(uri_listencode)
 
   //传递json
 
   requrl = ${url} //从settings中得到request  url
 
-  res = urllib2.Request(url = requrl,data =URI_listencode)
+  res = urllib2.Request(url = requrl,data =uri_listencode)
 
   print       res
 ```
@@ -310,8 +307,7 @@ HTTPConnection.request(method,url[,body[,header]])
      
 ```
 if request.method == "POST":
-
-     // 可进行校验if self.check_auth(access_token):
+     #可加入校验if self.check_auth(access_token):
 URIFilter() //调用去重
 self.send_response('')
 self.send_header('Content-Type', 'application/json')
@@ -354,7 +350,7 @@ class URIFilterErrorLog(Document):
 
 # Deploy 部署
 
-## 利用fabric进行远程部署
+### 利用fabric进行远程部署，SSH与远程主机通信
 ### **1-部署工具安装**
 #### - SSH安装
 
@@ -416,7 +412,7 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 
 
 
-## **本地客户机终端部署URIFilter服务到本地或远程服务器**
+## **本地客户机终端部署URIFilter服务到远程服务器**
 
 
 ### 利用fab 命令 auto deploy
@@ -428,7 +424,7 @@ ln -s /usr/local/python2.7/bin/fab /usr/bin/fab
 - `deploy_name` 表示要部署的服务名称
  例如 `urifilter_start` 去重器开启, `bitmap_update` 位图更新
 
-- Example :
+#### **Example** :
 ```
 fab -f deploy_filter.py bitmap_init   //在远程server 上初始化用于去重的 bitmap
 
@@ -473,7 +469,8 @@ from datetime import datetime
 from fabric.api import  *  // import  fabric.api 中run,local, sudo ,env,roles,cd ,put
 
 env.user = 'root'
-env.hosts = ['${主机host}] //user@ip:port',]  //ssh要用到的参数,远程主机ip和端口号
+#ssh要用到的参数,远程主机ip和端口号
+env.hosts = ['${主机host}] //user@ip:port',]
 env.password = '  '//可以不使用明文配置,打通ssh即可
 
 def setting_urifilter():  //设置本地urifilter
@@ -490,7 +487,8 @@ def update():           //更新urifilter的settings
 **初始化bitmap**
 
 ```
-def bitmap_init():  //初始化用于去重的bitmap
+#初始化用于去重的bitmap
+def bitmap_init():
     bitmap = "${bitmap_dir}"
     if files.exists(bitmap) is False:
         sudo("mkdir %s )
@@ -498,12 +496,12 @@ def bitmap_init():  //初始化用于去重的bitmap
     with cd("mkdir"):
         sudo(“creat bitmap”)
 
-
-def bitmap_update():  //更新bitmap
+#更新bitmap
+def bitmap_update():
     with cd("${bitmap_dir}"):
          sudo(“read bitmap_new”)
-
-def urifilter_get():  //get去重模块
+#get去重模块
+def urifilter_get():
     if files.exists(urifilter) is False:
         sudo("mkdir %s )
     with cd("${urifilter_dir}"):
@@ -537,7 +535,7 @@ def urifilter_restart()://去重重启
 
 ```
 
-#### install system environment
+#### 安装 system environment
 ```
 def install_settings():
     installer.install_settings()
@@ -563,8 +561,8 @@ def install_redis():
   
 # Test 测试
 
-| 输入|                                                                      |输出|
+| 输入            |                                                                      |输出|
 |-----------------------------------------------------------|---------------------------------------------|
-|去重类型`filter_typeid` 和 元素类型不限的list           |                  筛选后的list|
+|去重类型`filter_typeid` (`int`类型)和 成员数据类型不限的list (列表)           |                   |筛选后的list  |
 
    
