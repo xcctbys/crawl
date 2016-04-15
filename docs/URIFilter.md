@@ -53,7 +53,7 @@ def URIFilter():
     #先在本地redis进行 set array[i] =1 操作，然后每月1号0点0分定期写回##
 
 
-    0 0 1 * * /user/cr-clawer/uri_filter   update  bit-map  in   mongodb
+    0 0 1 * *           /user/cr-clawer/uri_filter   update  bit-map  in   mongodb
 
   
 ```
@@ -351,26 +351,7 @@ class URIFilterErrorLog(Document):
 ### **1-部署工具安装**
 #### - SSH安装
 
-####linux终端下:
-```
-rpm-qa |grep ssh //查看当前系统是否已经安装
-sudo apt-get install openssh-server//如果未安装,允许此命令安装ssh
-ps -e |grep ssh //确认sshserver是否启动
-```
-如果看到sshd说明ssh-server已启动,如果只有ssh-agent 则未启动 ,需要/etc/init.d/ssh start
-
-ssh-server配置文件位于/etc/ssh/sshd_config,可以定义SSH服务端口,默认端口22
-```
-sudo /etc/init.d/ssh restart //重启SSH服务
-```
-
-- **利用 PuTTy 通过证书认证登录服务**
-
-首先修改 sshd_config 文件，开启证书认证选项：
-```　　
-RSAAuthentication yes PubkeyAuthentication yes AuthorizedKeysFile %h/.ssh/authorized_keys
-```
-修改完成后重新启动 ssh 服务。
+- 首先确认SSH安装完成,重启SSH 服务.
 
 #### 服务器设置
 - 为 SSH 用户建立私钥和公钥。首先登录到需要建立密钥的账户下，注意要退出 root 用户（可用 su 命令切换到其它用户）
@@ -531,6 +512,23 @@ def urifilter_restart()://去重重启
 
 
 ```
+
+**去重bitmap 定时写回**
+
+
+
+```
+def bitmap_wrback_start()://定时将bitmap写回mongodb
+    print ("write back bitmap  server start")
+    run( '${urifilter_dir}/write_back_bitmap.sh' )  //开启定时写回功能
+
+  # 定时写回脚本write_back_bitmap.sh 内容
+
+    0 0 1 * *  ${user_dir}/uri_filter/bitmap_update  //每月1号夜里0点执行bitmap写回
+
+
+```
+
 
 #### 安装 system environment
 ```
