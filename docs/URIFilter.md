@@ -553,6 +553,38 @@ def install_redis():
 
 ```
 
+
+# 代码目录树
+
+```
+.
+├── __init__.py
+├── api
+│   ├── __init__.py
+│   └── uri_filter.py
+├── management
+│   └── commands
+│       ├── __init__.py
+│       └── start_server.py
+├── migrations
+│   └── __init__.py
+├── models.py
+├── settings.py
+├── tests
+│   ├── __init__.py
+│   └── uri_filter.py
+├── urls.py
+└── views
+    ├── Bloomfilter.py
+    ├── __init__.py
+    ├── bitmap.py
+    ├── hashfx.py
+    └── update.py
+
+
+```
+
+
   
 # Test 测试
 
@@ -560,4 +592,6 @@ def install_redis():
 |-----------------------------------------------------------|---------------------------------------------|
 |去重类型`filter_typeid` (`int`类型)和 成员数据类型不限的list (列表)           |                   |筛选后的list  |
 
-   
+- 限制条件
+  输入的格式为list,uri条数越多处理耗时越多,1000左右uri处理用时在s(秒)级.
+
