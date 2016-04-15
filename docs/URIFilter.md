@@ -2,7 +2,7 @@
 
 开发人员调用去重器接口,输入由 URIGenerator 等产生的uri列表 ,`uri_list` ,返回去重后的 `uri_list_unique`。运维人员对去重器进行本地或远程部署.
 
-# Functional Description
+# aFunctional Description
 
 ### URI及其它数据类型的去重。
 ### 输入
@@ -53,7 +53,7 @@ def URIFilter():
     #先在本地redis进行 set array[i] =1 操作，然后每月1号0点0分定期写回##
 
 
-    0 0 1 * * /user/cr-clawer/uri_filter   update  bit-map  in   mongodb
+    0 0 1 * *           /user/cr-clawer/uri_filter   update  bit-map  in   mongodb
 
   
 ```
@@ -90,25 +90,51 @@ def URIFilter():
    
    
    
+
+
+
+
+
 #### 限制条件
 
 - Bloom Filter 允许插入和查询，不允许删除（需要删除时要用改进的Counting Bloom Filter,同时用于bit－map需要原来4倍空间大小，可保证溢出率逼近0）。
+
+
+
   
-  
+## 去重性能
+
+   使用BloomFilter 实现防重器,时间复杂度O(1), 空间复杂度 O(1) ,远小于数据库索引查找 和 Hashtable等.误差率可控制在0.01%以下.占用内存与待去重uri条数成正比.
+
+**Example:**
+
+    设置uri数量规模n=1000000 ,控制误差率 p=0.01%, 可计算出
+    m = 19170116.754734 bits = 2.28 mb
+    100万条uri去重需要空间约2.38MB.
+    m ∝ n , 即 1千万uri去重需要22.9mb (bit-map) ,1 亿uri 需要229 mb 位图(bit-map) .
+
 
 # User Interface
 
-## 调用方式
+## URI去重器
 
 ```
-         from crawlerfilter.api  import  FilterAPI
-         uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
+   from crawlerfilter.api  import  FilterAPI
+   uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
 
 ```
 #### 传入参数
 - `filter_typeid` 用int值标识要过滤数据类型,uri =1,ip =2(可扩展)
 - `uri_list` 将多条uri以list形式传入
 - `access_token`调用接口的token验证,可不传入
+
+
+#### 输出
+- `URIFilter_list` 去重后的 uri列表
+
+#### 限制条件
+`uri_list`的规模由用户决定,传入uri的条数会决定处理时间.每次传入1000条以内uri,处理时间在s(秒)级.
+
 
 ###  example:
 
@@ -134,7 +160,7 @@ uri_list=[ https://www.baidu.com/，...http://www.2cto.com ...]
 
 ### URIFilter  server 守护进程
 ```
-Django 开启 守护进程运行服务
+Django 开启守护进程运行服务
 ```
 
 
@@ -325,26 +351,7 @@ class URIFilterErrorLog(Document):
 ### **1-部署工具安装**
 #### - SSH安装
 
-####linux终端下:
-```
-rpm-qa |grep ssh //查看当前系统是否已经安装
-sudo apt-get install openssh-server//如果未安装,允许此命令安装ssh
-ps -e |grep ssh //确认sshserver是否启动
-```
-如果看到sshd说明ssh-server已启动,如果只有ssh-agent 则未启动 ,需要/etc/init.d/ssh start
-
-ssh-server配置文件位于/etc/ssh/sshd_config,可以定义SSH服务端口,默认端口22
-```
-sudo /etc/init.d/ssh restart //重启SSH服务
-```
-
-- **利用 PuTTy 通过证书认证登录服务**
-
-首先修改 sshd_config 文件，开启证书认证选项：
-```　　
-RSAAuthentication yes PubkeyAuthentication yes AuthorizedKeysFile %h/.ssh/authorized_keys
-```
-修改完成后重新启动 ssh 服务。
+- 首先确认SSH安装完成,重启SSH 服务.
 
 #### 服务器设置
 - 为 SSH 用户建立私钥和公钥。首先登录到需要建立密钥的账户下，注意要退出 root 用户（可用 su 命令切换到其它用户）
@@ -506,6 +513,23 @@ def urifilter_restart()://去重重启
 
 ```
 
+**去重bitmap 定时写回**
+
+
+
+```
+def bitmap_wrback_start()://定时将bitmap写回mongodb
+    print ("write back bitmap  server start")
+    run( '${urifilter_dir}/write_back_bitmap.sh' )  //开启定时写回功能
+
+  # 定时写回脚本write_back_bitmap.sh 内容
+
+    0 0 1 * *  ${user_dir}/uri_filter/bitmap_update  //每月1号夜里0点执行bitmap写回
+
+
+```
+
+
 #### 安装 system environment
 ```
 def install_settings():
@@ -529,11 +553,45 @@ def install_redis():
 
 ```
 
+
+# 代码目录树
+
+```
+uri_filter
+├── __init__.py
+├── api
+│   ├── __init__.py
+│   └── uri_filter.py
+├── management
+│   └── commands
+│       ├── __init__.py
+│       └── start_server.py
+├── migrations
+│   └── __init__.py
+├── models.py
+├── tests
+│   ├── __init__.py
+│   └── test_uri_filter.py
+├── urls.py
+├── utils
+│   ├── __init__.py
+│   ├── bloomfilter.py
+│   ├── filter_utils.py
+│   └── update.py
+└── view.py
+
+
+```
+
+
   
 # Test 测试
 
-| 输入            |                                                                      |输出|
+| 输入            |                                                                      |          输出       |
 |-----------------------------------------------------------|---------------------------------------------|
 |去重类型`filter_typeid` (`int`类型)和 成员数据类型不限的list (列表)           |                   |筛选后的list  |
 
-   
+- 限制条件
+
+  输入的格式为list,uri条数越多处理耗时越多,一般1000条左右uri处理用时在s(秒)级.
+
