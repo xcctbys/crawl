@@ -117,7 +117,13 @@ def URIFilter():
 # User Interface
 
 ## URI去重器
+#### 用户配置
 
+  用户可以在project中的settings配置去重器参数.
+- `uri_num_scale`预计要去重的uri数量级和.
+- `accept_err_rate`能够接受的去重失误率.
+
+#### 调用
 ```
    from crawlerfilter.api  import  FilterAPI
    uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
