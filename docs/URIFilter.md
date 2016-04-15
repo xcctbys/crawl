@@ -11,7 +11,7 @@
 ### 输出
 - `uri_list_unique`
 去重后的list.
-### 流程（伪代:码）
+### 流程（伪代码）
 
 ```
 uri_list_unique   =  URIFilter(uri_list)
@@ -24,7 +24,7 @@ URIFilter( )内部
 	    m.update('URI’)
         psw = m.hexdigest()
 ```
-- eg:
+#### Example:
    uri = www.baidu.com
  
 - md5 加密后：
@@ -291,8 +291,7 @@ HTTPConnection.request(method,url[,body[,header]])
      
 ```
 if request.method == "POST":
-
-     // 可进行校验if self.check_auth(access_token):
+     #可加入校验if self.check_auth(access_token):
 URIFilter() //调用去重
 self.send_response('')
 self.send_header('Content-Type', 'application/json')
