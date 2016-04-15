@@ -99,15 +99,17 @@ def URIFilter():
 # User Interface
 
 ## 调用方式
+
+```
+         from crawlerfilter.api  import  FilterAPI
+         uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
+
+```
 #### 传入参数
 - `filter_typeid` 用int值标识要过滤数据类型,uri =1,ip =2(可扩展)
 - `uri_list` 将多条uri以list形式传入
 - `access_token`调用接口的token验证,可不传入
 
-```
-         from crawlerfilter.api  import  FilterAPI
-         uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
-```
 ###  example:
 
 - Input : 
@@ -197,32 +199,17 @@ def insert(self, value):
 
 ```
 
-## SDK 使用
+## SDK 内部
    
 
 **URIGenerator  ----> URIFilter SDK------> URIFilter Server**
  
-#### 参数
-
-- `filter_typeid` 用int值标识要过滤数据类型,uri =1,ip =2(可扩展)
-- `uri_list` 将多条uri以list形式传入
-- `access_token`调用接口的token验证,可不传入
-
-#### 开发者调用
-```
-  from crawlerfilter.api  import  FilterAPI
-  uri_filter_list = FilterAPI (filter_typeid, uri_list, access_token = princetechs)
-
-```
 
 #### URL
 -  **读取settings 配置**
    得到远程服务器url,发送request  
 ```
 eg： http://princetechs.com:8000/cr-clawr/uri_filter/api/uri_filter
-
-
-
 
 ```
 
@@ -547,6 +534,6 @@ def install_redis():
 
 | 输入            |                                                                      |输出|
 |-----------------------------------------------------------|---------------------------------------------|
-|去重类型`filter_typeid` 和 成员数据类型不限的list           |                   |筛选后的list  |
+|去重类型`filter_typeid` (`int`类型)和 成员数据类型不限的list (列表)           |                   |筛选后的list  |
 
    
