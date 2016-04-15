@@ -210,6 +210,7 @@ def download_clawer_task():
 
 ```
  rq worker q_down_super q_down_high q_down_mid q_down_low
+ # 尽可能将它单独写成一个脚本
 ```
 
 ##  Slave下载数据
@@ -311,7 +312,7 @@ class CrawlerDownloadSetting(Document):
 class CrawlerDownloadData(Document):
 	job = ReferenceField(Job)
 	downloader = ReferenceField(CrawlerDownload)
-	crawler_generator = ReferenceField(CrawlerTask)
+	crawlertask = ReferenceField(CrawlerTask)
 	requests_headers = StringField()
 	response_headers = StringField()
 	requests_body = StringField()
