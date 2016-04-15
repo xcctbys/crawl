@@ -84,13 +84,13 @@ def URIFilter():
 
 ```
 
--  失败处理
+#### 失败处理
    
    布隆过滤器有一定误报率（false positive rate），可以严格防止漏报（false negative）。通过控制bit－map的大小和hash函数的个数，可以将误报率控制在0.01%以下。
    
    
    
-- 限制条件
+#### 限制条件
   
   Bloom Filter 允许插入和查询，不允许删除（需要删除时要用改进的Counting Bloom Filter,同时用于bit－map需要原来4倍空间大小，可保证溢出率逼近0）。
   
