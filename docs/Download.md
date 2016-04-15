@@ -5,7 +5,7 @@
 
 # 过程与功能说明
 
-##  Master将下载器入库
+##  Master将下载器及下载器设置入库
 
 ### 输入
 - 下载器
@@ -52,6 +52,7 @@ def data_preprocess( *args, **kwargs):
 ### 输出
 - rq
 - 错误日志
+- 警告日志
 
 ### 相关说明
 - 2G内存大约可以维持rq队列的数量。
@@ -61,23 +62,52 @@ def data_preprocess( *args, **kwargs):
 - 测试rq 入队列 7000 条需要的时间，及top监控内存状态
 	- queue_lens: 7000     use_time: 9.0135269165
 	- MemRegions: 82496 total, 2783M resident, 111M private, 2488 shared
-	- 分发时 入队所需要的时间不是很长，从mongobd里获取所需要的时间(还在测试，查询1000万条数据？)，以及slaver消化的时间很长(4个bash,近10分钟)
+	- 分发时 入队所需要的时间不是很长，从mongobd里获取所需要的时间(查询1000万条数据,能够达到平均 50毫秒)，以及slaver消化的时间很长(4个bash,近10分钟)
+	
+将优先级分成-1, 0，1，2，3，4，5共7个优先级，-1, 为最高优先级，5为最低优先级；默认优先级为5。
+共设4个优先级通道，队列头优先级高，队列尾优先级低。
+
+down_super	
+<===============< -1
+
+down_high 	
+0 <=============< 1
+
+down_mid	
+2 <=============< 3
+
+down_low		
+4 <=============< 5
+
+启动worker按如下格式启动，workers将会顺序从给定的队列中无限循环读入jobs，而且会按照down_super down_high down_mid down_low顺序。
+
+启动的worker的命令为：
+
+```
+rq worker down_super down_high down_mid down_low
+```
+
 
 
 ### 流程(伪代码)
-可以按照job优先级，或者 主机号 进行分发。（都是利用 rq 队列）。简单思路：配置设备好的机器 rq worker high mid low
+可以按照job优先级，或者 主机号 进行分发。（都是利用 rq 队列）。简单思路：配置设备较优的机器rq启动顺序为 rq worker high mid low （该启动顺序是否可以利用socket 或者。。让主机进行分发）
 可以设置一次内总的分发数量，可以设置单个job的分发数量。
 用多进程进行任务分发。
-有回收机制。
-有错误及警告机制。
+有回收机制。（并且设有最大回收次数）
+有错误及警告日志。
 
 ```
+q_down_low = Queue('down_low', connection=redis_conn)
+q_down_mid = Queue('down_mid', connection=redis_conn)
+q_down_high = Queue('down_high', connection=redis_conn)
+q_down_super = Queue('down_super', connection=redis_conn)
+
 def dispatch_use_pool(item)
 	prioirity = item.get('priority')
 	dispatch = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('dispatch')
 	max_download_times = db.DownloadSetting.findOne({'belog_job_id':item.get('belog_job_id')}).get('max_try_download_times')
 	if priority == -1:
-		if len(q1) + dispatch > settings.Q1_LEN:
+		if len(q_down_super) + dispatch > settings.QDOWNSUPERLEN:
 			write_alter_log		
 		down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:dispatch]
 		sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'download_times':{'$lt': max_download_times}})[:dispatch]
@@ -85,12 +115,12 @@ def dispatch_use_pool(item)
 			down_task.sort({'$ClawerTask.host_name', -1})
 		for task in down_task:
 			try:
-				download_queue.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )	
+				q_down_super.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )
 				update time.status = STATUS_DISPATCH
 				write_success_dispatch_log
 			except:
 				write_fail_dispatch_log
-		update item.status == START
+		update item.status == STATUS_START
 		update item.download_times += 1
 	elif priority == -2:
 		pass
@@ -99,7 +129,10 @@ def dispatch_use_pool(item)
 
 
 def dispatch_download(*args, **kwargs):
-	#从集合中获取新增的，优先级较高的任务。
+	#设置超时时间
+	timer = threading.Timer(300, force_exit)
+    timer.start()
+    #从集合中获取新增的，优先级较高的任务。
 	if setting_by_priority:
 		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:settings.max_total_dispatch_count_once]
 	elif setting_by_priority and setting_by_host:
@@ -108,24 +141,39 @@ def dispatch_download(*args, **kwargs):
 	else:
 		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.hostname, -1})[:settings.max_total_dispatch_count_once]	
 	download_queue = DownloadQueue()
-	# priority includes range（-1，6)
-	# 根据优先级插入
 	pool.map(dispatch_use_pool, download_object)
 	pool.close()
 	pool.join()
 	return download_queue
+	
+	#退出函数	
+def force_exit():
+    pgid = os.getpgid(0)
+    if pool is not None:
+        pool.terminate()
+    os.killpg(pgid, 9)
+    os._exit(1)
 ```
 
 download_clawer_task
 
 ```
 def download_clawer_task():
-	setting downloader
+	if download_type is python:
+		setting downloader by cralwerdownloadsettings
 	try:
-		downloader.download()
+		downloader.download()	
 	except:
 		fail_log
 		sentry.except()
+	else:
+		try:
+			import subprocess
+			p = subprocess.Popen('ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			retval = p.wait()
+		except:
+			fail_log
+			sentry.except()
 	success_log
 
 ```
@@ -153,14 +201,14 @@ q.enqueue(func=count_words_at_url,
 - 无
 
 ### 输出
-- 下载数据Mongodb, json	
+- 下载数据Mongodb,
 - 错误日志	
 - 下载日志
 				
 ### 流程(伪代码)
 
 ```
-rq worker high mid low
+rq worker down_super down_high down_mid down_low
 ```
 
 
@@ -202,14 +250,22 @@ class CrawlerDownloadSetting(Document):
         (PRIOR_URGENCY, "urgency"),
         (PRIOR_FOREIGN, "foreign"),
     )
+    (TYPE_PYTHON, TYPE_SHELL, TYPE_CURL, TYPE_WGET) = range(0, 4)
+    TYPES_CHOICES = (
+    	(TYPE_PYTHON, 'python'),
+    	(TYPE_SHELL, 'shell'),
+    	(TYPE_CRUL, 'curl'),
+    	(TYPE_WGET, 'wget'),
+    )
     job = ReferenceField(Job)
     dispatch = IntField(u"每次分发下载任务数", default=100)
+    download_types = IntField(choices=TYPE_CHOICES, default=TYPE_PYTHON, null=False)
     download_code = TextField(blank=True, null=True)
     proxy = TextField(blank=True, null=True)
     cookie = TextField(blank=True, null=True)
     download_engine = StringField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
     download_js = TextField(blank=True, null=True)
-    prior = IntField(default=PRIOR_NORMAL)
+    prior = IntField(choices=PRIOR_CHOICES, default=PRIOR_NORMAL)
     last_update_datetime = DateTimeField(auto_now=True)
     report_mails = StringField(blank=True, null=True, max_length=256)
     add_datetime = DateTimeField(auto_now_add=True)
@@ -280,10 +336,38 @@ class CrawlerDownloadAlertLog(Document):
  
 
 ## Testcase 1	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+下载器及下载器设置入库
 
+	def test_data_preprocess():
+		code, settings = readfile()
+		try:
+			valid_code
+			valid_settings
+		except:
+			write fail_log
+		write success_log
+	tail log
 
-
-## Testcase 2	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+## Testcase 2
+分发测试
+	
+	def test_dispatch():
+		try:
+			conn db
+		except:
+			write error log
+		try:
+			db.collection.find({args})[:num_dispatch]
+		except:
+			write error log
+		try:
+			len(q_down_super)
+			q_down_super.enqueue()
+			...
+		except:
+			write log
+		write log
+				                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
 
 
