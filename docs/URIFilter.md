@@ -119,8 +119,8 @@ def URIFilter():
 ## URI去重器
 
 ```
-         from crawlerfilter.api  import  FilterAPI
-         uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
+   from crawlerfilter.api  import  FilterAPI
+   uri_filter_list = FilterAPI (filter_typeid,uri_list, access_token = ``)
 
 ```
 #### 传入参数
@@ -557,7 +557,7 @@ def install_redis():
 # 代码目录树
 
 ```
-.
+uri_filter
 ├── __init__.py
 ├── api
 │   ├── __init__.py
@@ -569,17 +569,16 @@ def install_redis():
 ├── migrations
 │   └── __init__.py
 ├── models.py
-├── settings.py
 ├── tests
 │   ├── __init__.py
-│   └── uri_filter.py
+│   └── test_uri_filter.py
 ├── urls.py
-└── views
-    ├── Bloomfilter.py
-    ├── __init__.py
-    ├── bitmap.py
-    ├── hashfx.py
-    └── update.py
+├── utils
+│   ├── __init__.py
+│   ├── bloomfilter.py
+│   ├── filter_utils.py
+│   └── update.py
+└── view.py
 
 
 ```
