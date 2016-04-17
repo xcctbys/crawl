@@ -118,8 +118,8 @@ def URIFilter():
 
 ## URI去重器
 #### 用户配置
+用户可以在project中的settings配置去重器参数.
 
-  用户可以在project中的settings配置去重器参数.
 `uri_num_scale`预计要去重的uri数量级和.
 `accept_err_rate`能够接受的去重失误率.
 
@@ -220,7 +220,7 @@ def insert(self, value):
 #### 是否包含URI
 
 ```
-  def isContaions(self, value):   /
+  def isContaions(self, value):
        if value == None:   
            return False   
        ret = True   
