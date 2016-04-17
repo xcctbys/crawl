@@ -8,6 +8,7 @@ import subprocess
 import socket
 import traceback
 import threading
+import json
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
@@ -224,27 +225,33 @@ class GenerateCrawlerTask(object):
         self.end_time = None
         self.content_bytes = 0
 
+    def run(self):
+        if not self.generate_task():
+            return
+        self.save_task()
+
 
     def generate_task(self):
         """ 执行脚本，生成uri """
-        from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog
+        # from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog
         logging.info("run task generator %s" % str(self.task_generator.id))
         if not (self.task_generator.status==CrawlerTaskGenerator.STATUS_ON and self.job.status==Job.STATUS_ON):
             return False
 
-        path = self.task_generator.product_path()
-        self.task_generator.write_code(path)
+        # path = self.task_generator.product_path()
+        # self.task_generator.write_code(path)
+        path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
         out_f = open(self.out_path, "w")
-        # [settings.Python, path]
-        safe_process = SafeProcess(['~/Documents/virtualenv/bin/python', path], stdout=out_f, stderr=subprocess.PIPE)
+        settings.Python = "/Users/princetechs5/Documents/virtualenv/bin/python"
+        safe_process = SafeProcess([ settings.Python, path], stdout=out_f, stderr=subprocess.PIPE)
         try:
             p = safe_process.run(1800)
         except OSError , e:
             print type(e)
-            self.failed(e.child_traceback)
+            self.save_generate_log(CrawlerGeneratorLog.STATUS_FAIL, e.child_traceback)
             return False
         except Exception, e:
-            self.failed(e)
+            self.save_generate_log(CrawlerGeneratorLog.STATUS_FAIL, e)
             return False
 
         err = p.stderr.read()
@@ -252,72 +259,62 @@ class GenerateCrawlerTask(object):
         if status != 0:
             logging.error("run task generator %s failed: %s" % (str(self.task_generator.id), err))
             out_f.close()
-            self.failed(err)
+            self.save_generate_log(CrawlerGeneratorLog.STATUS_FAIL, err)
             return False
+        self.save_generate_log(CrawlerGeneratorLog.STATUS_SUCCESS, "generate task succeed!")
         out_f.close()
-
-
         return True
 
-    def failed(self, reason):
-        from collector.models import CrawlerGeneratorLog
+    def __dereplicate_uris(self, uris):
+        """ dereplicate uri using APIs from other modules
+            return  true if uri is not dereplicated or false
+        """
+        return uris
 
-        if self.end_time is None:
-            self.end_time = time.time()
-
-        self.generate_log.status = CrawlerTaskGenerator.STATUS_FAIL
-        self.generate_log.failed_reason = reason #[:1024]
-        self.generate_log.content_bytes = self.content_bytes
-        self.generate_log.spend_msecs = int(1000*(self.end_time - self.start_time))
-        self.generate_log.save()
-
-    def generate_task_failed(self):
-        return False
-
-
-    def run(self):
-        from clawer.models import ClawerTaskGenerator, Clawer, ClawerTask, ClawerGenerateLog
-
-
-
+    def save_task(self):
         out_f = open(self.out_path, "r")
+        uris = []
+        val = URLValidator()
         for line in out_f:
             try:
                 self.content_bytes += len(line)
                 js = json.loads(line)
-                if self.url_cache.check_url(js["uri"]):
-                    continue
-
-                clawer_task = ClawerTask.objects.create(clawer=self.clawer,
-                                                        task_generator=self.task_generator,
-                                                        uri=js["uri"],
-                                                        cookie=js.get("cookie"),
-                                                        args=js.get("args"))
-                #trace it
-                self.monitor.trace_task_status(clawer_task)
-            except:
-                logging.error("add %s failed: %s", line, traceback.format_exc(10))
-                self.failed(traceback.format_exc(10))
-
+                # validate uri
+                val(js['uri'])
+                uris.append(js['uri'])
+            except ValidationError, e:
+                logging.error("URI ValidationError: %s" %(uri))
         out_f.close()
         os.remove(self.out_path)
+        dereplicated_uris = self.__dereplicate_uris(uris)
 
-        #success
+        for uri in dereplicated_uris:
+            try:
+                crawler_task = CrawlerTask( job=self.job,
+                                            task_generator=self.task_generator,
+                                            uri=uri)
+                # crawler_task.args = ""
+                crawler_task.save()
+            except:
+                logging.error("add %s failed: %s", line, traceback.format_exc(10))
+                self.save_generate_log( CrawlerGeneratorLog.STATUS_FAIL ,traceback.format_exc(10))
+        self.save_generate_log(CrawlerGeneratorLog.STATUS_SUCCESS, "After generating, save task succeed!")
+        return True
+
+    def save_generate_log(self, status, reason):
+        # from collector.models import CrawlerGeneratorLog
+
         if self.end_time is None:
             self.end_time = time.time()
-        self.generate_log.status = ClawerGenerateLog.STATUS_SUCCESS
+        if status == CrawlerGeneratorLog.STATUS_FAIL:
+            self.generate_log.status = CrawlerGeneratorLog.STATUS_FAIL
+        elif status == CrawlerGeneratorLog.STATUS_SUCCESS:
+            self.generate_log.status = CrawlerGeneratorLog.STATUS_SUCCESS
+
+        self.generate_log.failed_reason = reason #[:1024]
         self.generate_log.content_bytes = self.content_bytes
         self.generate_log.spend_msecs = int(1000*(self.end_time - self.start_time))
         self.generate_log.save()
-
-        return True
-
-
-
-
-
-
-
 
 
 
@@ -326,7 +323,8 @@ def generate_uri_task( crawler_generator):
     generate uri with script and settings in slave
     this function needs to be pushed into queue
     """
-
+    generator =  GenerateCrawlerTask(crawler_generator)
+    generator.run()
     return True
 
 class GeneratorDispatch(object):
@@ -370,5 +368,20 @@ class GeneratorDispatch(object):
                 break
         return queue
 
+class CrawlerCronTab(object):
+    """Overwrite python-crontab for myself"""
+    # filename = settings.CRON_FILE
+    def __init__(self, filename):
+        super(CrawlerCronTab, self).__init__()
+        self.filename = filename
+        if not os.path.exists(filename):
+            logging.error("The cron file %s is not exist!"%(filename))
+
+    def remove_offline_job_from_file(self):
+        job_list = Job.objects(status = Job.STATUS_OFF)
 
 
+
+    def task_generator_install(self):
+
+        return False

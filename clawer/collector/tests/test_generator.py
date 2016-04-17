@@ -15,10 +15,10 @@ import unittest
 
 from django.test import TestCase
 from django.conf import settings
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
 # from mongoengine import *
 from mongoengine.context_managers import switch_db
-from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess
+from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
 from redis import Redis
 from rq import Queue
 import subprocess
@@ -93,6 +93,10 @@ class TestMongodb(TestCase):
         generator = CrawlerTaskGenerator.objects.first()
         path = generator.product_path()
         self.assertTrue(path)
+
+    def test_task_delete_all(self):
+        count = CrawlerTask.objects.delete()
+        self.assertGreater(count, 0)
 
 class TestPreprocess(TestCase):
     def setUp(self):
@@ -181,9 +185,7 @@ class TestPreprocess(TestCase):
 
 
     def test_save_with_script(self):
-        script = """
-            print json.dumps({'uri':"http://www.baidu.com"})
-            """
+        script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
         cron = "*/3 * * * *"
 
         self.pre.save(script= script, settings={'cron': cron})
@@ -208,6 +210,7 @@ class TestDispatch(TestCase):
         generator_object = self.gd.get_generator_object()
         print generator_object
         self.assertTrue(generator_object)
+
     def test_dispatch_uri(self):
         queue = self.gd.dispatch_uri()
         print queue
@@ -217,11 +220,13 @@ class TestGenerateTask(TestCase):
     """ Test for GenerateCrawlerTask """
     def setUp(self):
         TestCase.setUp(self)
-        # script = """
-        #     print json.dumps({'uri':"http://www.baidu.com"})
-        # """
+        # script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
         generator = CrawlerTaskGenerator.objects.first()
         self.gt = GenerateCrawlerTask(generator)
+        task_count = CrawlerTask.objects().delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
 
     def tearDown(self):
         TestCase.tearDown(self)
@@ -230,10 +235,21 @@ class TestGenerateTask(TestCase):
     def test_generate_task(self):
         result = self.gt.generate_task()
         self.assertTrue(result)
+        path = self.gt.out_path
+        fd = open(path, 'r')
+        contents = fd.read().strip()
+        self.assertEqual(contents, json.dumps({'uri':"http://www.baidu.com"}))
 
-    def test_generate_task_failed(self):
-        result = self.gt.generate_task_failed()
-        self.assertTrue(result)
+    def test_save_task(self):
+        self.gt.save_task()
+        count = CrawlerTask.objects(uri ='http://www.baidu.com').count()
+        self.assertEqual(count, 1)
+
+    def test_run(self):
+        self.gt.run()
+        self.assertFalse(os.path.exists(self.gt.out_path))
+        count = CrawlerTask.objects(uri ='http://www.baidu.com').count()
+        self.assertEqual(count, 1)
 
 class TestSafeProcess(TestCase):
     """ Test for SafeProcess Class """
@@ -251,16 +267,19 @@ class TestSafeProcess(TestCase):
         self.assertTrue(out)
 
     def test_popen_python(self):
-        path = "/User/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
+        """ path 的路径一定要写正确，不然会出大问题的 """
+        path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
         out_path = "/tmp/task_generator_570f6bc5c3666e095ed99d90"
         out_f = open(out_path, "w")
-        process = subprocess.Popen(['/User/princetechs5/Documents/virtualenv/bin/python', path])
+        process = subprocess.Popen(['/Users/princetechs5/Documents/virtualenv/bin/python', path], stdout= out_f)
         self.assertTrue(process)
 
     def test_run(self):
         path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
-        out_f = "/tmp/task_generator_570f6bc5c3666e095ed99d90"
-        safe_process = SafeProcess(['~/Documents/virtualenv/bin/python', path], stdout=out_f, stderr=subprocess.PIPE)
+        out_path = "/tmp/task_generator_570f6bc5c3666e095ed99d90"
+        out_f = open(out_path, "w")
+        safe_process = SafeProcess(['/Users/princetechs5/Documents/virtualenv/bin/python', path], stdout=out_f, stderr=subprocess.PIPE)
+        p = -1
         try:
             p = safe_process.run(1800)
         except OSError , e:
@@ -269,8 +288,28 @@ class TestSafeProcess(TestCase):
         except Exception, e:
             print type(e)
             # safe_process.failed(e)
-        self.assertNotEqual(p,0)
+        err = p.stderr.read()
+        print err
+        status = safe_process.wait()
+        # 进程的返回代码returncode
+        self.assertEqual(status,0)
 
+class TestCron(TestCase):
+    """ Test for Cron Class """
+    def setUp(self):
+        TestCase.setUp(self)
+        self.cron = CrawlerCronTab("")
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_task_generator_install(self):
+        result = self.cron.task_generator_install()
+        self.assertTrue(result)
+
+    def test_task_generator_run(self):
+        self.cron.task_generator_run()
+        # self.assert
 
 
 
