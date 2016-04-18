@@ -90,7 +90,7 @@ _get_structer_by_id(plugin_id):
 
 ## 消费解析任务（In Slave）
 
-解析源数据为JSON格式的目标数据，其中JSON的键是运营人员配置的，最终将JSON文件存入MongoDB。若解析过程中出现错误记录错误日志，并根据重启策略重启，如果策略失效生成报警日志结束解析。
+根据服务器cpu数启动相同数量的worker，每个worker依次从网络队列中读取对应优先级的任务，执行完成后循环前一步直到队列中任务为空。
 
 ### 输入
 
@@ -104,6 +104,15 @@ _get_structer_by_id(plugin_id):
 ### 逻辑流程
 
 ```python
+import sys
+from rq import Connection, Worker
+
+
+with Connection():
+    qs = sys.argv[1:] or ['default']
+
+    w = Worker(qs)
+    w.work()
 ```
 
 
