@@ -93,6 +93,7 @@ import subprocess as sp
 from time import sleep
 from collections import OrderedDict
 from datetime import time, date, datetime, timedelta
+from dateutil.parser import parse
 
 __pkgname__ = 'python-crontab'
 __version__ = '2.0.1'
@@ -478,7 +479,10 @@ class CronItem(object):
                 self.set_command(command)
                 self.valid = True
             if last_run:
-                self.last_run = last_run
+                if type(last_run) == str:
+                    self.last_run = parse(last_run)
+                elif type(last_run) == datetime:
+                    self.last_run = last_run
 
 
     def delete(self):
@@ -487,6 +491,19 @@ class CronItem(object):
             raise UnboundLocalError("Cron item is not in a crontab!")
         else:
             self.cron.remove(self)
+
+    def set_last_run(self, last_run):
+        """Set the last run time """
+        if isinstance(last_run , datetime):
+            self.last_run = last_run
+        elif isinstance(last_run, str):
+            self.last_run = parse(last_run)
+        else:
+            raise ValueError("Input datetime is not datetime type!")
+
+    def get_last_run(self):
+        """ return attribute last_run"""
+        return self.last_run
 
     def set_command(self, cmd):
         """Set the command and filter as needed"""

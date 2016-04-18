@@ -3,20 +3,26 @@
 import logging
 import os
 import time
-import datetime
 import subprocess
 import socket
 import traceback
 import threading
 import json
+import redis
+import rq
+import codecs
+from datetime import datetime
+from croniter import croniter
+import multiprocessing
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorLog
-import redis
-import rq
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorLog, CrawlerGeneratorAlertLog
+from collector.utils_cron import CronTab
 from django.conf import settings
+
+pool = None
 
 class DataPreprocess(object):
 
@@ -341,13 +347,13 @@ class GeneratorDispatch(object):
 
     def get_generator_object(self):
         try:
-            generator_object =  CrawlerTaskGenerator.objects(job = self.job_id, status = 4).first()
+            generator_object =  CrawlerTaskGenerator.objects(job = self.job_id, status = CrawlerTaskGenerator.STATUS_ON).first()
         except Exception as e:
             logging.error("Something wrong when getting generating objects")
         return generator_object
 
 
-    def dispatch_uri(self):
+    def run(self):
         """
             Dispatch generator task function according to job priority
         """
@@ -368,20 +374,141 @@ class GeneratorDispatch(object):
                 break
         return queue
 
+
 class CrawlerCronTab(object):
     """Overwrite python-crontab for myself"""
     # filename = settings.CRON_FILE
-    def __init__(self, filename):
+    def __init__(self, filename=None):
         super(CrawlerCronTab, self).__init__()
         self.filename = filename
-        if not os.path.exists(filename):
+        if not os.path.exists(self.filename):
             logging.error("The cron file %s is not exist!"%(filename))
+            raise IOError("Crontab filename doesn't exist!")
+        self.crontab = CronTab(tabfile = filename)
+        self.cron_timeout = 60
 
-    def remove_offline_job_from_file(self):
-        job_list = Job.objects(status = Job.STATUS_OFF)
+    def remove_offline_jobs_from_crontab(self):
+        jobs = Job.objects(status = Job.STATUS_OFF)
+        for job in jobs:
+            generator = CrawlerTaskGenerator.objects(job = job, status= CrawlerTaskGenerator.STATUS_ON).first()
+            if not generator:
+                continue
+            comment = self._task_generator_cron_comment(job)
+            count = self.crontab.remove_all(comment= comment)
 
+    def update_online_jobs(self):
+        jobs= Job.objects(status = Job.STATUS_ON)
+        print len(jobs)
+        for job in jobs:
+            generator = CrawlerTaskGenerator.objects(job = job).order_by('-add_datetime').first()
+            if not generator:
+                continue
+            if not self._test_save_code(generator):
+                continue
+            if not self._test_crontab(generator):
+                continue
+            if not self._test_install_crontab(generator):
+                continue
 
+            generator.status = CrawlerTaskGenerator.STATUS_ON
+            generator.save()
+            CrawlerTaskGenerator.objects(job = job, status = CrawlerTaskGenerator.STATUS_ON, id__ne= generator.id).update(status = CrawlerTaskGenerator.STATUS_OFF)
+
+    def save_cron_to_file(self, filename= None):
+        self.crontab.write(self.filename if not filename else filename)
+
+    def _task_generator_cron_comment(self, job):
+        return "job name:%s with id:%s"%(job.name, job.id)
+
+    def _test_install_crontab(self, generator):
+        comment = self._task_generator_cron_comment(generator.job)
+        self.crontab.remove_all(comment = comment)
+        if generator.status == CrawlerTaskGenerator.STATUS_OFF:
+            return False
+        command = "GeneratorDispatch('%s').run()"%(str(generator.job.id))
+        cron = self.crontab.new(command= command, comment = comment)
+        cron.setall(generator.cron.strip())
+        return cron.render()
+
+    def _test_crontab(self, generator):
+        user_cron = CronTab()
+        job = user_cron.new(command="/usr/bin/echo")
+        job.setall(generator.cron.strip())
+        if job.is_valid() == False:
+            generator.cron = "%d * * * *" % random.randint(1, 59)
+        return job.render()
+
+    def _test_save_code(self, generator):
+        path = generator.product_path()
+        generator.write_code(path)
+        return True
 
     def task_generator_install(self):
+        """
+            定期更新所有job的生成器crontab的本地文件信息
+        """
+        self.remove_offline_jobs_from_crontab()
+        self.update_online_jobs()
+        self.save_cron_to_file()
+        return True
 
-        return False
+    def save_crons(self):
+        base =  datetime(2010, 1, 25, 4, 46)
+        # base = datetime.datetime.now()
+        iters = croniter('*/5 * * * *', base)  # every 1 minites
+        next = iters.get_next(datetime)
+        return next
+
+    def save_next_crons(self):
+        from dateutil.parser import parse
+        # timeout = settings.GENERATE_TIMEOUT
+
+        # 获取出当前分钟 需要执行的任务列表
+        last_time = datetime.now()
+        # 定时任务，到时间强制退出。
+        timer = threading.Timer(self.cron_timeout, force_exit)
+        timer.start()
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        for job in self.crontab.crons:
+            # 获得当前需要运行的cron任务
+            now = datetime.now()
+            base = parse(job.get_last_run())
+            slices= job.slices.clean_render()
+            iters = croniter(slices , base)
+            next_time = iters.get_next(datetime)
+            if next_time < now:
+                try:
+                    command = job.command
+                    pool.apply_async(exec_command, (command,))
+                except:
+                    raise
+                job.set_last_run(now)
+        # 将本次运行的cron任务的上次运行时间写回到tabfile文件中
+        self.save_cron_to_file()
+         # 预警机制
+        end_time = datetime.now()
+        # import datetime
+        # if end_time - last_time > datetime.timedelta(seconds=60):
+        #     logging.error("Cron runtime exceeds 60s. Exit!")
+
+    def task_generator_run(self):
+        """
+            每分钟运行例程
+        """
+
+        return True
+
+def exec_command(command):
+    c = compile(command, "", 'exec')
+    exec c
+
+def force_exit():
+    pgid = os.getpgid(0)
+    if pool is not None:
+        pool.terminate()
+        raise UnboundLocalError("Pool is not None!")
+    os.killpg(pgid, 9)
+    logging.error("Cron runtime exceeds 60s. Exit!")
+    CrawlerGeneratorAlertLog(type = "TIMEOUT", reason="Cron runtime exceeds 60s. Exit!", hostname= socket.gethostname() )
+    os._exit(1)
+

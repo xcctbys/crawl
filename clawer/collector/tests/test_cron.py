@@ -54,6 +54,36 @@ class TestCrontab(TestCase):
         my_cron.write( '/tmp/output.tab' )
         self.assertTrue(True)
 
+    def test_write_to_file_with_same_comment(self):
+        my_cron  = CronTab()
+        job = my_cron.new(command='ls -al', comment='ls')
+        my_cron.write( '/tmp/output.tab' )
+        job2 = my_cron.new(command='ls -l', comment='ls')
+        job2.enable(False)
+        my_cron.write( '/tmp/output.tab' )
+
+        crons = my_cron.find_comment('ls')
+        count = 0
+        for cron in crons:
+            count+=1
+        self.assertEqual(count, 2)
+
+    def test_change_enable_cron_to_disable(self):
+        my_cron  = CronTab()
+        my_cron.read('/tmp/output.tab' )
+        crons = my_cron.find_comment('ls')
+        for cron in crons:
+            if cron.is_enabled():
+                cron.enable(False)
+        my_cron.write('/tmp/output.tab')
+
+        test_cron = CronTab()
+        test_cron.read('/tmp/output.tab' )
+        crons = test_cron.find_comment('ls')
+        for cron in crons:
+            self.assertFalse(cron.is_enabled())
+
+
     def test_read_from_file(self):
         my_cron  = CronTab()
         my_cron.read('/tmp/output.tab' )
