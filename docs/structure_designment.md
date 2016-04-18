@@ -14,86 +14,175 @@
 
 导出层同样采用Master/Slave结构，Master即任务生产者，负责找出已经完成初次解析的Job并为其生成导出任务分发到不同的RQ队列里，Slave即任务的消费者，负责依次从对应优先级的RQ队列中获取导出任务并执行。
 
+# Class
+
+```
+class Consts(object):
+    """一些通用的常量
+    """
+    
+    QUEUE_PRIORITY_TOO_HIGN = u"too hign"
+    QUEUE_PRIORITY_HIGN = u"high"
+    QUEUE_PRIORITY_NORMAL = u"normal"
+    QUEUE_PRIORITY_LOW = u"low"
+
+    
+
+class StructureGenerator(object):
+    """结构化层通用生成器，提供一些通用的函数，暂时用于派生解析任务生成器和导出任务生成器
+    """
+    
+    def filter_downloaded_jobs(self):
+        pass
+
+    def filter_parsed_jobs(self):
+        pass
+
+    def get_job_priority(self, job):
+        pass
+
+    def get_job_source_data(self, job):
+        pass
+
+
+class ParserGenerator(StructureGenerator):
+    """解析任务生成器
+    """
+    
+    pass
+
+
+class ExtracterGenerator(StructureGenerator):
+    """导出任务生成器
+    """
+    
+    pass
+    
+
+class ExecutionTasks(object):
+    """用于执行解析任务和导出任务
+    """
+    
+    pass
+
+```
+
 # 功能
 
-## 生产解析任务（In master）
+## 1. 生成解析任务（In master）
 
 从数据库过滤需要解析的job，读取该job的解析器配置并选择对应的解析器(HTML，JSON，PDF，OCR)生成一个解析任务，根据任务的优先级分配到不同优先级的队列。
 
 ### 输入
-
 无
 
 ### 输出
-
-日志文件
-
-### ORM
-
-```python
-class StructureConfigs(Document):
-
-    job = ReferenceField(Job)
-    plugin_id = IntField()
-
-
-class StructerPlugins(Document):
-
-    (DEFAULT, HTML, JSON, PDF, OCR) = range(1, 6)
-    CHOICES = (
-        (DEFAULT, u"DEFAULT"),
-        (HTML, u"HTML"),
-        (JSON, u"JSON"),
-        (PDF, u"PDF"),
-        (OCR, u"OCR"),
-    )
-    uri = StringField(max_length=1024, null=True)
-    type = IntField(default=DEFAULT, null=True)
-    python_script = TextField()
-```
+- 日志
+- 数据库
 
 ### 逻辑流程
 
-```python
-assign_tasks():
-    jobs = filter_downloaded_jobs():
-    for job in jobs:
-        conf = _get_structure_conf_by_id(job.id)
-        structer = _get_structer_by_id(conf.plugin_id)
-        priority = _get_job_priobrity_by_id(job.id)
-        data = _get_source_data(job.id)
-        if not is_duplicates(data):
-          try:
-              _assign_task(priority, structer, data)
-          except:
-              _error_log()
-        else:
-            _log(duplicates)
-
-
-_assign_task(proiority='low', structer=lambda:None, data=data):
-    q = get_queue(proiority)
-    q.enqueue(structer, data)
-
-
-_get_structer_by_id(plugin_id):
-    script = StructerPlugins.objecs.filter(id=plugin_id)
-    absolute_path = local_save(script)
-
-    def structer(absolute_path):
-        from subprocess import call
-        call(["python {0}".format(script)])
-
-    return structer
 ```
+class ParserGenerator(StructureGenerator):
+    def assign_tasks(self):
+        jobs = self.filter_downloaded_jobs()
+        for job in jobs:
+            parser = self.get_parser(job)
+            priority = self.get_priority(job)
+            data = self.get_job_source_data(job)
+            if not self.is_duplicates(data):
+                try:
+                    self.assign_task(priority, parser, data)
+                    logging.info("add task succeed")
+                except:
+                    logging.error("assign task runtime error.")
+            else:
+                logging.error("duplicates")
 
+    def assign_task(self,
+                    priority=Consts.QUEUE_PRIORITY_NORMAL,
+                    parser=lambda: None,
+                    data=""):
+        pass
 
-## 消费解析任务（In Slave）
+    def get_parser(self, job):
+        pass
 
-解析源数据为JSON格式的目标数据，其中JSON的键是运营人员配置的，最终将JSON文件存入MongoDB。若解析过程中出现错误记录错误日志，并根据重启策略重启，如果策略失效生成报警日志结束解析。
+    def is_duplicates(self, data):
+        return False
+
+```
+## 2. 生成导出任务（In Master）
+
+从数据库过滤需要导出的job，读取该job的导出器配置并生成对应的导出任务，根据任务的优先级分配到不同优先级的队列。
+
+导出任务主要包含如下内容：
+
+1. 动态生成数据库表结构
+2. 从解析器结果（JSON数据）中提取字段并做中英文映射，最终存入目标数据库。
 
 ### 输入
+无
 
+### 输出
+- 日志
+- 数据库
+
+### 逻辑流程  
+
+```
+class ExtracterGenerator(StructureGenerator):
+    def assign_tasks(self):
+        jobs = self.filter_parsed_jobs()
+        for job in jobs:
+            priority = self.get_priority(job)
+            db_conf = self.get_extracter_db_config(job)
+            mappings = self.get_extracter_mappings(job)
+            extracter = self.get_extracter(db_conf, mappings)
+            try:
+                self.assign_task(priority, extracter)
+                logging.info("add task succeed")
+            except:
+                logging.error("assign task runtime error.")
+
+    def assign_task(self,
+                    priority=Consts.QUEUE_PRIORITY_NORMAL,
+                    parser=lambda: None,
+                    data=""):
+        pass
+
+    def get_extracter(self, db_conf, mappings):
+
+        def extracter():
+            try:
+                self.if_not_exist_create_db_schema(db_conf)
+                logging.info("create db schema succeed")
+            except:
+                logging.error("create db schema error")
+            try:
+                self.extract_fields(mappings)
+                logging.info("extract fields succeed")
+            except:
+                logging.error("extract fields error")
+
+        return extracter
+
+    def if_not_exist_create_db_schema(self, conf):
+        pass
+
+    def extract_fields(self, mappings):
+        pass
+
+    def get_extracter_db_config(self):
+        pass
+
+```
+
+## 3. 执行任务（In Slave）
+
+根据服务器cpu数启动相同数量的worker，每个worker依次从网络队列中读取对应优先级的任务，执行完成后循环前一步直到队列中任务为空。
+
+### 输入
 无
 
 ### 输出
@@ -103,61 +192,34 @@ _get_structer_by_id(plugin_id):
 
 ### 逻辑流程
 
-```python
+```
+class ExecutionTasks(object):
+
+    def exec_task(queue=Consts.QUEUE_PRIORITY_NORMAL):
+        with Connection([queue]):
+            w = Worker()
+            w.work()
 ```
 
+# 配置
+结构化层需要自定义的内容比较多，统一存到Mongo数据库中。需要为每个任务需要配置解析器、目标数据库、数据库表和字段、要提取的字段中英文映射。解析器是自定义的Python脚步，其中必须包含parse方法，参数为要解析的内容，返回解析后的JSON数据。最终解析器插件会同步到服务器本地文件目录`structure/parsers/`。
 
-## 生产导出任务（In Master）
-
-1. 生成Mysql数据表
-2. 从解析的JSON数据中提取特定字段的数据，并做中英文映射，其中映射关系需要运营人员配置，最终存入指定数据库中。
-
-- 输入: job_id
-- 输出: None
-- 逻辑流程
-
-        @handle_error
-        create_mysql_schema(job_id):
-            conf = read_mongo(job_id)
-            tables = parse(conf)
-            for table in tables:
-                insert(table)
-
-        @handle_error
-        extract_fields_to_mysql(job_id):
-            source = read_mongo(job_id)
-            target = extract_fields(source)
-            write_mysql(target)
-            write_log(succeed)
-
-## 消费解析任务（In Slave）
-
-
-## 去重器
-
-判断要结构化的源数据是否已经存在，若存在根据配置文件检测是否要更新，需要更新返回False否则返回True；若不存在返回True。True表示源数据已经结构化，False表示源数据未结构化。
-
-### 输入
-
-源数据
-
-### 输出
-
-True | False
-
-### 逻辑流程
-
-```python
-is_duplicates(data):
-    exist = is_exist(data)  # 防重器
-    if not exist:
-        if check_update():  # 防重器
-            return True
-        else:
-            return False
-    else:
-        return True
 ```
+class Parser(Document):
+    parser_id = IntField()
+    python_script = TextField()
+
+
+class StructureConfig(Document):
+    job = ReferenceField(Job)
+    parser = ReferenceField(Parser)
+    db_xml = TextField()
+    mappings = TextField()
+```
+
+# 部署
+- crontab，在master服务器上定时更新解析生成器和导出生成器队列，最终会给出一个`python manage.py command`形式的命令
+- 守护进程，在slave服务器上轮询查看对应优先级队列是否有任务，若有任务执行任务，若没有等待。
 
 # User Interface 用户界面
 
@@ -175,32 +237,79 @@ is_duplicates(data):
 
 ## Directory 代码目录结构
 
-    λ ~/Projects/cr-clawer/clawer/structure/ dev* tree
-    .
-    ├── __init__.py
-    ├── admin.py
-    ├── migrations
-    │   └── __init__.py
-    ├── models.py
-    ├── tests
-    │   └── __init__.py
-    └── views.py
-
-    2 directories, 6 files
+```
+structure
+├── __init__.py
+├── admin.py
+├── migrations
+│   └── __init__.py
+├── models.py
+├── parsers
+├── structure.py
+├── tests
+│   ├── __init__.py
+│   └── test_structure.py
+└── views.py
+```
 
 ## Database 数据库
 
 
 # Test 测试
 
-## Testcase 1
+## 单元测试
 
-- 依赖
-- 输入
-- 期望输出
+```
+class TestStructureGenerator(TestCase):
+    def test_filter_downloaded_jobs(self):
+        pass
+
+    def test_filter_parsed_jobs(self):
+        pass
+
+    def test_get_job_priority(self, job):
+        pass
+
+    def test_get_job_source_data(self, job):
+        pass
 
 
-# Other
+class TestParserGenerator(TestCase):
+    def test_assign_tasks(self):
+        pass
 
-- 参考文档: <https://www.toptal.com/freelance/why-design-documents-matter>
+    def test_assign_task(self):
+        pass
+
+    def test_get_parser(self):
+        pass
+
+    def test_is_duplicates(self):
+        pass
+
+
+class TestExtracterGenerator(TestCase):
+    def test_assign_tasks(self):
+        pass
+
+    def test_assign_task(self):
+        pass
+
+    def test_get_extracter(self):
+        pass
+
+    def test_if_not_exist_create_db_schema(self):
+        pass
+
+    def test_extract_fields(self):
+        pass
+
+    def test_get_extracter_db_config(self):
+        pass
+
+
+class TestExecutionTasks(TestCase):
+    def test_exec_task(self):
+        pass
+```
 
