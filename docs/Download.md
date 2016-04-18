@@ -209,6 +209,9 @@ class Download(object):
 	    self.content = None #保存下载下来的数据
 		...
 		pass
+	def reporthook(self):
+		print 'ok'
+		pass
 	def download(self):
 		if self.url.find('enterprise://') != -1:
 			download_with_enterprise() #封装公商
@@ -221,9 +224,13 @@ class Download(object):
 			save shell code to path
 			result = commands.getstatusoutput('sh name.sh')
 			self.content = result[1]
-		elif types is 'curl' or type is 'wget':
+		elif types is 'curl':
 			result = commands.getstatusoutput('%s %s' % (types, self.uri))
 			self.content = result[1]
+		elif types is 'wget':
+			i = url.rfind('/')
+			file = url[i+1:]
+			(filename,mime_hdrs) = urllib.urlretrieve(self.url,file,self.reporthook)
 ```	
 ```
 class DownloadClawerTask(object):
