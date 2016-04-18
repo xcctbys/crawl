@@ -62,7 +62,7 @@ def data_preprocess( *args, **kwargs):
 	- 结论：分发时 入队所需要的时间不是很长，从mongobd里获取所需要的时间(查询1000万条数据,能够达到平均 50毫秒)，以及slaver消化的时间很长(4个bash,近10分钟)
 	
 ### 实现策略说明
-- 可以按照job优先级，或者 主机号 进行分发。（都是利用 rq 队列）。简单思路：配置设备较优的机器rq启动顺序为 rq worker high mid low （该启动顺序是否可以利用socket 或者。。让主机进行分发）
+- 可以按照job优先级，(TODO:或者 主机号 进行分发。都是利用 rq 队列）。简单思路：配置设备较优的机器rq启动顺序为 rq worker high mid low
 - 可以设置一次内总的分发数量，并设置单个job的分发数量。
 - 用多进程进行任务分发。
 - 使用回收机制。（并且设有最大回收次数）
@@ -215,28 +215,29 @@ class Download(object):
 	def download(self):
 		if self.url.find('enterprise://') != -1:
 			download_with_enterprise() #封装公商
-		elif self.engine == self.ENGINE_REQUESTS:
+		else:
             self.download_with_requests()
         ...
 	def download_with_requests(self):
-		if self.type is 'python':
+		if self.type is 'python' and self.is_support:
 			save python code to path
 			sys.path.append(path)
 			import name_module
 			self.content = name_module.run(uri = self.uri)
-		elif self.type is 'shell':
+		elif self.type is 'shell' and self.is_support:
 			save shell code to path
 			result = commands.getstatusoutput('sh name.sh')
 			self.content = result[1]
-		elif self.types is 'curl':
+		elif self.types is 'curl' and self.is_support:
 			result = commands.getstatusoutput('%s %s' % (types, self.uri))
 			self.content = result[1]
-		elif self.types is 'wget':
+		elif self.types is 'wget' and self.is_support:
 			i = url.rfind('/')
 			file = url[i+1:]
 			(filename,mime_hdrs) = urllib.urlretrieve(self.url,file,self.reporthook)
 		else:
 			r = requests.get(self.url, headers=self.headers, proxies=self.proxies)
+			self.content = r.text
 ```	
 ```
 class DownloadClawerTask(object):
@@ -264,7 +265,7 @@ class DownloadClawerTask(object):
 def download_clawer_task():
 	try:
 		downloader = DownloadClawerTask(clawer_task, clawer_setting) #配置下载器
-		downloader.download()	#如何下载
+		downloader.download()	#根据不同用不同方式下载
 	except:
 		fail_log
 		sentry.except()
@@ -294,22 +295,13 @@ mysql数据库定义(能够引用mongodb?)
 
 ```
 class CrawlerDownloadSetting(model.Models):
-    (PRIOR_NORMAL, PRIOR_URGENCY, PRIOR_FOREIGN) = range(0, 3)
-    PRIOR_CHOICES = (
-        (PRIOR_NORMAL, "normal"),
-        (PRIOR_URGENCY, "urgency"),
-        (PRIOR_FOREIGN, "foreign"),
-    )
-    job = CharField(max_length=256)
+    job = ForeignKey(Job)
     dispatch_num = models.IntegerField(u"每次分发下载任务数", default=100)
     max_retry_times = IntegerField(default=0)
     proxy = models.TextField(blank=True, null=True)
     cookie = models.TextField(blank=True, null=True)
-    download_engine = models.CharField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
-    download_js = models.TextField(blank=True, null=True)
     prior = models.IntegerField(default=PRIOR_NORMAL)
     last_update_datetime = models.DateTimeField(auto_now_add=True, auto_now=True)
-    report_mails = models.CharField(blank=True, null=True, max_length=256)
     add_datetime = models.DateTimeField(auto_now_add=True)
 ```
 
@@ -320,7 +312,7 @@ mongodb当中的数据库定义。
 - 消费者：用户设置下载器时，types字段引用，
 
 ```
-CrawlerDownloadType(Document):
+class CrawlerDownloadType(Document):
 	language = StringField(help_text=u'计算机语言或者shell命令', required=True, unique=True)
 	is_support = BoolField(default=False)
 	add_datetime = DateTimeField(default=datetime.datetime.now())
