@@ -215,22 +215,28 @@ class Download(object):
 	def download(self):
 		if self.url.find('enterprise://') != -1:
 			download_with_enterprise() #封装公商
-		if type is 'python':
+		elif self.engine == self.ENGINE_REQUESTS:
+            self.download_with_requests()
+        ...
+	def download_with_requests(self):
+		if self.type is 'python':
 			save python code to path
 			sys.path.append(path)
 			import name_module
 			self.content = name_module.run(uri = self.uri)
-		elif type is 'shell':
+		elif self.type is 'shell':
 			save shell code to path
 			result = commands.getstatusoutput('sh name.sh')
 			self.content = result[1]
-		elif types is 'curl':
+		elif self.types is 'curl':
 			result = commands.getstatusoutput('%s %s' % (types, self.uri))
 			self.content = result[1]
-		elif types is 'wget':
+		elif self.types is 'wget':
 			i = url.rfind('/')
 			file = url[i+1:]
 			(filename,mime_hdrs) = urllib.urlretrieve(self.url,file,self.reporthook)
+		else:
+			r = requests.get(self.url, headers=self.headers, proxies=self.proxies)
 ```	
 ```
 class DownloadClawerTask(object):
