@@ -153,28 +153,6 @@ def force_exit():
     os._exit(1)
 ```
 
-download_clawer_task
-
-```
-def download_clawer_task():
-	if download_type is python:
-		setting downloader by cralwerdownloadsettings
-	try:
-		downloader.download()	
-	except:
-		fail_log
-		sentry.except()
-	else:
-		try:
-			import subprocess
-			p = subprocess.Popen('ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			retval = p.wait()
-		except:
-			fail_log
-			sentry.except()
-	success_log
-
-```
 ### 前提条件
 - settings.py 中设置了分发数量等
 
@@ -226,6 +204,73 @@ def download_clawer_task():
 ### 流程(伪代码)
 
 ```
+class Download(object):
+	def __init__(self):
+	    self.content = None #保存下载下来的数据
+		...
+		pass
+	def reporthook(self):
+		print 'ok'
+		pass
+	def download(self):
+		if self.url.find('enterprise://') != -1:
+			download_with_enterprise() #封装公商
+		elif self.engine == self.ENGINE_REQUESTS:
+            self.download_with_requests()
+        ...
+	def download_with_requests(self):
+		if self.type is 'python':
+			save python code to path
+			sys.path.append(path)
+			import name_module
+			self.content = name_module.run(uri = self.uri)
+		elif self.type is 'shell':
+			save shell code to path
+			result = commands.getstatusoutput('sh name.sh')
+			self.content = result[1]
+		elif self.types is 'curl':
+			result = commands.getstatusoutput('%s %s' % (types, self.uri))
+			self.content = result[1]
+		elif self.types is 'wget':
+			i = url.rfind('/')
+			file = url[i+1:]
+			(filename,mime_hdrs) = urllib.urlretrieve(self.url,file,self.reporthook)
+		else:
+			r = requests.get(self.url, headers=self.headers, proxies=self.proxies)
+```	
+```
+class DownloadClawerTask(object):
+	def __init__(self, clawer_task, clawer_setting):
+		self.downloader = Download(self.clawer_task.uri, engine=self.clawer_setting.download_engine, js=self.clawer_setting.download_js)
+		self.clawer_task = clawer_task
+		...
+	def download(self):
+		try:
+	    	self.downlaoder.download()
+	    except:
+	    	clawertask.status = STATUS.FAILED
+	    	write_error_log
+	    if self.downloader.failed:
+	    	clawertask.status = STATUS.FAILED
+	        write_fail_log
+	        return
+	    clawerdowndata.save() #保存下载数据到mongodb数据库
+	    clawertask.status = STATUS.SUCCESS
+	    write_success_log
+```
+
+
+```
+def download_clawer_task():
+	try:
+		downloader = DownloadClawerTask(clawer_task, clawer_setting) #配置下载器
+		downloader.download()	#如何下载
+	except:
+		fail_log
+		sentry.except()
+```
+
+```
 rq worker down_super down_high down_mid down_low
 ```
 
@@ -242,6 +287,31 @@ rq worker down_super down_high down_mid down_low
 
 
 # 数据库设计
+mysql数据库定义(能够引用mongodb?)
+## CrawlerDownloadSetting
+- 生产者：用户新增一个job时，设置 下载器配置 时产生。
+- 消费者：下载程序
+
+```
+class CrawlerDownloadSetting(model.Models):
+    (PRIOR_NORMAL, PRIOR_URGENCY, PRIOR_FOREIGN) = range(0, 3)
+    PRIOR_CHOICES = (
+        (PRIOR_NORMAL, "normal"),
+        (PRIOR_URGENCY, "urgency"),
+        (PRIOR_FOREIGN, "foreign"),
+    )
+    job = CharField(max_length=256)
+    dispatch_num = models.IntegerField(u"每次分发下载任务数", default=100)
+    max_retry_times = IntegerField(default=0)
+    proxy = models.TextField(blank=True, null=True)
+    cookie = models.TextField(blank=True, null=True)
+    download_engine = models.CharField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
+    download_js = models.TextField(blank=True, null=True)
+    prior = models.IntegerField(default=PRIOR_NORMAL)
+    last_update_datetime = models.DateTimeField(auto_now_add=True, auto_now=True)
+    report_mails = models.CharField(blank=True, null=True, max_length=256)
+    add_datetime = models.DateTimeField(auto_now_add=True)
+```
 
 mongodb当中的数据库定义。
 ## CrawlerDownloadType
@@ -251,12 +321,8 @@ mongodb当中的数据库定义。
 
 ```
 CrawlerDownloadType(Document):
-	SUPPORT_CHOICES = (
-		('support', u'支持')
-		('unsupport', u'不支持')
-	)
 	language = StringField(help_text=u'计算机语言或者shell命令', required=True, unique=True)
-	is_support = StringField(choices=SUPPORT_CHOICES)
+	is_support = BoolField(default=False)
 	add_datetime = DateTimeField(default=datetime.datetime.now())
 	meta = {"db_alias": "source"} # 默认连接的数据库
 ```
@@ -278,31 +344,7 @@ class CrawlerDownload(Document):
     add_datetime = DateTimeField(default=datetime.datetime.now())
     meta = {"db_alias": "source"} # 默认连接的数据库
 ```
-## CrawlerDownloadSetting
-- 生产者：用户新增一个job时，设置 下载器配置 时产生。
-- 消费者：下载程序
 
-```
-class CrawlerDownloadSetting(Document):
-    (PRIOR_NORMAL, PRIOR_URGENCY, PRIOR_FOREIGN) = range(0, 3)
-    PRIOR_CHOICES = (
-        (PRIOR_NORMAL, "normal"),
-        (PRIOR_URGENCY, "urgency"),
-        (PRIOR_FOREIGN, "foreign"),
-    )
-    job = ReferenceField(Job)
-    dispatch_num = IntField(help_text=u"每次分发下载任务数", default=100)
-    max_retry_times = IntField(help_text=u'在抓取失败情况下，最多重抓取的次数：',default=5)
-    proxy = StringField(required=False)
-    cookie = StringField(required=False)
-    download_engine = StringField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
-    download_js = StringField(required=False)
-    prior = IntField(choices=PRIOR_CHOICES, default=0)
-    last_update_datetime = DateTimeField()
-    report_mails = StringField(required=False, max_length=256)
-    add_datetime = DateTimeField(default=datetime.datetime.now())
-	meta = {"db_alias": "source"} # 默认连接的数据库
-```
 
 ## CrawlerDownloadData
 - 生产者：下载程序
