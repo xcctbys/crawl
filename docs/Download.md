@@ -220,10 +220,10 @@ class Download(object):
 		elif type is 'shell':
 			save shell code to path
 			result = commands.getstatusoutput('sh name.sh')
-			self.content = result
+			self.content = result[1]
 		elif types is 'curl' or type is 'wget':
 			result = commands.getstatusoutput('%s %s' % (types, self.uri))
-			self.content = result
+			self.content = result[1]
 ```	
 ```
 class DownloadClawerTask(object):
