@@ -153,28 +153,6 @@ def force_exit():
     os._exit(1)
 ```
 
-download_clawer_task
-
-```
-def download_clawer_task():
-	if download_type is python:
-		setting downloader by cralwerdownloadsettings
-	try:
-		downloader.download()	
-	except:
-		fail_log
-		sentry.except()
-	else:
-		try:
-			import subprocess
-			p = subprocess.Popen('ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			retval = p.wait()
-		except:
-			fail_log
-			sentry.except()
-	success_log
-
-```
 ### 前提条件
 - settings.py 中设置了分发数量等
 
@@ -226,6 +204,27 @@ def download_clawer_task():
 ### 流程(伪代码)
 
 ```
+def download_clawer_task():
+	if download_type is python:
+		setting downloader by cralwerdownloadsettings
+	try:
+		downloader.download()	
+	except:
+		fail_log
+		sentry.except()
+	else:
+		try:
+			import subprocess
+			p = subprocess.Popen('ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			retval = p.wait()
+		except:
+			fail_log
+			sentry.except()
+	success_log
+
+```
+
+```
 rq worker down_super down_high down_mid down_low
 ```
 
@@ -242,6 +241,32 @@ rq worker down_super down_high down_mid down_low
 
 
 # 数据库设计
+mysql数据库定义
+## CrawlerDownloadSetting
+- 生产者：用户新增一个job时，设置 下载器配置 时产生。
+- 消费者：下载程序
+
+```
+class CrawlerDownloadSetting(model.Models):
+    (PRIOR_NORMAL, PRIOR_URGENCY, PRIOR_FOREIGN) = range(0, 3)
+    PRIOR_CHOICES = (
+        (PRIOR_NORMAL, "normal"),
+        (PRIOR_URGENCY, "urgency"),
+        (PRIOR_FOREIGN, "foreign"),
+    )
+    job = ReferenceField(Job)
+    dispatch_num = IntField(help_text=u"每次分发下载任务数", default=100)
+    max_retry_times = IntField(help_text=u'在抓取失败情况下，最多重抓取的次数：',default=5)
+    proxy = StringField(required=False)
+    cookie = StringField(required=False)
+    download_engine = StringField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
+    download_js = StringField(required=False)
+    prior = IntField(choices=PRIOR_CHOICES, default=0)
+    last_update_datetime = DateTimeField()
+    report_mails = StringField(required=False, max_length=256)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+	meta = {"db_alias": "source"} # 默认连接的数据库
+```
 
 mongodb当中的数据库定义。
 ## CrawlerDownloadType
@@ -278,31 +303,7 @@ class CrawlerDownload(Document):
     add_datetime = DateTimeField(default=datetime.datetime.now())
     meta = {"db_alias": "source"} # 默认连接的数据库
 ```
-## CrawlerDownloadSetting
-- 生产者：用户新增一个job时，设置 下载器配置 时产生。
-- 消费者：下载程序
 
-```
-class CrawlerDownloadSetting(Document):
-    (PRIOR_NORMAL, PRIOR_URGENCY, PRIOR_FOREIGN) = range(0, 3)
-    PRIOR_CHOICES = (
-        (PRIOR_NORMAL, "normal"),
-        (PRIOR_URGENCY, "urgency"),
-        (PRIOR_FOREIGN, "foreign"),
-    )
-    job = ReferenceField(Job)
-    dispatch_num = IntField(help_text=u"每次分发下载任务数", default=100)
-    max_retry_times = IntField(help_text=u'在抓取失败情况下，最多重抓取的次数：',default=5)
-    proxy = StringField(required=False)
-    cookie = StringField(required=False)
-    download_engine = StringField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
-    download_js = StringField(required=False)
-    prior = IntField(choices=PRIOR_CHOICES, default=0)
-    last_update_datetime = DateTimeField()
-    report_mails = StringField(required=False, max_length=256)
-    add_datetime = DateTimeField(default=datetime.datetime.now())
-	meta = {"db_alias": "source"} # 默认连接的数据库
-```
 
 ## CrawlerDownloadData
 - 生产者：下载程序
