@@ -8,61 +8,61 @@
 
 解析层是对爬取的源数据做初次解析，解析为JSON格式的数据并存储到Mongo数据库。
 
-解析层采用Master/Slave结构，Master即任务生产者，负责找出已经完成下载的Job并为其生成解析任务分发到不同RQ队列里，Slave即任务的消费者，负责依次从对应优先级的RQ队列中依次获取任务（即特定的解析任务）并执行。
+解析层采用异步队列实现，通过crontab定时筛选已经完成下载的任务并为其生成解析任务分发到不同RQ队列里，worker负责依次从对应优先级的RQ队列中依次获取任务（即特定的解析任务）并执行。
 
 导出层是对解析层生成的JSON数据进行二次解析，该层主要完成两件事情，第一，动态创建关系型数据库表的（如Mysql），第二，特定字段的提取并存储到上文创建的数据库表中。
 
-导出层同样采用Master/Slave结构，Master即任务生产者，负责找出已经完成初次解析的Job并为其生成导出任务分发到不同的RQ队列里，Slave即任务的消费者，负责依次从对应优先级的RQ队列中获取导出任务并执行。
+导出层同样采用异步队列实现，通过crontab定时筛选已经完成初次解析的任务并为其生成导出任务分发到不同的RQ队列里，worker负责依次从对应优先级的RQ队列中获取导出任务并执行。
 
 # Class
 
 ```
 class Consts(object):
-    """一些通用的常量
+    """一些全局的常量
     """
-    
-    QUEUE_PRIORITY_TOO_HIGN = u"too hign"
-    QUEUE_PRIORITY_HIGN = u"high"
-    QUEUE_PRIORITY_NORMAL = u"normal"
-    QUEUE_PRIORITY_LOW = u"low"
 
-    
+    QUEUE_PRIORITY_TOO_HIGN = u"structure:higher"
+    QUEUE_PRIORITY_HIGN = u"structure:high"
+    QUEUE_PRIORITY_NORMAL = u"structure:normal"
+    QUEUE_PRIORITY_LOW = u"structure:low"
+
+
 
 class StructureGenerator(object):
     """结构化层通用生成器，提供一些通用的函数，暂时用于派生解析任务生成器和导出任务生成器
     """
-    
-    def filter_downloaded_jobs(self):
+
+    def filter_downloaded_tasks(self):
         pass
 
-    def filter_parsed_jobs(self):
+    def filter_parsed_tasks(self):
         pass
 
-    def get_job_priority(self, job):
+    def get_task_priority(self, task):
         pass
 
-    def get_job_source_data(self, job):
+    def get_task_source_data(self, task):
         pass
 
 
 class ParserGenerator(StructureGenerator):
     """解析任务生成器
     """
-    
+
     pass
 
 
 class ExtracterGenerator(StructureGenerator):
     """导出任务生成器
     """
-    
+
     pass
-    
+
 
 class ExecutionTasks(object):
     """用于执行解析任务和导出任务
     """
-    
+
     pass
 
 ```
@@ -71,7 +71,19 @@ class ExecutionTasks(object):
 
 ## 1. 生成解析任务（In master）
 
-从数据库过滤需要解析的job，读取该job的解析器配置并选择对应的解析器(HTML，JSON，PDF，OCR)生成一个解析任务，根据任务的优先级分配到不同优先级的队列。
+从数据库过滤需要解析的任务，读取该任务的解析器配置并选择对应的解析器(HTML，JSON，PDF，OCR)生成一个解析任务，根据任务的优先级分配到不同优先级的队列。
+
+问题1： 如何查找已经下载完成的任务？
+问题2： 如何设定解析器的接口？
+问题3： 如何找到对应的解析器解析器函数？
+问题4： 如何防止重复解析？
+问题5： 如何限定RQ性能？
+
+1. 筛选`collector.models.CrawlerTask`中`status`为`下载成功`的下载器任务
+2. 解析器中必须包含`RawParser`类和其方法`parse`方法，该方法的参数为要解析的原始数据。
+3. 在`1`中筛选出的下载器任务中可以找到其对应的`Job`，通过`Job`在结构化层配置数据库`StructureConfig`中找到对应`Job`的配置，在`StructureConfig`中可以在解析器数据库`Parser`中找到对应的Python脚本，将该脚本存储到本地`structure/parsers/`目录中以解析器`id`命名。每次查找解析器脚本时先从数据库同步到本地（防止数据库更新本地未更新的问题）。
+4. 将解析过得任务存到本地，计算原始数据的hash值作为键，以及任务本身的一些数据全部存储。每次解析先查看数据库是否存在，如果配置时间策略等必须重新结构化，可以更新对应hash值得内容。
+5. 限制RQ队列的总长度，为每个任务设定超时时间。
 
 ### 输入
 无
@@ -85,11 +97,11 @@ class ExecutionTasks(object):
 ```
 class ParserGenerator(StructureGenerator):
     def assign_tasks(self):
-        jobs = self.filter_downloaded_jobs()
-        for job in jobs:
-            parser = self.get_parser(job)
-            priority = self.get_priority(job)
-            data = self.get_job_source_data(job)
+        tasks = self.filter_downloaded_tasks()
+        for task in tasks:
+            parser = self.get_parser(task)
+            priority = self.get_priority(task)
+            data = self.get_task_source_data(task)
             if not self.is_duplicates(data):
                 try:
                     self.assign_task(priority, parser, data)
@@ -105,7 +117,7 @@ class ParserGenerator(StructureGenerator):
                     data=""):
         pass
 
-    def get_parser(self, job):
+    def get_parser(self, task):
         pass
 
     def is_duplicates(self, data):
@@ -114,7 +126,7 @@ class ParserGenerator(StructureGenerator):
 ```
 ## 2. 生成导出任务（In Master）
 
-从数据库过滤需要导出的job，读取该job的导出器配置并生成对应的导出任务，根据任务的优先级分配到不同优先级的队列。
+从数据库过滤需要导出的task，读取该任务的导出器配置并生成对应的导出任务，根据任务的优先级分配到不同优先级的队列。
 
 导出任务主要包含如下内容：
 
@@ -128,16 +140,16 @@ class ParserGenerator(StructureGenerator):
 - 日志
 - 数据库
 
-### 逻辑流程  
+### 逻辑流程
 
 ```
 class ExtracterGenerator(StructureGenerator):
     def assign_tasks(self):
-        jobs = self.filter_parsed_jobs()
-        for job in jobs:
-            priority = self.get_priority(job)
-            db_conf = self.get_extracter_db_config(job)
-            mappings = self.get_extracter_mappings(job)
+        tasks = self.filter_parsed_tasks()
+        for task in tasks:
+            priority = self.get_priority(task)
+            db_conf = self.get_extracter_db_config(task)
+            mappings = self.get_extracter_mappings(task)
             extracter = self.get_extracter(db_conf, mappings)
             try:
                 self.assign_task(priority, extracter)
@@ -211,7 +223,7 @@ class Parser(Document):
 
 
 class StructureConfig(Document):
-    job = ReferenceField(Job)
+    task = ReferenceField(Job)
     parser = ReferenceField(Parser)
     db_xml = TextField()
     mappings = TextField()
@@ -261,16 +273,16 @@ structure
 
 ```
 class TestStructureGenerator(TestCase):
-    def test_filter_downloaded_jobs(self):
+    def test_filter_downloaded_tasks(self):
         pass
 
-    def test_filter_parsed_jobs(self):
+    def test_filter_parsed_tasks(self):
         pass
 
-    def test_get_job_priority(self, job):
+    def test_get_task_priority(self, task):
         pass
 
-    def test_get_job_source_data(self, job):
+    def test_get_task_source_data(self, task):
         pass
 
 
