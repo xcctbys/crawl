@@ -237,32 +237,79 @@ class StructureConfig(Document):
 
 ## Directory 代码目录结构
 
-    λ ~/Projects/cr-clawer/clawer/structure/ dev* tree
-    .
-    ├── __init__.py
-    ├── admin.py
-    ├── migrations
-    │   └── __init__.py
-    ├── models.py
-    ├── tests
-    │   └── __init__.py
-    └── views.py
-
-    2 directories, 6 files
+```
+structure
+├── __init__.py
+├── admin.py
+├── migrations
+│   └── __init__.py
+├── models.py
+├── parsers
+├── structure.py
+├── tests
+│   ├── __init__.py
+│   └── test_structure.py
+└── views.py
+```
 
 ## Database 数据库
 
 
 # Test 测试
 
-## Testcase 1
+## 单元测试
 
-- 依赖
-- 输入
-- 期望输出
+```
+class TestStructureGenerator(TestCase):
+    def test_filter_downloaded_jobs(self):
+        pass
+
+    def test_filter_parsed_jobs(self):
+        pass
+
+    def test_get_job_priority(self, job):
+        pass
+
+    def test_get_job_source_data(self, job):
+        pass
 
 
-# Other
+class TestParserGenerator(TestCase):
+    def test_assign_tasks(self):
+        pass
 
-- 参考文档: <https://www.toptal.com/freelance/why-design-documents-matter>
+    def test_assign_task(self):
+        pass
+
+    def test_get_parser(self):
+        pass
+
+    def test_is_duplicates(self):
+        pass
+
+
+class TestExtracterGenerator(TestCase):
+    def test_assign_tasks(self):
+        pass
+
+    def test_assign_task(self):
+        pass
+
+    def test_get_extracter(self):
+        pass
+
+    def test_if_not_exist_create_db_schema(self):
+        pass
+
+    def test_extract_fields(self):
+        pass
+
+    def test_get_extracter_db_config(self):
+        pass
+
+
+class TestExecutionTasks(TestCase):
+    def test_exec_task(self):
+        pass
+```
 
