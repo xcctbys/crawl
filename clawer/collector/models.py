@@ -142,14 +142,16 @@ class CrawlerGeneratorAlertLog(Document):
 
     meta = {"db_alias": "source"}
 
+####### 以下模板为 下载器拥有
+
 # 生产者：用户新增一个job时，设置 下载器配置 时产生。
 # 消费者：下载程序
 class CrawlerDownloadSetting(Document):
     job = ReferenceField(Job)
     dispatch_num = IntField(u"每次分发下载任务数", default=100)
     max_retry_times = IntField(default=0)
-    proxy = StringField(blank=True, null=True)
-    cookie = StringField(blank=True, null=True)
+    proxy = StringField()
+    cookie = StringField()
     last_update_datetime = DateTimeField(default=datetime.datetime.now())
     add_datetime = DateTimeField(default=datetime.datetime.now())
 # class CrawlerDownloadSetting(BaseModel):
@@ -177,7 +179,8 @@ class CrawlerDownload(Document):
         (STATUS_ON, u"启用"),
         (STATUS_OFF, u"下线")
     )
-    job = StringField()
+    job = ReferenceField(Job)
+    # job = StringField()
     code = StringField()  # code
     types = ReferenceField(CrawlerDownloadType)
     status = IntField(default=0, choices=STATUS_CHOICES)
@@ -187,8 +190,8 @@ class CrawlerDownload(Document):
 # 生产者：下载程序
 # 消费者：分析器
 class CrawlerDownloadData(Document):
-    # job = ReferenceField(Job)
-    job = StringField(max_length=10240, required=True)
+    job = ReferenceField(Job)
+    # job = StringField(max_length=10240, required=True)
     downloader = ReferenceField(CrawlerDownload)
     crawlertask = ReferenceField(CrawlerTask)
     requests_headers = StringField()
@@ -203,8 +206,8 @@ class CrawlerDownloadData(Document):
 # 生产者：该日志由下载器在分发工作时队列满等警告产生
 # 消费者：用户及管理员查看
 class CrawlerDownloadAlertLog(Document):
-    # job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    job = StringField(max_length=10240, required=True)
+    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
+    # job = StringField(max_length=10240, required=True)
     type = StringField(max_length=128)
     reason = StringField(max_length=10240, required=True)
     content_bytes = IntField(default=0)
@@ -220,8 +223,8 @@ class CrawlerDownloadLog(Document):
         (STATUS_FAIL, u"失败"),
         (STATUS_SUCCESS, u"成功"),
     )
-    # job = ReferenceField(Job)
-    job = StringField(max_length=10240, required=True)
+    job = ReferenceField(Job)
+    # job = StringField(max_length=10240, required=True)
     task = ReferenceField(CrawlerTask)
     status = IntField(default=0, choices=STATUS_CHOICES)
     requests_size = IntField()
