@@ -142,3 +142,93 @@ class CrawlerGeneratorAlertLog(Document):
 
     meta = {"db_alias": "source"}
 
+# 生产者：用户新增一个job时，设置 下载器配置 时产生。
+# 消费者：下载程序
+class CrawlerDownloadSetting(Document):
+    job = ReferenceField(Job)
+    dispatch_num = IntField(u"每次分发下载任务数", default=100)
+    max_retry_times = IntField(default=0)
+    proxy = StringField(blank=True, null=True)
+    cookie = StringField(blank=True, null=True)
+    last_update_datetime = DateTimeField(default=datetime.datetime.now())
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+# class CrawlerDownloadSetting(BaseModel):
+#     job = models.ForeignKey(Job)
+#     dispatch_num = models.IntegerField(u"每次分发下载任务数", default=100)
+#     max_retry_times = models.IntegerField(default=0)
+#     proxy = models.TextField(blank=True, null=True)
+#     cookie = models.TextField(blank=True, null=True)
+#     last_update_datetime = models.DateTimeField(auto_now=True)
+#     add_datetime = models.DateTimeField(auto_now_add=True)
+
+# 生产者：由管理员产生，配置布暑该平台支持的下载器语言
+# 消费者：用户设置下载器时，types字段引用，
+class CrawlerDownloadType(Document):
+    language = StringField()
+    is_support = BooleanField(default=False)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库
+
+# 生产者：由用户新增一个job时，设置下载器产生。
+# 消费者：下载程序
+class CrawlerDownload(Document):
+    (STATUS_ON, STATUS_OFF) = range(0, 2)
+    STATUS_CHOICES = (
+        (STATUS_ON, u"启用"),
+        (STATUS_OFF, u"下线")
+    )
+    job = StringField()
+    code = StringField()  # code
+    types = ReferenceField(CrawlerDownloadType)
+    status = IntField(default=0, choices=STATUS_CHOICES)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库
+
+# 生产者：下载程序
+# 消费者：分析器
+class CrawlerDownloadData(Document):
+    # job = ReferenceField(Job)
+    job = StringField(max_length=10240, required=True)
+    downloader = ReferenceField(CrawlerDownload)
+    crawlertask = ReferenceField(CrawlerTask)
+    requests_headers = StringField()
+    response_headers = StringField()
+    requests_body = StringField()
+    response_body = StringField()
+    hostname = StringField()
+    remote_ip = StringField()
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库
+
+# 生产者：该日志由下载器在分发工作时队列满等警告产生
+# 消费者：用户及管理员查看
+class CrawlerDownloadAlertLog(Document):
+    # job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
+    job = StringField(max_length=10240, required=True)
+    type = StringField(max_length=128)
+    reason = StringField(max_length=10240, required=True)
+    content_bytes = IntField(default=0)
+    hostname = StringField(required=True, max_length=16)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
+
+# 生产者： 下载程序
+# 消费者： 用户及管理员查看
+class CrawlerDownloadLog(Document):
+    (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
+    STATUS_CHOICES = (
+        (STATUS_FAIL, u"失败"),
+        (STATUS_SUCCESS, u"成功"),
+    )
+    # job = ReferenceField(Job)
+    job = StringField(max_length=10240, required=True)
+    task = ReferenceField(CrawlerTask)
+    status = IntField(default=0, choices=STATUS_CHOICES)
+    requests_size = IntField()
+    response_size = IntField()
+    failed_reason = StringField(max_length=10240, required=False)
+    downloads_hostname = StringField(required=True, max_length=16)
+    spend_time = IntField(default=0) #unit is microsecond
+    add_datetime = DateTimeField(auto_now=True)
+    meta = {"db_alias": "log"} # 默认连接的数据库
+
