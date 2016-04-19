@@ -112,7 +112,7 @@ def task_generator_run():
 读入tabfile文件
 
 ```
-# 文件内容的格式：    * * * * * cmd #comment #last_time
+# 文件内容的格式：    * * * * * cmd @last_time #comment 
 def read_from_file(self, filename= None)
 	with codecs.open(filename, 'r', encoding='utf-8') as fhl:
 		lines = fhl.readlines()

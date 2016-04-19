@@ -3,19 +3,26 @@
 import logging
 import os
 import time
-import datetime
 import subprocess
 import socket
 import traceback
 import threading
+import json
+import redis
+import rq
+import codecs
+from datetime import datetime
+from croniter import croniter
+import multiprocessing
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorLog
-import redis
-import rq
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorLog, CrawlerGeneratorAlertLog
+from collector.utils_cron import CronTab
 from django.conf import settings
+
+pool = None
 
 class DataPreprocess(object):
 
@@ -224,27 +231,33 @@ class GenerateCrawlerTask(object):
         self.end_time = None
         self.content_bytes = 0
 
+    def run(self):
+        if not self.generate_task():
+            return
+        self.save_task()
+
 
     def generate_task(self):
         """ 执行脚本，生成uri """
-        from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog
+        # from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog
         logging.info("run task generator %s" % str(self.task_generator.id))
         if not (self.task_generator.status==CrawlerTaskGenerator.STATUS_ON and self.job.status==Job.STATUS_ON):
             return False
 
-        path = self.task_generator.product_path()
-        self.task_generator.write_code(path)
+        # path = self.task_generator.product_path()
+        # self.task_generator.write_code(path)
+        path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
         out_f = open(self.out_path, "w")
-        # [settings.Python, path]
-        safe_process = SafeProcess(['~/Documents/virtualenv/bin/python', path], stdout=out_f, stderr=subprocess.PIPE)
+        settings.Python = "/Users/princetechs5/Documents/virtualenv/bin/python"
+        safe_process = SafeProcess([ settings.Python, path], stdout=out_f, stderr=subprocess.PIPE)
         try:
             p = safe_process.run(1800)
         except OSError , e:
             print type(e)
-            self.failed(e.child_traceback)
+            self.save_generate_log(CrawlerGeneratorLog.STATUS_FAIL, e.child_traceback)
             return False
         except Exception, e:
-            self.failed(e)
+            self.save_generate_log(CrawlerGeneratorLog.STATUS_FAIL, e)
             return False
 
         err = p.stderr.read()
@@ -252,72 +265,62 @@ class GenerateCrawlerTask(object):
         if status != 0:
             logging.error("run task generator %s failed: %s" % (str(self.task_generator.id), err))
             out_f.close()
-            self.failed(err)
+            self.save_generate_log(CrawlerGeneratorLog.STATUS_FAIL, err)
             return False
+        self.save_generate_log(CrawlerGeneratorLog.STATUS_SUCCESS, "generate task succeed!")
         out_f.close()
-
-
         return True
 
-    def failed(self, reason):
-        from collector.models import CrawlerGeneratorLog
+    def __dereplicate_uris(self, uris):
+        """ dereplicate uri using APIs from other modules
+            return  true if uri is not dereplicated or false
+        """
+        return uris
 
-        if self.end_time is None:
-            self.end_time = time.time()
-
-        self.generate_log.status = CrawlerTaskGenerator.STATUS_FAIL
-        self.generate_log.failed_reason = reason #[:1024]
-        self.generate_log.content_bytes = self.content_bytes
-        self.generate_log.spend_msecs = int(1000*(self.end_time - self.start_time))
-        self.generate_log.save()
-
-    def generate_task_failed(self):
-        return False
-
-
-    def run(self):
-        from clawer.models import ClawerTaskGenerator, Clawer, ClawerTask, ClawerGenerateLog
-
-
-
+    def save_task(self):
         out_f = open(self.out_path, "r")
+        uris = []
+        val = URLValidator()
         for line in out_f:
             try:
                 self.content_bytes += len(line)
                 js = json.loads(line)
-                if self.url_cache.check_url(js["uri"]):
-                    continue
-
-                clawer_task = ClawerTask.objects.create(clawer=self.clawer,
-                                                        task_generator=self.task_generator,
-                                                        uri=js["uri"],
-                                                        cookie=js.get("cookie"),
-                                                        args=js.get("args"))
-                #trace it
-                self.monitor.trace_task_status(clawer_task)
-            except:
-                logging.error("add %s failed: %s", line, traceback.format_exc(10))
-                self.failed(traceback.format_exc(10))
-
+                # validate uri
+                val(js['uri'])
+                uris.append(js['uri'])
+            except ValidationError, e:
+                logging.error("URI ValidationError: %s" %(uri))
         out_f.close()
         os.remove(self.out_path)
+        dereplicated_uris = self.__dereplicate_uris(uris)
 
-        #success
+        for uri in dereplicated_uris:
+            try:
+                crawler_task = CrawlerTask( job=self.job,
+                                            task_generator=self.task_generator,
+                                            uri=uri)
+                # crawler_task.args = ""
+                crawler_task.save()
+            except:
+                logging.error("add %s failed: %s", line, traceback.format_exc(10))
+                self.save_generate_log( CrawlerGeneratorLog.STATUS_FAIL ,traceback.format_exc(10))
+        self.save_generate_log(CrawlerGeneratorLog.STATUS_SUCCESS, "After generating, save task succeed!")
+        return True
+
+    def save_generate_log(self, status, reason):
+        # from collector.models import CrawlerGeneratorLog
+
         if self.end_time is None:
             self.end_time = time.time()
-        self.generate_log.status = ClawerGenerateLog.STATUS_SUCCESS
+        if status == CrawlerGeneratorLog.STATUS_FAIL:
+            self.generate_log.status = CrawlerGeneratorLog.STATUS_FAIL
+        elif status == CrawlerGeneratorLog.STATUS_SUCCESS:
+            self.generate_log.status = CrawlerGeneratorLog.STATUS_SUCCESS
+
+        self.generate_log.failed_reason = reason #[:1024]
         self.generate_log.content_bytes = self.content_bytes
         self.generate_log.spend_msecs = int(1000*(self.end_time - self.start_time))
         self.generate_log.save()
-
-        return True
-
-
-
-
-
-
-
 
 
 
@@ -326,7 +329,8 @@ def generate_uri_task( crawler_generator):
     generate uri with script and settings in slave
     this function needs to be pushed into queue
     """
-
+    generator =  GenerateCrawlerTask(crawler_generator)
+    generator.run()
     return True
 
 class GeneratorDispatch(object):
@@ -343,13 +347,13 @@ class GeneratorDispatch(object):
 
     def get_generator_object(self):
         try:
-            generator_object =  CrawlerTaskGenerator.objects(job = self.job_id, status = 4).first()
+            generator_object =  CrawlerTaskGenerator.objects(job = self.job_id, status = CrawlerTaskGenerator.STATUS_ON).first()
         except Exception as e:
             logging.error("Something wrong when getting generating objects")
         return generator_object
 
 
-    def dispatch_uri(self):
+    def run(self):
         """
             Dispatch generator task function according to job priority
         """
@@ -371,4 +375,140 @@ class GeneratorDispatch(object):
         return queue
 
 
+class CrawlerCronTab(object):
+    """Overwrite python-crontab for myself"""
+    # filename = settings.CRON_FILE
+    def __init__(self, filename=None):
+        super(CrawlerCronTab, self).__init__()
+        self.filename = filename
+        if not os.path.exists(self.filename):
+            logging.error("The cron file %s is not exist!"%(filename))
+            raise IOError("Crontab filename doesn't exist!")
+        self.crontab = CronTab(tabfile = filename)
+        self.cron_timeout = 60
+
+    def remove_offline_jobs_from_crontab(self):
+        jobs = Job.objects(status = Job.STATUS_OFF)
+        for job in jobs:
+            generator = CrawlerTaskGenerator.objects(job = job, status= CrawlerTaskGenerator.STATUS_ON).first()
+            if not generator:
+                continue
+            comment = self._task_generator_cron_comment(job)
+            count = self.crontab.remove_all(comment= comment)
+
+    def update_online_jobs(self):
+        jobs= Job.objects(status = Job.STATUS_ON)
+        print len(jobs)
+        for job in jobs:
+            generator = CrawlerTaskGenerator.objects(job = job).order_by('-add_datetime').first()
+            if not generator:
+                continue
+            if not self._test_save_code(generator):
+                continue
+            if not self._test_crontab(generator):
+                continue
+            if not self._test_install_crontab(generator):
+                continue
+
+            generator.status = CrawlerTaskGenerator.STATUS_ON
+            generator.save()
+            CrawlerTaskGenerator.objects(job = job, status = CrawlerTaskGenerator.STATUS_ON, id__ne= generator.id).update(status = CrawlerTaskGenerator.STATUS_OFF)
+
+    def save_cron_to_file(self, filename= None):
+        self.crontab.write(self.filename if not filename else filename)
+
+    def _task_generator_cron_comment(self, job):
+        return "job name:%s with id:%s"%(job.name, job.id)
+
+    def _test_install_crontab(self, generator):
+        comment = self._task_generator_cron_comment(generator.job)
+        self.crontab.remove_all(comment = comment)
+        if generator.status == CrawlerTaskGenerator.STATUS_OFF:
+            return False
+        command = "GeneratorDispatch('%s').run()"%(str(generator.job.id))
+        cron = self.crontab.new(command= command, comment = comment)
+        cron.setall(generator.cron.strip())
+        return cron.render()
+
+    def _test_crontab(self, generator):
+        user_cron = CronTab()
+        job = user_cron.new(command="/usr/bin/echo")
+        job.setall(generator.cron.strip())
+        if job.is_valid() == False:
+            generator.cron = "%d * * * *" % random.randint(1, 59)
+        return job.render()
+
+    def _test_save_code(self, generator):
+        path = generator.product_path()
+        generator.write_code(path)
+        return True
+
+    def task_generator_install(self):
+        """
+            定期更新所有job的生成器crontab的本地文件信息
+        """
+        self.remove_offline_jobs_from_crontab()
+        self.update_online_jobs()
+        self.save_cron_to_file()
+        return True
+
+    def save_crons(self):
+        base =  datetime(2010, 1, 25, 4, 46)
+        # base = datetime.datetime.now()
+        iters = croniter('*/5 * * * *', base)  # every 1 minites
+        next = iters.get_next(datetime)
+        return next
+
+    def save_next_crons(self):
+        from dateutil.parser import parse
+        # timeout = settings.GENERATE_TIMEOUT
+
+        # 获取出当前分钟 需要执行的任务列表
+        last_time = datetime.now()
+        # 定时任务，到时间强制退出。
+        timer = threading.Timer(self.cron_timeout, force_exit)
+        timer.start()
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        for job in self.crontab.crons:
+            # 获得当前需要运行的cron任务
+            now = datetime.now()
+            base = parse(job.get_last_run())
+            slices= job.slices.clean_render()
+            iters = croniter(slices , base)
+            next_time = iters.get_next(datetime)
+            if next_time < now:
+                try:
+                    command = job.command
+                    pool.apply_async(exec_command, (command,))
+                except:
+                    raise
+                job.set_last_run(now)
+        # 将本次运行的cron任务的上次运行时间写回到tabfile文件中
+        self.save_cron_to_file()
+         # 预警机制
+        end_time = datetime.now()
+        # import datetime
+        # if end_time - last_time > datetime.timedelta(seconds=60):
+        #     logging.error("Cron runtime exceeds 60s. Exit!")
+
+    def task_generator_run(self):
+        """
+            每分钟运行例程
+        """
+
+        return True
+
+def exec_command(command):
+    c = compile(command, "", 'exec')
+    exec c
+
+def force_exit():
+    pgid = os.getpgid(0)
+    if pool is not None:
+        pool.terminate()
+        raise UnboundLocalError("Pool is not None!")
+    os.killpg(pgid, 9)
+    logging.error("Cron runtime exceeds 60s. Exit!")
+    CrawlerGeneratorAlertLog(type = "TIMEOUT", reason="Cron runtime exceeds 60s. Exit!", hostname= socket.gethostname() )
+    os._exit(1)
 
