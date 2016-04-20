@@ -63,6 +63,7 @@ class CrawlerTaskGenerator(Document):
     job = ReferenceField(Job)
     code = StringField()  #python or shell code
     code_type = IntField(default = TYPE_PYTHON, choices = TYPE_CHOICES)
+
     cron = StringField(max_length=128)
     status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default=datetime.datetime.now())
@@ -176,12 +177,13 @@ class CrawlerGeneratorAlertLog(Document):
 # 消费者：下载程序
 class CrawlerDownloadSetting(Document):
     job = ReferenceField(Job)
-    dispatch_num = IntField(u"每次分发下载任务数", default=100)
+    dispatch_num = IntField(default=100)
     max_retry_times = IntField(default=0)
     proxy = StringField()
     cookie = StringField()
     last_update_datetime = DateTimeField(default=datetime.datetime.now())
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"}
 # class CrawlerDownloadSetting(BaseModel):
 #     job = models.ForeignKey(Job)
 #     dispatch_num = models.IntegerField(u"每次分发下载任务数", default=100)
