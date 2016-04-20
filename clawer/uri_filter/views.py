@@ -2,6 +2,7 @@
 #coding=utf8
 from django.shortcuts import render
 import httplib, urllib
+import request
 
 """
 import sys
@@ -26,8 +27,15 @@ class myHandler(BaseHTTPRequestHandler):
       environ={'REQUEST_METHOD':'POST',
           'CONTENT_TYPE':self.headers['Content-Type'],
           })
+'''
+    input =self.rfile.read()
+    datas =self.rfile.read(int(self.headers['content-length']))
 
-    file_name = self.get_data_string()
+    response = urllib2.urlopen(url).read()
+    response = json.loads(response)
+    test = response["test"]
+
+
     path_name = '%s/%s.log' % (RES_FILE_DIR,file_name)
     fwrite = open(path_name,'a')
 
@@ -38,14 +46,8 @@ class myHandler(BaseHTTPRequestHandler):
     self.send_response(200)
     self.end_headers()
     self.wfile.write("Thanks for you post")
+'''
 
-  def get_data_string(self):
-    now = time.time()
-    clock_now = time.localtime(now)
-    cur_time = list(clock_now)
-    date_string = "%d-%d-%d-%d-%d-%d" % (cur_time[0],
-        cur_time[1],cur_time[2],cur_time[3],cur_time[4],cur_time[5])
-    return date_string
 try:
   server = HTTPServer(('', PORT_NUMBER), myHandler)
   print 'Started httpserver on port ' , PORT_NUMBER
