@@ -9,9 +9,34 @@ from django.test import TestCase
 from django.conf import settings
 
 from mongoengine.context_managers import switch_db
-from collector.utils_cron import CronTab, CronItem
+from collector.utils_cron import CronTab, CronItem, CronSlice, CronSlices
 
 import subprocess
+
+class TestCronSlices(TestCase):
+    """docstring for TestCronSlice"""
+    def setUp(self):
+        TestCase.setUp(self)
+        # line = "* * * * * ls -al # ls"
+        # self.slices = CronSlice(line= line)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_is_valid(self):
+        cron = "*/2 * * * *"
+        flag = CronSlices.is_valid(cron)
+        self.assertTrue(flag)
+    def test_is_not_valid(self):
+        crons = (
+            "* *",
+            " * * * * * *",
+            "*/-1 * * * *",
+            "* */70 * * *",
+            )
+        for cron in crons:
+            self.assertFalse(CronSlices.is_valid(cron))
+
 
 class TestCronItem(TestCase):
     def setUp(self):
@@ -21,6 +46,8 @@ class TestCronItem(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+
+
 
     def test_construct(self):
         item = CronItem(line='noline')
@@ -45,6 +72,13 @@ class TestCrontab(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+
+    def test_clean_render(self):
+        my_cron  = CronTab()
+        job = my_cron.new(command='echo `date`', comment='echo')
+        job.minute.every(1)
+        result = job.slices.clean_render()
+        self.assertEqual(result, "* * * * *")
 
     def test_write_to_file(self):
         # line = "* * * * * echo `date` @2016-04-17 18:22:56.665851 # echo"

@@ -31,7 +31,11 @@ CACHES = {
     }
 }
 
-PYTHON = "/Users/pengxt/Documents/pyenv/dj14/bin/python"
+PYTHON = "/Users/princetechs5/Documents/virtualenv/bin/python"
+SHELL = os.environ.get('SHELL', '/bin/bash')
+CRON_FILE= "/tmp/cron.file"
+MAX_QUEUE_LENGTH = 1000
+
 CRONTAB_USER = "pengxt"
 CLAWER_SOURCE = "/Users/pengxt/Documents/clawer/source/"
 CLAWER_RESULT = "/Users/pengxt/Documents/clawer/result/"

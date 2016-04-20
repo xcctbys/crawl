@@ -20,6 +20,7 @@ from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGene
 # from mongoengine import *
 from mongoengine.context_managers import switch_db
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
+from collector.utils_generator import force_exit, exec_command
 from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
@@ -199,21 +200,35 @@ class TestDispatch(TestCase):
     """Test for GeneratorDispatch"""
     def setUp(self):
         TestCase.setUp(self)
-        # self.job = Job(name='job')
-        # self.job.save()
-        # gd = GeneratorDispatch(job_id = self.job.id)
-        self.gd = GeneratorDispatch(job_id = '570f73f6c3666e0af4a9efad')
 
     def tearDown(self):
         TestCase.tearDown(self)
         # self.job.delete()
+    def test_job_is_found(self):
+        gd = None
+        try:
+            gd = GeneratorDispatch(job_id = "570f73f6c3666e0af4a9efad")
+        except KeyError, e:
+            self.assertFalse(e)
+        self.assertTrue(gd)
+
+    def test_job_is_not_found(self):
+        gd = None
+        try:
+            gd = GeneratorDispatch(job_id = "Not Found")
+        except KeyError, e:
+            self.assertTrue(e)
+        self.assertFalse(gd)
+
 
     def test_get_generator_object(self):
+        self.gd = GeneratorDispatch(job_id = '570f73f6c3666e0af4a9efad')
         generator_object = self.gd.get_generator_object()
         print generator_object
         self.assertTrue(generator_object)
 
     def test_dispatch_uri(self):
+        self.gd = GeneratorDispatch(job_id = '570f73f6c3666e0af4a9efad')
         queue = self.gd.run()
         print queue
         self.assertTrue(queue)
@@ -223,35 +238,127 @@ class TestGenerateTask(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         # script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
-        generator = CrawlerTaskGenerator.objects.first()
-        self.gt = GenerateCrawlerTask(generator)
-        task_count = CrawlerTask.objects().delete()
-        print "task count = %d" %(task_count)
-        log_count = CrawlerGeneratorLog.objects().delete()
-        print "generator log count = %d"%(log_count)
+        # generator = CrawlerTaskGenerator.objects.first()
+        # self.gt = GenerateCrawlerTask(generator)
+        # task_count = CrawlerTask.objects().delete()
+        # print "task count = %d" %(task_count)
+        # log_count = CrawlerGeneratorLog.objects().delete()
+        # print "generator log count = %d"%(log_count)
 
     def tearDown(self):
         TestCase.tearDown(self)
 
+    def test_settings_shell(self):
+        SHELL = os.environ.get('SHELL', '/bin/bash')
+        print SHELL
+        tools = settings.__dict__.get('SHELL', settings.PYTHON)
+        self.assertEqual(tools, settings.SHELL)
 
-    def test_generate_task(self):
-        result = self.gt.generate_task()
+    def test_generate_task_shell(self):
+        job = Job( name = 'shell', status= 1, priority =1)
+        job.save()
+
+        script = """#!/bin/bash\necho "{'uri':'http://www.shell.com'}"\n """
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_SHELL, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+
+        gt = GenerateCrawlerTask(generator)
+        result = gt.generate_task()
+        generator.delete()
+        job.delete()
+
         self.assertTrue(result)
-        path = self.gt.out_path
+        path = gt.out_path
         fd = open(path, 'r')
         contents = fd.read().strip()
-        self.assertEqual(contents, json.dumps({'uri':"http://www.baidu.com"}))
+        self.assertEqual(contents, """{'uri':'http://www.shell.com'}""")
+
+
+
+    def test_generate_task_python(self):
+        job = Job( name = 'python_script', status= 1, priority =1)
+        job.save()
+
+        script = """import json\nprint json.dumps({"uri":"http://www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+
+        gt = GenerateCrawlerTask(generator)
+        result = gt.generate_task()
+        generator.delete()
+        job.delete()
+
+        self.assertTrue(result)
+        path = gt.out_path
+        fd = open(path, 'r')
+        contents = fd.read().strip()
+        # key 与value 之间有个空格
+        self.assertEqual(contents, """{"uri": "http://www.baidu.com"}""")
+
 
     def test_save_task(self):
         self.gt.save_task()
         count = CrawlerTask.objects(uri ='http://www.baidu.com').count()
         self.assertEqual(count, 1)
 
-    def test_run(self):
-        self.gt.run()
-        self.assertFalse(os.path.exists(self.gt.out_path))
-        count = CrawlerTask.objects(uri ='http://www.baidu.com').count()
+    def test_run_shell(self):
+        job = Job( name = 'shell', status= 1, priority =1)
+        job.save()
+
+        script = """#!/bin/bash\necho "{'uri':'http://www.shell.com'}"\n """
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_SHELL, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+
+        self.assertFalse(os.path.exists(gt.out_path))
+        count = CrawlerTask.objects(uri ='http://www.shell.com').count()
+        generator.delete()
+        job.delete()
         self.assertEqual(count, 1)
+
+    def test_run_python(self):
+        job = Job( name = 'python_script', status= 1, priority =1)
+        job.save()
+
+        script = """import json\nprint json.dumps({"uri":"http://www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+        count = CrawlerTask.objects(uri ='http://www.baidu.com').count()
+
+        generator.delete()
+        job.delete()
+        self.assertFalse(os.path.exists(gt.out_path))
+        self.assertEqual(count, 1)
+
 
 class TestSafeProcess(TestCase):
     """ Test for SafeProcess Class """
@@ -300,8 +407,8 @@ class TestCrawlerCron(TestCase):
     """ Test for Cron Class """
     def setUp(self):
         TestCase.setUp(self)
-        self.filename = '/tmp/output.tab'
-        self.cron = CrawlerCronTab(self.filename)
+        # self.filename = '/tmp/output.tab'
+        self.cron = CrawlerCronTab()
         """
         mongodb preparations:
             job:
@@ -323,10 +430,7 @@ class TestCrawlerCron(TestCase):
         job.save()
         count =Job.objects(status = Job.STATUS_OFF).count()
         self.assertEqual(count, 1)
-
-
-    def test_save_cron(self):
-        pass
+        job.delete()
 
     def test_file_not_exist(self):
         try:
@@ -426,20 +530,19 @@ class TestCrawlerCron(TestCase):
         c = compile(command, "", 'exec')
         exec c
 
-    def test_next_crons_from_file(self):
-        self.cron.save_next_crons()
-        cron = CronTab()
-        cron.read(self.filename)
-        comment = self.cron._task_generator_cron_comment(self.job)
-        crons = cron.find_comment(comment)
-        for cron in crons:
-            print cron.last_run
-            self.assertTrue(cron)
+    def test_exec_and_save_current_crons(self):
+        CrawlerGeneratorCronLog.objects().delete()
+        self.cron.exec_and_save_current_crons()
+        count = CrawlerGeneratorCronLog.objects.count()
+        self.assertGreater(count, 0)
 
-    def test_crons(self):
-        next = self.cron.save_crons()
-        target = '2010-01-25 04:50:00'
-        self.assertEqual(str(next), target)
+        # cron = CronTab()
+        # cron.read(self.filename)
+        # comment = self.cron._task_generator_cron_comment(self.job)
+        # crons = cron.find_comment(comment)
+        # for cron in crons:
+        #     print cron.last_run
+        #     self.assertTrue(cron)
 
     def test_croniter(self):
         base =  datetime(2010, 1, 25, 4, 46)
@@ -454,5 +557,16 @@ class TestCrawlerCron(TestCase):
         result = self.cron.task_generator_run()
         self.assertTrue(result)
 
+    def test_force_exit(self):
+        CrawlerGeneratorAlertLog.objects.delete()
+        print force_exit()
 
+    def test_exec_command(self):
+        cron = "*/6 * * * *"
+        command ="GeneratorDispatch('570ded84c3666e0541c9e8d8').run()"
+        comment = "job name:cloud with id:570ded84c3666e0541c9e8d8"
+        CrawlerGeneratorCronLog.objects().delete()
+        exec_command(command, comment, cron)
+        count = CrawlerGeneratorCronLog.objects.count()
+        self.assertGreater(count, 0)
 
