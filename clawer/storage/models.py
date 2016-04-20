@@ -74,6 +74,6 @@ class Job(BaseModel):
     info = models.CharField(max_length=1024)
     customer = models.CharField(max_length=128, blank=True, null=True)
     status = models.IntegerField(default=STATUS_ON, choices=STATUS_CHOICES)
-    prior = models.IntegerField(default=PRIOR_6, choices=PRIOR_CHOICES)
+    priority = models.IntegerField(default=PRIOR_6, choices=PRIOR_CHOICES)
     add_datetime = models.DateTimeField(auto_now_add=True)
 
