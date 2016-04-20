@@ -22,11 +22,27 @@ class Job(Document):
         (STATUS_ON, u"启用"),
         (STATUS_OFF, u"下线"),
     )
+    (PRIOR_0, PRIOR_1, PRIOR_2, PRIOR_3, PRIOR_4, PRIOR_5, PRIOR_6) = range(-1, 6)
+    PRIOR_CHOICES = (
+        (PRIOR_0, u"-1"),
+        (PRIOR_1, u"0"),
+        (PRIOR_2, u"1"),
+        (PRIOR_3, u"2"),
+        (PRIOR_4, u"3"),
+        (PRIOR_5, u"4"),
+        (PRIOR_6, u"5"),
+    )
+
+    creator = StringField(max_length= 128)
     name = StringField(max_length=128)
+    info = StringField(max_length=1024)
+    customer = StringField(max_length=128, null = True)
     status = IntField(default=STATUS_ON, choices=STATUS_CHOICES)
+    priority= IntField(default=PRIOR_6, choices= PRIOR_CHOICES)
     add_datetime = DateTimeField(default= datetime.datetime.now())
-    priority= IntField(default=5, choices= range(-1, 6))
     meta = {"db_alias": "source"}
+
+
 
 class CrawlerTaskGenerator(Document):
     """ collection of generator scripts """
@@ -39,8 +55,14 @@ class CrawlerTaskGenerator(Document):
         (STATUS_OFF, u"下线"),
         (STATUS_TEST_FAIL, u"测试失败"),
     )
+    (TYPE_PYTHON, TYPE_SHELL) = range(1, 3)
+    TYPE_CHOICES = (
+        (TYPE_PYTHON, u'Python'),
+        (TYPE_PYTHON, u'Shell'),
+    )
     job = ReferenceField(Job)
-    code = StringField()  #python code
+    code = StringField()  #python or shell code
+    code_type =
     cron = StringField(max_length=128)
     status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default=datetime.datetime.now())
