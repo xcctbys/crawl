@@ -3,39 +3,38 @@
 import logging
 
 from rq import Connection, Worker
-from multiprocess import Pool
 # from models import StructureConfig
 
 
 class Consts(object):
-    QUEUE_PRIORITY_TOO_HIGN = u"too hign"
-    QUEUE_PRIORITY_HIGN = u"high"
-    QUEUE_PRIORITY_NORMAL = u"normal"
-    QUEUE_PRIORITY_LOW = u"low"
+    QUEUE_PRIORITY_TOO_HIGN = u"structure:higher"
+    QUEUE_PRIORITY_HIGN = u"structure:high"
+    QUEUE_PRIORITY_NORMAL = u"structure:normal"
+    QUEUE_PRIORITY_LOW = u"structure:low"
 
 
 class StructureGenerator(object):
 
-    def filter_downloaded_jobs(self):
+    def filter_downloaded_tasks(self):
         pass
 
-    def filter_parsed_jobs(self):
+    def filter_parsed_tasks(self):
         pass
 
-    def get_job_priority(self, job):
+    def get_task_priority(self, task):
         pass
 
-    def get_job_source_data(self, job):
+    def get_task_source_data(self, task):
         pass
 
 
 class ParserGenerator(StructureGenerator):
     def assign_tasks(self):
-        jobs = self.filter_downloaded_jobs()
-        for job in jobs:
-            parser = self.get_parser(job)
-            priority = self.get_priority(job)
-            data = self.get_job_source_data(job)
+        tasks = self.filter_downloaded_tasks()
+        for task in tasks:
+            parser = self.get_parser(task)
+            priority = self.get_priority(task)
+            data = self.get_task_source_data(task)
             if not self.is_duplicates(data):
                 try:
                     self.assign_task(priority, parser, data)
@@ -51,7 +50,7 @@ class ParserGenerator(StructureGenerator):
                     data=""):
         pass
 
-    def get_parser(self, job):
+    def get_parser(self, task):
         pass
 
     def is_duplicates(self, data):
@@ -60,11 +59,11 @@ class ParserGenerator(StructureGenerator):
 
 class ExtracterGenerator(StructureGenerator):
     def assign_tasks(self):
-        jobs = self.filter_parsed_jobs()
-        for job in jobs:
-            priority = self.get_priority(job)
-            db_conf = self.get_extracter_db_config(job)
-            mappings = self.get_extracter_mappings(job)
+        tasks = self.filter_parsed_tasks()
+        for task in tasks:
+            priority = self.get_priority(task)
+            db_conf = self.get_extracter_db_config(task)
+            mappings = self.get_extracter_mappings(task)
             extracter = self.get_extracter(db_conf, mappings)
             try:
                 self.assign_task(priority, extracter)
