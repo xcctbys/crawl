@@ -153,6 +153,7 @@ INSTALLED_APPS = (
     "boss",
     "clawer",
     'smart_proxy',
+    "uri_filter",
 )
 
 
@@ -182,3 +183,8 @@ Q_DOWN_SUPER_LEN = 1000 #设置优先级队列的长度，防止队列无限增�
 Q_DOWN_HIGH_LEN = 1000
 Q_DOWN_MID_LEN = 1000
 Q_DOWN_LOW_LEN = 1000
+
+###去重器初始化用户自定义
+
+URI_NUM_SCALE = 1000000    #预计要去重的uri数量级和
+ACCEPT_ERROR_RATE = 0.0001  #能够接受的去重失误率

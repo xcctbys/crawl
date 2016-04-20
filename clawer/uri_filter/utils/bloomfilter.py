@@ -70,5 +70,5 @@ def uri_filter(uri_list):
 
 
 if __name__ == '__main__':
-    uri_list = [www.baidu.com,www.baidu.com]
+    uri_list = ['www.baidu.com','www.baidu.com']
     uri_filter(uri_list)
