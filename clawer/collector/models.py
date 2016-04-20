@@ -176,6 +176,7 @@ class CrawlerDownloadSetting(Document):
     cookie = StringField()
     last_update_datetime = DateTimeField(default=datetime.datetime.now())
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"}
 # class CrawlerDownloadSetting(BaseModel):
 #     job = models.ForeignKey(Job)
 #     dispatch_num = models.IntegerField(u"每次分发下载任务数", default=100)
