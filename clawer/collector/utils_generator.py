@@ -42,6 +42,10 @@ class DataPreprocess(object):
         self.job_id = job_id
         self.job = job_doc
 
+    def extend_schemes(self, schemes):
+        # you can add param by yourself, default: schemes=['http', 'https', 'ftp', 'ftps']
+        if schemes is not None and isinstance(schemes, list):
+            self.schemes.extend(schemes)
 
     def __validate_uris(self, uri_list, schemes=None):
         """ validate uri from uri list,
@@ -50,9 +54,7 @@ class DataPreprocess(object):
         uris=[]
         if not isinstance(uri_list, list):
             return uris
-        # you can add param by yourself, default: schemes=['http', 'https', 'ftp', 'ftps']
-        if schemes is not None and isinstance(schemes, list):
-            self.schemes.extend(schemes)
+        self.extend_schemes(schemes)
         val = URLValidator(self.schemes)
         for uri in uri_list:
             try:
@@ -91,7 +93,7 @@ class DataPreprocess(object):
                 logging.error("error occured when saving uri-- %s"%(type(e)))
         return True
 
-    def save_script(self, script, cron, code_type):
+    def save_script(self, script, cron, code_type, schemes):
         """ saving script with cron settings to mongodb
             if params are None or saving excepts return False
             else return True
@@ -105,8 +107,9 @@ class DataPreprocess(object):
         if not CronSlices.is_valid(cron):
             logging.error("CronSlices is not valid!")
             return False
+        self.extend_schemes(schemes)
         try:
-            CrawlerTaskGenerator(job = self.job, code = script, cron = cron, code_type = code_type).save()
+            CrawlerTaskGenerator(job = self.job, code = script, cron = cron, code_type = code_type, schemes= self.schemes).save()
         except Exception as e:
             logging.error("Error occured when saving script --%s"%(type(e)))
             return False
@@ -131,7 +134,8 @@ class DataPreprocess(object):
                 logging.error("code_type is not found in settings")
                 return
             try:
-                assert self.save_script(script, settings['cron'], settings['code_type'])
+                schemes = settings.pop('schemes', None)
+                assert self.save_script(script, settings['cron'], settings['code_type'], schemes)
             except AssertionError:
                 logging.error("Error occured when saving script")
         else:
@@ -233,6 +237,7 @@ class GenerateCrawlerTask(object):
         from collector.models import CrawlerGeneratorLog
         self.task_generator = task_generator
         self.job = task_generator.job
+        self.schemes = task_generator.schemes
         self.out_path = "/tmp/task_generator_%s" % str(self.task_generator.id)
         self.hostname = socket.gethostname()[:16]
         self.generate_log = CrawlerGeneratorLog(job=self.job, task_generator=self.task_generator, hostname=self.hostname)
@@ -293,7 +298,7 @@ class GenerateCrawlerTask(object):
     def save_task(self):
         out_f = open(self.out_path, "r")
         uris = []
-        val = URLValidator()
+        val = URLValidator(self.schemes)
         for line in out_f:
             self.content_bytes += len(line)
             try:
@@ -396,13 +401,15 @@ class GeneratorDispatch(object):
 
 class CrawlerCronTab(object):
     """Overwrite python-crontab for myself"""
-    # filename = settings.CRON_FILE
     def __init__(self, filename= settings.CRON_FILE):
         super(CrawlerCronTab, self).__init__()
         self.filename = filename
         if not os.path.exists(self.filename):
             logging.error("The cron file %s is not exist!"%(filename))
-            raise IOError("Crontab filename doesn't exist!")
+            # raise IOError("Crontab filename doesn't exist!")
+        elif not os.path.exists(os.path.dirname(filename)):
+            os.mkdir(os.path.dirname(filename))
+            os.mknod(filename)
         self.crontab = CronTab(tabfile = filename)
         self.cron_timeout = 60
 
@@ -508,6 +515,9 @@ class CrawlerCronTab(object):
         return True
 
 def exec_command(command, comment, cron):
+    """
+        通过exec执行command，解析comment出JOB的id从而获取此job的信息，并将结果保存至CrawlerGeneratorCronLog中。
+    """
     def get_name_id_with_comment(comment):
         p =re.compile("name:(\w+).*?id:(\w+)")
         r = p.search(comment)
@@ -537,6 +547,9 @@ def exec_command(command, comment, cron):
 
 
 def force_exit():
+    """
+        通过定时器触发此函数，强制退出运行父进程，并将子进程杀死。
+    """
     pgid = os.getpgid(0)
     if pool is not None:
         pool.terminate()

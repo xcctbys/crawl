@@ -16,6 +16,9 @@ from croniter import croniter
 
 from django.test import TestCase
 from django.conf import settings
+from django.core.management import call_command
+from django.utils.six import StringIO
+
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
 # from mongoengine import *
 from mongoengine.context_managers import switch_db
@@ -25,6 +28,19 @@ from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
 import subprocess
+
+class TestGeneratorInstall(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_command(self):
+        out = StringIO()
+        call_command('task_generator_install', stdout=out)
+        self.assertIn('Expected output', out.getvalue())
+
 
 class TestMongodb(TestCase):
     def setUp(self):
@@ -39,7 +55,7 @@ class TestMongodb(TestCase):
         job.save()
         count = Job.objects(name='job').count()
         self.assertGreater(count, 0)
-        # job.delete()
+        job.delete()
 
     def test_task_save(self):
         jobs = Job.objects(id='570ded84c3666e0541c9e8d9').first()
@@ -48,7 +64,7 @@ class TestMongodb(TestCase):
         task.save()
         result = CrawlerTask.objects.first()
         self.assertTrue(result)
-        jobs.delete()
+        task.delete()
 
     def test_get_generator_with_job_id(self):
         job_id = '570f73f6c3666e0af4a9efad'

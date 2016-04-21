@@ -12,7 +12,6 @@ from django.contrib.auth.models import User as DjangoUser
 from django.conf import settings
 from django.core.cache import cache
 
-from clawer.utils import Download, UrlCache, DownloadQueue
 from html5helper import redis_cluster
 
 
@@ -63,7 +62,7 @@ class CrawlerTaskGenerator(Document):
     job = ReferenceField(Job)
     code = StringField()  #python or shell code
     code_type = IntField(default = TYPE_PYTHON, choices = TYPE_CHOICES)
-
+    schemes=ListField(StringField(max_length=16))
     cron = StringField(max_length=128)
     status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default=datetime.datetime.now())
