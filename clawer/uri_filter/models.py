@@ -16,8 +16,8 @@ from clawer.utils import Download, UrlCache, DownloadQueue
 from html5helper import redis_cluster
 
 
-
 # Create your models here.
+
 
 
 '''
@@ -31,7 +31,6 @@ class FilterBitMap(Document):
     bitmap_type= StringField(max_length=128)
     creat_datetime = DateTimeField(default= datetime.datetime.now())
     meta = {"db_alias": "source"}
-
 
 
 

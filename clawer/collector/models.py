@@ -12,7 +12,6 @@ from django.contrib.auth.models import User as DjangoUser
 from django.conf import settings
 from django.core.cache import cache
 
-from clawer.utils import Download, UrlCache, DownloadQueue
 from html5helper import redis_cluster
 
 
@@ -63,7 +62,7 @@ class CrawlerTaskGenerator(Document):
     job = ReferenceField(Job)
     code = StringField()  #python or shell code
     code_type = IntField(default = TYPE_PYTHON, choices = TYPE_CHOICES)
-
+    schemes=ListField(StringField(max_length=16))
     cron = StringField(max_length=128)
     status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default=datetime.datetime.now())
@@ -126,7 +125,7 @@ class CrawlerGeneratorLog(Document):
         (STATUS_SUCCESS, u"成功"),
     )
     job = ReferenceField(Job, reverse_delete_rule=CASCADE)
-    task_generator = ReferenceField(CrawlerTaskGenerator)
+    task_generator = ReferenceField(CrawlerTaskGenerator, reverse_delete_rule=CASCADE)
     status = IntField(default=0, choices=STATUS_CHOICES)
     failed_reason = StringField(max_length=10240, null=True, blank=True)
     content_bytes = IntField(default=0)
@@ -152,20 +151,26 @@ class CrawlerGeneratorCronLog(Document):
 
     meta = {"db_alias": "log"}
 
-class CrawlerGeneratorErrorLog(Document):
+class CrawlerGeneratorDispatchLog(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    failed_reason = StringField(max_length=10240, null=True)
-    content_bytes = IntField(default=0)
+    task_generator = ReferenceField(CrawlerTaskGenerator, reverse_delete_rule=CASCADE)
+    content = StringField(max_length=1024, null=True)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+
+    meta = {"db_alias": "log"}
+
+
+class CrawlerGeneratorErrorLog(Document):
+    name = StringField(max_length=128)
+    content = StringField(max_length=10240, null=True)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
     meta = {"db_alias": "log"}
 
 class CrawlerGeneratorAlertLog(Document):
-    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    type = StringField(max_length=128)
-    reason = StringField(max_length=10240, null=True)
-    content_bytes = IntField(default=0)
+    name = StringField(max_length=128)
+    content = StringField(max_length=10240, null=True)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 

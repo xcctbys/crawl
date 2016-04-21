@@ -85,7 +85,9 @@ Start RQ worker for generator
       ## master
 
       ### for root
-      */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_generator_install
+      */5    *    *    *    * cd /Users/princetechs5/crawler/cr-clawer/confs/cr;./bg_cmd.sh generator_install  # for generator
+      *      *    *    *    * cd /Users/princetechs5/crawler/cr-clawer/confs/cr;./bg_cmd.sh generator_dispatch  # for generator
+
       20     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh clawer_monitor_hour
       40     3    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh clawer_monitor_day
       */50   *    *    *    * cd /home/webapps/cr-clawer/sources/qyxy/structured/scripts/cr/; sh run.sh structured

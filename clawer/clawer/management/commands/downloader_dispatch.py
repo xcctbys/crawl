@@ -24,56 +24,96 @@ q_down_low = rq.Queue('down_low', connection=redis_conn)
 q_down_mid = rq.Queue('down_mid', connection=redis_conn)
 q_down_high = rq.Queue('down_high', connection=redis_conn)
 
-def write_dispatch_log(ret):
+class SentryClient(object):
+    def __init__(self):
+        self.client = None
+        if hasattr(settings, 'RAVEN_CONFIG'):
+            self.client = raven.Client(dsn=settings.RAVEN_CONFIG["dsn"])
+        
+    def capture(self):
+        if not self.client:
+            return
+        self.client.captureException()
+
+def write_dispatch_success_log(ret):
+    print ret
+    pass
+def write_dispatch_failed_log(ret):
+    print ret
+    pass
+def write_dispatch_error_log(error):
+    print error
+    pass
+def write_dispatch_alter_log(ret):
     print ret
     pass
 
 
 def dispatch_use_pool(task):
-    # print 'type(priority):', type(priority)
-    # print 'priority:', priority
-    # try:
-    dispatch_num = CrawlerDownloadSetting.objects(job=task.job)[0].dispatch_num
-    # print type(dispatch_num), dispatch_num
-    max_retry_times = CrawlerDownloadSetting.objects(job=task.job)[0].max_retry_times
-    # print dispatch_num,max_retry_times
-    # except:
-    # dispatch_num = 0
-    # max_retry_times = 0
+    try:
+        dispatch_num = CrawlerDownloadSetting.objects(job=task.job)[0].dispatch_num
+        # print type(dispatch_num), dispatch_num
+        max_retry_times = CrawlerDownloadSetting.objects(job=task.job)[0].max_retry_times
+    except Exception as e:
+        write_dispatch_error_log(e)
+        # sentry = SentryClient()
+        # sentry.capture()
+        return
  
-    if datetime.datetime.now().minute >= 51:
-        #max_retry_times <= max_retry_times
+    if settings.OPEN_CRAWLER_FAILED_ONLY:
         down_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_FAIL)[:dispatch_num]
     else:
-        down_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_LIVE)[:dispatch_num]
+        if datetime.datetime.now().minute >= 51:
+            #max_retry_times <= max_retry_times
+            down_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_FAIL, retry_times__lte=max_retry_times)[:dispatch_num]
+        else:
+            down_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_LIVE)[:dispatch_num]
+
     for task in down_tasks:
         priority = task.job.priority
         try:
             if priority == -1:
+                if len(q_down_super) >= settings.Q_DOWN_SUPER_LEN:
+                    write_dispatch_alter_log('q_down_super lens get maxlen')
+                    continue
                 q_down_super.enqueue(download_clawer_task, args=[task] )
             elif priority == 0:
+                if len(q_down_high) >= settings.Q_DOWN_HIGH_LEN:
+                    write_dispatch_alter_log('q_down_high lens get maxlen')
+                    continue
                 q_down_high.enqueue(download_clawer_task, args=[task], at_front=True)
             elif priority == 1:
+                if len(q_down_high) >= settings.Q_DOWN_HIGH_LEN:
+                    write_dispatch_alter_log('q_down_high lens get maxlen')
+                    continue
                 q_down_high.enqueue(download_clawer_task, args=[task], at_front=False)
             elif priority == 2:
+                if len(q_down_mid) >= settings.Q_DOWN_MID_LEN:
+                    write_dispatch_alter_log('q_down_mid lens get maxlen')
+                    continue
                 q_down_mid.enqueue(download_clawer_task, args=[task], at_front=True)
             elif priority == 3:
+                if len(q_down_mid) >= settings.Q_DOWN_MID_LEN:
+                    write_dispatch_alter_log('q_down_mid lens get maxlen')
+                    continue
                 q_down_mid.enqueue(download_clawer_task, args=[task], at_front=False)
             elif priority == 4:
+                if len(q_down_low) >= settings.Q_DOWN_LOW_LEN:
+                    write_dispatch_alter_log('q_down_low lens get maxlen')
+                    continue
                 q_down_low.enqueue(download_clawer_task, args=[task], at_front=True)
             elif priority == 5:
+                if len(q_down_low) >= settings.Q_DOWN_LOW_LEN:
+                    write_dispatch_alter_log('q_down_low lens get maxlen')
+                    continue
                 q_down_low.enqueue(download_clawer_task, args=[task], at_front=False)
             task.status = CrawlerTask.STATUS_DISPATCH
             task.save()
             # write_success_dispatch_log()
-            write_dispatch_log('success')
+            write_dispatch_success_log('success')
         except:
             # write_fail_dispatch_log()
-            write_dispatch_log('failed')
-    #update item.status == STATUS_START
-    task.status == CrawlerTask.STATUS_PROCESS
-    task.retry_times += 1
-    task.save()
+            write_dispatch_failed_log('failed')
 
 
 def force_exit():
@@ -93,8 +133,9 @@ def run():
         pool = Pool()
         jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
         for job in jobs:
-            print job.priority
+            print 'priority:',job.priority
             total += CrawlerTask.objects(job=job).count()
+            print 'total:', total
             if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
                 break
             tasks = CrawlerTask.objects(job=job)

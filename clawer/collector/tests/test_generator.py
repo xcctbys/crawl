@@ -16,6 +16,9 @@ from croniter import croniter
 
 from django.test import TestCase
 from django.conf import settings
+from django.core.management import call_command
+from django.utils.six import StringIO
+
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
 # from mongoengine import *
 from mongoengine.context_managers import switch_db
@@ -25,6 +28,44 @@ from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
 import subprocess
+import time
+
+class TestGeneratorInstall(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_task_count(self):
+        count = CrawlerTask.objects.count()
+        self.assertGreater(count, 0)
+
+    def test_command_generator_dispatch(self):
+        CrawlerTask.objects.delete()
+        out = StringIO()
+        call_command('generator_dispatch', stdout=out)
+        print out.getvalue()
+        # with open('/path/to/command_output') as f:
+            # management.call_command('dumpdata', stdout=f)
+        # self.assertIn('Expected output', out.getvalue())
+        time.sleep(1)
+        count = CrawlerTask.objects.count()
+        self.assertGreater(count, 0)
+
+    def test_command_generator_install(self):
+        out = StringIO()
+        if os.path.exists(settings.CRON_FILE):
+            os.remove(settings.CRON_FILE)
+        call_command('generator_install', stdout=out)
+        # with open('/path/to/command_output') as f:
+            # management.call_command('dumpdata', stdout=f)
+        # self.assertIn('Expected output', out.getvalue())
+        crons= CronTab()
+        crons.read(settings.CRON_FILE)
+        for cron in crons:
+            self.assertTrue(cron)
+            print cron.render()
 
 class TestMongodb(TestCase):
     def setUp(self):
@@ -39,7 +80,7 @@ class TestMongodb(TestCase):
         job.save()
         count = Job.objects(name='job').count()
         self.assertGreater(count, 0)
-        # job.delete()
+        job.delete()
 
     def test_task_save(self):
         jobs = Job.objects(id='570ded84c3666e0541c9e8d9').first()
@@ -48,7 +89,7 @@ class TestMongodb(TestCase):
         task.save()
         result = CrawlerTask.objects.first()
         self.assertTrue(result)
-        jobs.delete()
+        task.delete()
 
     def test_get_generator_with_job_id(self):
         job_id = '570f73f6c3666e0af4a9efad'

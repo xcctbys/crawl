@@ -33,7 +33,7 @@ CACHES = {
 
 PYTHON = "/Users/princetechs5/Documents/virtualenv/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
-CRON_FILE= "/tmp/cron.file"
+CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
 MAX_QUEUE_LENGTH = 1000
 
 CRONTAB_USER = "pengxt"
