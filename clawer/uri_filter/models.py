@@ -20,14 +20,14 @@ from html5helper import redis_cluster
 # Create your models here.
 
 
-
+'''
 class FilterBitMap(Document):
     (STATUS_ON, STATUS_OFF) = range(1, 3)
     STATUS_CHOICES = (
         (STATUS_ON, u"启用"),
         (STATUS_OFF, u"弃用"),
      )
-    bitmap_array = IntArray(bits_size)
+    bitmap_array = IntArray(bits_size)  # IntArray  需要实现
     bitmap_type= StringField(max_length=128)
     creat_datetime = DateTimeField(default= datetime.datetime.now())
     meta = {"db_alias": "source"}
@@ -40,3 +40,5 @@ class URIFilterErrorLog(Document):
         filtertype_id = IntField(default=0)
         err_datetime = DateTimeField(default=datetime.datetime.now())
         meta = {"db_alias": "log"}
+
+'''
