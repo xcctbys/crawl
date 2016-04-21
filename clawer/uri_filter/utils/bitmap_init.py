@@ -6,10 +6,10 @@ from pybloomfilter import BloomFilter
 
 
 class  CreatBitmap():
-    def __init__(self,'uri',URI_NUM_SCALE, ACCEPT_ERROR_RATE ):
+    def __init__(self,URI_NUM_SCALE, ACCEPT_ERROR_RATE, filter_typename = 'uri', ):
         self.uri_num = URI_NUM_SCALE    #预计要去重的uri数量级和
         self.err_rate = ACCEPT_ERROR_RATE  #能够接受的去重失误率
-        self.filter_typename = filter_typename
+        #self.filter_typename = filter_typename
     '''
     def make_bitmap(self):
         ln2 = math.log(2, math.e)
@@ -21,9 +21,9 @@ class  CreatBitmap():
         print mem_size, hashfx_num
         return mem_size, hashfx_num
     '''
-    if self.filter_typename = 'uri':
+    if  filter_typename =='uri':
         uri = BloomFilter(self.uri_num,self.err_rate,'/tmp/urifilter.bloom')
-    elif self.filter_typename = 'ip'
+    elif filter_typename == 'ip':
         ip = BloomFilter(self.uri_num,self.err_rate,'/tmp/ipfilter.bloom')
 
      #write  to  redis
