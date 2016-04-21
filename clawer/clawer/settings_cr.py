@@ -36,6 +36,7 @@ MEDIA_ROOT = "/data/media/"
 MEDIA_URL = "http://10.100.90.51/media/"
 
 PYTHON = "/home/virtualenvs/py27/bin/python"
+SHELL = os.environ.get('SHELL', '/bin/bash')
 CRONTAB_USER = "nginx"
 CRONTAB_HOME = "/home/webapps/cr-clawer/confs/cr"
 CLAWER_SOURCE = "/data/clawer/"

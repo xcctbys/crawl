@@ -33,7 +33,7 @@ class Job(Document):
         (PRIOR_6, u"5"),
     )
 
-    creator = StringField(max_length= 128)
+    creator = StringField(max_length= 128, null=True)
     name = StringField(max_length=128)
     info = StringField(max_length=1024)
     customer = StringField(max_length=128, null = True)
@@ -57,12 +57,13 @@ class CrawlerTaskGenerator(Document):
     )
     (TYPE_PYTHON, TYPE_SHELL) = range(1, 3)
     TYPE_CHOICES = (
-        (TYPE_PYTHON, u'Python'),
-        (TYPE_SHELL, u'Shell'),
+        (TYPE_PYTHON, u'PYTHON'),
+        (TYPE_SHELL, u'SHELL'),
     )
     job = ReferenceField(Job)
     code = StringField()  #python or shell code
-    code_type = IntField(default=TYPE_PYTHON, choices=TYPE_CHOICES)
+    code_type = IntField(default = TYPE_PYTHON, choices = TYPE_CHOICES)
+
     cron = StringField(max_length=128)
     status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default=datetime.datetime.now())
@@ -74,6 +75,12 @@ class CrawlerTaskGenerator(Document):
                 return item[1]
         return ""
 
+    def get_code_type(self):
+        for item in self.STATUS_CHOICES:
+            if item[0] == self.code_type:
+                return item[1]
+        return ""
+
     def code_dir(self):
         path = os.path.join(settings.MEDIA_ROOT, "codes")
         if os.path.exists(path) is False:
@@ -81,10 +88,10 @@ class CrawlerTaskGenerator(Document):
         return path
 
     def alpha_path(self):
-        return os.path.join(self.code_dir(), "%s_alpha.py" % str(self.job.id))
+        return os.path.join(self.code_dir(), "%s_alpha" % str(self.job.id))
 
     def product_path(self):
-        return os.path.join(self.code_dir(), "%s_product.py" % str(self.job.id))
+        return os.path.join(self.code_dir(), "%s_product" % str(self.job.id))
 
     def write_code(self, path):
         with codecs.open(path, "w", "utf-8") as f:
@@ -127,7 +134,7 @@ class CrawlerGeneratorLog(Document):
     hostname = StringField(null=True, blank=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
-    meta = {"db_alias": "source"}
+    meta = {"db_alias": "log"}
 
 class CrawlerGeneratorCronLog(Document):
     """ log: execution results of crontab command """
@@ -143,7 +150,7 @@ class CrawlerGeneratorCronLog(Document):
     spend_msecs = IntField(default=0) #unit is microsecond
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
-    meta = {"db_alias": "source"}
+    meta = {"db_alias": "log"}
 
 class CrawlerGeneratorErrorLog(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
@@ -152,7 +159,7 @@ class CrawlerGeneratorErrorLog(Document):
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
-    meta = {"db_alias": "source"}
+    meta = {"db_alias": "log"}
 
 class CrawlerGeneratorAlertLog(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
@@ -162,7 +169,7 @@ class CrawlerGeneratorAlertLog(Document):
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
-    meta = {"db_alias": "source"}
+    meta = {"db_alias": "log"}
 
 ####### 以下模板为 下载器拥有
 

@@ -14,18 +14,21 @@ import codecs
 from datetime import datetime
 from croniter import croniter
 import multiprocessing
+import ast
+import time
+import re
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorLog, CrawlerGeneratorAlertLog
-from collector.utils_cron import CronTab
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
+from collector.utils_cron import CronTab, CronSlices
 from django.conf import settings
 
 pool = None
 
 class DataPreprocess(object):
-
+    """ 数据保存 """
     def __init__(self, job_id):
         self.uris = None
         self.script = None
@@ -35,6 +38,7 @@ class DataPreprocess(object):
             job_doc = Job.objects.with_id(job_id)
         except Exception as e:
             logging.error("Can't find job_id: %s in mongodb!"%(job_id))
+            raise KeyError("Can't find job_id: %s in mongodb!"%(str(job_id)))
         self.job_id = job_id
         self.job = job_doc
 
@@ -87,7 +91,7 @@ class DataPreprocess(object):
                 logging.error("error occured when saving uri-- %s"%(type(e)))
         return True
 
-    def save_script(self, script, cron):
+    def save_script(self, script, cron, code_type):
         """ saving script with cron settings to mongodb
             if params are None or saving excepts return False
             else return True
@@ -98,8 +102,11 @@ class DataPreprocess(object):
         if cron is None:
             logging.error("Error occured when saving script -- cron is None")
             return False
+        if not CronSlices.is_valid(cron):
+            logging.error("CronSlices is not valid!")
+            return False
         try:
-            CrawlerTaskGenerator(job = self.job, code = script, cron = cron).save()
+            CrawlerTaskGenerator(job = self.job, code = script, cron = cron, code_type = code_type).save()
         except Exception as e:
             logging.error("Error occured when saving script --%s"%(type(e)))
             return False
@@ -120,8 +127,11 @@ class DataPreprocess(object):
             if not settings.has_key('cron'):
                 logging.error("cron is not found in settings")
                 return
+            if not settings.has_key('code_type'):
+                logging.error("code_type is not found in settings")
+                return
             try:
-                assert self.save_script(script, settings['cron'])
+                assert self.save_script(script, settings['cron'], settings['code_type'])
             except AssertionError:
                 logging.error("Error occured when saving script")
         else:
@@ -138,8 +148,8 @@ class GeneratorQueue(object):
     LOW_QUEUE = "uri_low"
     MAX_COUNT = 1000
 
-    # def __init__(self, redis_url= settings.REDIS, queue_length=settings.MAX_QUEUE_LENGTH):
-    def __init__(self, redis_url= None, queue_length=None):
+    def __init__(self, redis_url= settings.REDIS, queue_length=settings.MAX_QUEUE_LENGTH):
+    # def __init__(self, redis_url= None, queue_length=None):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.super_queue = rq.Queue(self.SUPER_QUEUE, connection=self.connection)
         self.high_queue = rq.Queue(self.HIGHT_QUEUE, connection=self.connection)
@@ -217,7 +227,6 @@ class SafeProcess(object):
             self.process.terminate()
         self.process_exit_status = 1
 
-
 class GenerateCrawlerTask(object):
 
     def __init__(self, task_generator):
@@ -239,17 +248,21 @@ class GenerateCrawlerTask(object):
 
     def generate_task(self):
         """ 执行脚本，生成uri """
-        # from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog
         logging.info("run task generator %s" % str(self.task_generator.id))
         if not (self.task_generator.status==CrawlerTaskGenerator.STATUS_ON and self.job.status==Job.STATUS_ON):
             return False
 
-        # path = self.task_generator.product_path()
-        # self.task_generator.write_code(path)
-        path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
+        path = self.task_generator.product_path()
+        self.task_generator.write_code(path)
+        # path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
         out_f = open(self.out_path, "w")
-        settings.Python = "/Users/princetechs5/Documents/virtualenv/bin/python"
-        safe_process = SafeProcess([ settings.Python, path], stdout=out_f, stderr=subprocess.PIPE)
+        # settings.Python = "/Users/princetechs5/Documents/virtualenv/bin/python"
+        code_type = self.task_generator.code_type
+        if code_type == CrawlerTaskGenerator.TYPE_PYTHON:
+            tools =  settings.PYTHON
+        elif code_type == CrawlerTaskGenerator.TYPE_SHELL:
+            tools = settings.SHELL
+        safe_process = SafeProcess([ tools, path], stdout=out_f, stderr=subprocess.PIPE)
         try:
             p = safe_process.run(1800)
         except OSError , e:
@@ -282,9 +295,15 @@ class GenerateCrawlerTask(object):
         uris = []
         val = URLValidator()
         for line in out_f:
+            self.content_bytes += len(line)
             try:
-                self.content_bytes += len(line)
                 js = json.loads(line)
+            except ValueError, e:
+                js = ast.literal_eval(line)
+                if not isinstance(js, dict):
+                    logging.error("The line %s is not dict or json"%(line))
+                    continue
+            try:
                 # validate uri
                 val(js['uri'])
                 uris.append(js['uri'])
@@ -322,11 +341,10 @@ class GenerateCrawlerTask(object):
         self.generate_log.spend_msecs = int(1000*(self.end_time - self.start_time))
         self.generate_log.save()
 
-
-
 def generate_uri_task( crawler_generator):
     """
-    generate uri with script and settings in slave
+    异步队列任务函数：
+    Function:   generate uri with script and settings in slave
     this function needs to be pushed into queue
     """
     generator =  GenerateCrawlerTask(crawler_generator)
@@ -341,6 +359,7 @@ class GeneratorDispatch(object):
             job_doc = Job.objects.with_id(job_id)
         except Exception as e:
             logging.error("Can't find job_id: %s in mongodb!"%(job_id))
+            raise KeyError("Can't find job_id: %s in mongodb!"%(str(job_id)))
         self.job_id = job_id
         self.job = job_doc
         self.priority = job_doc.priority
@@ -378,7 +397,7 @@ class GeneratorDispatch(object):
 class CrawlerCronTab(object):
     """Overwrite python-crontab for myself"""
     # filename = settings.CRON_FILE
-    def __init__(self, filename=None):
+    def __init__(self, filename= settings.CRON_FILE):
         super(CrawlerCronTab, self).__init__()
         self.filename = filename
         if not os.path.exists(self.filename):
@@ -452,17 +471,8 @@ class CrawlerCronTab(object):
         self.save_cron_to_file()
         return True
 
-    def save_crons(self):
-        base =  datetime(2010, 1, 25, 4, 46)
-        # base = datetime.datetime.now()
-        iters = croniter('*/5 * * * *', base)  # every 1 minites
-        next = iters.get_next(datetime)
-        return next
-
-    def save_next_crons(self):
+    def exec_and_save_current_crons(self):
         from dateutil.parser import parse
-        # timeout = settings.GENERATE_TIMEOUT
-
         # 获取出当前分钟 需要执行的任务列表
         last_time = datetime.now()
         # 定时任务，到时间强制退出。
@@ -479,36 +489,60 @@ class CrawlerCronTab(object):
             if next_time < now:
                 try:
                     command = job.command
-                    pool.apply_async(exec_command, (command,))
+                    comment = job.comment
+                    cron = slices
+                    pool.apply_async(exec_command, (command, comment, cron, ))
                 except:
                     raise
                 job.set_last_run(now)
+        pool.close()
+        pool.join()
         # 将本次运行的cron任务的上次运行时间写回到tabfile文件中
         self.save_cron_to_file()
-         # 预警机制
-        end_time = datetime.now()
-        # import datetime
-        # if end_time - last_time > datetime.timedelta(seconds=60):
-        #     logging.error("Cron runtime exceeds 60s. Exit!")
 
     def task_generator_run(self):
         """
             每分钟运行例程
         """
-
+        self.exec_and_save_current_crons()
         return True
 
-def exec_command(command):
-    c = compile(command, "", 'exec')
-    exec c
+def exec_command(command, comment, cron):
+    def get_name_id_with_comment(comment):
+        p =re.compile("name:(\w+).*?id:(\w+)")
+        r = p.search(comment)
+        if r:
+            return r.groups()
+        else:
+            return ("", "")
+    job_name, job_id = get_name_id_with_comment(comment)
+    job = Job.objects(id= job_id).first()
+    if not job:
+        logging.error("Job %s with id %s is not found in mongodb!"%(job_name, job_id))
+        return
+    pid = os.getpid()
+    start_time = time.time()
+    status = CrawlerGeneratorCronLog.STATUS_SUCCESS
+    failed_reason =""
+    try:
+        c = compile(command, "", 'exec')
+        exec c in globals(), locals()
+    except Exception, e:
+        status = CrawlerGeneratorCronLog.STATUS_FAIL
+        failed_reason = traceback.format_exc(10)
+    end_time = time.time()
+    log = CrawlerGeneratorCronLog(job = job, status = status, cron = cron, failed_reason= failed_reason, spend_msecs =int(1000*(end_time-start_time)))
+    log.save()
+
+
 
 def force_exit():
     pgid = os.getpgid(0)
     if pool is not None:
         pool.terminate()
         raise UnboundLocalError("Pool is not None!")
-    os.killpg(pgid, 9)
     logging.error("Cron runtime exceeds 60s. Exit!")
     CrawlerGeneratorAlertLog(type = "TIMEOUT", reason="Cron runtime exceeds 60s. Exit!", hostname= socket.gethostname() )
+    os.killpg(pgid, 9)
     os._exit(1)
 
