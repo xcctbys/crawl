@@ -31,22 +31,28 @@ class Download(object):
 		exec c
 
 	def download(self):
+		self.task.status == CrawlerTask.STATUS_PROCESS
+	    self.task.retry_times += 1
+	    self.task.save()
+
 		print 'come in download---------------------------'
 		print self.crawler_download.types.language, self.crawler_download.types.is_support
 		if self.crawler_download.types.language == 'python' and self.crawler_download.types.is_support:
 			print 'it is python-------------------------'
 			try:
 				# print 'save code from db;import crawler_download.code; run()'
-				# sys.path.append( settings.CODE_PATH )
-				# filename = os.path.join( settings.CODE_PATH, 'pythoncode%s.py' % str(self.crawler_download._id))
-				sys.path.append( '/Users/princetechs3/my_code' )
-				filename = os.path.join( '/Users/princetechs3/my_code', 'pythoncode%s.py' % str(self.crawler_download.id))
+				sys.path.append( settings.CODE_PATH )
+				filename = os.path.join( settings.CODE_PATH, 'pythoncode%s.py' % str(self.crawler_download._id))
+				# sys.path.append( '/Users/princetechs3/my_code' )
+				# filename = os.path.join( '/Users/princetechs3/my_code', 'pythoncode%s.py' % str(self.crawler_download.id))
 				if not os.path.exists(filename):
 					with open(filename, 'w') as f:
 						f.write(self.crawler_download.code)
 				result = self.exec_command('import pythoncode%s; pythoncode%s.run("%s")' % (str(self.crawler_download.id), str(self.crawler_download.id), self.task.uri))
-				
+
 			except Exception as e:
+				self.task.status == CrawlerTask.STATUS_FAILED
+			    self.task.save()
 				print e,'sentry.excepterror()'
 				# print self.crawler_download_log.save()
 				return
@@ -58,44 +64,56 @@ class Download(object):
 			print 'it is shell ---------------------------'
 			# print 'result = commands.getstatusoutput(sh code)'
 			# filename = os.path.join( settings.CODE_PATH, 'shellcode%s.sh' % str(self.crawler_download.id))
-			filename = os.path.join( '/Users/princetechs3/my_code', 'pythoncode%s.py' % str(self.crawler_download.id))
-			if not os.path.exists(filename):
-				with open(filename, 'w') as f:
-					f.write(self.crawler_download.code)
-			# os.system("chmod +x %s" % filename)
-			result = commands.getstatusoutput('sh %s %s' % (filename,self.task.uri)) 
-			print result
+			try:
+				filename = os.path.join( '/Users/princetechs3/my_code', 'pythoncode%s.py' % str(self.crawler_download.id))
+				if not os.path.exists(filename):
+					with open(filename, 'w') as f:
+						f.write(self.crawler_download.code)
+				# os.system("chmod +x %s" % filename)
+				result = commands.getstatusoutput('sh %s %s' % (filename,self.task.uri)) 
+				print result
+			except Exception as e:
+				self.task.status == CrawlerTask.STATUS_FAILED
+			    self.task.save()
+				print e,'sentry.excepterror()'
 			pass
 
 		elif self.crawler_download.types.language == 'curl' and self.crawler_download.types.is_support:
 			print 'it is curl ----------------------------'
-			result = commands.getstatusoutput('curl %s' % self.task.uri)
-			print result
+			try:
+				result = commands.getstatusoutput('curl %s' % self.task.uri)
+				print result
+			except Exception as e:
+				self.task.status == CrawlerTask.STATUS_FAILED
+			    self.task.save()
+				print e,'sentry.excepterror()'
 			pass
 		else:
-			resp = self.reqst.get(self.task.uri)
-			print resp.headers
-			print resp.request.headers
-			print resp.encoding
-			print resp.text
-			
-			pass
-			# if task.args.get['method']=='POST':
-			# 	r = self.reqst.post(self.task.url data=task.args)
-			# 	result = r.content
-			# else:
-			# 	r = self.reqst.get(self.task.url)
-			# 	result = r.content
-		pass
+			try:
+				resp = self.reqst.get(self.task.uri)
+				print resp.headers
+				print resp.request.headers
+				print resp.encoding
+				print resp.text
+			except Exception as e:
+				self.task.status == CrawlerTask.STATUS_FAILED
+			    self.task.save()
+				print e,'sentry.excepterror()'
+
 
 
 def download_clawer_task(task):
 	#加载对应job的设置任务
 	print '----------------------come in------------------------------'
-	crawler_download = CrawlerDownload.objects(job=task.job)[0]
-	# print crawler_download.code,crawler_download.types.language
-	crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job)[0]
-	# print crawler_download_setting
+	try:
+		crawler_download = CrawlerDownload.objects(job=task.job)[0]
+		# print crawler_download.code,crawler_download.types.language
+		crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job)[0]
+		# print crawler_download_setting
+	except Exception as e:
+		self.task.status == CrawlerTask.STATUS_FAILED
+	    self.task.save()
+		print e,'sentry.excepterror()'
 	down = Download(task, crawler_download, crawler_download_setting)
 	down.download()
 	
