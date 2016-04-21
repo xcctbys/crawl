@@ -2,6 +2,8 @@
 import BitVector
 import os
 import sys
+from django.conf import settings
+from creat_bitmap import
 
 class SimpleHash():
 

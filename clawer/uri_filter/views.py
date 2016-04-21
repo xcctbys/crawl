@@ -21,7 +21,7 @@ RES_FILE_DIR = "."
 
 class myHandler(BaseHTTPRequestHandler):
 
-  def do_POST(self):
+  def doPost(self):
     logging.warning(self.headers)
     form = cgi.FieldStorage(
       fp=self.rfile,
@@ -69,9 +69,7 @@ except KeyboardInterrupt:
 
 
 
-
-
-def send_POST(uri_list):
+def sendPost(uri_list):
     httpClient = None
     try:
         encoded_json_list = json.dumps(uri_list)

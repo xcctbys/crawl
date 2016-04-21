@@ -28,6 +28,7 @@ from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
 import subprocess
+import time
 
 class TestGeneratorInstall(TestCase):
     def setUp(self):
@@ -36,11 +37,35 @@ class TestGeneratorInstall(TestCase):
     def tearDown(self):
         TestCase.tearDown(self)
 
-    def test_command(self):
-        out = StringIO()
-        call_command('task_generator_install', stdout=out)
-        self.assertIn('Expected output', out.getvalue())
+    def test_task_count(self):
+        count = CrawlerTask.objects.count()
+        self.assertGreater(count, 0)
 
+    def test_command_generator_dispatch(self):
+        CrawlerTask.objects.delete()
+        out = StringIO()
+        call_command('generator_dispatch', stdout=out)
+        print out.getvalue()
+        # with open('/path/to/command_output') as f:
+            # management.call_command('dumpdata', stdout=f)
+        # self.assertIn('Expected output', out.getvalue())
+        time.sleep(1)
+        count = CrawlerTask.objects.count()
+        self.assertGreater(count, 0)
+
+    def test_command_generator_install(self):
+        out = StringIO()
+        if os.path.exists(settings.CRON_FILE):
+            os.remove(settings.CRON_FILE)
+        call_command('generator_install', stdout=out)
+        # with open('/path/to/command_output') as f:
+            # management.call_command('dumpdata', stdout=f)
+        # self.assertIn('Expected output', out.getvalue())
+        crons= CronTab()
+        crons.read(settings.CRON_FILE)
+        for cron in crons:
+            self.assertTrue(cron)
+            print cron.render()
 
 class TestMongodb(TestCase):
     def setUp(self):

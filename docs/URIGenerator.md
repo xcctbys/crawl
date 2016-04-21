@@ -266,9 +266,9 @@ cron.write_to_user( user='bob' )
 
 ```
   for root	
-  */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_install
+  */5    *    *    *    * cd /path/to/cr-clawer/confs/cr;./bg_cmd.sh generator_install
   
-  *    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_run
+  *    *    *    *    * cd /path/to/cr-clawer/confs/cr;./bg_cmd.sh generator_run
 ```
 
 

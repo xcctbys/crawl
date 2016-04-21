@@ -6,6 +6,7 @@ six
 redis
 requests
 threadpool
+croniter
 python-crontab
 beautifulsoup4
 rq
