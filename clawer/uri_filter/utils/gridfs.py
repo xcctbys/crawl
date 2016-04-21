@@ -1,14 +1,19 @@
 #encoding=utf-8
 from pymongo import Connection
 from gridfs import *
-from PIL import Image
+#from PIL import Image
 from bson.objectid import ObjectId
 import StringIO
 import threading, time
 from gridfs import *
-
+from io import BytesIO
+from io import StringIO
+import BitVector
+import io
+import os
+from pymongo.database import Database
 '''
-con = Connection("mongodb://admin:admin@127.0.0.1:27017")#用URI的方式建立数据库的链接,也有其他的方式进行授权
+con = Connection("mongodb://admin:admin@127.0.0.1:27017")#用URI建立数据库的链接,也有其他的方式进行授权
 db = con['repository']#连接到具体的数据库
 fs = gridfs.GridFS(db, 'bitmap')#连接到collection，不存在的话会进行创建
 fs.put('data.txt')
@@ -52,15 +57,36 @@ class GFS:
 
 
     #写入
-    def put(self, name,  format="png",mime="image"):
+    def put(self, name,  format="txt",mime="bitmap"):
         gf = None
         data = None
         try:
-            data = StringIO.StringIO()
+            ##data = StringIO.StringIO()
+            data = ByteIO()
             name = "%s.%s" % (name,format)
-            image = Image.open(name)
-            image.save(data,format)
-            #print "name is %s=======data is %s" % (name, data.getvalue())
+            ##image = Image.open(name)
+
+            ##image.save(data,format)
+            '''
+            write_bits_to_fileobject() ,stream object
+            print "name is %s=======data is %s" % (name, data.getvalue())
+            '''
+
+            bitvec =
+
+            #fp_write = io.StringIO()
+            fp_write = io.BytesIO()
+            bv = BitVector(filename = '%s.%s'% (name,format)) ###  名字是 uribitmap.txt
+            bitvec = bv.read_bits_from_file(mem_size)
+            bitvec.write_bits_to_fileobject(fp_write)
+            bv.close_file_object()
+
+            print(fp_write.getvalue())
+            gf = GFS.fs.put(fp_write.getvalue(), filename=name, format=format)
+
+            name = "%s.%s" % (name,format)
+            bitmap = open('output.bits', 'wb')  #rb 读二进制 wb写二进制
+
             gf = GFS.fs.put(data.getvalue(), filename=name, format=format)
         except Exception as e:
             print "Exception ==>> %s " % e
@@ -76,7 +102,7 @@ class GFS:
         gf = None
         try:
             gf  = GFS.fs.get(ObjectId(id))
-            im = gf.read()                  #read the data in the GridFS
+            bm = gf.read()                  #read the data in the GridFS
             dic = {}
             dic["chunk_size"] =  gf.chunk_size
             dic["metadata"] = gf.metadata
@@ -85,7 +111,7 @@ class GFS:
             dic["name"] = gf.name
             dic["content_type"] = gf.content_type
             dic["format"] = gf.format
-            return (im , dic)
+            return (bm , dic)
         except Exception,e:
             print e
             return (None,None)
@@ -101,7 +127,7 @@ class GFS:
             output = open(name, 'wb')
             output.write(data)
             output.close()
-            print "fetch image ok!"
+            print "fetch data ok!"
 
     #获得文件列表
     def list(self):
@@ -113,13 +139,13 @@ class GFS:
         GFS.fs.remove(name)
 
 if __name__== '__main__':
-    image_name= raw_input("input the image name>>")
-    if image_name:
+    bitmap_name= raw_input("input the bitmap name>>")
+    if bitmap_name:
         gfs = GFS.getInstance()
         if gfs:
-            image_id = gfs.put(image_name)
-            print "==========Object id is %s  and it's type is %s==========" % (image_id , type(image_id))
-            (data, dic) = gfs.get(ObjectId(image_id))
+            bitmap_id = gfs.put(bitmap_name)
+            print "==========Object id is %s  and it's type is %s==========" % (bitmap_id , type(bitmap_id))
+            (data, dic) = gfs.get(ObjectId(bitmap_id))
             gfs.write_2_disk(data, dic)
         else:
             pass
