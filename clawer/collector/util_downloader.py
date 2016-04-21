@@ -32,8 +32,8 @@ class Download(object):
 
 	def download(self):
 		self.task.status == CrawlerTask.STATUS_PROCESS
-	    self.task.retry_times += 1
-	    self.task.save()
+		self.task.retry_times += 1
+		self.task.save()
 
 		print 'come in download---------------------------'
 		print self.crawler_download.types.language, self.crawler_download.types.is_support
@@ -51,8 +51,8 @@ class Download(object):
 				result = self.exec_command('import pythoncode%s; pythoncode%s.run("%s")' % (str(self.crawler_download.id), str(self.crawler_download.id), self.task.uri))
 
 			except Exception as e:
-				self.task.status == CrawlerTask.STATUS_FAILED
-			    self.task.save()
+				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.save()
 				print e,'sentry.excepterror()'
 				# print self.crawler_download_log.save()
 				return
@@ -73,8 +73,8 @@ class Download(object):
 				result = commands.getstatusoutput('sh %s %s' % (filename,self.task.uri)) 
 				print result
 			except Exception as e:
-				self.task.status == CrawlerTask.STATUS_FAILED
-			    self.task.save()
+				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.save()
 				print e,'sentry.excepterror()'
 			pass
 
@@ -84,8 +84,8 @@ class Download(object):
 				result = commands.getstatusoutput('curl %s' % self.task.uri)
 				print result
 			except Exception as e:
-				self.task.status == CrawlerTask.STATUS_FAILED
-			    self.task.save()
+				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.save()
 				print e,'sentry.excepterror()'
 			pass
 		else:
@@ -96,8 +96,8 @@ class Download(object):
 				print resp.encoding
 				print resp.text
 			except Exception as e:
-				self.task.status == CrawlerTask.STATUS_FAILED
-			    self.task.save()
+				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.save()
 				print e,'sentry.excepterror()'
 
 
@@ -112,7 +112,7 @@ def download_clawer_task(task):
 		# print crawler_download_setting
 	except Exception as e:
 		self.task.status == CrawlerTask.STATUS_FAILED
-	    self.task.save()
+		self.task.save()
 		print e,'sentry.excepterror()'
 	down = Download(task, crawler_download, crawler_download_setting)
 	down.download()
