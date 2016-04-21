@@ -13,12 +13,19 @@ class  CreatBitmap():
         ln2 = math.log(2, math.e)
         mem_size = - self.uri_num * math.log(self.err_rate,math.e)/math.pow(ln2, 2)
         mem_size = math.ceil(mem_size)
+        mem_size = mem_size + 8 + mem_size%8  # 保证bitmap位数是8的位数
         hashfx_num = 0.7*mem_size/self.uri_num
         hashfx_num = math.ceil(hashfx_num)
         print mem_size, hashfx_num
         return mem_size, hashfx_num
 
 
+
+     #write  to  redis
+     #write to mongodb
+
+
+     #write to file
 
 
 
