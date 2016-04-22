@@ -362,8 +362,14 @@ class CrawlerDownloadData(Document):
 
 ```
 class CrawlerDownloadAlertLog(Document):
+	(ALTER, SUCCESS, FAILED) = range(1,4)
+	ALTER_TYPES = (
+		(ALTER, u'警告')
+		(SUCCESS, u‘分发成功’)
+		(FAILED, u'分发失败')
+	)
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    type = StringField(max_length=128)
+    type = IntField(choices=ALTER_TYPES, default=1)
     reason = StringField(max_length=10240, required=True)
     content_bytes = IntField(default=0)
     hostname = StringField(required=True, max_length=16)

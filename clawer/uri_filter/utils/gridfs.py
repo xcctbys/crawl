@@ -76,7 +76,8 @@ class GFS:
 
             #fp_write = io.StringIO()
             fp_write = io.BytesIO()
-            bv = BitVector(filename = '%s.%s'% (name,format)) ###  名字是 uribitmap.txt
+            #bv = BitVector(filename = '%s.%s'% (name,format)) ###  名字是 uribitmap.txt
+            bv = BitVector(filename = '/tmp/urifilter.bloom')
             bitvec = bv.read_bits_from_file(mem_size)
             bitvec.write_bits_to_fileobject(fp_write)
             bv.close_file_object()
@@ -84,8 +85,8 @@ class GFS:
             print(fp_write.getvalue())
             gf = GFS.fs.put(fp_write.getvalue(), filename=name, format=format)
 
-            name = "%s.%s" % (name,format)
-            bitmap = open('output.bits', 'wb')  #rb 读二进制 wb写二进制
+            #name = "%s.%s" % (name,format)
+            bitmap = open(''/tmp/urifilter.bloom'', 'wb')  #rb 读二进制 wb写二进制
 
             gf = GFS.fs.put(data.getvalue(), filename=name, format=format)
         except Exception as e:
