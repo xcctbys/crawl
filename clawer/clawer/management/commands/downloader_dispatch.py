@@ -182,8 +182,4 @@ class Command(BaseCommand):
 
 	# @wrapper_raven
 	def handle(self, *args, **options):
-		if options["empty"]:
-			empty_all()
-			return
-
 		run()
