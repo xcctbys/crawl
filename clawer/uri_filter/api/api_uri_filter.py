@@ -3,57 +3,64 @@
 import json
 import hashlib
 import datetime
-from uri_filter.views import myHandler , send_POST
+
 import os
-from util_filter.utils.bloomfilter import BloomFilter
+#from util_filter.utils.bloomfilter import BloomFilter
 from pybloomfilter import BloomFilter
 
-class FilterAPIClient(filter_typename,uri_list, access_token = 'princetechs'):
-    def __init__(self):
+class FilterAPIClient():
+    def __init__(self, filter_typename='', uri_list=[]):
         self.filter_name = filter_typename
         self.bfilter_list = uri_list
-        self.filter_list_new = []
+        self.filter_list_unique = []
+        print self.filter_name
+        print self.bfilter_list
+        print self.filter_list_unique
+        print #####################
+    #def filterapi(self):
+        print 23333333
+        if self.filter_name == 'urigenerator':
+            print ##########1
+            if os.path.exists('/usr/bloomfilter/urigenerator.bloom') == True:
+                urigenerator = BloomFilter.open('/usr/bloomfilter/urigenerator.bloom')
 
+            else:
+                urigenerator = BloomFilter(1000000,0.0001,'/usr/bloomfilter/urigenerator.bloom')
+            for uri in bfilter_list:
+                if urigenerator.add(uri) == True:
+                    pass
+                elif urigenerator.add(uri) == False:
+                    filter_list_unique.append(uri)
 
-    if self.filter_name == 'urigenerator':
-       if os.path.exists('/usr/bloomfilter/urigenerator.bloom') == True:
-           urigenerator = BloomFilter.open('/usr/bloomfilter/urigenerator.bloom')
-       else:
-           urigenerator = BloomFilter(1000000,0.0001,'/usr/bloomfilter/urigenerator.bloom')
-       for uri in uri_list:
-           if urigenerator.add(uri) == True:
-              pass
-           elif urigenerator.add(uri) == False:
-              uri_list_new.append(uri)
+        elif self.filter_name == 'ip':
+            print ##########2#
+            if os.path.exists('/usr/bloomfilter/ip.bloom') == True:
+                ipfilter = BloomFilter.open('/usr/bloomfilter/ipfilter.bloom')
+            else:
+                ipfilter = BloomFilter(1000000,0.0001,'/usr/bloomfilter/ipfilter.bloom')
+            for ip in bfilter_list:
+                if ip.add(ip) == True:
+                    pass
+                elif ip.add(ip) == False:
+                    filter_list_unique.append(ip)
 
-    elif self.filter_name == 'ip':
-        if os.path.exists('/usr/bloomfilter/ip.bloom') == True:
-            ipfilter = BloomFilter.open('/usr/bloomfilter/ipfilter.bloom')
-        else:
-            ipfilter = BloomFilter(1000000,0.0001,'/usr/bloomfilter/ipfilter.bloom')
-        for ip in uri_list:
-           if ip.add(ip) == True:
-              pass
-           elif ip.add(ip) == False:
-              ip_list_new.append(ip)
+        elif self.filter_name == 'uriparse':
 
-    elif self.filter_name == 'uriparse':
-        if os.path.exists('/usr/bloomfilter/uriparse.bloom' == True:
-            uriparse = BloomFilter.open('/usr/bloomfilter/uriparse.bloom')
-        else:
-            uriparse = BloomFilter(1000000,0.0001,'/usr/bloomfilter/uriparse.bloom')
-        for uri in uri_list:
-           if uriparse.add(uri) == True:
-              pass
-           elif uriparse.add(uri) == False:
-              ip_list_new.append(ip)
+            if os.path.exists('/usr/bloomfilter/uriparse.bloom') == True:
+                uriparse = BloomFilter.open('/usr/bloomfilter/uriparse.bloom')
+            else:
+                uriparse = BloomFilter(1000000,0.0001,'/usr/bloomfilter/uriparse.bloom')
+            for uriparse in bfilter_list:
+                if uriparse.add(uri) == True:
+                    pass
+                elif uriparse.add(uri) == False:
+                    filter_list_unique.append(uriparse)
+        print uri_list_unique
+        return uri_list_unique
 
-    return uri_list_new
-
-
-
+'''
     def uri_filter_api(self):
-        '''
+
         encode_urilist = json.dumps(self.uri_list)
         sendPost(encode_urilist)
 
@@ -66,14 +73,12 @@ class FilterAPIClient(filter_typename,uri_list, access_token = 'princetechs'):
         uri_list_unique = json.loads(encode_urilist_unique)
 
 
-        '''
+
         uri_list_unique = BloomFilter(self.uri_list)
-
-
-        return uri_list_unique
+'''
 
 
 
 if __name__=='__main__':
-    urifilter = FilterAPIClient('urigenerator',['www.baidu.com','www.baidu.com','www.pritn.com'])
-    print urifilter
+    list = FilterAPIClient('urigenerator',['www.baidu.com','www.baidu.com','www.pritn.com'])
+    print list
