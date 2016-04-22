@@ -89,6 +89,7 @@ class TestMongodb(TestCase):
         sys.path.append('/Users/princetechs3/my_code')
         c = compile(commandstr, "", 'exec')
         exec c
+        print result
 
 
     def test_get_task(self):
@@ -229,6 +230,12 @@ class TestMongodb(TestCase):
         dispatch_num=1
         down_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_FAIL, retry_times__lte=max_retry_times)[:dispatch_num]
         self.assertTrue(down_tasks)
+
+    def test_insert_4_jobs(self):
+        self.test_insert_other_job()
+        self.test_insert_curl_job()
+        self.test_insert_shell_job()
+        self.test_insert_python_job()
 
 
 
