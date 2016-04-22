@@ -13,14 +13,14 @@
 
  in CentOS 7
 
-      yum install -y mysql 
-      #or 
+      yum install -y mysql
+      #or
       yum install -y mariadb*
-      
+
 in macos
 
      brew install mysql
-      
+
 
 ## Install some python libs
 
@@ -32,7 +32,7 @@ Install python. Install virtualenv.
     cd ~/Documents/gitroom
 
     #clone code at here
-    
+
     cd cr-clawer/clawer && ~/Documents/pyenv/dj14/bin/pip install -r requirements.txt
 
 Migrate django db
@@ -52,15 +52,21 @@ Create two group in http://localhost:8000/admin/
 Run server. Then visit http://localhost:8000/admin/
 
     ./run.sh app
-    
+
 Start RQ worker
 
     ./run.sh rq [Queue....]
-    
+
 For example:
 
     ./run.sh rq clawer download analysis 
-    
+
+
+Start RQ worker for generator
+
+    ./run.sh rq uri_super uri_high uri_medium uri_low
+
+
 ## Test Your code
 
 cd conf
@@ -74,7 +80,6 @@ test it
 use cmd to show help
 
     ./test.sh -h
-
 
 ## Create Database on MySQL
 
@@ -94,9 +99,11 @@ use cmd to show help
       # topologic #
 
       ## master
-      
+
       ### for root
-      */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_generator_install
+      */5    *    *    *    * cd /Users/princetechs5/crawler/cr-clawer/confs/cr;./bg_cmd.sh generator_install  # for generator
+      *      *    *    *    * cd /Users/princetechs5/crawler/cr-clawer/confs/cr;./bg_cmd.sh generator_dispatch  # for generator
+
       20     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh clawer_monitor_hour
       40     3    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh clawer_monitor_day
       */50   *    *    *    * cd /home/webapps/cr-clawer/sources/qyxy/structured/scripts/cr/; sh run.sh structured
@@ -127,8 +134,8 @@ use cmd to show help
       chkconfig supervisord on
       service supervisord restart
 
-      
-      
+
+
 # Program Dir
 
 ## clawer

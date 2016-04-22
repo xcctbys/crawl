@@ -1,14 +1,13 @@
 # 目标描述
 
-根据用户提供的下载器及生成器生成的url，利用分布式系统进行数据下载并存储。
-
+根据用户提供的下载器及生成器生成的url，利用rq实现分布式系统进行数据下载并存储。
 
 # 过程与功能说明
 
-##  Master将下载器入库
+##  Master将下载器及下载器设置入库
 
 ### 输入
-- 下载器程序(python, shell,...)
+- 下载器
 - 配置信息(分发数量...)
 
 ### 输出
@@ -26,15 +25,12 @@ def data_preprocess( *args, **kwargs):
 	validate_files_with_settings
 	if file is valid:
 		save file with settings to mongodb
+		return db.collections.findOne()
 	else:
 		save log in mongodb
 		report error
 	return None
 ```
-
-### 失败处理
-
-
 
 ### 前提条件
 
@@ -44,77 +40,155 @@ def data_preprocess( *args, **kwargs):
 
 - 此函数运行在Master服务器上。
 
-
-
 ## 下载器调度分发
 
 ### 输入
-- dispatch_count
-- url[:dispatched] in mongodb collection
+- 无
 
 ### 输出
 - rq
 - 错误日志
+- 警告日志
+
+### 目标说明
+- job优先级与根据主机进行分发
+- 2G内存大约可以维持rq队列的数量。
+	- 1024 \*1024 \* 2 / 250 = 8000 条（250=str(40)+function(120)+list(72+16)）
+- 200万条/天 的数据。达到目标需要每5分钟分发多少条
+	- 2000000/(24*60/5) = 7000 条
+- 测试rq 入队列 7000 条需要的时间，及top监控内存状态
+	- queue_lens: 7000     use_time: 9.0135269165
+	- MemRegions: 82496 total, 2783M resident, 111M private, 2488 shared
+	- 结论：分发时 入队所需要的时间不是很长，从mongobd里获取所需要的时间(查询1000万条数据,能够达到平均 50毫秒)，以及slaver消化的时间很长(4个bash,近10分钟)
+	
+### 实现策略说明
+- 可以按照job优先级，(TODO:或者 主机号 进行分发。都是利用 rq 队列）。简单思路：配置设备较优的机器rq启动顺序为 rq worker high mid low
+- 可以设置一次内总的分发数量，并设置单个job的分发数量。
+- 用多进程进行任务分发。
+- 使用回收机制。（并且设有最大回收次数）
+- 有错误及警告日志。
+	
+将优先级分成-1, 0，1，2，3，4，5共7个优先级，-1, 为最高优先级，5为最低优先级；默认优先级为5。
+共设4个优先级通道，队列头优先级高，队列尾优先级低。
+
+down_super	
+<===============< -1
+
+down_high 	
+0 <=============< 1
+
+down_mid	
+2 <=============< 3
+
+down_low		
+4 <=============< 5
+
+启动worker按如下格式启动，workers将会顺序从给定的队列中无限循环读入jobs，而且会按照down_super down_high down_mid down_low顺序。
+
+
 
 ### 流程(伪代码)
+- 定义4个全局优先级队列 
+- 设置多进程执行的超时时间，及超时处理方法 `dispatch_download`
+- 从集合CrawlerTask中find本次job状态为启用的,并根据优先级或者主机排序，得到最大的分发数量`dispatch_use_pool`
+- 多进程对每个job,根据单个job最大的分发数量，依照优先级进行rq队列的入队，`q_down_super.enqueue`
+- 日志记录
 
 ```
-def dispatch_download(*args, **kwargs):
+q_down_low = Queue('down_low', connection=redis_conn)
+q_down_mid = Queue('down_mid', connection=redis_conn)
+q_down_high = Queue('down_high', connection=redis_conn)
+q_down_super = Queue('down_super', connection=redis_conn)
 
-	#从集合中获取新增的，优先级较高的任务。
-	download_object = db.Job.find({'status:Job.STATUS_ON'})	download_queue = DownloadQueue()
-	# priority includes range（-1，6)
-	# 根据优先级插入
-	for item in download_object:
-		prioirity = item.get('priority')
-		if priority == -1:
-			down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:DownloadSetting.dispatch]
-			sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'times':{'$lt':5}})[:DownloadSetting.dispatch]
-			for task in down_task:
-				try:
-					download_queue.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )
-				except:
-					write_log
-			update item.status == START
-		elif priority == -2:
-			pass
+def dispatch_use_pool(item)
+	prioirity = item.get('priority')
+	dispatch = db.DownloadSetting.findOne({'job':item.get('job')}).get('dispatch')
+	max_download_times = db.DownloadSetting.findOne({'job':item.get('job')}).get('max_retry_times')
+	if priority == -1:
+		if len(q_down_super) + dispatch > settings.QDOWNSUPERLEN:
+			write_alter_log		
+		down_tasks = db.ClawerTask.find({'status':'ClawerTask.STATUS_LIVE'})[:dispatch]
+		sometimes = db.ClawerTask.find({'status':'ClawerTask.FAIL', 'download_times':{'$lt': max_download_times}})[:dispatch]
+		if setting_by_hostname:
+			down_task.sort({'$ClawerTask.host_name', -1})
+		for task in down_task:
+			try:
+				q_down_super.enqueue(queue_name, download_clawer_task, args=[item.uri, item.jobs.id] )
+				update time.status = STATUS_DISPATCH
+				write_success_dispatch_log
+			except:
+				write_fail_dispatch_log
+		update item.status == STATUS_START
+		update item.download_times += 1
+	elif priority == -2:
+		pass
 		...
-		
+	return
+
+
+def dispatch_download(*args, **kwargs):
+	#设置超时时间
+	timer = threading.Timer(300, force_exit)
+    timer.start()
+    #从集合中获取新增的，优先级较高的任务。
+	if setting_by_priority:
+		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:settings.MAX_TOTAL_DISPATCH_COUNT_ONCE]
+	elif setting_by_priority and setting_by_host:
+		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.priority, -1})[:settings.max_total_dispatch_count_once]
+		download_object = download_object.sort({'$Job.hostname', -1})
+	else:
+		download_object = db.Job.find({'status:Job.STATUS_ON'}).sort({$Job.hostname, -1})[:settings.max_total_dispatch_count_once]	
+	download_queue = DownloadQueue()
+	pool.map(dispatch_use_pool, download_object)
+	pool.close()
+	pool.join()
 	return download_queue
-
-
+	
+	#退出函数	
+def force_exit():
+    pgid = os.getpgid(0)
+    if pool is not None:
+        pool.terminate()
+    os.killpg(pgid, 9)
+    os._exit(1)
 ```
 
-download_clawer_task
+### 前提条件
+- settings.py 中设置了分发数量等
 
 ```
-def download_clawer_task():
-	setting downloader
-	try:
-		downloader.download()
-	except:
-		fail_log
-		sentry.except()
-	success_log
+	 MAX_TOTAL_DISPATCH_COUNT_ONCE = 7000 #设置一次分发的数量
+	 DISPATCH_USE_POOL_TIMEOUT = 300  #设置在分发过程中使用多进程的时间限制
+	 Q_DOWN_SUPER_LEN = 1000 #设置优先级队列的长度，防止队列无限增长并控制内存消耗。
+	 Q_DOWN_HIGH_LEN = 1000
+	 Q_DOWN_MID_LEN = 1000
+	 Q_DOWN_LOW_LEN = 1000
+```
+- 想着数据库已经建立
 
 ```
+	Job
+	CrawlerDownload
+	CrawlerDownloadSetting
+	...
+```
+### 限制条件
+- 每次分发的数量不宜过大，保持在 5000-10000
+- 超时时间 可以根据实际情况进行调整，设置时间暂定为 5 分钟
+- 队列的长度不宜过大，每个队列的长度不宜超过 2000（估算），可以根据实际情况进行调整。
 
-rq 队列定义样例:
+### 如何执行
+- master执行分发器进行任务分发
 
 ```
-# rq的命名规则可以根据优先级来 high, medium, low,
-# rq.enqueue()的option: timeout, result_ttl, at_front等
-q = Queue('low', connection=redis_conn)
-q.enqueue_call(func=count_words_at_url,
-               args=('http://nvie.com',),
-               timeout=30)
-# 同时rq 队列是没有长度限制的。
+  #for nginx
+  */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh dispatch
 ```
-执行分发器
+- slaver 从队列中取数据，并执行。（确保下载程序 与 salver 机器执行脚本在同一目录之下）
 
 ```
-  for root	
-  */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh dispatch
+ rq worker q_down_super q_down_high q_down_mid q_down_low
+ # 尽可能将它单独写成一个脚本
 ```
 
 ##  Slave下载数据
@@ -123,14 +197,82 @@ q.enqueue_call(func=count_words_at_url,
 - 无
 
 ### 输出
-- 下载数据Mongodb, json	
+- 下载数据Mongodb,
 - 错误日志	
 - 下载日志
 				
 ### 流程(伪代码)
 
 ```
-connect rq
+class Download(object):
+	def __init__(self):
+	    self.content = None #保存下载下来的数据
+		...
+		pass
+	def reporthook(self):
+		print 'ok'
+		pass
+	def download(self):
+		if self.url.find('enterprise://') != -1:
+			download_with_enterprise() #封装公商
+		else:
+            self.download_with_requests()
+        ...
+	def download_with_requests(self):
+		if self.type is 'python' and self.is_support:
+			save python code to path
+			sys.path.append(path)
+			import name_module
+			self.content = name_module.run(uri = self.uri)
+		elif self.type is 'shell' and self.is_support:
+			save shell code to path
+			result = commands.getstatusoutput('sh name.sh')
+			self.content = result[1]
+		elif self.types is 'curl' and self.is_support:
+			result = commands.getstatusoutput('%s %s' % (types, self.uri))
+			self.content = result[1]
+		elif self.types is 'wget' and self.is_support:
+			i = url.rfind('/')
+			file = url[i+1:]
+			(filename,mime_hdrs) = urllib.urlretrieve(self.url,file,self.reporthook)
+		else:
+			r = requests.get(self.url, headers=self.headers, proxies=self.proxies)
+			self.content = r.text
+```	
+```
+class DownloadClawerTask(object):
+	def __init__(self, clawer_task, clawer_setting):
+		self.downloader = Download(self.clawer_task.uri, engine=self.clawer_setting.download_engine, js=self.clawer_setting.download_js)
+		self.clawer_task = clawer_task
+		...
+	def download(self):
+		try:
+	    	self.downlaoder.download()
+	    except:
+	    	clawertask.status = STATUS.FAILED
+	    	write_error_log
+	    if self.downloader.failed:
+	    	clawertask.status = STATUS.FAILED
+	        write_fail_log
+	        return
+	    clawerdowndata.save() #保存下载数据到mongodb数据库
+	    clawertask.status = STATUS.SUCCESS
+	    write_success_log
+```
+
+
+```
+def download_clawer_task():
+	try:
+		downloader = DownloadClawerTask(clawer_task, clawer_setting) #配置下载器
+		downloader.download()	#根据不同用不同方式下载
+	except:
+		fail_log
+		sentry.except()
+```
+
+```
+rq worker down_super down_high down_mid down_low
 ```
 
 
@@ -146,61 +288,118 @@ connect rq
 
 
 # 数据库设计
+mysql数据库定义(能够引用mongodb?)
+## CrawlerDownloadSetting
+- 生产者：用户新增一个job时，设置 下载器配置 时产生。
+- 消费者：下载程序
+
+```
+class CrawlerDownloadSetting(model.Models):
+    job = ForeignKey(Job)
+    dispatch_num = models.IntegerField(u"每次分发下载任务数", default=100)
+    max_retry_times = IntegerField(default=0)
+    proxy = models.TextField(blank=True, null=True)
+    cookie = models.TextField(blank=True, null=True)
+    prior = models.IntegerField(default=PRIOR_NORMAL)
+    last_update_datetime = models.DateTimeField(auto_now_add=True, auto_now=True)
+    add_datetime = models.DateTimeField(auto_now_add=True)
+```
 
 mongodb当中的数据库定义。
+## CrawlerDownloadType
 
-## DownloadLog
+- 生产者：由管理员产生，配置布暑该平台支持的下载器语言
+- 消费者：用户设置下载器时，types字段引用，
+
 ```
-class ClawerDownloadLog(Document):
+class CrawlerDownloadType(Document):
+	language = StringField(help_text=u'计算机语言或者shell命令', required=True, unique=True)
+	is_support = BoolField(default=False)
+	add_datetime = DateTimeField(default=datetime.datetime.now())
+	meta = {"db_alias": "source"} # 默认连接的数据库
+```
+## CrawlerDownload
+- 生产者：由用户新增一个job时，设置下载器产生。
+- 消费者：下载程序
+
+```
+class CrawlerDownload(Document):
+	 (STATUS_ON, STATUS_OFF) = range(0, 2)
+     STATUS_CHOICES = (
+		(STATUS_ON, u"启用"),
+    	(STATUS_OFF, u"下线"),
+    )
+	job = ReferenceField(Job)
+    code = StringField()  # code
+    types = ReferenceField(CrawlerDownloadType)
+    status = IntField(default=0, choices=STATUS_CHOICES)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库
+```
+
+
+## CrawlerDownloadData
+- 生产者：下载程序
+- 消费者：分析器
+
+```
+class CrawlerDownloadData(Document):
+	job = ReferenceField(Job)
+	downloader = ReferenceField(CrawlerDownload)
+	crawlertask = ReferenceField(CrawlerTask)
+	requests_headers = StringField()
+	response_headers = StringField()
+	requests_body = StringField()
+	response_body = StringField()
+	hostname = StringField()
+	remote_ip = StringField()
+	add_datetime = DateTimeField(default=datetime.datetime.now())
+	meta = {"db_alias": "source"} # 默认连接的数据库
+```
+## CrawlerDispatchAlertLog
+- 生产者：该日志由下载器在分发工作时队列满等警告产生
+- 消费者：用户及管理员查看
+
+```
+class CrawlerDownloadAlertLog(Document):
+	(ALTER, SUCCESS, FAILED) = range(1,4)
+	ALTER_TYPES = (
+		(ALTER, u'警告')
+		(SUCCESS, u‘分发成功’)
+		(FAILED, u'分发失败')
+	)
+    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
+    type = IntField(choices=ALTER_TYPES, default=1)
+    reason = StringField(max_length=10240, required=True)
+    content_bytes = IntField(default=0)
+    hostname = StringField(required=True, max_length=16)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
+```
+
+## CrawlerDownloadLog
+- 生产者： 下载程序
+- 消费者： 用户及管理员查看
+
+```
+class CrawlerDownloadLog(Document):
     (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
-    STATUS_CHOICES = (
+   	STATUS_CHOICES = (
         (STATUS_FAIL, u"失败"),
         (STATUS_SUCCESS, u"成功"),
     )
-    job = models.ForeignKey(Job)
-    task = models.ForeignKey('ClawerTask')
-    status = models.IntegerField(default=0, choices=STATUS_CHOICES)
-    failed_reason = models.CharField(max_length=10240, null=True, blank=True)
-    content_bytes = models.IntegerField(default=0)
-    content_encoding = models.CharField(null=True, blank=True, max_length=32)
-    hostname = models.CharField(null=True, blank=True, max_length=16)
-    spend_time = models.IntegerField(default=0) #unit is microsecond
-    add_datetime = models.DateTimeField(auto_now=True)
-```
-## DownloadSetting
-
-```
-class DownloadSetting(Document):
-    (PRIOR_NORMAL, PRIOR_URGENCY, PRIOR_FOREIGN) = range(0, 3)
-    PRIOR_CHOICES = (
-        (PRIOR_NORMAL, "normal"),
-        (PRIOR_URGENCY, "urgency"),
-        (PRIOR_FOREIGN, "foreign"),
-    )
-    dispatch = models.IntegerField(u"每次分发下载任务数", default=100)
-    download_code = models.TextField(blank=True, null=True)
-    proxy = models.TextField(blank=True, null=True)
-    cookie = models.TextField(blank=True, null=True)
-    download_engine = models.CharField(max_length=16, default=Download.ENGINE_REQUESTS, choices=Download.ENGINE_CHOICES)
-    download_js = models.TextField(blank=True, null=True)
-    prior = models.IntegerField(default=PRIOR_NORMAL)
-    last_update_datetime = models.DateTimeField(auto_now=True)
-    report_mails = models.CharField(blank=True, null=True, max_length=256)
-    add_datetime = models.DateTimeField(auto_now_add=True)
-
+    job = ReferenceField(Job)
+    task = ReferenceField(ClawerTask)
+    status = IntField(default=0, choices=STATUS_CHOICES)
+    requests_size = IntField()
+    response_size = IntField()
+    failed_reason = StringField(max_length=10240, required=False)
+    downloads_hostname = StringField(required=True, max_length=16)
+    spend_time = IntField(default=0) #unit is microsecond
+    add_datetime = DateTimeField(auto_now=True)
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
-
-# 接口
-## 接口1
-- 接口说明：	
-此接口是Master服务器调用，用于将传入的下载器进行校验后 存储进入MongoDB中。
-	
-- 调用方式	
-
-```
-	
-```
 
 # 测试计划
 正确性测试，容错性测试，数据库测试
@@ -208,10 +407,11 @@ class DownloadSetting(Document):
  
 
 ## Testcase 1	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+下载器及下载器设置入库
 
-
-
-## Testcase 2	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+## Testcase 2
+分发测试
+					                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
 
 

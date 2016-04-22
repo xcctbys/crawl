@@ -1,8 +1,10 @@
 #encoding=utf-8
 import json
 import os
-import datetime
+from datetime import datetime
 import logging
+import unittest
+from croniter import croniter
 
 # from django.test.client import Client
 # from django.core.urlresolvers import reverse
@@ -14,353 +16,596 @@ import logging
 
 from django.test import TestCase
 from django.conf import settings
-from collector.models import CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, GrawlerGeneratorCronLog
-from mongoengine import *
+from django.core.management import call_command
+from django.utils.six import StringIO
+
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
+from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
+from collector.utils_generator import force_exit, exec_command
+from collector.utils_cron import CronTab
+from redis import Redis
+from rq import Queue
+import subprocess
+import time
+
+class TestGeneratorCommand(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_task_count(self):
+        count = CrawlerTask.objects.count()
+        self.assertGreater(count, 0)
+
+    def test_command_generator_dispatch(self):
+        CrawlerTask.objects.delete()
+        out = StringIO()
+        call_command('generator_dispatch', stdout=out)
+        print out.getvalue()
+        # with open('/path/to/command_output') as f:
+            # management.call_command('dumpdata', stdout=f)
+        # self.assertIn('Expected output', out.getvalue())
+        count = CrawlerTask.objects.count()
+        print "CrawlerTask count=%d"%count
+        self.assertGreater(count, 0)
+
+    def test_command_generator_install(self):
+        out = StringIO()
+        if os.path.exists(settings.CRON_FILE):
+            os.remove(settings.CRON_FILE)
+        call_command('generator_install', stdout=out)
+        # with open('/path/to/command_output') as f:
+            # management.call_command('dumpdata', stdout=f)
+        # self.assertIn('Expected output', out.getvalue())
+        crons= CronTab()
+        crons.read(settings.CRON_FILE)
+        for cron in crons:
+            self.assertTrue(cron)
+            print cron.render()
 
 class TestMongodb(TestCase):
     def setUp(self):
-        connect('mongoenginetest', host='mongomock://localhost', alias='testdb')
-        conn = get_connection('testdb')
+        TestCase.setUp(self)
 
     def tearDown(self):
         TestCase.tearDown(self)
 
-    def test_job(self):
+    def test_job_save(self):
+        # with switch_db(Job, 'source') as Job:
         job = Job(name='job')
         job.save()
         count = Job.objects(name='job').count()
+        self.assertGreater(count, 0)
+        job.delete()
+
+    def test_task_save(self):
+        jobs = Job.objects(id='570ded84c3666e0541c9e8d9').first()
+        task = CrawlerTask(uri='http://www.baidu.com')
+        task.job=jobs
+        task.save()
+        result = CrawlerTask.objects.first()
+        self.assertTrue(result)
+        task.delete()
+
+    def test_get_generator_with_job_id(self):
+        job_id = '570f73f6c3666e0af4a9efad'
+        generator_object =  CrawlerTaskGenerator.objects(job=job_id ,status = 4).first()
+        self.assertTrue(generator_object)
+
+    def test_job_find_by_name(self):
+        job = Job.objects(name='job')
+        self.assertGreater(len(job), 0)
+
+    def test_job_find_by_id(self):
+        job = Job.objects(id='570ded84c3666e0541c9e8d9')
+        self.assertGreater(len(job), 0)
+
+    def test_job_find_by_generator(self):
+        generator = CrawlerTaskGenerator.objects.first()
+        job = generator.job
+        print job
+        print job.id
+        print job.priority
+        self.assertEqual(job.id, '570f73f6c3666e0af4a9efad')
+
+    def test_job_delete(self):
+        job = Job.objects(name='job')
+        job.delete()
+        count = Job.objects(name='job').count()
+        self.assertEqual(count, 0)
+
+    def test_job_with_id(self):
+        valid_id = "570ded84c3666e0541c9e8d9"
+        invalid_id = "rfwearewrfaewrfaeawrarew"
+        valid_job = Job.objects().with_id(valid_id)
+        self.assertTrue(valid_job)
+        try:
+            invalid_job = Job.objects.with_id(invalid_id)
+            self.assertTrue(invalid_job)
+        except Exception as e:
+            pass
+    def test_generator_code_dir(self):
+        generator = CrawlerTaskGenerator.objects.first()
+        path = generator.code_dir()
+        self.assertEqual(path, "/data/media/codes")
+
+    def test_generator_product_path(self):
+        generator = CrawlerTaskGenerator.objects.first()
+        path = generator.product_path()
+        self.assertTrue(path)
+
+    def test_task_delete_all(self):
+        count = CrawlerTask.objects.delete()
+        self.assertGreater(count, 0)
+
+class TestPreprocess(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+        self.job = Job(name='job')
+        self.job.save()
+        self.pre = DataPreprocess(job_id= self.job.id)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+        self.job.delete()
+
+    def test_read_from_string(self):
+        inputs = """
+        http://www.baidu.com
+        https://www.baidu.com
+        ftp://www.baidu.com
+        ftps://www.baidu.com
+        enterprise://baidu.com
+
+        www.baidu.com
+        baidu.com
+        httd://baidu.com
+        baidu.com,http://www.baidu.com
+        http://www.baidu.com,http://baidu.com
+        """
+        uris = self.pre.read_from_strings(inputs, schemes=['enterprise'])
+        print uris
+        self.assertEqual(len(uris), 5)
+
+    def test_save_text(self):
+        inputs = """
+        http://www.baidu.com
+        """
+        result = self.pre.save_text(inputs)
+
+        self.assertTrue(result)
+        result = CrawlerTask.objects.first()
+        print result
+        self.assertTrue(result)
+
+    @unittest.skip("skipping read from file")
+    def test_read_from_file(self):
+        filename = "/Users/princetechs5/Documents/uri.csv"
+        uris_string = ""
+        with open(filename, 'r') as f:
+            uris_string= f.read()
+        self.assertTrue( uris_string)
+
+    def test_read_from_file_and_not_save(self):
+        filename = "/Users/princetechs5/Documents/uri.csv"
+        uris_string = ""
+        with open(filename, 'r') as f:
+            uris_string= f.read()
+        uris = self.pre.read_from_strings(uris_string, schemes=[])
+        print uris
+        self.assertListEqual( ['http://www.baidu.com', 'http://www.google.com'], uris)
+
+    def test_save_script(self):
+        script = """
+            print json.dumps({'uri':"http://www.baidu.com"})
+            """
+        cron = "*/3 * * * *"
+        result = self.pre.save_script(script, cron)
+        self.assertTrue(result)
+
+        count = CrawlerTaskGenerator.objects(code= script).count()
+        self.assertGreater(count, 0)
+
+
+    def test_save_with_text(self):
+        inputs = """
+        search://baidu.com
+
+        www.baidu.com
+        baidu.com
+        httd://baidu.com
+        """
+        schemes= ['search']
+
+        self.pre.save(text = inputs, settings={'schemes': schemes})
+        uris = CrawlerTask.objects(uri = "search://baidu.com")
+        self.assertEqual(len(uris), 1)
+        for uri in uris:
+            uri.delete()
+
+
+    def test_save_with_script(self):
+        script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+        cron = "*/3 * * * *"
+
+        self.pre.save(script= script, settings={'cron': cron})
+        script_doc = CrawlerTaskGenerator.objects.first()
+        self.assertTrue(script_doc)
+        # script_doc.delete()
+
+class TestDispatch(TestCase):
+    """Test for GeneratorDispatch"""
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+        # self.job.delete()
+    def test_job_is_found(self):
+        gd = None
+        try:
+            gd = GeneratorDispatch(job_id = "570f73f6c3666e0af4a9efad")
+        except KeyError, e:
+            self.assertFalse(e)
+        self.assertTrue(gd)
+
+    def test_job_is_not_found(self):
+        gd = None
+        try:
+            gd = GeneratorDispatch(job_id = "Not Found")
+        except KeyError, e:
+            self.assertTrue(e)
+        self.assertFalse(gd)
+
+
+    def test_get_generator_object(self):
+        self.gd = GeneratorDispatch(job_id = '570f73f6c3666e0af4a9efad')
+        generator_object = self.gd.get_generator_object()
+        print generator_object
+        self.assertTrue(generator_object)
+
+    def test_dispatch_uri(self):
+        self.gd = GeneratorDispatch(job_id = '570f73f6c3666e0af4a9efad')
+        queue = self.gd.run()
+        print queue
+        self.assertTrue(queue)
+
+class TestGenerateTask(TestCase):
+    """ Test for GenerateCrawlerTask """
+    def setUp(self):
+        TestCase.setUp(self)
+        # script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+        # generator = CrawlerTaskGenerator.objects.first()
+        # self.gt = GenerateCrawlerTask(generator)
+        # task_count = CrawlerTask.objects().delete()
+        # print "task count = %d" %(task_count)
+        # log_count = CrawlerGeneratorLog.objects().delete()
+        # print "generator log count = %d"%(log_count)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_settings_shell(self):
+        SHELL = os.environ.get('SHELL', '/bin/bash')
+        print SHELL
+        tools = settings.__dict__.get('SHELL', settings.PYTHON)
+        self.assertEqual(tools, settings.SHELL)
+
+    def test_generate_task_shell(self):
+        job = Job( name = 'shell', status= 1, priority =1)
+        job.save()
+
+        script = """#!/bin/bash\necho "{'uri':'http://www.shell.com'}"\n """
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_SHELL, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+
+        gt = GenerateCrawlerTask(generator)
+        result = gt.generate_task()
+        generator.delete()
+        job.delete()
+
+        self.assertTrue(result)
+        path = gt.out_path
+        fd = open(path, 'r')
+        contents = fd.read().strip()
+        self.assertEqual(contents, """{'uri':'http://www.shell.com'}""")
+
+
+
+    def test_generate_task_python(self):
+        job = Job( name = 'python_script', status= 1, priority =1)
+        job.save()
+
+        script = """import json\nprint json.dumps({"uri":"http://www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+
+        gt = GenerateCrawlerTask(generator)
+        result = gt.generate_task()
+        generator.delete()
+        job.delete()
+
+        self.assertTrue(result)
+        path = gt.out_path
+        fd = open(path, 'r')
+        contents = fd.read().strip()
+        # key 与value 之间有个空格
+        self.assertEqual(contents, """{"uri": "http://www.baidu.com"}""")
+
+
+    def test_save_task(self):
+        self.gt.save_task()
+        count = CrawlerTask.objects(uri ='http://www.baidu.com').count()
+        self.assertEqual(count, 1)
+
+    def test_run_shell(self):
+        job = Job( name = 'shell', status= 1, priority =1)
+        job.save()
+
+        script = """#!/bin/bash\necho "{'uri':'http://www.shell.com'}"\n """
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_SHELL, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+
+        self.assertFalse(os.path.exists(gt.out_path))
+        count = CrawlerTask.objects(uri ='http://www.shell.com').count()
+        generator.delete()
+        job.delete()
+        self.assertEqual(count, 1)
+
+    def test_run_python(self):
+        job = Job( name = 'python_script', status= 1, priority =1)
+        job.save()
+
+        script = """import json\nprint json.dumps({"uri":"http://www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+        count = CrawlerTask.objects(uri ='http://www.baidu.com').count()
+
+        generator.delete()
+        job.delete()
+        self.assertFalse(os.path.exists(gt.out_path))
         self.assertEqual(count, 1)
 
 
-"""
-class TestHomeApi(TestCase):
+class TestSafeProcess(TestCase):
+    """ Test for SafeProcess Class """
     def setUp(self):
         TestCase.setUp(self)
-        self.user = DjangoUser.objects.create_user(username="xxx", password="xxx")
-        self.group = Group.objects.create(name=MenuPermission.GROUPS[0])
-        self.user.groups.add(self.group)
-        self.client = Client()
-        self.logined_client = Client()
-        self.logined_client.login(username=self.user.username, password=self.user.username)
-        self.url_cache = UrlCache()
 
     def tearDown(self):
         TestCase.tearDown(self)
-        self.user.delete()
-        self.group.delete()
 
-    def test_all(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        url = reverse("clawer.apis.home.clawer_all")
+    def test_popen(self):
+        child1 = subprocess.Popen(["ls","-l"], stdout=subprocess.PIPE)
+        child2 = subprocess.Popen(["wc"], stdin=child1.stdout,stdout=subprocess.PIPE)
+        out = child2.communicate()
+        print(out)
+        self.assertTrue(out)
 
-        resp = self.logined_client.get(url)
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
+    def test_popen_python(self):
+        """ path 的路径一定要写正确，不然会出大问题的 """
+        path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
+        out_path = "/tmp/task_generator_570f6bc5c3666e095ed99d90"
+        out_f = open(out_path, "w")
+        process = subprocess.Popen(['/Users/princetechs5/Documents/virtualenv/bin/python', path], stdout= out_f)
+        self.assertTrue(process)
 
-        clawer.delete()
+    def test_run(self):
+        path = "/Users/princetechs5/crawler/cr-clawer/clawer/clawer/media/codes/570f73f6c3666e0af4a9efad_product.py"
+        out_path = "/tmp/task_generator_570f6bc5c3666e095ed99d90"
+        out_f = open(out_path, "w")
+        safe_process = SafeProcess(['/Users/princetechs5/Documents/virtualenv/bin/python', path], stdout=out_f, stderr=subprocess.PIPE)
+        p = -1
+        try:
+            p = safe_process.run(1800)
+        except OSError , e:
+            print type(e)
+            # safe_process.failed(e.child_traceback)
+        except Exception, e:
+            print type(e)
+            # safe_process.failed(e)
+        err = p.stderr.read()
+        print err
+        status = safe_process.wait()
+        # 进程的返回代码returncode
+        self.assertEqual(status,0)
 
-    def test_clawer_add(self):
-        url = reverse("clawer.apis.home.clawer_add")
-        data = {'name': 'hello', 'info': 'Good word', 'customer': 'daddd'}
-        resp = self.logined_client.post(url, data)
-        self.assertEqual(resp.status_code, 200)
-
-        result = json.loads(resp.content)
-        self.assertEqual(result["is_ok"], True)
-
-    def test_download_log(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        clawer_generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print hello", cron="*", status=ClawerTaskGenerator.STATUS_PRODUCT)
-        clawer_task = ClawerTask.objects.create(clawer=clawer, task_generator=clawer_generator, uri="http://github.com", status=ClawerTask.STATUS_FAIL)
-        download_log = ClawerDownloadLog.objects.create(clawer=clawer, task=clawer_task)
-        url = reverse("clawer.apis.home.clawer_download_log")
-
-        resp = self.logined_client.get(url)
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-        clawer_generator.delete()
-        clawer_task.delete()
-        download_log.delete()
-
-    def test_task(self):
-        self.url_cache.flush()
-        clawer = Clawer.objects.create(name="hi", info="good")
-        clawer_generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print hello", cron="*", status=ClawerTaskGenerator.STATUS_PRODUCT)
-        clawer_task = ClawerTask.objects.create(clawer=clawer, task_generator=clawer_generator, uri="http://github.com", status=ClawerTask.STATUS_FAIL)
-        url = reverse("clawer.apis.home.clawer_task")
-
-        resp = self.logined_client.get(url)
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-        clawer_generator.delete()
-        clawer_task.delete()
-
-    def test_task_analysis_failed_reset(self):
-        self.url_cache.flush()
-        clawer = Clawer.objects.create(name="hi", info="good")
-        clawer_generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print hello", cron="*", status=ClawerTaskGenerator.STATUS_PRODUCT)
-        clawer_task = ClawerTask.objects.create(clawer=clawer, task_generator=clawer_generator, uri="http://github.com", status=ClawerTask.STATUS_ANALYSIS_FAIL)
-        url = reverse("clawer.apis.home.clawer_task_reset")
-
-        resp = self.logined_client.get(url, {"clawer": clawer.id, "status":ClawerTask.STATUS_ANALYSIS_FAIL})
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-        clawer_generator.delete()
-        clawer_task.delete()
-
-    def test_task_process_reset(self):
-        self.url_cache.flush()
-        clawer = Clawer.objects.create(name="hi", info="good")
-        clawer_generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print hello", cron="*", status=ClawerTaskGenerator.STATUS_PRODUCT)
-        clawer_task = ClawerTask.objects.create(clawer=clawer, task_generator=clawer_generator, uri="http://github.com", status=ClawerTask.STATUS_PROCESS)
-        url = reverse("clawer.apis.home.clawer_task_reset")
-
-        resp = self.logined_client.get(url, {"clawer": clawer.id, "status":ClawerTask.STATUS_PROCESS})
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-        clawer_generator.delete()
-        clawer_task.delete()
-
-    def test_task_add(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        url = reverse("clawer.apis.home.clawer_task_add")
-
-        resp = self.logined_client.post(url, {"clawer":clawer.id, "uri":"http://www.1.com"})
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-
-    def test_clawer_task_generator_update(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        code_path = "/tmp/test.py"
-        code_file = open(code_path, "arw")
-        code_file.write("print 'http://www.github.com'\n")
-        code_file.close()
-        code_file = open(code_path)
-        url = reverse("clawer.apis.home.clawer_task_generator_update")
-
-        resp = self.logined_client.post(url, data={"code_file":code_file, "clawer":clawer.id, "cron":"*"})
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        task_generator = ClawerTaskGenerator.objects.get(clawer=clawer)
-        self.assertGreater(len(task_generator.code), 0)
-
-        clawer.delete()
-        task_generator.delete()
-        os.remove(code_path)
-
-    def test_clawer_task_generator_history(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        clawer_generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print hello", cron="*", status=ClawerTaskGenerator.STATUS_PRODUCT)
-        url = reverse("clawer.apis.home.clawer_task_generator_history")
-
-        resp = self.logined_client.get(url)
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-        clawer_generator.delete()
-
-    def test_clawer_analysis_update(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        code_path = "/tmp/test.py"
-        code_file = open(code_path, "arw")
-        code_file.write("print 'http://www.github.com'\n")
-        code_file.close()
-        code_file = open(code_path)
-        url = reverse("clawer.apis.home.clawer_analysis_update")
-
-        resp = self.logined_client.post(url, data={"code_file":code_file, "clawer":clawer.id})
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        analysis = ClawerAnalysis.objects.get(clawer=clawer)
-        self.assertGreater(len(analysis.code), 0)
-
-        clawer.delete()
-        analysis.delete()
-        os.remove(code_path)
-
-    def test_clawer_analysis_history(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        analysis = ClawerAnalysis.objects.create(clawer=clawer, code="print")
-        url = reverse("clawer.apis.home.clawer_analysis_history")
-
-        resp = self.logined_client.get(url, {"clawer_id":clawer.id})
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-        analysis.delete()
-
-    def test_clawer_analysis_log(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        analysis = ClawerAnalysis.objects.create(clawer=clawer, code="print")
-        task_generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="sss", cron="*")
-        task = ClawerTask.objects.create(clawer=clawer, task_generator=task_generator, uri="http://www.csdn.net")
-        analysis_log = ClawerAnalysisLog.objects.create(clawer=clawer, analysis=analysis, task=task)
-        url = reverse("clawer.apis.home.clawer_analysis_log")
-
-        resp = self.logined_client.get(url)
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-        analysis.delete()
-        analysis_log.delete()
-
-    def test_clawer_generate_log(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        task_generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="sss", cron="*")
-        generate_log = ClawerGenerateLog.objects.create(clawer=clawer, task_generator=task_generator)
-        url = reverse("clawer.apis.home.clawer_generate_log")
-
-        resp = self.logined_client.get(url)
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer.delete()
-        task_generator.delete()
-        generate_log.delete()
-
-    def test_clawer_setting_update(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        url = reverse("clawer.apis.home.clawer_setting_update")
-        data = {"dispatch":10, "analysis":90, "clawer":clawer.id, "download_engine":Download.ENGINE_REQUESTS, "status":1,
-                "prior": ClawerSetting.PRIOR_URGENCY}
-
-        resp = self.logined_client.post(url, data)
-        result = json.loads(resp.content)
-        self.assertTrue(result["is_ok"])
-
-        clawer_setting = clawer.settings()
-        self.assertEqual(clawer_setting.dispatch, data["dispatch"])
-
-        clawer.delete()
-
-
-
-class TestCmd(TestCase):
+class TestCrawlerCron(TestCase):
+    """ Test for Cron Class """
     def setUp(self):
         TestCase.setUp(self)
-        self.user = DjangoUser.objects.create_user(username="xxx", password="xxx")
-        self.group = Group.objects.create(name=MenuPermission.GROUPS[0])
-        self.user.groups.add(self.group)
-        self.url_cache = UrlCache()
+        # self.filename = '/tmp/output.tab'
+        self.cron = CrawlerCronTab()
+        """
+        mongodb preparations:
+            job:
+            { "_id" : ObjectId("570f73f6c3666e0af4a9efad"), "name" : "job", "status" : 1, "add_datetime" : ISODate("2016-04-14T18:41:33.966Z"), "priority" : 1 }
+            { "_id" : ObjectId("570ded84c3666e0541c9e8d8"), "name" : "cloud", "status" : 1, "add_datetime" : ISODate("2016-04-16T18:41:33.966Z"), "priority" : 4 }
+            crawler_task_generator:
+            { "_id" : ObjectId("570f6bc5c3666e095ed99d90"), "job" : ObjectId("570f73f6c3666e0af4a9efad"), "code" : "import json\nprint json.dumps({'uri':'http://www.baidu.com'})", "cron" : "*/3 * * * *", "status" : 4, "add_datetime" : ISODate("2016-04-14T18:06:33.978Z") }
+            { "_id" : ObjectId("570f6bc5c3666e095ed99d92"), "job" : ObjectId("570ded84c3666e0541c9e8d8"), "code" : "import json\nprint json.dumps({'uri':'http://www.baidu.com'})", "cron" : "*/6 * * * *", "status" : 3, "add_datetime" : ISODate("2016-04-16T18:06:33.978Z") }
+
+        """
+
+        self.job = Job.objects(id= '570f73f6c3666e0af4a9efad').first()
 
     def tearDown(self):
         TestCase.tearDown(self)
-        self.user.delete()
-        self.group.delete()
 
+    def test_insert_offline_job(self):
+        job = Job(name='offline', status=Job.STATUS_OFF, priority=3)
+        job.save()
+        count =Job.objects(status = Job.STATUS_OFF).count()
+        self.assertEqual(count, 1)
+        job.delete()
+
+    def test_file_not_exist(self):
+        try:
+            CrawlerCronTab('/tmp/NotExistFile.tab')
+        except IOError, e:
+            self.assertTrue(e)
+
+    def test_save_code(self):
+        generator =CrawlerTaskGenerator.objects(id ='570f6bc5c3666e095ed99d90').first()
+        result = self.cron._test_save_code(generator)
+        self.assertTrue(result)
+        path = generator.product_path()
+        try:
+            with open(path, 'r') as f:
+                content = f.read()
+        except Exception, e:
+            print "IOError"
+        self.assertEqual(content, generator.code)
+
+
+    def test_job_order_by_datetime(self):
+        job = Job(name= 'jobs')
+        job.save()
+        job2 = Job.objects.order_by('-add_datetime').first()
+        self.assertEqual(job2.name, job.name)
+        job.delete()
+
+    def test_install_crontab(self):
+        generator =CrawlerTaskGenerator.objects(id ='570f6bc5c3666e095ed99d90').first()
+        result = self.cron._test_install_crontab(generator)
+        print result
+        self.assertTrue(result)
+
+    def test_crontab(self):
+        generator =CrawlerTaskGenerator.objects(id ='570f6bc5c3666e095ed99d90').first()
+        result = self.cron._test_crontab(generator)
+        print result
+        self.assertTrue(result)
+
+    def test_task_generator_cron_comment(self):
+        job = Job.objects(id ='570f73f6c3666e0af4a9efad').first()
+        result = self.cron._task_generator_cron_comment(job)
+        target = "job name:%s with id:%s"%('collector', '570f73f6c3666e0af4a9efad')
+        self.assertEqual(result, target)
+
+    def test_remove_offline_jobs(self):
+        self.cron.remove_offline_jobs_from_crontab()
+        job = Job.objects(status = Job.STATUS_OFF).first()
+        comment = self.cron._task_generator_cron_comment(job)
+        crons = self.cron.crontab.find_comment(comment)
+        for cron in crons:
+            self.assertFalse(cron)
+
+    def test_update_online_jobs(self):
+        # preparation
+        script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+        cron = "*/5 * * * *"
+        generator = CrawlerTaskGenerator(job = self.job,code= script, cron = cron)
+        generator.save()
+        self.cron.update_online_jobs()
+
+        generator2= CrawlerTaskGenerator.objects(job= self.job, status = CrawlerTaskGenerator.STATUS_ON).first()
+        self.assertEqual(generator, generator2)
+
+        generator2.delete()
+
+    def test_save_cron_to_file(self):
+        self.cron.crontab.new(command="/usr/bin/echo", comment="test")
+        self.cron.save_cron_to_file()
+        cron = CronTab()
+        cron.read(self.filename)
+        comment = "test"
+        crons = cron.find_comment(comment)
+        for cron in crons:
+            self.assertTrue(cron)
+
+
+    def test_task_generator_install(self):
+        result = self.cron.task_generator_install()
+        self.assertTrue(result)
+        try:
+            with open(self.filename, 'r') as f:
+                content = f.read()
+                print content
+        except Exception , e:
+            print "IOError"
+
+        cron = CronTab()
+        cron.read(self.filename)
+        comment = self.cron._task_generator_cron_comment(self.job)
+        crons = cron.find_comment(comment)
+        for cron in crons:
+            self.assertTrue(cron)
+
+    def test_exec_command(self):
+        command = "GeneratorDispatch('570f73f6c3666e0af4a9efad').run()"
+        c = compile(command, "", 'exec')
+        exec c
+
+    def test_exec_and_save_current_crons(self):
+        CrawlerGeneratorCronLog.objects().delete()
+        self.cron.exec_and_save_current_crons()
+        count = CrawlerGeneratorCronLog.objects.count()
+        self.assertGreater(count, 0)
+
+        # cron = CronTab()
+        # cron.read(self.filename)
+        # comment = self.cron._task_generator_cron_comment(self.job)
+        # crons = cron.find_comment(comment)
+        # for cron in crons:
+        #     print cron.last_run
+        #     self.assertTrue(cron)
+
+    def test_croniter(self):
+        base =  datetime(2010, 1, 25, 4, 46)
+        # base = datetime.datetime.now()
+        iters = croniter('*/5 * * * *', base)  # every 1 minites
+        next = iters.get_next(datetime)
+        # target = base + datetime.timedelta(minutes=1)
+        target = '2010-01-25 04:50:00'
+        self.assertEqual( str(next), target)
 
     def test_task_generator_run(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print '{\"uri\": \"http://www.github.com\"}'\n", cron="*", status=ClawerTaskGenerator.STATUS_ON)
-        product_path = generator.product_path()
-        if os.path.exists(product_path):
-            os.remove(product_path)
+        result = self.cron.task_generator_run()
+        self.assertTrue(result)
 
-        ret = task_generator_run.run(generator.id)
-        self.assertTrue(ret)
+    def test_force_exit(self):
+        CrawlerGeneratorAlertLog.objects.delete()
+        print force_exit()
 
-        clawer.delete()
-        generator.delete()
+    def test_exec_command(self):
+        cron = "*/6 * * * *"
+        command ="GeneratorDispatch('570ded84c3666e0541c9e8d8').run()"
+        comment = "job name:cloud with id:570ded84c3666e0541c9e8d8"
+        CrawlerGeneratorCronLog.objects().delete()
+        exec_command(command, comment, cron)
+        count = CrawlerGeneratorCronLog.objects.count()
+        self.assertGreater(count, 0)
 
-    def test_task_dispatch(self):
-        clawer = Clawer.objects.create(name="hi", info="good")
-        generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print '{\"uri\": \"http://www.gitsdhub.com\"}'\n", cron="*")
-        task = ClawerTask.objects.create(clawer=clawer, task_generator=generator, uri="https://www.ba90idu.com")
-
-        q = task_dispatch.run()
-        self.assertEqual(len(q.jobs), 1)
-
-        clawer.delete()
-        generator.delete()
-        task.delete()
-
-    def test_task_analysis(self):
-        self.url_cache.flush()
-        path = "/tmp/ana.store"
-        tmp_file = open(path, "w")
-        tmp_file.write("hi")
-        tmp_file.close()
-        clawer = Clawer.objects.create(name="hi", info="good")
-        generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print '{\"uri\": \"http://www.gith23ub.com\"}'\n", cron="*")
-        task = ClawerTask.objects.create(clawer=clawer, task_generator=generator, uri="https://www.ba56idu.com", store=path, status=ClawerTask.STATUS_SUCCESS)
-        analysis = ClawerAnalysis.objects.create(clawer=clawer, code="print '{\"url\":\"ssskkk\"}'\n")
-
-        task_analysis.do_run()
-
-        clawer.delete()
-        generator.delete()
-        task.delete()
-        analysis.delete()
-        os.remove(path)
-
-    def test_task_analysis_with_exception(self):
-        self.url_cache.flush()
-        path = "/tmp/ana.store"
-        tmp_file = open(path, "w")
-        tmp_file.write("hi")
-        tmp_file.close()
-        clawer = Clawer.objects.create(name="hi", info="good")
-        generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print a", cron="*")
-        task = ClawerTask.objects.create(clawer=clawer, task_generator=generator, uri="https://www.baweidu.com", store=path, status=ClawerTask.STATUS_SUCCESS)
-        analysis = ClawerAnalysis.objects.create(clawer=clawer, code="print a\n")
-
-        task_analysis.do_run()
-
-        clawer.delete()
-        generator.delete()
-        task.delete()
-        analysis.delete()
-        os.remove(path)
-
-    def test_task_analysis_with_large(self):
-        path = "/tmp/ana.store"
-        tmp_file = open(path, "w")
-        tmp_file.write("hi")
-        tmp_file.close()
-        code = "import json\nresult={}\nfor i in range(100000):\n    result[i] = 'test'\nprint json.dumps(result)"
-        clawer = Clawer.objects.create(name="hi", info="good")
-        generator = ClawerTaskGenerator.objects.create(clawer=clawer, code=code, cron="*")
-        task = ClawerTask.objects.create(clawer=clawer, task_generator=generator, uri="https://www.baidu.com", store=path, status=ClawerTask.STATUS_SUCCESS)
-        analysis = ClawerAnalysis.objects.create(clawer=clawer, code=code)
-
-        task_analysis.do_run()
-
-        clawer.delete()
-        generator.delete()
-        task.delete()
-        analysis.delete()
-        os.remove(path)
-
-    def test_task_analysis_merge(self):
-        pre_hour = datetime.datetime.now() - datetime.timedelta(minutes=60)
-        clawer = Clawer.objects.create(name="hi", info="good")
-        generator = ClawerTaskGenerator.objects.create(clawer=clawer, code="print '{\"uri\": \"http://www.github111.com\"}'\n", cron="*")
-        task = ClawerTask.objects.create(clawer=clawer, task_generator=generator, uri="https://www.baid11u.com")
-        analysis = ClawerAnalysis.objects.create(clawer=clawer, code="print '{\"url\":\"ssskkk\"}'\n")
-        analysis_log = ClawerAnalysisLog.objects.create(clawer=clawer, analysis=analysis, task=task, status=ClawerAnalysisLog.STATUS_SUCCESS,
-                                                        result=json.dumps({"hi":"ok"}), add_datetime=pre_hour)
-
-        task_analysis_merge.run()
-
-        clawer.delete()
-        generator.delete()
-        task.delete()
-        analysis.delete()
-        analysis_log.delete()
-
-"""

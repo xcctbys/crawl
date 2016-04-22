@@ -17,6 +17,7 @@ DATABASES = {
             'COLLATION':"utf8_general_ci"
         }
     }
+
 }
 
 
@@ -30,7 +31,11 @@ CACHES = {
     }
 }
 
-PYTHON = "/Users/pengxt/Documents/pyenv/dj14/bin/python"
+PYTHON = "/Users/princetechs5/Documents/virtualenv/bin/python"
+SHELL = os.environ.get('SHELL', '/bin/bash')
+CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
+MAX_QUEUE_LENGTH = 1000
+
 CRONTAB_USER = "pengxt"
 CLAWER_SOURCE = "/Users/pengxt/Documents/clawer/source/"
 CLAWER_RESULT = "/Users/pengxt/Documents/clawer/result/"
@@ -46,9 +51,9 @@ MONITOR_REDIS = "redis://localhost:6379//0"
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtp.exmail.qq.com'
-EMAIL_PORT = 465   
-EMAIL_HOST_USER='robot@princetechs.com'  
-EMAIL_HOST_PASSWORD='Robot0023' 
+EMAIL_PORT = 465
+EMAIL_HOST_USER='robot@princetechs.com'
+EMAIL_HOST_PASSWORD='Robot0023'
 USE_TLS = True
 
 #captcha
@@ -75,7 +80,7 @@ MongoDBS = {
 from mongoengine import connect
 
 for name, db in MongoDBS.iteritems():
-    connect(host=db['host'])
+    connect(host=db['host'], alias= name)
 
 
 """

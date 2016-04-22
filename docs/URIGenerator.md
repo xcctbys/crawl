@@ -30,11 +30,10 @@ def data_preprocess( *args, **kwargs):
 	if file is script:
 		save file with settings to uri_genenrator_collection
 	else:
-		uri_lists = read file
-		for uri in lists:
-			validate uri
-			dereplicate uri
-			save uri in mongodb
+		uri_lists = read file or textarea
+		validate uris
+		dereplicate uris
+		save uri in mongodb
 	return None
 ```
 
@@ -55,6 +54,7 @@ def data_preprocess( *args, **kwargs):
 ### 限制条件
 
 - 此函数运行在Master服务器上。
+- CSV与TXT 只包含一列，每一列只包含URI，不含标题栏。
 
 
 
@@ -112,7 +112,7 @@ def task_generator_run():
 读入tabfile文件
 
 ```
-# 文件内容的格式：    * * * * * cmd #comment #last_time
+# 文件内容的格式：    * * * * * cmd @last_time #comment 
 def read_from_file(self, filename= None)
 	with codecs.open(filename, 'r', encoding='utf-8') as fhl:
 		lines = fhl.readlines()
@@ -266,9 +266,9 @@ cron.write_to_user( user='bob' )
 
 ```
   for root	
-  */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_install
+  */5    *    *    *    * cd /path/to/cr-clawer/confs/cr;./bg_cmd.sh generator_install
   
-  *    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_run
+  *    *    *    *    * cd /path/to/cr-clawer/confs/cr;./bg_cmd.sh generator_run
 ```
 
 
@@ -288,7 +288,7 @@ Master从MongoDB的URI生成器Collection中获取job 为job_id的文档，定�
 将优先级分成-1, 0，1，2，3，4，5共7个优先级，-1, 为最高优先级，5为最低优先级；默认优先级为5。
 共设4个优先级通道，队列头优先级高，队列尾优先级低。
 
-very high	
+super	
 <===============< -1
 
 high 	
@@ -300,22 +300,22 @@ medium
 low		
 4 <=============< 5
 
-启动worker按如下格式启动，workers将会顺序从给定的队列中无限循环读入jobs，而且会按照very_high, high, medium， low顺序。
+启动worker按如下格式启动，workers将会顺序从给定的队列中无限循环读入jobs，而且会按照super, high, medium， low顺序。
 
 启动的worker的命令为：
 
 ```
-rq worker uri_very_high uri_high uri_medium uri_low
+rq worker uri_super uri_high uri_medium uri_low
 ```
 
-其中，uri_very_high通道只有在特殊情况下使用，特别急用的job才能启用此通道。
+其中，uri_super通道只有在特殊情况下使用，特别急用的job才能启用此通道。
 
 设置每个队列的长度`rq_length`,防止无限向rq队列中添加job导致内存被占用太多。假若当前队列已满，需要优先向低优先级通道队列头添加job，否则向高优先级通道队列尾添加。如果所有队列都满，则报警。
 
 
 ```
-def dispatch_uri(job_id, *args, **kwargs):
-	uri_object = uri_generator_mongodb.get_document_according_job( job_id )
+def dispatch_uri_generator(job_id, *args, **kwargs):
+	generator_object = uri_generator_mongodb.get_document_according_job( job_id )
 	download_uri_queue = DownloadURIQueue()
 	# 获取此文档的父job的优先级
 	priority = uri_generator_mongodb.get_job_priority({_id : $_id})
@@ -324,12 +324,12 @@ def dispatch_uri(job_id, *args, **kwargs):
 	if priority == -1:
 		try insert into very high queue at the back,
 		{
-			# 判断very high通道是否已满
-			if length('very_high' queue ) equal rq_length:
+			# 判断super通道是否已满
+			if length('super' queue ) equal rq_length:
 				# 尝试插入 high队列头,如果high队列满，则尝试插入 medium,依次类推，直到所有队列都满，则停止插入，将此条job放弃，
 				return False
 			else
-				download_queue.enqueue('very_high', download_uri_task, args=[item, *args, **kwargs])
+				download_queue.enqueue('super', download_uri_task, args=[item, *args, **kwargs])
 				return True
 		}
 		# 添加到错误日志中去，并给出警告。
@@ -352,7 +352,7 @@ def dispatch_uri(job_id, *args, **kwargs):
 			insert job into error log
 	else if priority == 2:
 	...
-	update uri_object status
+	update generator_object status
 	return download_queue
 ```
 
@@ -467,9 +467,10 @@ class Job(Document):
 
 ```
 class CrawlerTask(Document):
-	(STATUS_LIVE, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 7)
+	(STATUS_LIVE, STATUS_DISPATCH, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 8)
     STATUS_CHOICES = (
         (STATUS_LIVE, u"新增"),
+        (STATUS_DISPATCH, u'分发中'),
         (STATUS_PROCESS, u"进行中"),
         (STATUS_FAIL, u"下载失败"),
         (STATUS_SUCCESS, u"下载成功"),
@@ -483,7 +484,8 @@ class CrawlerTask(Document):
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
     from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
     add_datetime = DateTimeField(default=datetime.datetime.now())
-
+    retry_times = IntField(default=0)
+	meta = {"db_alias": "source"} # 默认连接的数据库
 ```
 
 
@@ -506,6 +508,7 @@ class CrawlerTaskGenerator(Document):
     cron = StringField(max_length=128)
     status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库
 ```
 ## CrawlerGeneratorLog
 
@@ -525,6 +528,7 @@ class GrawlerGeneratorLog(Document):
     spend_msecs = IntField(default=0) #unit is microsecond
     hostname = StringField(null=True, blank=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 ## CrawlerGeneratorCronLog
@@ -542,6 +546,7 @@ class GrawlerGeneratorCronLog(Document):
     failed_reason = StringField(max_length=10240, null=True, blank=True)
     spend_msecs = IntField(default=0) #unit is microsecond
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 ## CrawlerGeneratorErrorLog
@@ -552,6 +557,7 @@ class CrawlerGeneratorErrorLog(Document):
     content_bytes = IntField(default=0)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 ## CrawlerGeneratorAlertLog
@@ -563,58 +569,116 @@ class CrawlerGeneratorAlertLog(Document):
     content_bytes = IntField(default=0)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 # 接口
-## 接口1
+## 数据预处理
 - 接口说明：	
 此接口是Master服务器调用，用于将传入的文件和配置信息进行校验后 存储进入MongoDB中。
 	
 - 调用方式	
 
 ```
-	def data_preprocess(files, settings, *args, **kwargs):
+引入包：
+	from collector.utils_generator import DataPreprocess
+创建对象：
+	dp = DataPreprocess(job_id_stirng)
+```
+调用接口：
+
+```
+	def save(text=None, script=None, settings=None):
 		return None
 ```
+- 输入	
+	text: 字符串变量，为用户输入的textarea文本或者是CSV、TXT文件内容。        
+	script：字符串变量，为用户输入的脚本内容。		
+	settings：字典类型，当输入string时，settings包含URI的schemes参数，schemes为列表类型；但输入script时，settings包含cron， code_type信息，cron为字符串类型, code_type 为整形。        
+
+	
+- 输出		
+ 	None
  
-## 接口2
+## 生成器分发接口
+
 - 接口说明	
-	Master从MongoDB的CrawlerTaskGenerator中获取Job的_id为$_id的文档，定义URI下载队列DownloadQueue，将URI生成器函数，文档作为参数压入URI任务下载队列中，并返回URI下载队列对象。
+	Master从MongoDB的CrawlerTaskGenerator中获取Job的_id为$_id的文档，定义URI生成器队列GeneratorQueue，将任务函数generate_uri_task，生成器CrawlerTaskGenerator文档作为参数压入URI任务下载队列中，并返回URI下载队列对象。
 - 调用方式
 
 ```
-def dispatch_uri($_id, *args, **kwargs):
-	return DownloadQueue()
+引入包：
+	from collector.utils_generator import GeneratorDispatch
+
+创建对象：
+	dispatcher = GeneratorDispatch(job= job_id)
 ```
 
-## 接口3
+- 创建对象的输入		
+	Job的id， 字符串类型 	
+		
+```		
+调用执行函数：
+	rqQueue = dispatcher.run()
+```
+
+- 函数输出		
+	四条队列中的某一队列（感觉返回这个没啥意义。。。）
+
+## 异步队列任务函数
 - 接口说明	
-	Slave从URI任务生成器队列中获取任务，执行URI生成器脚本并将输出的URI结果保存进MongoDB中。
+	worker从URI任务生成器队列中获取任务，执行URI生成器脚本并将输出的URI结果保存进MongoDB中。
 - 调用方式
 
 ```
-def download_uri_task(uri_generator_doc, *args, **kwargs):
-	return None
+def generate_uri_task(task_generator_doc, *args, **kwargs):
+	return True
 ```
 
-## 接口4
+- 输入		
+	任务生成器对象， 类型为MongoDB的CrawlerTaskGenerator的一条文档Collection
+- 输出		
+	True
+
+## 更新生成器脚本
 - 接口说明	
 	例行任务，生成器更新脚本。
 - 调用方式
 
+引入：
+
 ```
-	def task_generator_install():
-		return None
+	from collector.utils_generator import CrawlerCronTab
 ```
 
-## 接口5
+创建对象：
+
+```
+	crontab = CrawlerCronTab(filename= settings.CRON_FILE)
+```
+
+- 创建对象输入		
+	filename为字符串类型，要读取或保存crontab信息的文件地址。
+
+定期更新接口
+
+```
+	def task_generator_install():
+		return True
+```
+
+- 输入		
+	无
+
+## 执行crontab中任务分发命令
+
 - 接口说明
-	例行性任务，生成器
+	例行性任务，定时执行任务分发工作。
 - 调用方式	
 
 ```
 def task_generator_run():
-	return None
+	return True
 ```
 
 

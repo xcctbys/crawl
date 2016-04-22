@@ -6,6 +6,7 @@ six
 redis
 requests
 threadpool
+croniter
 python-crontab
 beautifulsoup4
 rq
@@ -16,9 +17,9 @@ pytest-timeout
 jinja2
 lxml
 html5lib
+numpy
 pandas
 supervisor
-numpy
 scipy
 scikit-learn
 chardet

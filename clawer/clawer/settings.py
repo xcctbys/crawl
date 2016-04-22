@@ -153,6 +153,7 @@ INSTALLED_APPS = (
     "boss",
     "clawer",
     'smart_proxy',
+    "uri_filter",
 )
 
 
@@ -171,3 +172,21 @@ UPDATE_BY = "day" # "hour" | "day"
 MULTIPROCESS = True # True | False
 
 MAX_PROXY_NUM = 100
+
+
+#### 在下载器中有用到
+MAX_TOTAL_DISPATCH_COUNT_ONCE = 7000 #设置一次分发的数量
+DISPATCH_USE_POOL_TIMEOUT = 300  #设置在分发过程中使用多进程的时间限制
+DISPATCH_BY_PRIORITY = True or False
+DISPATCH_BY_HOSTNAME = True or False
+Q_DOWN_SUPER_LEN = 1000 #设置优先级队列的长度，防止队列无限增长并控制内存消耗。
+Q_DOWN_HIGH_LEN = 1000
+Q_DOWN_MID_LEN = 2000
+Q_DOWN_LOW_LEN = 3000
+CODE_PATH = '/Users/princetechs3/my_code'
+OPEN_CRAWLER_FAILED_ONLY = False and True #是否一直分发失败的任务
+
+###去重器初始化用户自定义
+
+URI_NUM_SCALE = 1000000    #预计要去重的uri数量级和
+ACCEPT_ERROR_RATE = 0.0001  #能够接受的去重失误率
