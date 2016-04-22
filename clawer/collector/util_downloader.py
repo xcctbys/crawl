@@ -44,7 +44,7 @@ class Download(object):
 											status = CrawlerDownloadLog.STATUS_FAIL,
 											requests_size = 0,
 											response_size = 0,
-											failed_reason = "%s is %s" % (self.crawler_download.types.language, self.crawler_download.types.is_support)
+											failed_reason = "%s is %s" % (self.crawler_download.types.language, self.crawler_download.types.is_support),
 											downloads_hostname = str(socket.gethostname()),
 											spend_time = spend_time)
 			cdl.save()
