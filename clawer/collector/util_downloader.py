@@ -4,6 +4,8 @@ import os.path
 import sys
 import commands
 import requests
+import time
+import socket
 from collector.models import CrawlerDownloadType, CrawlerTask, Job, CrawlerTaskGenerator, CrawlerDownloadSetting, CrawlerDownload, CrawlerDownloadData, CrawlerDownloadLog
 from django.conf import settings
 
@@ -36,6 +38,22 @@ class Download(object):
 		self.task.save()
 
 		print 'come in download---------------------------'
+		if not self.crawler_download.types.is_support:
+			cdl = CrawlerDownloadLog(	job = self.task.job,
+											task = self.task,
+											status = CrawlerDownloadLog.STATUS_FAIL,
+											requests_size = 0,
+											response_size = 0,
+											failed_reason = "%s is %s" % (self.crawler_download.types.language, self.crawler_download.types.is_support)
+											downloads_hostname = str(socket.gethostname()),
+											spend_time = spend_time)
+			cdl.save()
+
+			# 改变这个任务的状态为下载失败
+			self.task.status == CrawlerTask.STATUS_FAIL
+			self.task.save()
+
+			return
 		print self.crawler_download.types.language, self.crawler_download.types.is_support
 		if self.crawler_download.types.language == 'python' and self.crawler_download.types.is_support:
 			start_time = time.time()
@@ -52,7 +70,40 @@ class Download(object):
 				result = self.exec_command('import pythoncode%s; pythoncode%s.run("%s")' % (str(self.crawler_download.id), str(self.crawler_download.id), self.task.uri))
 				
 				end_time = time.time()
+
 				spend_time = end_time - start_time
+				requests_headers = result.get('requests_headers', None)
+				response_headers = result.get('response_headers', None)
+				requests_body = result.get('requests_body', None)
+				response_body = result.get('response_body', None)
+				remote_ip = result.get('remote_ip', None)
+				hostname = str(sys.gethostname())
+
+				# write_downloaddata_to_mongo
+				cdd = CrawlerDownloadData(	job=self.task.job, 
+											downloader=self.crawler_download,
+											crawlertask=self.task,
+											requests_headers=requests_headers,
+											response_headers=response_headers,
+											requests_body=requests_body,
+											response_body=response_body,
+											hostname=hostname,
+											remote_ip=remote_ip)
+				cdd.save()
+				# write_downloaddata_success_log_to_mongo
+				cdl = CrawlerDownloadLog(	job = self.task.job,
+											task = self.task,
+											status = CrawlerDownloadLog.STATUS_SUCCESS,
+											requests_size = sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
+											response_size = sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
+											failed_reason = None,
+											downloads_hostname = str(socket.gethostname()),
+											spend_time = spend_time)
+				cdl.save()
+
+				# 改变这个任务的状态为下载成功
+				self.task.status == CrawlerTask.STATUS_SUCCESS
+				self.task.save()
 
 			except Exception as e:
 				self.task.status == CrawlerTask.STATUS_FAIL
@@ -60,12 +111,26 @@ class Download(object):
 
 				end_time = time.time()
 				spend_time = end_time - start_time
+				# write_downloaddata_fail_log_to_mongo
+				cdl = CrawlerDownloadLog(	job = self.task.job,
+											task = self.task,
+											status = CrawlerDownloadLog.STATUS_FAIL,
+											requests_size = 0,
+											response_size = 0,
+											failed_reason = str(e),
+											downloads_hostname = str(socket.gethostname()),
+											spend_time = spend_time)
+				cdl.save()
+
+				# 改变这个任务的状态为下载失败
+				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.save()
+
 				print e,'sentry.excepterror()'
-				# print self.crawler_download_log.save()
 				return
-			# print self.crawler_download_data.save()
-			# print self.crawler_download_log.save()
 			pass
+
+
 
 		elif self.crawler_download.types.language == 'shell' and self.crawler_download.types.is_support:
 			print 'it is shell ---------------------------'
