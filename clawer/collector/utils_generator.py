@@ -17,11 +17,12 @@ import multiprocessing
 import ast
 import time
 import re
+import dateutil
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorDispatchLog
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorDispatchLog
 from collector.utils_cron import CronTab, CronSlices
 from django.conf import settings
 
@@ -100,7 +101,7 @@ class DataPreprocess(object):
                 CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content="Error occured when saving uris --%s"%(type(e)), hostname= socket.gethostname()).save()
         return True
 
-    def save_script(self, script, cron, code_type, schemes):
+    def save_script(self, script, cron, code_type=1, schemes=[]):
         """ saving script with cron settings to mongodb
             if params are None or saving excepts return False
             else return True
@@ -438,6 +439,9 @@ class CrawlerCronTab(object):
         self.crontab = CronTab(tabfile = filename)
         self.cron_timeout = 60
 
+    def remove_all_jobs_from_crontab(self):
+        count = self.crontab.remove_all()
+
     def remove_offline_jobs_from_crontab(self):
         jobs = Job.objects(status = Job.STATUS_OFF)
         for job in jobs:
@@ -498,13 +502,13 @@ class CrawlerCronTab(object):
         """
             定期更新所有job的生成器crontab的本地文件信息
         """
-        self.remove_offline_jobs_from_crontab()
+        # self.remove_offline_jobs_from_crontab()
+        self.remove_all_jobs_from_crontab()
         self.update_online_jobs()
         self.save_cron_to_file()
         return True
 
     def exec_and_save_current_crons(self):
-        from dateutil.parser import parse
         # 获取出当前分钟 需要执行的任务列表
         last_time = datetime.now()
         # 定时任务，到时间强制退出。
@@ -514,7 +518,7 @@ class CrawlerCronTab(object):
         for job in self.crontab.crons:
             # 获得当前需要运行的cron任务
             now = datetime.now()
-            base = parse(job.last_run)
+            base = dateutil.parser.parse(job.last_run)
             slices= job.slices.clean_render()
             iters = croniter(slices , base)
             next_time = iters.get_next(datetime)
@@ -527,10 +531,14 @@ class CrawlerCronTab(object):
                 except:
                     raise
                 job.set_last_run(now)
+        logging.info('Waiting for all subprocesses done...')
         pool.close()
         pool.join()
         # 将本次运行的cron任务的上次运行时间写回到tabfile文件中
+        logging.info('All subprocesses done.')
         self.save_cron_to_file()
+        logging.info('Save to file!')
+        timer.cancel()
 
     def task_generator_run(self):
         """
@@ -553,7 +561,9 @@ def exec_command(command, comment, cron):
     job_name, job_id = get_name_id_with_comment(comment)
     job = Job.objects(id= job_id).first()
     if not job:
-        logging.error("Job %s with id %s is not found in mongodb!"%(job_name, job_id))
+        failed_reason = "Job %s with id %s is not found in mongodb!"%(job_name, job_id)
+        logging.error(failed_reason)
+        CrawlerGeneratorCronLog(job = job, status = CrawlerGeneratorCronLog.STATUS_FAIL, cron = cron, failed_reason= failed_reason, spend_msecs = 0).save()
         return
     pid = os.getpid()
     start_time = time.time()

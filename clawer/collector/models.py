@@ -130,7 +130,7 @@ class CrawlerGeneratorLog(Document):
     failed_reason = StringField(max_length=10240, null=True, blank=True)
     content_bytes = IntField(default=0)
     spend_msecs = IntField(default=0) #unit is microsecond
-    hostname = StringField(null=True, blank=True, max_length=16)
+    hostname = StringField(null=True, blank=True, max_length=32)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
     meta = {"db_alias": "log"}
@@ -163,7 +163,7 @@ class CrawlerGeneratorDispatchLog(Document):
 class CrawlerGeneratorErrorLog(Document):
     name = StringField(max_length=128)
     content = StringField(max_length=10240, null=True)
-    hostname = StringField(null=True, max_length=16)
+    hostname = StringField(null=True, max_length=32)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
     meta = {"db_alias": "log"}
@@ -171,7 +171,7 @@ class CrawlerGeneratorErrorLog(Document):
 class CrawlerGeneratorAlertLog(Document):
     name = StringField(max_length=128)
     content = StringField(max_length=10240, null=True)
-    hostname = StringField(null=True, max_length=16)
+    hostname = StringField(null=True, max_length=32)
     add_datetime = DateTimeField(default=datetime.datetime.now())
 
     meta = {"db_alias": "log"}
@@ -186,6 +186,7 @@ class CrawlerDownloadSetting(Document):
     max_retry_times = IntField(default=0)
     proxy = StringField()
     cookie = StringField()
+    download_timeout = IntField(default=120)
     last_update_datetime = DateTimeField(default=datetime.datetime.now())
     add_datetime = DateTimeField(default=datetime.datetime.now())
     meta = {"db_alias": "source"}
@@ -251,7 +252,7 @@ class CrawlerDispatchAlertLog(Document):
     types = IntField(choices=ALTER_TYPES, default=1)
     reason = StringField(max_length=10240, required=True)
     content_bytes = IntField(default=0)
-    hostname = StringField(required=True, max_length=16)
+    hostname = StringField(required=True, max_length=32)
     add_datetime = DateTimeField(default=datetime.datetime.now())
     meta = {"db_alias": "log"} # 默认连接的数据库
 
@@ -270,7 +271,7 @@ class CrawlerDownloadLog(Document):
     requests_size = IntField()
     response_size = IntField()
     failed_reason = StringField(max_length=10240, required=False)
-    downloads_hostname = StringField(required=True, max_length=16)
+    downloads_hostname = StringField(required=True, max_length=32)
     spend_time = IntField(default=0) #unit is microsecond
     add_datetime = DateTimeField(auto_now=True)
     meta = {"db_alias": "log"} # 默认连接的数据库
