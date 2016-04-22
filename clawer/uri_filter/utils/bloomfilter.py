@@ -2,6 +2,8 @@
 import BitVector
 import os
 import sys
+from django.conf import settings
+from creat_bitmap import
 
 class SimpleHash():
 
@@ -30,10 +32,23 @@ def md5(str):
 class BloomFilter():
 
     def __init__(self, BIT_SIZE=1<<25, HASH_NUM=14):
-        self.BIT_SIZE = 1 << 25
+
+        '''
+        if   redis.bitmap    exist
+             pass
+        else  bitmap_init
+        '''
+
+
+
+
+        #self.BIT_SIZE = 1 << 25
+        #self.bitset = BitVector.BitVector(size=self.BIT_SIZE)
+
         self.seeds = [5, 7, 11, 13, 31, 37, 47, 53, 61, 71, 79, 83 , 97, 101, 113, 131, 149 , 157 , 167]
         self.seeds = self.seeds[0:HASH_NUM]
-        self.bitset = BitVector.BitVector(size=self.BIT_SIZE)
+
+
         self.hashFunc = []
 
         for i in range(len(self.seeds)):
@@ -43,6 +58,9 @@ class BloomFilter():
         for f in self.hashFunc:
             loc = f.hash(value)
             self.bitset[loc] = 1
+            #redis .bitmap[loc] = 1
+
+
     def isContaions(self, value):
         if value == None:
             return False
@@ -54,21 +72,21 @@ class BloomFilter():
 
 def uri_filter(uri_list):
     uri_list_new = []
-    del_list = []
     bloomfilter = BloomFilter()
     if uri_list == []:
         return 0
     for uri in uri_list:
         uricode = md5(uri)
         if bloomfilter.isContaions(uricode) == False:
+            uri_list_new.append(uri)
             bloomfilter.insert(uricode)
         else:
             #print 'uri :%s has exist' % url
-            del_list.append(uri)
-    uri_list_new = uri_list - del_list
+            pass
+    return uri_list_new
 
 
 
-if __name__ == `__main__`:
-    uri_list = [www.baidu.com,www.baidu.com]
+if __name__ == '__main__':
+    uri_list = ['www.baidu.com','www.baidu.com']
     uri_filter(uri_list)

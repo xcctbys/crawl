@@ -2,7 +2,8 @@
 #coding=utf8
 from django.shortcuts import render
 import httplib, urllib
-
+import request
+import json
 """
 import sys
 reload(sys)
@@ -13,12 +14,14 @@ from os import curdir, sep
 import cgi
 import logging
 import time
+from Django.http import HttpResponse
 
 PORT_NUMBER = 8080
 RES_FILE_DIR = "."
 
 class myHandler(BaseHTTPRequestHandler):
-  def do_POST(self):
+
+  def doPost(self):
     logging.warning(self.headers)
     form = cgi.FieldStorage(
       fp=self.rfile,
@@ -26,8 +29,15 @@ class myHandler(BaseHTTPRequestHandler):
       environ={'REQUEST_METHOD':'POST',
           'CONTENT_TYPE':self.headers['Content-Type'],
           })
+"""
+    input =self.rfile.read()
+    datas =self.rfile.read(int(self.headers['content-length']))
 
-    file_name = self.get_data_string()
+    response = urllib2.urlopen(url).read()
+    response = json.loads(response)
+    test = response["test"]
+
+
     path_name = '%s/%s.log' % (RES_FILE_DIR,file_name)
     fwrite = open(path_name,'a')
 
@@ -35,17 +45,17 @@ class myHandler(BaseHTTPRequestHandler):
     fwrite.write("addr=%s\n" % form.getvalue("addr",""))
     fwrite.close()
 
+    #if  request.method == 'POST'
+        req = simplejson.loads(request.raw_post_data)
+        username = req['username']
+        datas = req['datas']
+    #return HttpResponse(json.dumps(response_data), content_type='application/json')
+
     self.send_response(200)
     self.end_headers()
     self.wfile.write("Thanks for you post")
+"""
 
-  def get_data_string(self):
-    now = time.time()
-    clock_now = time.localtime(now)
-    cur_time = list(clock_now)
-    date_string = "%d-%d-%d-%d-%d-%d" % (cur_time[0],
-        cur_time[1],cur_time[2],cur_time[3],cur_time[4],cur_time[5])
-    return date_string
 try:
   server = HTTPServer(('', PORT_NUMBER), myHandler)
   print 'Started httpserver on port ' , PORT_NUMBER
@@ -59,17 +69,17 @@ except KeyboardInterrupt:
 
 
 
-
-
-def send_POST():
+def sendPost(uri_list):
     httpClient = None
     try:
-        params = urllib.urlencode({'name': 'Maximus', 'addr': "GZ"})
-        headers = {"Content-type": "application/x-www-form-urlencoded"
+        encoded_json_list = json.dumps(uri_list)
+        #headers = {"Content-type": "application/x-www-form-urlencoded"
               , "Accept": "text/plain"}
-
+        #  "multipart/form-data"
+        headers = {"Content-type": "application/json"
+              , "Accept": "text/json"}
         httpClient = httplib.HTTPConnection("localhost", 8080, timeout=30)
-        httpClient.request("POST", "/test0.html", params, headers)
+        httpClient.request("POST", "/test0.html", encoded_json_list, headers)
         response = httpClient.getresponse()
         print response.status
         print response.reason
@@ -79,4 +89,4 @@ def send_POST():
         print e
     finally:
         if httpClient:
-        httpClient.close()
+            httpClient.close()

@@ -266,9 +266,9 @@ cron.write_to_user( user='bob' )
 
 ```
   for root	
-  */5    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_install
+  */5    *    *    *    * cd /path/to/cr-clawer/confs/cr;./bg_cmd.sh generator_install
   
-  *    *    *    *    * cd /home/webapps/nice-clawer/confs/cr;./bg_cmd.sh task_generator_run
+  *    *    *    *    * cd /path/to/cr-clawer/confs/cr;./bg_cmd.sh generator_run
 ```
 
 
@@ -594,51 +594,91 @@ class CrawlerGeneratorAlertLog(Document):
 - 输入	
 	text: 字符串变量，为用户输入的textarea文本或者是CSV、TXT文件内容。        
 	script：字符串变量，为用户输入的脚本内容。		
-	settings：字典类型，当输入string时，settings包含URI的schemes参数，schemes为列表类型；但输入script时，settings包含cron信息，cron为字符串类型。        
+	settings：字典类型，当输入string时，settings包含URI的schemes参数，schemes为列表类型；但输入script时，settings包含cron， code_type信息，cron为字符串类型, code_type 为整形。        
 
 	
 - 输出		
  	None
  
-## 接口2
+## 生成器分发接口
 
 - 接口说明	
-	Master从MongoDB的CrawlerTaskGenerator中获取Job的_id为$_id的文档，定义URI下载队列DownloadQueue，将URI生成器函数，文档作为参数压入URI任务下载队列中，并返回URI下载队列对象。
+	Master从MongoDB的CrawlerTaskGenerator中获取Job的_id为$_id的文档，定义URI生成器队列GeneratorQueue，将任务函数generate_uri_task，生成器CrawlerTaskGenerator文档作为参数压入URI任务下载队列中，并返回URI下载队列对象。
 - 调用方式
 
 ```
-def dispatch_uri($_id, *args, **kwargs):
-	return DownloadQueue()
+引入包：
+	from collector.utils_generator import GeneratorDispatch
+
+创建对象：
+	dispatcher = GeneratorDispatch(job= job_id)
 ```
 
-## 接口3
+- 创建对象的输入		
+	Job的id， 字符串类型 	
+		
+```		
+调用执行函数：
+	rqQueue = dispatcher.run()
+```
+
+- 函数输出		
+	四条队列中的某一队列（感觉返回这个没啥意义。。。）
+
+## 异步队列任务函数
 - 接口说明	
-	Slave从URI任务生成器队列中获取任务，执行URI生成器脚本并将输出的URI结果保存进MongoDB中。
+	worker从URI任务生成器队列中获取任务，执行URI生成器脚本并将输出的URI结果保存进MongoDB中。
 - 调用方式
 
 ```
-def download_uri_task(uri_generator_doc, *args, **kwargs):
-	return None
+def generate_uri_task(task_generator_doc, *args, **kwargs):
+	return True
 ```
 
-## 接口4
+- 输入		
+	任务生成器对象， 类型为MongoDB的CrawlerTaskGenerator的一条文档Collection
+- 输出		
+	True
+
+## 更新生成器脚本
 - 接口说明	
 	例行任务，生成器更新脚本。
 - 调用方式
 
+引入：
+
 ```
-	def task_generator_install():
-		return None
+	from collector.utils_generator import CrawlerCronTab
 ```
 
-## 接口5
+创建对象：
+
+```
+	crontab = CrawlerCronTab(filename= settings.CRON_FILE)
+```
+
+- 创建对象输入		
+	filename为字符串类型，要读取或保存crontab信息的文件地址。
+
+定期更新接口
+
+```
+	def task_generator_install():
+		return True
+```
+
+- 输入		
+	无
+
+## 执行crontab中任务分发命令
+
 - 接口说明
-	例行性任务，生成器
+	例行性任务，定时执行任务分发工作。
 - 调用方式	
 
 ```
 def task_generator_run():
-	return None
+	return True
 ```
 
 

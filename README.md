@@ -59,11 +59,27 @@ Start RQ worker
 
 For example:
 
-    ./run.sh rq clawer download analysis
+    ./run.sh rq clawer download analysis 
+
 
 Start RQ worker for generator
 
     ./run.sh rq uri_super uri_high uri_medium uri_low
+
+
+## Test Your code
+
+cd conf
+
+    cd cr-clawer/confs/dev
+    
+test it
+
+    ./test.sh 
+    
+use cmd to show help
+
+    ./test.sh -h
 
 ## Create Database on MySQL
 
@@ -85,7 +101,9 @@ Start RQ worker for generator
       ## master
 
       ### for root
-      */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_generator_install
+      */5    *    *    *    * cd /Users/princetechs5/crawler/cr-clawer/confs/cr;./bg_cmd.sh generator_install  # for generator
+      *      *    *    *    * cd /Users/princetechs5/crawler/cr-clawer/confs/cr;./bg_cmd.sh generator_dispatch  # for generator
+
       20     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh clawer_monitor_hour
       40     3    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh clawer_monitor_day
       */50   *    *    *    * cd /home/webapps/cr-clawer/sources/qyxy/structured/scripts/cr/; sh run.sh structured
