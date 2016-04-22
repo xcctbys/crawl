@@ -20,8 +20,6 @@ from django.core.management import call_command
 from django.utils.six import StringIO
 
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
-# from mongoengine import *
-from mongoengine.context_managers import switch_db
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
 from collector.utils_generator import force_exit, exec_command
 from collector.utils_cron import CronTab
@@ -30,7 +28,7 @@ from rq import Queue
 import subprocess
 import time
 
-class TestGeneratorInstall(TestCase):
+class TestGeneratorCommand(TestCase):
     def setUp(self):
         TestCase.setUp(self)
 
@@ -49,8 +47,8 @@ class TestGeneratorInstall(TestCase):
         # with open('/path/to/command_output') as f:
             # management.call_command('dumpdata', stdout=f)
         # self.assertIn('Expected output', out.getvalue())
-        time.sleep(1)
         count = CrawlerTask.objects.count()
+        print "CrawlerTask count=%d"%count
         self.assertGreater(count, 0)
 
     def test_command_generator_install(self):

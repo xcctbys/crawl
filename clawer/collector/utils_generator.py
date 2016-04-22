@@ -21,7 +21,7 @@ import re
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorErrorLog, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorDispatchLog
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorDispatchLog
 from collector.utils_cron import CronTab, CronSlices
 from django.conf import settings
 
@@ -527,9 +527,11 @@ class CrawlerCronTab(object):
                 except:
                     raise
                 job.set_last_run(now)
+        print 'Waiting for all subprocesses done...'
         pool.close()
         pool.join()
         # 将本次运行的cron任务的上次运行时间写回到tabfile文件中
+        print 'All subprocesses done.'
         self.save_cron_to_file()
 
     def task_generator_run(self):
