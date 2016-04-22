@@ -18,8 +18,6 @@ class Download(object):
 		self.task = task
 		self.crawler_download = crawler_download
 		self.crawler_download_setting = crawler_download_setting
-		self.crawler_download_data = CrawlerDownloadData()
-		self.crawler_download_log = CrawlerDownloadLog()
 
 		self.reqst = requests.Session()
 		self.reqst.headers.update(
