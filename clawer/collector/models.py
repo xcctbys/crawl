@@ -202,7 +202,7 @@ class CrawlerDownloadSetting(Document):
 # 消费者：用户设置下载器时，types字段引用，
 class CrawlerDownloadType(Document):
     language = StringField()
-    is_support = BooleanField(default=False)
+    is_support = BooleanField(default=True)
     add_datetime = DateTimeField(default=datetime.datetime.now())
     meta = {"db_alias": "source"} # 默认连接的数据库
 
@@ -240,10 +240,15 @@ class CrawlerDownloadData(Document):
 
 # 生产者：该日志由下载器在分发工作时队列满等警告产生
 # 消费者：用户及管理员查看
-class CrawlerDownloadAlertLog(Document):
+class CrawlerDispatchAlertLog(Document):
+    (ALTER, SUCCESS, FAILED) = range(1,4)
+    ALTER_TYPES = (
+        (ALTER, u'警告'),
+        (SUCCESS, u'分发成功'),
+        (FAILED, u'分发失败')
+    )
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    # job = StringField(max_length=10240, required=True)
-    type = StringField(max_length=128)
+    types = IntField(choices=ALTER_TYPES, default=1)
     reason = StringField(max_length=10240, required=True)
     content_bytes = IntField(default=0)
     hostname = StringField(required=True, max_length=16)

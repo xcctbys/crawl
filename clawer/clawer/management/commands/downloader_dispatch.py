@@ -111,9 +111,9 @@ def dispatch_use_pool(task):
             task.save()
             # write_success_dispatch_log()
             write_dispatch_success_log('success')
-        except:
+        except Exception as e:
             # write_fail_dispatch_log()
-            write_dispatch_failed_log('failed')
+            write_dispatch_failed_log('failed', e)
 
 
 def force_exit():

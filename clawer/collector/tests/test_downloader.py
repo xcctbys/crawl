@@ -210,6 +210,26 @@ class TestMongodb(TestCase):
         cds1 =CrawlerDownloadSetting(job=job1, proxy='122', cookie='22', dispatch_num=50)
         cds1.save()
 
+    def test_get_max_dispatch(self):
+        onetype = CrawlerDownloadType(language='other', is_support=True)
+        onetype.save()
+        job1 = Job(name='1', info='2', customer='ddd', priority=-1)
+        job1.save()
+        ctg1 = CrawlerTaskGenerator(job=job1, code='echo hello1', cron='* * * * *')
+        ctg1.save()
+        ct1 = CrawlerTask(job=job1, status=CrawlerTask.STATUS_FAIL, task_generator=ctg1, uri='http://www.fishc.com', args='i', from_host='1')
+        ct1.save()
+        # codestr2 = open('/Users/princetechs3/my_code/code2.sh','r').read()
+        cd1 =CrawlerDownload(job=job1, code='codestr2', types=onetype)
+        cd1.save()
+        cds1 =CrawlerDownloadSetting(job=job1, proxy='122', cookie='22', dispatch_num=50)
+        cds1.save()
+
+        max_retry_times=1
+        dispatch_num=1
+        down_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_FAIL, retry_times__lte=max_retry_times)[:dispatch_num]
+        self.assertTrue(down_tasks)
+
 
 
 
