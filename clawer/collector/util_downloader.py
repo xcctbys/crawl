@@ -7,8 +7,10 @@ import requests
 import time
 import socket
 import json
+import threading
 from collector.models import CrawlerDownloadType, CrawlerTask, Job, CrawlerTaskGenerator, CrawlerDownloadSetting, CrawlerDownload, CrawlerDownloadData, CrawlerDownloadLog
 from django.conf import settings
+from enterprise.utils import EnterpriseDownload
 
 
 class Download(object):
@@ -34,10 +36,40 @@ class Download(object):
 		exec c
 		return result
 
+	def download_with_enterprise(self):
+		print 'i am come in enterprise download'
+		pass
+		# start_time = time.time()
+		
+		# try:
+		# 	downloader = EnterpriseDownload(self.task.uri)
+		# 	result = downloader.download()
+
+		# 	# 改变这个任务的状态为下载成功
+		# 	self.task.status == CrawlerTask.STATUS_SUCCESS
+		# 	self.task.save()
+
+		# except Exception as e:
+		# 	# 改变这个任务的状态为下载失败
+		# 	self.task.status == CrawlerTask.STATUS_FAIL
+		# 	self.task.save()
+		# 	print 'ERROR:',e
+		# 	# self.failed = True
+		# 	# self.failed_exception = traceback.format_exc(10)
+		# 	# self.sentry.capture()
+		# 	# logging.warning(self.failed_exception)
+			
+		# end_time = time.time()
+		# spend_time = end_time - start_time
+
 	def download(self):
 		self.task.status == CrawlerTask.STATUS_PROCESS
 		self.task.retry_times += 1
 		self.task.save()
+
+		if self.task.uri.find("enterprise://") == 0:
+			self.download_with_enterprise()
+			return
 
 		print 'come in download---------------------------'
 		# 对该语言暂时还不支持时，直接任务失败，并写日志。
@@ -334,7 +366,28 @@ class Download(object):
 				cdl.save()
 				print e,'sentry.excepterror()'
 
+def force_exit(download_timeout, task):
+	"""
+		通过定时器触发此函数，强制退出运行父进程，并将子进程杀死。
+	"""
+	pgid = os.getpgid(0)
+	# 改变这个任务的状态为下载失败
+	self.task.status == CrawlerTask.STATUS_FAIL
+	self.task.save()
 
+	# write_downloaddata_fail_log_to_mongo
+	cdl = CrawlerDownloadLog(	job = self.task.job,
+								task = self.task,
+								status = CrawlerDownloadLog.STATUS_FAIL,
+								requests_size = 0,
+								response_size = 0,
+								failed_reason = 'download runtime exceeds %ss. Exit!' % download_timeout,
+								downloads_hostname = str(socket.gethostname()),
+								spend_time = download_timeout)
+	cdl.save()
+
+	os.killpg(pgid, 9)
+	os._exit(1)
 
 def download_clawer_task(task):
 	#加载对应job的设置任务
@@ -349,5 +402,9 @@ def download_clawer_task(task):
 		self.task.save()
 		print e,'sentry.excepterror()'
 	down = Download(task, crawler_download, crawler_download_setting)
+
+	timer = threading.Timer(crawler_download_setting.download_timeout, force_exit, [crawler_download_setting.download_timeout, task])
+	timer.start()
 	down.download()
+	timer.cancel()
 	
