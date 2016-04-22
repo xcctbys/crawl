@@ -60,6 +60,20 @@ Start RQ worker
 For example:
 
     ./run.sh rq clawer download analysis 
+    
+## Test Your code
+
+cd conf
+
+    cd cr-clawer/confs/dev
+    
+test it
+
+    ./test.sh 
+    
+use cmd to show help
+
+    ./test.sh -h
 
 
 ## Create Database on MySQL
