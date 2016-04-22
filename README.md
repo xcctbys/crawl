@@ -59,11 +59,27 @@ Start RQ worker
 
 For example:
 
-    ./run.sh rq clawer download analysis
+    ./run.sh rq clawer download analysis 
+
 
 Start RQ worker for generator
 
     ./run.sh rq uri_super uri_high uri_medium uri_low
+
+
+## Test Your code
+
+cd conf
+
+    cd cr-clawer/confs/dev
+    
+test it
+
+    ./test.sh 
+    
+use cmd to show help
+
+    ./test.sh -h
 
 ## Create Database on MySQL
 
