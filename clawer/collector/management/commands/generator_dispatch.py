@@ -17,19 +17,7 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
         self.cron = CrawlerCronTab(filename = settings.CRON_FILE)
 
-    def add_arguments(self, parser):
-        # # Positional arguments
-        # parser.add_argument('poll_id', nargs='+', type=int)
-        # # Named (optional) arguments
-        # parser.add_argument('--delete',
-        #     action='store_true',
-        #     dest='delete',
-        #     default=False,
-        #     help='Delete poll instead of closing it')
-        pass
-
-
-    @wrapper_raven
+    # @wrapper_raven
     def handle(self, *args, **options):
-        print "Expected output from generator dispatch"
         self.cron.task_generator_run()
+        print "After run !Expected output from generator dispatch"
