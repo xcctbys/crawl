@@ -7,12 +7,12 @@ from mongoengine import (Document,
                          ReferenceField,)
 
 
-# class Parser(Document):
-#     parser_id = IntField()
-#     python_script = StringField()
-#
-#
-# class StructureConfig(Document):
-#     job = ReferenceField(Job)
-#     parser = ReferenceField(Parser)
-#     db_xml = StringField()
+class Parser(Document):
+     parser_id = IntField()
+     python_script = StringField()
+
+
+class StructureConfig(Document):
+     job = ReferenceField(Job)
+     parser = ReferenceField(Parser)
+     db_xml = StringField()

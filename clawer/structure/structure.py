@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os
 
-from rq import Connection, Worker
-# from models import StructureConfig
+from redis import Redis
+from rq import Connection, Worker, Quene
+from mangoengine import *
 
+from collector.models import CrawlerTask, CrawlerDownloadData
+from collector.utils_generator import SafeProcess
+from models import StructureConfig, Parser
 
 class Consts(object):
     QUEUE_PRIORITY_TOO_HIGN = u"structure:higher"
@@ -16,16 +21,33 @@ class Consts(object):
 class StructureGenerator(object):
 
     def filter_downloaded_tasks(self):
-        pass
+        downloaded_tasks = self.CrawlerTask.objects(status = STATUS_SUCCESS)
+        
+        return downloaded_tasks                         #返回状态为下载成功的爬虫任务
 
     def filter_parsed_tasks(self):
-        pass
+        parsed_tasks = self.CrawlerTask.objects(status = STATUS_ANALYSIS_SUCCESS)
+        
+        return parsed_tasks                             #返回状态为解析成功的爬虫任务
 
-    def get_task_priority(self, task):
-        pass
+    def get_task_priority(self, task):                  #将爬虫任务中的Job的priority(range(-1,6))装化为解析任务的priority(Consts)        
+        if task.job.priority == -1:
+            task_priority = Consts.QUEUE_PRIORITY_TOO_HIGH
+        elif task.job.priority == 0 or task.job.priority == 1:
+            task_priority = Consts.QUEUE_PRIORITY_HIGH
+        elif task.job.priority == 2 or task.job.priority == 3:
+            task_priority = Consts.QUEUE_PRIORITY_NORMAL            
+        elif task.job.priority == 4 or task.job.priority == 5:
+            task_priority = Consts.QUEUE_PRIORITY_LOW
+        else:
+            task_priority = None
+            
+        return task_priority
 
     def get_task_source_data(self, task):
-        pass
+        task_source_data = self.CrawlerDownloadData.objects(crawlertask__uri__ = task.uri)
+        
+        return task_source_data                         #根据uri返回爬虫的下载数据（类型）
 
 
 class ParserGenerator(StructureGenerator):
@@ -44,15 +66,31 @@ class ParserGenerator(StructureGenerator):
             else:
                 logging.error("duplicates")
 
-    def assign_task(self,
-                    priority=Consts.QUEUE_PRIORITY_NORMAL,
-                    parser=lambda: None,
-                    data=""):
+    def assign_task(self, priority = Consts.QUEUE_PRIORITY_NORMAL,
+                    parser = lambda:None,
+                    data = ""):
+        self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         pass
 
     def get_parser(self, task):
-        pass
-
+        if task is not None:
+            try:
+                structureconfig = self.StructureConfig.objects(job__name__ = task.job.name)
+            except Exception as e:
+                logging.error("Error finding StructureConfig -- No file for the job name")
+            cur_dir = os.getcwd();
+            parsers_dir = cur_dir + "/parsers"
+            if os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
+                pass
+            else:
+                os.mkdir(parsers_dir)
+            os.chdir(parsers_dir)
+            parser_py_script = open.(str(structureconfig.parser.parser_id) + ".py",'w')
+            parser_py_script.write(structureconfig.parser.python_script)
+            parser_py_script.close                          #将python脚本写进解析器文件中并关闭文件
+            
+            os.chdir(current_dir)                           #切换回之前的工作目录
+        
     def is_duplicates(self, data):
         return False
 
