@@ -240,7 +240,7 @@ class CrawlerDownloadData(Document):
 
 # 生产者：该日志由下载器在分发工作时队列满等警告产生
 # 消费者：用户及管理员查看
-class CrawlerDownloadAlertLog(Document):
+class CrawlerDispatchAlertLog(Document):
     (ALTER, SUCCESS, FAILED) = range(1,4)
     ALTER_TYPES = (
         (ALTER, u'警告'),

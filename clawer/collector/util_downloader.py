@@ -38,21 +38,28 @@ class Download(object):
 		print 'come in download---------------------------'
 		print self.crawler_download.types.language, self.crawler_download.types.is_support
 		if self.crawler_download.types.language == 'python' and self.crawler_download.types.is_support:
+			start_time = time.time()
 			print 'it is python-------------------------'
 			try:
 				# print 'save code from db;import crawler_download.code; run()'
 				sys.path.append( settings.CODE_PATH )
-				filename = os.path.join( settings.CODE_PATH, 'pythoncode%s.py' % str(self.crawler_download._id))
+				filename = os.path.join( settings.CODE_PATH, 'pythoncode%s.py' % str(self.crawler_download.id))
 				# sys.path.append( '/Users/princetechs3/my_code' )
 				# filename = os.path.join( '/Users/princetechs3/my_code', 'pythoncode%s.py' % str(self.crawler_download.id))
 				if not os.path.exists(filename):
 					with open(filename, 'w') as f:
 						f.write(self.crawler_download.code)
 				result = self.exec_command('import pythoncode%s; pythoncode%s.run("%s")' % (str(self.crawler_download.id), str(self.crawler_download.id), self.task.uri))
+				
+				end_time = time.time()
+				spend_time = end_time - start_time
 
 			except Exception as e:
 				self.task.status == CrawlerTask.STATUS_FAIL
 				self.task.save()
+
+				end_time = time.time()
+				spend_time = end_time - start_time
 				print e,'sentry.excepterror()'
 				# print self.crawler_download_log.save()
 				return
