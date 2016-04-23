@@ -125,7 +125,7 @@ def dispatch_use_pool(item)
 		...
 	return
 
-
+#####也可以只使用单进程。
 def dispatch_download(*args, **kwargs):
 	#设置超时时间
 	timer = threading.Timer(300, force_exit)
@@ -159,10 +159,14 @@ def force_exit():
 ```
 	 MAX_TOTAL_DISPATCH_COUNT_ONCE = 7000 #设置一次分发的数量
 	 DISPATCH_USE_POOL_TIMEOUT = 300  #设置在分发过程中使用多进程的时间限制
+	 DISPATCH_BY_PRIORITY = True or False #设置是只按优先级分发
+	DISPATCH_BY_HOSTNAME = True or False  #设置是只按主机分发
 	 Q_DOWN_SUPER_LEN = 1000 #设置优先级队列的长度，防止队列无限增长并控制内存消耗。
 	 Q_DOWN_HIGH_LEN = 1000
-	 Q_DOWN_MID_LEN = 1000
-	 Q_DOWN_LOW_LEN = 1000
+	 Q_DOWN_MID_LEN = 2000
+	 Q_DOWN_LOW_LEN = 3000
+	 CODE_PATH = '/Users/princetechs3/my_code' # 配置下载器 code(python or shell)的保存路径
+	 OPEN_CRAWLER_FAILED_ONLY = False and True #是否一直分发失败的任务
 ```
 - 想着数据库已经建立
 
@@ -205,70 +209,80 @@ def force_exit():
 
 ```
 class Download(object):
-	def __init__(self):
+	def __init__(self, task, crawler_download, crawler_download_setting):
 	    self.content = None #保存下载下来的数据
 		...
 		pass
-	def reporthook(self):
-		print 'ok'
-		pass
 	def download(self):
-		if self.url.find('enterprise://') != -1:
+		if self.task.uri.find('enterprise://') != -1:
 			download_with_enterprise() #封装公商
+			return
+        if not self.crawler_download.types.is_support:
+        	write_crawlerdownloadlog()
+        	self.task.status == STATUS_FAIL # 这条url任务失败了。
+        	return
+		if self.tasl.type.language is 'python' 
+			try:
+				# use exec
+				save python code to path
+				sys.path.append(path)
+				import name_module
+				self.content = name_module.run(uri = self.uri)
+				CrawlerDownloadData() # 将下载下来的数据下载并保存
+				CrawlerDownloadLog(SUCCESS) #将下载成功日志保存
+				self.task.status == STATUS_SUCCESS #下载这条url成功了。
+			except Exception as e:
+				CrawlerDownloadLog(FAIL) #将下载失败日志保存
+				self.task.status == STATUS_FAIL # 这条url任务失败了。
+		elif self.type is 'shell' :
+			try:
+				# use commands.getstatusoutput('sh %s %s' (filename, self.task.uri))
+				save shell code to path
+				result = commands.getstatusoutput('sh name.sh')
+				self.content = result[1]
+				... # 写日志
+			except Exception as e:
+				... # 写日志
+		elif self.types is 'curl' :
+			try:
+				result = commands.getstatusoutput('%s %s' % (types, self.uri))
+				self.content = result[1]
+				... # 写日志
+			except Exception as e:
+				... # 写日志
 		else:
-            self.download_with_requests()
-        ...
-	def download_with_requests(self):
-		if self.type is 'python' and self.is_support:
-			save python code to path
-			sys.path.append(path)
-			import name_module
-			self.content = name_module.run(uri = self.uri)
-		elif self.type is 'shell' and self.is_support:
-			save shell code to path
-			result = commands.getstatusoutput('sh name.sh')
-			self.content = result[1]
-		elif self.types is 'curl' and self.is_support:
-			result = commands.getstatusoutput('%s %s' % (types, self.uri))
-			self.content = result[1]
-		elif self.types is 'wget' and self.is_support:
-			i = url.rfind('/')
-			file = url[i+1:]
-			(filename,mime_hdrs) = urllib.urlretrieve(self.url,file,self.reporthook)
-		else:
-			r = requests.get(self.url, headers=self.headers, proxies=self.proxies)
-			self.content = r.text
+			try:
+				settings by crawler_download_settings # 通过下载设置器及 task 里的 args 对Session进行配置
+				r = requests.get(self.url, headers=self.headers, proxies=self.proxies)
+				self.content = r.text
+				... # 写日志
+			except Exception as e:
+				... # 写日志
 ```	
-```
-class DownloadClawerTask(object):
-	def __init__(self, clawer_task, clawer_setting):
-		self.downloader = Download(self.clawer_task.uri, engine=self.clawer_setting.download_engine, js=self.clawer_setting.download_js)
-		self.clawer_task = clawer_task
-		...
-	def download(self):
-		try:
-	    	self.downlaoder.download()
-	    except:
-	    	clawertask.status = STATUS.FAILED
-	    	write_error_log
-	    if self.downloader.failed:
-	    	clawertask.status = STATUS.FAILED
-	        write_fail_log
-	        return
-	    clawerdowndata.save() #保存下载数据到mongodb数据库
-	    clawertask.status = STATUS.SUCCESS
-	    write_success_log
-```
 
 
 ```
+def force_exit(download_timeout, task):
+	pgid = os.getpgid(0)
+	# 改变这个任务的状态为下载失败
+	self.task.status == CrawlerTask.STATUS_FAIL
+	CrawlerDownloadLog(FAIL) #将下载失败日志保存
+	os.killpg(pgid, 9)
+	os._exit(1)
+	
 def download_clawer_task():
 	try:
-		downloader = DownloadClawerTask(clawer_task, clawer_setting) #配置下载器
-		downloader.download()	#根据不同用不同方式下载
-	except:
-		fail_log
-		sentry.except()
+		crawler_download = CrawlerDownload.objects(job=task.job)[0]
+		crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job)[0]
+	except Exception as e:
+		CrawlerDownloadLog(FAIL) #将下载失败日志保存
+		self.task.status == STATUS_FAIL # 这条url任务失败了。
+	down = Download(task, crawler_download, crawler_download_setting)
+	#设置定时器，如果在指定时间内没有完成，则退出。
+	timer = threading.Timer(crawler_download_setting.download_timeout, force_exit, [crawler_download_setting.download_timeout, task])
+	timer.start()
+	down.download()
+	timer.cancel()
 ```
 
 ```
@@ -306,6 +320,19 @@ class CrawlerDownloadSetting(model.Models):
 ```
 
 mongodb当中的数据库定义。
+## CrawlerDownloadSetting（冗余mysql）
+```
+class CrawlerDownloadSetting(Document):
+    job = ReferenceField(Job)
+    dispatch_num = IntField(default=100)
+    max_retry_times = IntField(default=0)
+    proxy = StringField()
+    cookie = StringField()
+    download_timeout = IntField(default=120)
+    last_update_datetime = DateTimeField(default=datetime.datetime.now())
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"}
+```
 ## CrawlerDownloadType
 
 - 生产者：由管理员产生，配置布暑该平台支持的下载器语言
@@ -313,10 +340,10 @@ mongodb当中的数据库定义。
 
 ```
 class CrawlerDownloadType(Document):
-	language = StringField(help_text=u'计算机语言或者shell命令', required=True, unique=True)
-	is_support = BoolField(default=False)
-	add_datetime = DateTimeField(default=datetime.datetime.now())
-	meta = {"db_alias": "source"} # 默认连接的数据库
+    language = StringField()
+    is_support = BooleanField(default=True)
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库
 ```
 ## CrawlerDownload
 - 生产者：由用户新增一个job时，设置下载器产生。
@@ -324,12 +351,13 @@ class CrawlerDownloadType(Document):
 
 ```
 class CrawlerDownload(Document):
-	 (STATUS_ON, STATUS_OFF) = range(0, 2)
-     STATUS_CHOICES = (
-		(STATUS_ON, u"启用"),
-    	(STATUS_OFF, u"下线"),
+    (STATUS_ON, STATUS_OFF) = range(0, 2)
+    STATUS_CHOICES = (
+        (STATUS_ON, u"启用"),
+        (STATUS_OFF, u"下线")
     )
-	job = ReferenceField(Job)
+    job = ReferenceField(Job)
+    # job = StringField()
     code = StringField()  # code
     types = ReferenceField(CrawlerDownloadType)
     status = IntField(default=0, choices=STATUS_CHOICES)
@@ -344,35 +372,34 @@ class CrawlerDownload(Document):
 
 ```
 class CrawlerDownloadData(Document):
-	job = ReferenceField(Job)
-	downloader = ReferenceField(CrawlerDownload)
-	crawlertask = ReferenceField(CrawlerTask)
-	requests_headers = StringField()
-	response_headers = StringField()
-	requests_body = StringField()
-	response_body = StringField()
-	hostname = StringField()
-	remote_ip = StringField()
-	add_datetime = DateTimeField(default=datetime.datetime.now())
-	meta = {"db_alias": "source"} # 默认连接的数据库
-```
+    job = ReferenceField(Job)
+    downloader = ReferenceField(CrawlerDownload)
+    crawlertask = ReferenceField(CrawlerTask)
+    requests_headers = StringField()
+    response_headers = StringField()
+    requests_body = StringField()
+    response_body = StringField()
+    hostname = StringField()
+    remote_ip = StringField()
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    meta = {"db_alias": "source"} # 默认连接的数据库```
 ## CrawlerDispatchAlertLog
 - 生产者：该日志由下载器在分发工作时队列满等警告产生
 - 消费者：用户及管理员查看
 
 ```
-class CrawlerDownloadAlertLog(Document):
-	(ALTER, SUCCESS, FAILED) = range(1,4)
-	ALTER_TYPES = (
-		(ALTER, u'警告')
-		(SUCCESS, u‘分发成功’)
-		(FAILED, u'分发失败')
-	)
+class CrawlerDispatchAlertLog(Document):
+    (ALTER, SUCCESS, FAILED) = range(1,4)
+    ALTER_TYPES = (
+        (ALTER, u'警告'),
+        (SUCCESS, u'分发成功'),
+        (FAILED, u'分发失败')
+    )
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    type = IntField(choices=ALTER_TYPES, default=1)
+    types = IntField(choices=ALTER_TYPES, default=1)
     reason = StringField(max_length=10240, required=True)
     content_bytes = IntField(default=0)
-    hostname = StringField(required=True, max_length=16)
+    hostname = StringField(required=True, max_length=32)
     add_datetime = DateTimeField(default=datetime.datetime.now())
     meta = {"db_alias": "log"} # 默认连接的数据库
 ```
@@ -384,34 +411,110 @@ class CrawlerDownloadAlertLog(Document):
 ```
 class CrawlerDownloadLog(Document):
     (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
-   	STATUS_CHOICES = (
+    STATUS_CHOICES = (
         (STATUS_FAIL, u"失败"),
         (STATUS_SUCCESS, u"成功"),
     )
     job = ReferenceField(Job)
-    task = ReferenceField(ClawerTask)
+    # job = StringField(max_length=10240, required=True)
+    task = ReferenceField(CrawlerTask)
     status = IntField(default=0, choices=STATUS_CHOICES)
     requests_size = IntField()
     response_size = IntField()
     failed_reason = StringField(max_length=10240, required=False)
-    downloads_hostname = StringField(required=True, max_length=16)
+    downloads_hostname = StringField(required=True, max_length=32)
     spend_time = IntField(default=0) #unit is microsecond
     add_datetime = DateTimeField(auto_now=True)
     meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 
+
 # 测试计划
 正确性测试，容错性测试，数据库测试
 
- 
+## start
+开启以下服务
+- mongod   #mongodb 服务端
+- sudo mysql.server start  #mysql 服务端
+- redis-server #redis 服务端
 
-## Testcase 1	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+## Testcase	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 下载器及下载器设置入库
 
-## Testcase 2
+```
+# 添加一个 job,crawlerdownload, crawlerdownloadtype, crawlerdownload,CrawlerTaskGenerator,CrawlerDownloadSetting。
+		onetype = CrawlerDownloadType(language='python', is_support=True)
+        onetype.save()
+        job1 = Job(name='1', info='2', customer='ddd', priority=-1)
+        job1.save()
+        ctg1 = CrawlerTaskGenerator(job=job1, code='echo hello1', cron='* * * * *')
+        ctg1.save()
+        ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='http://www.baidu.com', args='i', from_host='1')
+        ct1.save()
+        codestr1 = open('/Users/princetechs3/my_code/code1.py','r').read()
+        cd1 =CrawlerDownload(job=job1, code=codestr1, types=onetype)
+        cd1.save()
+        cds1 =CrawlerDownloadSetting(job=job1, proxy='122', cookie='22', dispatch_num=50)
+        cds1.save()
+```
+可以在 test_downloaders 里找到。利用下面语句可以插入 4个job到mongodb
+
+	python manage.py test collector.tests.test_downloader.TestMongodb.test_insert_4_jobs
+在 mongodb 的source 数据库，有各个集合
+
+	use source #使用source 数据库
+	show collections #查看有哪些集合（表）
+		crawler_download
+		crawler_download_setting
+		crawler_download_type
+		crawler_task
+		crawler_task_generator
+		job
+	db.job.find().pretty() #想看job集合有哪些文档(行)
+		#会出现4个job
+	###在此，log 数据库还会有任何的 集合，开始分发。			
+## Testcase
 分发测试
-					                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+如果想要清空 rq 队列，可以先执行如下命令
+
+		redis-cli
+		flushall
+		exit
+输入：
+
+		python manage.py downloader_dispatch #开如分发
+输出：
+
+		rq info  #查看任务进入的rq优先级队列。(每一个job有一个优先级)
+		
+		use log #使用 log数据库
+		db.crawler_dispatch_alert_log.find().pretty() #可以查看对应的 任务分发状态（types）及其他
+		
+## TestCase
+下载测试
+输入：
+	
+	cd ~/cr-clawer/confs/dev ###进行目录，该目录下有 run_local.sh 脚本
+	./run_local.sh rq_down  #启动连接 rq 队列，并自动开如下载
+输出：
+	
+	rq info #查看任务队列，会被 slave 机器消费。
+	
+	use source
+	show collections
+		crawler_download_data #下载数据 在该集合中，可以查看其中字段
+	use log
+	show collections
+		crawler_download_log #下载	日志在该集合中，有表示该下载的 成功，失败情况等。
+
+## 公商数据
+	
+	还没有存入数据库
+	但可以执行，数据格式与以前一致
+		
+							                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
 
 
