@@ -67,11 +67,15 @@ reqst.headers.update({'Accept': 'text/html, application/xhtml+xml, */*',
                     'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
 def change_valid(id):
-    one_ip = ProxyIp.objects.get(id=id) #得到对应id的代理。
-    proxy = {'http':'http://'+ one_ip.ip_port}
-    print id, proxy
     try:
-        resp = reqst.get('http://www.baidu.com', proxies=proxy)
+        one_ip = ProxyIp.objects.get(id=id) #得到对应id的代理。
+        proxy = {'http':'http://'+ one_ip.ip_port}
+        print id, proxy
+    except:
+        return
+    try:
+        # ‘http://lwons.com/wx’ 更加快点。
+        resp = reqst.get('http://lwons.com/wx', timeout=20, proxies=proxy)
     except:
         # update_data(id, flag=False) #更新，置为不可用。
         if one_ip.is_valid is False:
@@ -98,8 +102,10 @@ def run():
     total_count = ProxyIp.objects.all().count() #获得数据库里数量
     print total_count
 
-    pool = Pool(processes=4)
-    pool.map(change_valid, range(1, total_count))
+    pool = Pool()
+    for i in range(1, total_count):
+        pool.apply_async(change_valid, i)
+    # pool.map(change_valid, range(1, total_count))
     pool.close()
     pool.join()
 
