@@ -97,25 +97,26 @@ class CrawlerTaskGenerator(Document):
 			f.write(self.code)
 
 class CrawlerTask(Document):
-	(STATUS_LIVE, STATUS_DISPATCH, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 8)
-	STATUS_CHOICES = (
-		(STATUS_LIVE, u"新增"),
-		(STATUS_DISPATCH, u'分发中'),
-		(STATUS_PROCESS, u"进行中"),
-		(STATUS_FAIL, u"下载失败"),
-		(STATUS_SUCCESS, u"下载成功"),
-		(STATUS_ANALYSIS_FAIL, u"分析失败"),
-		(STATUS_ANALYSIS_SUCCESS, u"分析成功"),
-	)
-	job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-	task_generator = ReferenceField(CrawlerTaskGenerator, null=True)
-	uri = StringField(max_length=1024)
-	args = StringField(max_length=2048, null=True) # 存储cookie， header等信息
-	status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
-	from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
-	add_datetime = DateTimeField(default=datetime.datetime.now())
-	retry_times = IntField(default=0)
-	meta = {"db_alias": "source"} # 默认连接的数据库
+    (STATUS_LIVE, STATUS_DISPATCH, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 8)
+    STATUS_CHOICES = (
+        (STATUS_LIVE, u"新增"),
+        (STATUS_DISPATCH, u'分发中'),
+        (STATUS_PROCESS, u"进行中"),
+        (STATUS_FAIL, u"下载失败"),
+        (STATUS_SUCCESS, u"下载成功"),
+        (STATUS_ANALYSIS_FAIL, u"分析失败"),
+        (STATUS_ANALYSIS_SUCCESS, u"分析成功"),
+    )
+    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
+    task_generator = ReferenceField(CrawlerTaskGenerator, null=True)
+    uri = StringField(max_length =8000)
+    args = StringField(max_length=2048, null=True) # 存储cookie， header等信息
+    status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
+    from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
+    add_datetime = DateTimeField(default=datetime.datetime.now())
+    retry_times = IntField(default=0)
+    meta = {"db_alias": "source"} # 默认连接的数据库
+
 
 class CrawlerGeneratorLog(Document):
 	"""log : execution results of generator scripts  """

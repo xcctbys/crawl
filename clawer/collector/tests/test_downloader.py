@@ -238,7 +238,7 @@ class TestMongodb(TestCase):
 		self.test_insert_python_job()
 
 	def test_wait_cancel(self):
-		
+		pass
 
 
 
