@@ -38,8 +38,9 @@ class DataPreprocess(object):
         try:
             job_doc = Job.objects.with_id(job_id)
         except Exception as e:
-            # logging.error("Can't find job_id: %s in mongodb!"%(job_id))
-            CrawlerGeneratorErrorLog(name="ERROR_JOB", content="Can't find job_id: %s in mongodb!"%(job_id), hostname= socket.gethostname()).save()
+            content = "%s : Can't find job_id: %s in mongodb!"%(type(e) ,job_id)
+            logging.error(content)
+            CrawlerGeneratorErrorLog(name="ERROR_JOB", content=content, hostname= socket.gethostname()).save()
             raise KeyError("Can't find job_id: %s in mongodb!"%(str(job_id)))
         self.job_id = job_id
         self.job = job_doc
@@ -67,8 +68,9 @@ class DataPreprocess(object):
                 val(uri)
                 uris.append(uri)
             except ValidationError, e:
-                # logging.error("URI ValidationError: %s" %(uri))
-                CrawlerGeneratorErrorLog(name="ERROR_URI", content="URI ValidationError: %s" %(uri), hostname=socket.gethostname() ).save()
+                content = "%s : URI ValidationError: %s" %(type(e) ,uri)
+                logging.error(content)
+                CrawlerGeneratorErrorLog(name="ERROR_URI", content=content, hostname=socket.gethostname() ).save()
                 self.failed_uris.append(uri)
         return uris
 
@@ -97,8 +99,9 @@ class DataPreprocess(object):
             try:
                 CrawlerTask(job= self.job, uri= uri).save()
             except Exception as e:
-                # logging.error("error occured when saving uri-- %s"%(type(e)))
-                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content="Error occured when saving uris --%s"%(type(e)), hostname= socket.gethostname()).save()
+                content = "%s : Error occured when saving uris %s."%(type(e), uri)
+                logging.error(content)
+                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
         return True
 
     def save_script(self, script, cron, code_type=1, schemes=[]):
@@ -119,8 +122,9 @@ class DataPreprocess(object):
         try:
             CrawlerTaskGenerator(job = self.job, code = script, cron = cron, code_type = code_type, schemes= self.schemes).save()
         except Exception as e:
-            # logging.error("Error occured when saving script --%s"%(type(e)))
-            CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content="Error occured when saving script --%s"%(type(e)), hostname= socket.gethostname()).save()
+            content = "%s : Error occured when saving script with job :%s !"%(type(e), job.id)
+            logging.error(content)
+            CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
             return False
         return True
 
@@ -133,9 +137,10 @@ class DataPreprocess(object):
             try:
                 schemes = settings.pop('schemes', None)
                 assert self.save_text(text, schemes)
-            except AssertionError :
+            except AssertionError as e:
+                content = "%s : Error occured when saving text"%( type(e) )
                 # logging.error("Error occured when saving text")
-                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content="Error occured when saving text", hostname= socket.gethostname()).save()
+                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content=content, hostname= socket.gethostname()).save()
         elif script is not None:
             if not settings.has_key('cron'):
                 logging.error("cron is not found in settings")
@@ -453,7 +458,7 @@ class CrawlerCronTab(object):
 
     def update_online_jobs(self):
         jobs= Job.objects(status = Job.STATUS_ON)
-        print len(jobs)
+        print "job number is %d"%(len(jobs))
         for job in jobs:
             generator = CrawlerTaskGenerator.objects(job = job).order_by('-add_datetime').first()
             if not generator:
@@ -518,10 +523,12 @@ class CrawlerCronTab(object):
         for job in self.crontab.crons:
             # 获得当前需要运行的cron任务
             now = datetime.now()
-            base = dateutil.parser.parse(job.last_run)
+            base = dateutil.parser.parse( str(job.last_run))
+            print "last time "+ str(base)
             slices= job.slices.clean_render()
             iters = croniter(slices , base)
             next_time = iters.get_next(datetime)
+            print "next_time "+ str(next_time)
             if next_time < now:
                 try:
                     command = job.command

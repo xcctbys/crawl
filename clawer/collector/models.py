@@ -109,7 +109,7 @@ class CrawlerTask(Document):
     )
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
     task_generator = ReferenceField(CrawlerTaskGenerator, null=True)
-    uri = StringField(max_length=1024)
+    uri = StringField(max_length =8000)
     args = StringField(max_length=2048, null=True) # 存储cookie， header等信息
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
     from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
