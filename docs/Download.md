@@ -382,7 +382,9 @@ class CrawlerDownloadData(Document):
     hostname = StringField()
     remote_ip = StringField()
     add_datetime = DateTimeField(default=datetime.datetime.now())
-    meta = {"db_alias": "source"} # 默认连接的数据库```
+    meta = {"db_alias": "source"} # 默认连接的数据库
+```
+
 ## CrawlerDispatchAlertLog
 - 生产者：该日志由下载器在分发工作时队列满等警告产生
 - 消费者：用户及管理员查看
@@ -408,6 +410,7 @@ class CrawlerDispatchAlertLog(Document):
 - 生产者： 下载程序
 - 消费者： 用户及管理员查看
 
+
 ```
 class CrawlerDownloadLog(Document):
     (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
@@ -428,8 +431,6 @@ class CrawlerDownloadLog(Document):
     meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
-
-
 # 测试计划
 正确性测试，容错性测试，数据库测试
 
@@ -441,9 +442,9 @@ class CrawlerDownloadLog(Document):
 
 ## Testcase	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 下载器及下载器设置入库
+添加一个 job,crawlerdownload, crawlerdownloadtype, crawlerdownload,CrawlerTaskGenerator,CrawlerDownloadSetting。
 
 ```
-# 添加一个 job,crawlerdownload, crawlerdownloadtype, crawlerdownload,CrawlerTaskGenerator,CrawlerDownloadSetting。
 		onetype = CrawlerDownloadType(language='python', is_support=True)
         onetype.save()
         job1 = Job(name='1', info='2', customer='ddd', priority=-1)
