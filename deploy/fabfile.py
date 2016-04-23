@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from fabric.api import env, roles
+from fabric.api import env, roles, run
 
 with open("servers.json") as conf:
     env.roledefs = json.load(conf)
@@ -9,7 +9,7 @@ with open("servers.json") as conf:
 
 @roles("CaptchaServers")
 def deploy_captcha_servers():
-    pass
+    _download_project("")
 
 
 @roles("DownloaderServers")
@@ -50,3 +50,19 @@ def deploy_redis_servers():
 @roles("StructureSevers")
 def deploy_structure_servers():
     pass
+
+
+def _download_project(download_url):
+    run("wget {0}".format(download_url))
+
+
+def _release():
+    pass
+
+
+def _publish():
+    pass
+
+
+def _change_dir(path):
+    run("cd {0}".path)
