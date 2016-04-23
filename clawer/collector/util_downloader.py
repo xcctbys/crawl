@@ -43,6 +43,8 @@ class Download(object):
 			downloader = EnterpriseDownload(self.task.uri)
 			result = downloader.download()
 
+			print '----------------json data---------------------'
+			print result
 			# 改变这个任务的状态为下载成功
 			self.task.status = CrawlerTask.STATUS_SUCCESS
 			self.task.save()
