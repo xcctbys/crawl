@@ -29,7 +29,7 @@ class Crawer(object):
                 except:
                     pass
         except Exception as e:
-            print 'error',e
+            print 'error in do_with',e
             pass
 
     def run(self):
@@ -38,7 +38,7 @@ class Crawer(object):
             # print 'item:----', item
             self.do_with(item())
 if __name__ == '__main__':
-    os.environ["DJANGO_SETTINGS_MODULE"] = "mydj.settings"
+    os.environ["DJANGO_SETTINGS_MODULE"] = "crawer.settings"
     django.setup()
     crawer = Crawer()
     crawer.run()
