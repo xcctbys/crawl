@@ -6,57 +6,191 @@ import datetime
 
 import os
 #from util_filter.utils.bloomfilter import BloomFilter
-from pybloomfilter import BloomFilter
+#from pybloomfilter import BloomFilter
+from pybloom import BloomFilter
 
+
+global urigenerator
+
+def singleton(cls, *args, **kw):
+    instances = {}
+    def _singleton():
+        if cls not in instances:
+            instances[cls] = cls(*args, **kw)
+        return instances[cls]
+    return _singleton
+
+def isset(v):
+   try :
+     type (eval(v))
+   except :
+     return  0
+   else :
+     return  1
+
+
+#@singleton
 class FilterAPIClient():
+    urigenerator = BloomFilter(100000000, 0.0001)
     def __init__(self, filter_typename='', uri_list=[]):
         self.filter_name = filter_typename
         self.bfilter_list = uri_list
         self.filter_list_unique = []
-        print self.filter_name
-        print self.bfilter_list
-        print self.filter_list_unique
-        print #####################
-    #def filterapi(self):
+
+    def filter(self):
+        urigenerator = None
         print 23333333
+
+        '''
         if self.filter_name == 'urigenerator':
-            print ##########1
-            if os.path.exists('/usr/bloomfilter/urigenerator.bloom') == True:
-                urigenerator = BloomFilter.open('/usr/bloomfilter/urigenerator.bloom')
+            #rint ##########1
+
+
+            if os.path.exists('/home/xcc/Downloads/bloomfilter/urigenerator.bloom') == True:
+                print 222222222
+                if isinstance(urigenerator, BloomFilter):
+                    #if isset('user_name'):
+                    #ass
+                else:
+                    f=open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom','rwb')
+                    urigenerator=BloomFilter.fromfile(f)
+                    f.close()
 
             else:
-                urigenerator = BloomFilter(1000000,0.0001,'/usr/bloomfilter/urigenerator.bloom')
-            for uri in bfilter_list:
+                urigenerator = BloomFilter(100000000, 0.0001)
+                os.makedirs('/home/xcc/Downloads/bloomfilter')
+                f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
+                urigenerator.tofile(f)
+                f.close()
+            for uri in self.bfilter_list:
                 if urigenerator.add(uri) == True:
-                    pass
-                elif urigenerator.add(uri) == False:
-                    filter_list_unique.append(uri)
+                    print 00  #
+                    # pass
+                else:
+                    self.filter_list_unique.append(uri)
+                    f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
+                    urigenerator.tofile(f)
+                    f.close()
 
-        elif self.filter_name == 'ip':
-            print ##########2#
-            if os.path.exists('/usr/bloomfilter/ip.bloom') == True:
-                ipfilter = BloomFilter.open('/usr/bloomfilter/ipfilter.bloom')
+            print self.filter_list_unique
+            return self.filter_list_unique
+
+        '''
+
+
+
+
+
+        if self.filter_name == 'urigenerator':
+            print  3333333
+            #if isinstance(urigenerator, BloomFilter):
+                #pass
+
+            if os.path.exists('/home/xcc/Downloads/bloomfilter/urigenerator.bloom') == True:
+                f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'rwb')
+                urigenerator = BloomFilter.fromfile(f)
+                f.close()
+                print  4444444
+
             else:
-                ipfilter = BloomFilter(1000000,0.0001,'/usr/bloomfilter/ipfilter.bloom')
+                urigenerator = BloomFilter(100000000, 0.0001)
+                os.makedirs('/home/xcc/Downloads/bloomfilter')
+                f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
+                urigenerator.tofile(f)
+                f.close()
+            for uri in self.bfilter_list:
+                if urigenerator.add(uri) == True:
+                    print 00#
+                    #pass
+                else:
+                    self.filter_list_unique.append(uri)
+                    f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
+                    urigenerator.tofile(f)
+                    f.close()
+
+
+            print self.filter_list_unique
+            return self.filter_list_unique
+
+
+        '''
+        elif  self.filter_name == 'ip':
+            print  ##########1
+            if isinstance(ipfilter, BloomFilter):
+                pass
+
+            elif os.path.exists('home/xcc/Downloads/bloomfilter/ipfilter.bloom') == True:
+                f = open('home/xcc/Downloads/bloomfilter/ipfilter.bloom', 'rwb')
+                BloomFilter.fromfile(f)
+                f.close()
+
+            else:
+                ipfilter = BloomFilter(1000000, 0.0001)
+                f = open('home/xcc/Downloads/bloomfilter/ipfilter.bloom', 'wb')
+                BloomFilter.tofile(f)
+                f.close()
             for ip in bfilter_list:
-                if ip.add(ip) == True:
+                if ipfilter.add(ip) == True:
                     pass
-                elif ip.add(ip) == False:
+                else:
                     filter_list_unique.append(ip)
 
         elif self.filter_name == 'uriparse':
+            print  ##########1
+            if isinstance(ipfilter, BloomFilter):
+                pass
 
-            if os.path.exists('/usr/bloomfilter/uriparse.bloom') == True:
-                uriparse = BloomFilter.open('/usr/bloomfilter/uriparse.bloom')
+            elif os.path.exists('home/xcc/Downloads/bloomfilter/uriparse.bloom') == True:
+                f = open('home/xcc/Downloads/bloomfilter/uriparse.bloom', 'rwb')
+                urigenerator = BloomFilter.fromfile(f)
+                f.close()
+
             else:
-                uriparse = BloomFilter(1000000,0.0001,'/usr/bloomfilter/uriparse.bloom')
-            for uriparse in bfilter_list:
+                uriparse = BloomFilter(1000000, 0.0001)
+                f = open('home/xcc/Downloads/bloomfilter/uriparse.bloom', 'wb')
+                BloomFilter.tofile(f)
+                f.close()
+            for uri in bfilter_list:
                 if uriparse.add(uri) == True:
                     pass
-                elif uriparse.add(uri) == False:
-                    filter_list_unique.append(uriparse)
-        print uri_list_unique
-        return uri_list_unique
+                else:
+                    filter_list_unique.append(uri)
+
+
+
+        else:
+            diy_filter_name = self.filter_name
+            if isinstance(eval(diy_filter_name_),BloomFilter) == True:
+                pass
+
+            ###已经在内存里
+
+            else:
+                bloomfilename =diy_filter_name+'.bloom'
+                bloomfilepath = os.path.join('home/xcc/Downloads/bloomfilter/',bloomfilename)
+                print bloomfilepath
+                print ######dir###
+                if os.path.exists(bloomfilepath) == True:
+                    f = open(bloomfilepath, 'rwb')
+                    fromfilestr = '=BloomFilter.fromfile(f)'
+                    exec(diy_filter_name+makefilterstr)
+                    f.close()
+
+                else:
+                    makefilterstr= '=BloomFilter(1000000, 0.0001)'
+                    exec (diy_filter_name + makefilterstr)
+                    f = open(bloomfilepath, 'wb')
+                    BloomFilter.tofile(f)
+                    f.close()
+
+
+            for uri in bfilter_list:
+                if uriparse.add(uri) == True:
+                    pass
+                else:
+                    filter_list_unique.append(uri)
+        '''
+
 
 '''
     def uri_filter_api(self):
@@ -77,8 +211,9 @@ class FilterAPIClient():
         uri_list_unique = BloomFilter(self.uri_list)
 '''
 
-
+''''''
 
 if __name__=='__main__':
-    list = FilterAPIClient('urigenerator',['www.baidu.com','www.baidu.com','www.pritn.com'])
-    print list
+    urilist = ['www.baidu.com','www.baidu.com','www.prittn.com']
+    list = FilterAPIClient('urigenerator',urilist)
+    list.filter()
