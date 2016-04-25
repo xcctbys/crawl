@@ -3,12 +3,11 @@ import os
 import os.path
 import django.conf
 # from plugins import *
-from plugins.xici import Xici
-from plugins.xici import HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy
+from plugins.xici import XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy
 
 from models import ProxyIp
 
-proxy_list = [Xici, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy]
+proxy_list = [XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy]
 
 class Crawer(object):
     def __init__(self):
