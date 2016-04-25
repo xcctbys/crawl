@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 import math
 import hashlib
-from pybloom.utils import range_fn, is_string_io, running_python_3
+from uri_filter.pybloom.utils import range_fn, is_string_io, running_python_3
 from struct import unpack, pack, calcsize
 
 try:
