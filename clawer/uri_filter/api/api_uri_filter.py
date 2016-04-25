@@ -9,10 +9,10 @@ import os
 #sys.path.append('/Users/princetechs/cr-clawer/clawer/uri_filter/pybloom')
 #from util_filter.utils.bloomfilter import BloomFilter
 #from pybloomfilter import BloomFilter
-from pybloom.pybloom import BloomFilter
+from uri_filter.pybloom.pybloom import BloomFilter
 
-from pybloom import pybloom
-from django.conf import settings_cr
+# from uri_filter.pybloom import pybloom
+# from django.conf import settings
 
 #global urigenerator
 
