@@ -76,7 +76,7 @@ def change_valid(one_ip):
         return
     try:
         # ‘http://lwons.com/wx’ 更加快点。
-        resp = reqst.get('http://lwons.com/wx', timeout=60, proxies=proxy)
+        resp = reqst.get('http://lwons.com/wx', timeout=15, proxies=proxy)
     except Exception as e:
         # print e
         # update_data(id, flag=False) #更新，置为不可用。

@@ -105,6 +105,7 @@ class KuaiProxy(XiciProxy):
         self.url = 'http://www.kuaidaili.com/free/inha/'          #快代理
     def run(self):
         pass
+        #####为什么总是 http 521的状态码？该问题还没有解决
         # kuai_proxy_list = []
         # for i in range(1,3):
         #     resp = self.reqst.get('http://www.kuaidaili.com/')
@@ -127,9 +128,33 @@ class KuaiProxy(XiciProxy):
 class YouProxy(XiciProxy):
     def __init__(self):
         XiciProxy.__init__(self)
-        self.url = 'http://www.xicidaili.com/nn'          #有代理
+        self.url = 'http://www.youdaili.net/Daili/guonei/'          #有代理
     def run(self):
-        pass
+        resp = self.reqst.get(self.url, timeout=20)
+        ul = BeautifulSoup(resp.content, 'html.parser').find_all('ul', attrs={'class':'newslist_line'})[0]
+        try:
+            a_href = ul.find('li').a['href']
+            resp = self.reqst.get(a_href, timeout=20)
+            content = BeautifulSoup(resp.content, 'html.parser').find_all('p')[0]
+            you_proxy_list = []
+            for item in content.span.get_text().split()[::2]:
+                ip_port, province = item.split('@')
+                try:
+                    province = province.split('#')[1]
+                    if province[0] == u'【':
+                        province = choices[province[3:6]]
+                    else:
+                        province = choices[province[:2]]
+                except:
+                    province = 'OTHER'
+                # print ip_port, province
+                you_proxy_list.append((ip_port, province))
+            return you_proxy_list
+            # for item in content.span.get_text().split('\n'):
+            #     print item.get_text().strip()
+
+        except Exception as e:
+            return None
 
 class SixProxy(XiciProxy):
     def __init__(self):
@@ -230,12 +255,17 @@ class ProxyTest(unittest.TestCase):
             print item
         logging.debug('hao_proxy_list: %s ' % hao_proxy_list)
 
-    # def test_obtain_kuai_proxy_list(self):
-    #     self.kuai = KuaiProxy()
-    #     kuai_proxy_list = self.kuai.run()
-    #     self.assertTrue(kuai_proxy_list)
-    #     logging.debug('hao_proxy_list: %s ' % kuai_proxy_list)
+    def test_obtain_kuai_proxy_list(self):
+        self.kuai = KuaiProxy()
+        kuai_proxy_list = self.kuai.run()
+        self.assertTrue(not kuai_proxy_list)
+        logging.debug('kuai_proxy_list: %s ' % kuai_proxy_list)
 
+    def test_obtain_you_proxy_list(self):
+        self.you = YouProxy()
+        you_proxy_list = self.you.run()
+        self.assertTrue(you_proxy_list)
+        logging.debug('you_proxy_list: %s ' % you_proxy_list)
 
 if __name__ == '__main__':
     if DEBUG:
