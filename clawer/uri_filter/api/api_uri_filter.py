@@ -1,16 +1,23 @@
 #coding=utf-8
-
+#!/usr/bin/env python
 import json
 import hashlib
 import datetime
+import sys
 
 import os
+#sys.path.append('/Users/princetechs/cr-clawer/clawer/uri_filter/pybloom')
 #from util_filter.utils.bloomfilter import BloomFilter
 #from pybloomfilter import BloomFilter
-from pybloom import BloomFilter
+from pybloom.pybloom import BloomFilter
+
+from pybloom import pybloom
+from django.conf import settings_cr
+
+#global urigenerator
 
 
-global urigenerator
+
 
 def singleton(cls, *args, **kw):
     instances = {}
@@ -30,12 +37,13 @@ def isset(v):
 
 
 #@singleton
-class FilterAPIClient():
+class FilterAPI():
     urigenerator = BloomFilter(100000000, 0.0001)
     def __init__(self, filter_typename='', uri_list=[]):
         self.filter_name = filter_typename
         self.bfilter_list = uri_list
         self.filter_list_unique = []
+        self.filename = '/home/xcc/Downloads/bloomfilter'
 
     def filter(self):
         urigenerator = None
@@ -85,9 +93,10 @@ class FilterAPIClient():
             print  3333333
             #if isinstance(urigenerator, BloomFilter):
                 #pass
-
-            if os.path.exists('/home/xcc/Downloads/bloomfilter/urigenerator.bloom') == True:
-                f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'rwb')
+            bloomfilepath= self.filename + '/urigenerator.bloom'
+            if os.path.exists(bloomfilepath) == True:
+                #f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'rwb')
+                f = open(bloomfilepath, 'rwb')
                 urigenerator = BloomFilter.fromfile(f)
                 f.close()
                 print  4444444
@@ -95,7 +104,9 @@ class FilterAPIClient():
             else:
                 urigenerator = BloomFilter(100000000, 0.0001)
                 os.makedirs('/home/xcc/Downloads/bloomfilter')
-                f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
+
+                #f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
+                f = open(bloomfilepath, 'wb')
                 urigenerator.tofile(f)
                 f.close()
             for uri in self.bfilter_list:
@@ -104,7 +115,8 @@ class FilterAPIClient():
                     #pass
                 else:
                     self.filter_list_unique.append(uri)
-                    f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
+                    #f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
+                    f = open(bloomfilepath, 'wb')
                     urigenerator.tofile(f)
                     f.close()
 
@@ -167,7 +179,7 @@ class FilterAPIClient():
 
             else:
                 bloomfilename =diy_filter_name+'.bloom'
-                bloomfilepath = os.path.join('home/xcc/Downloads/bloomfilter/',bloomfilename)
+                    bloomfilepath = os.path.join('home/xcc/Downloads/bloomfilter/',bloomfilename)
                 print bloomfilepath
                 print ######dir###
                 if os.path.exists(bloomfilepath) == True:
@@ -198,7 +210,7 @@ class FilterAPIClient():
         encode_urilist = json.dumps(self.uri_list)
         sendPost(encode_urilist)
 
-        get encode_urilist
+        get enc o                            de_urilist
         json.loads(encode_urilist)
         uri_list_unique = bloomfilter(encode_uri_list)
         send_POST(uri_list_unique)
@@ -215,5 +227,5 @@ class FilterAPIClient():
 
 if __name__=='__main__':
     urilist = ['www.baidu.com','www.baidu.com','www.prittn.com']
-    list = FilterAPIClient('urigenerator',urilist)
+    list = FilterAPI('urigenerator',urilist)
     list.filter()

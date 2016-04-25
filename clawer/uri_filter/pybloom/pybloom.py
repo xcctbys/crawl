@@ -72,11 +72,7 @@ class BloomFilter(object):
             the error_rate of the filter returning false positives. This
             determines the filters capacity. Inserting more than capacity
             elements greatly increases the chance of false positives.
-        >>> b = BloomFilter(capacity=100000, error_rate=0.001)
-        >>> b.add("test")
-        False
-        >>> "test" in b
-        True
+
         """
         if not (0 < error_rate < 1):
             raise ValueError("Error_Rate must be between 0 and 1.")
