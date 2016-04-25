@@ -72,13 +72,13 @@ def change_valid(one_ip):
         proxy = {'http':'http://'+ one_ip.ip_port}
         print one_ip.id, proxy
     except Exception as e:
-        print e
+        # print e
         return
     try:
         # ‘http://lwons.com/wx’ 更加快点。
         resp = reqst.get('http://lwons.com/wx', timeout=60, proxies=proxy)
     except Exception as e:
-        print e
+        # print e
         # update_data(id, flag=False) #更新，置为不可用。
         if one_ip.is_valid is False:
             return False
