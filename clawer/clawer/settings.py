@@ -171,7 +171,7 @@ UPDATE_BY = "day" # "hour" | "day"
 
 MULTIPROCESS = True # True | False
 
-MAX_PROXY_NUM = 100
+MAX_PROXY_NUM = 500
 
 
 #### 在下载器中有用到

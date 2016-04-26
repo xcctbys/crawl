@@ -1,2 +1,5 @@
-#!/usr/bin/env python
+"""pybloom
+"""
+
+
 from .pybloom import BloomFilter, ScalableBloomFilter

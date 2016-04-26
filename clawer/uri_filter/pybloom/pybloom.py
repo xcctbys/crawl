@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 import math
 import hashlib
-from pybloom.utils import range_fn, is_string_io, running_python_3
+from uri_filter.pybloom.utils import range_fn, is_string_io, running_python_3
 from struct import unpack, pack, calcsize
 
 try:
@@ -72,11 +72,7 @@ class BloomFilter(object):
             the error_rate of the filter returning false positives. This
             determines the filters capacity. Inserting more than capacity
             elements greatly increases the chance of false positives.
-        >>> b = BloomFilter(capacity=100000, error_rate=0.001)
-        >>> b.add("test")
-        False
-        >>> "test" in b
-        True
+
         """
         if not (0 < error_rate < 1):
             raise ValueError("Error_Rate must be between 0 and 1.")
