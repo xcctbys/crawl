@@ -1,6 +1,6 @@
 # 目标
 
-方便开发和运营人员自动化部署开发和生成环境。
+方便开发和运营人员自动化部署开发和生产环境。
 
 # 设计
 
@@ -38,7 +38,7 @@
 
 # 配置
 
-编辑`project/deploy/servers.json`，hosts字段是有服务器的公网IP地址组成的列表，hosts的内容是可重复的，其中key的含义如下：
+编辑`project/deploy/servers.json`，`hosts`字段是有服务器的公网IP地址组成的列表，hosts的内容是可重复的，其中key的含义如下：
 
 ```
 "GeneratorServers":       部署生成器服务器列表
