@@ -1,5 +1,5 @@
 #!/bin/sh
-FABRIC_BIN="/usr/local/bin/fab"
+FABRIC_BIN=`which fab`
 FABFILE="fabfile.py"
 
 deploy_captcha_servers() {
