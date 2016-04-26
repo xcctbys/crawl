@@ -227,34 +227,56 @@ calss Proxy(object):
 
 # Test 测试
 
-## 代码实现
-<pre>
-#####test_proxy.py 伪代码如下。
+### 测试环境
+- python manage.py shell 环境下测试（manage.py test 会使用test数据库并且每次结束后删除）
 
-import unittest
+### 数据源的获取(plugins/xici.py 文件下有已经写好的测试，可以直接执行，也可以如下方法测试)
+python manage.py shell 环境下测试（manage.py test 会使用test数据库并且每次结束后删除）
 
-class TestProxy(unittest.TestCase):
-	def setUp(self):
-		pass
-	def test_valid(self):
-		pass #测试抓取爬虫是否有效
-	def test_api(self):
-		pass #测试接口
-	def tearDown(self):
-		pass
-</pre>
+- 输入：
 
-- 环境相关
- 
-		django 1.8.2
-		json
-		mysql-python
+		from smart_proxy.plugins.xici import ProxyTest
+		proxytest = ProxyTest()
+		proxytest.test_obtain_ipcn_proxy_list()
+		...
+- 输出：ip列表。
+### 轮询数据
+- 输入：
 
+		from smart_proxy.round_proxy_ip import run
+		run()
+- 输出： 开始使用多进程进入轮询状态。
+### 得到有效ip代理列表
+- 输入：
+	
+		###原函数定义 def get_proxy(self, num=5, province=None, is_valid=True):
+		from smart_proxy.api import Proxy
+		proxy = Proxy()
+		a_list = proxy.get_proxy() #默认为有效状态，数量为5个
+		a_list = proxy.get_proxy(num=100) #不足100，则返回数据库里全部有效的
+		a_list = proxy.get_proxy(province='Beijing') 返回 5 个北京省的，不区分大小写。不足的以'other'省代替。
+		a_list = proxy.get_proxy(is_valid=False) 返回 5个无效的
+- 输出：一个包含了一定数量 ip 代理的列表。
+### 改变数据库里某头 ip 代理的有效性
+- 输入：
 
-- 输入：django-admin manage.py test tests/test_proxy.TestProxy.tes_valid
-- 期望输出：整个过程没有出现错误，返回未经检测有效性的代理ip。
-- 输入:django-admin manage.py test tests/test_proxy.TestProxy.test_api
-- 期望输出: 返回代理ip列表['ip:port', ...]。
+		###原函数定义 def change_valid(self, ip_port=None, _id=None):
+		from smart_proxy.api import Proxy
+		proxy = Proxy()
+		proxy.change_valid(ip_port='127.0.0.1:80') # 改变状态true会成为false,false 会成为 true
+		proxy.change_valid(_id=3) #将 id 为 3的，改变它的状态
+
+- 输出：有相应提示，并在数据库中的状态会改变
+### 测试某头 ip 代理的有效性
+- 输入：
+
+		### 原函数定义 def test_really_is_valid(self, ip_port=None, test_uri=None):
+		from smart_proxy.api import Proxy
+		proxy = Proxy()
+		proxy.test_really_is_valid(ip_port='127.0.0.1:80') # 会使用该代理访问网站 'http://lwons.com/wx'，如果不提供 uri 参数
+		proxy.test_really_is_valid(ip_port='127.0.0.1:80', test_uri='http://www.baidu.com') #使用代理访问 百度
+- 输出：会有相应的提示，如状态码的提示。
+
 
 #布署运行
 ### 获取代理ip与检测代理ip
@@ -315,7 +337,7 @@ crontab -e
 ## 已经找到有免费代理的网址
 1. 好代理 ：[http://www.haodailiip.com/guonei](http://www.haodailiip.com/guonei)
 2. 西刺代理：[http://www.xicidaili.com/nn/](http://www.xicidaili.com/nn/)
-3. 快代理：[http://www.kuaidaili.com/free/](http://www.kuaidaili.com/free/)
+3. [[[http响应码:521]]]快代理：[http://www.kuaidaili.com/free/](http://www.kuaidaili.com/free/)
 4. 有代理：[http://www.youdaili.net/Daili/guonei/4296.html](http://www.youdaili.net/Daili/guonei/4296.html)
 5. 66免费代理：[http://www.66ip.cn/](http://www.66ip.cn/)
 6. IPCN：[http://proxy.ipcn.org/country/](http://proxy.ipcn.org/country/)
