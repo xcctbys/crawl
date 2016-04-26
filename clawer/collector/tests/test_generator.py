@@ -144,8 +144,8 @@ class TestMongodb(TestCase):
 class TestPreprocess(TestCase):
     def setUp(self):
         TestCase.setUp(self)
-        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
-        self.pre = DataPreprocess(job_id= self.job.id)
+        # self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        # self.pre = DataPreprocess(job_id= self.job.id)
 
     def tearDown(self):
         TestCase.tearDown(self)
@@ -187,10 +187,11 @@ class TestPreprocess(TestCase):
         inputs = """
         http://www.baidu.com
         https://www.baidu.com
-        ftp://www.baidu.com
-        ftps://www.baidu.com
+        ftp://www.baidu.com\nftps://www.baidu.com
+        ftps://www.baidu.com\tftps://www.baidu.com
         enterprise://baidu.com
 
+        http://www.wrong. command
         www.baidu.com
         baidu.com
         httd://baidu.com
@@ -199,7 +200,7 @@ class TestPreprocess(TestCase):
         """
         uris = self.pre.read_from_strings(inputs, schemes=['enterprise'])
         print uris
-        self.assertEqual(len(uris), 5)
+        self.assertEqual(len(uris), 7)
 
 
     def test_save_text_with_large_length(self):
@@ -210,7 +211,7 @@ class TestPreprocess(TestCase):
         count = CrawlerTask.objects.count()
         self.assertEqual(count, 1)
 
-    @unittest.skip("skipping read from file")
+    # @unittest.skip("skipping read from file")
     def test_read_from_file(self):
         filename = "/Users/princetechs5/Documents/uri.csv"
         uris_string = ""
@@ -227,7 +228,16 @@ class TestPreprocess(TestCase):
         print uris
         self.assertListEqual( ['http://www.baidu.com', 'http://www.google.com'], uris)
 
-    def test_save_text(self):
+    def test_read_from_file_and_save(self):
+        CrawlerTask.objects.delete()
+        filename = "/Users/princetechs5/Documents/txt_text.txt"
+        uris_string = ""
+        with open(filename, 'r') as f:
+            uris_string= f.read()
+        self.pre.save(text = uris_string, settings = {"schemes":[] })
+        self.assertEqual( CrawlerTask.objects.count(), 2)
+
+    def test_save_text_with_default_scheme(self):
         inputs = """
         http://www.baidu.com
         """
@@ -237,6 +247,16 @@ class TestPreprocess(TestCase):
         result = CrawlerTask.objects.first()
         print result
         self.assertTrue(result)
+
+    def test_save_with_other_scheme(self):
+        inputs = """
+        htttp://www.baidu
+        """
+        CrawlerTask.objects.delete()
+        self.pre.save(text= "pulikeji://hi.ziyang", settings={"schemes":['ttt']})
+
+        count = CrawlerTask.objects().count()
+        self.assertEqual(count, 0)
 
     def test_save_script(self):
         script = """import json\nprint json.dumps({'uri':"http://www.souhu.com"})"""

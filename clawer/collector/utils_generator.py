@@ -85,7 +85,7 @@ class DataPreprocess(object):
         """ validate strings from textarea with schemes
             return valid uri list
         """
-        uri_list = textarea.strip().split()
+        uri_list = textarea.strip().splitlines()
         valid_uris = self.__validate_uris(uri_list, schemes)
         dereplicated_uris = self.__dereplicate_uris(valid_uris)
         self.uris = dereplicated_uris
