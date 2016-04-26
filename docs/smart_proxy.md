@@ -230,14 +230,18 @@ calss Proxy(object):
 ### 测试环境
 - python manage.py shell 环境下测试（manage.py test 会使用test数据库并且每次结束后删除）
 
-### 数据源的获取(plugins/xici.py 文件下有已经写好的测试，可以直接执行，也可以如下方法测试)
+### 数据源的获取(plugins/xici.py 文件下有已经写好的测试，可以直接ctrl+b执行，也可以如下方法测试)
 python manage.py shell 环境下测试（manage.py test 会使用test数据库并且每次结束后删除）
 
 - 输入：
 
 		from smart_proxy.plugins.xici import ProxyTest
 		proxytest = ProxyTest()
-		proxytest.test_obtain_ipcn_proxy_list()
+		proxytest.test_obtain_xici_proxy_list() #测试 西刺 网站
+		proxytest.test_obtain_ipcn_proxy_list() # 测试 ipcn 网站
+		proxytest.test_obtain_six_proxy_list() # 测试 66免费代理 网站
+		proxytest.test_obtain_hao_proxy_list() # 测试 好代理 网站
+		proxytest.test_obtain_you_proxy_list() # 测试 有代理 网站
 		...
 - 输出：ip列表。
 ### 轮询数据
