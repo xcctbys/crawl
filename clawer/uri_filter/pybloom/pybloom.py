@@ -5,12 +5,13 @@ import math
 import hashlib
 from uri_filter.pybloom.utils import range_fn, is_string_io, running_python_3
 from struct import unpack, pack, calcsize
-
+import redis
+'''
 try:
     import bitarray
 except ImportError:
     raise ImportError('pybloom requires bitarray >= 0.3.4')
-
+'''
 
 def make_hashfuncs(num_slices, num_bits):
     if num_bits >= (1 << 31):
@@ -62,7 +63,7 @@ def make_hashfuncs(num_slices, num_bits):
 class BloomFilter(object):
     FILE_FMT = b'<dQQQQ'
 
-    def __init__(self, capacity, error_rate=0.001):
+    def __init__(self, capacity, error_rate=0.001, redisdb):
         """Implements a space-efficient probabilistic data structure
         capacity
             this BloomFilter must be able to store at least *capacity* elements
@@ -89,8 +90,14 @@ class BloomFilter(object):
             (capacity * abs(math.log(error_rate))) /
             (num_slices * (math.log(2) ** 2))))
         self._setup(error_rate, num_slices, bits_per_slice, capacity, 0)
-        self.bitarray = bitarray.bitarray(self.num_bits, endian='little')
-        self.bitarray.setall(False)
+        self._redis_contpool(host = 'localhost', port= '6379', redisdb)
+
+        #self.bitarray = bitarray.bitarray(self.num_bits, endian='little')
+        #self.bitarray.setall(False)
+
+    def _redis_contpool(self,host, port ,redisdb):
+        self.redispool =redis.Redis(host,port,redisdb)
+
 
     def _setup(self, error_rate, num_slices, bits_per_slice, capacity, count):
         self.error_rate = error_rate
@@ -101,6 +108,7 @@ class BloomFilter(object):
         self.count = count
         self.make_hashes = make_hashfuncs(self.num_slices, self.bits_per_slice)
 
+
     def __contains__(self, key):
         """Tests a key's membership in this bloom filter.
         >>> b = BloomFilter(capacity=100)
@@ -110,11 +118,13 @@ class BloomFilter(object):
         True
         """
         bits_per_slice = self.bits_per_slice
-        bitarray = self.bitarray
+        #bitarray = self.bitarray
         hashes = self.make_hashes(key)
         offset = 0
+        red = self.redispool
         for k in hashes:
-            if not bitarray[offset + k]:
+            #if not bitarray[offset + k]:
+            if not redispool.getbit(self.redisdb,offset+k):
                 return False
             offset += bits_per_slice
         return True
@@ -134,17 +144,20 @@ class BloomFilter(object):
         >>> b.count
         1
         """
-        bitarray = self.bitarray
+        #bitarray = self.bitarray
         bits_per_slice = self.bits_per_slice
         hashes = self.make_hashes(key)
         found_all_bits = True
+        redispool = self.redispool
         if self.count > self.capacity:
             raise IndexError("BloomFilter is at capacity")
         offset = 0
         for k in hashes:
-            if not skip_check and found_all_bits and not bitarray[offset + k]:
+            #if not skip_check and found_all_bits and not bitarray[offset + k]:
+            bit_value = redispool.setbit(self.redisdb,offset+k,1)
+            if not skip_check and found_all_bits and not bit_value:
                 found_all_bits = False
-            self.bitarray[offset + k] = True
+            #self.bitarray[offset + k] = True
             offset += bits_per_slice
 
         if skip_check:
