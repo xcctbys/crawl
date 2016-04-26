@@ -38,34 +38,12 @@ def is_string_io(instance):
 
 
 
-
-
-
-
-
 '''
 try:
     import bitarray
 except ImportError:
     raise ImportError('pybloom requires bitarray >= 0.3.4')
 '''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -134,7 +112,7 @@ class BloomFilter(object):
 
         """
         print redisdb
-        print 22222222222222
+
         if not (0 < error_rate < 1):
             raise ValueError("Error_Rate must be between 0 and 1.")
         if not capacity > 0:
@@ -158,7 +136,9 @@ class BloomFilter(object):
     def _rediscontpool(self, redisdb, host, port):
         pool = redis.Redis(host, port, redisdb)
         self.redisdb = redisdb
-        self.redispool = redis.StrictRedis(connection_pool=pool)
+        self.redispool = redis.StrictRedis(host = 'localhost',port=6379,db= redisdb)
+        #self.redispool = redis.StrictRedis(connection_pool=pool)
+
 
     def _setup(self, error_rate, num_slices, bits_per_slice, capacity, count):
         self.error_rate = error_rate
@@ -216,7 +196,7 @@ class BloomFilter(object):
 
         for k in hashes:
             ###if not skip_check and found_all_bits and not bitarray[offset + k]
-            bit_value = redispool.setbit(redisdb, offset + k, 1)
+            bit_value = redispool.setbit('uri', offset + k, 1)
             if not skip_check and found_all_bits and not bit_value:
                 found_all_bits = False
 
@@ -225,7 +205,7 @@ class BloomFilter(object):
 
         if skip_check:
             self.count += 1
-            print 11111111111111
+
             return False
         elif not found_all_bits:
             self.count += 1
@@ -458,7 +438,17 @@ class ScalableBloomFilter(object):
 if __name__ == "__main__":
     # import doctest
     # doctest.testmod()
-    bl = BloomFilter(100, 0.01, 3)
-    bl.add('www.baidu.com')
+    bl = BloomFilter(100, 0.01, 6)
+    bl.add('wwww.baidu.com')
     print 3322323
-    bl.add('www.baidu.com')
+    bl.add('wwww.baidu.com')
+    bl.add('wwww.baidu.comt')
+    bl.add('wwww.baidu.com')
+    bl.add('wwww.baidu.comc')
+    print 4444
+    db = BloomFilter(13131231,0.23,redisdb=6)
+    print 55555
+    db.add('wwww.baidu.comc')
+    print 6666
+    db.add('wwww.baidu.comssf')
+    db.add('wwww.baidu.comt')
