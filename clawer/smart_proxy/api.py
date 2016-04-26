@@ -72,7 +72,7 @@ class Proxy(object):
                 print '这个ip代理 %s 失效了，还不能够访问地址 %s' % (ip_port, test_uri)
                 return
             if resp.status_code == 200:
-                print '这个ip代理 %s 是有效的，可以访问地址 %s' % (ip_port,test_uri)
+                print '这个ip代理 %s 是有效的，可以访问地址 %s http响应码为 %d' % (ip_port,test_uri, resp.status_code)
             else:
                 print '这个ip代理 %s 失效了，还不能够访问地址 %s http响应码为 %d' % (ip_port, test_uri, resp.status_code)
         else:
@@ -84,7 +84,7 @@ class Proxy(object):
                 print '这个ip代理 %s 失效了，还不能够访问地址 %s' % (ip_port, 'http://lwons.com/wx')
                 return
             if resp.status_code == 200:
-                print '这个ip代理 %s 是有效的，可以访问地址 %s' % (ip_port,'http://lwons.com/wx')
+                print '这个ip代理 %s 是有效的，可以访问地址 %s http响应码为 %d' % (ip_port,'http://lwons.com/wx', resp.status_code)
             else:
                 print '这个ip代理 %s 失效了，还不能够访问地址 %s http响应码为 %d' % (ip_port, test_uri, resp.status_code)
 
