@@ -237,7 +237,20 @@ class TestMongodb(TestCase):
 		self.test_insert_shell_job()
 		self.test_insert_python_job()
 
-	def test_wait_cancel(self):
+	def test_insert_enterprise_job(self):
+		onetype = CrawlerDownloadType(language='other', is_support=True)
+		onetype.save()
+		job1 = Job(name='1', info='2', customer='ddd', priority=-1)
+		job1.save()
+		ctg1 = CrawlerTaskGenerator(job=job1, code='echo hello1', cron='* * * * *')
+		ctg1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://重庆/重庆理必易投资管理有限公司/500905004651063/', args='i', from_host='1')
+		ct1.save()
+		# codestr2 = open('/Users/princetechs3/my_code/code2.sh','r').read()
+		cd1 =CrawlerDownload(job=job1, code='codestr2', types=onetype)
+		cd1.save()
+		cds1 =CrawlerDownloadSetting(job=job1, proxy='122', cookie='22', dispatch_num=50)
+		cds1.save()
 		pass
 
 
