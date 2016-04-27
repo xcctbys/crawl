@@ -78,7 +78,7 @@ class TestMongodb(TestCase):
         job.save()
         count = Job.objects(name='job').count()
         self.assertGreater(count, 0)
-        job.delete()
+        # job.delete()
 
     def test_task_save(self):
         jobs = Job.objects(id='570ded84c3666e0541c9e8d9').first()
@@ -87,7 +87,7 @@ class TestMongodb(TestCase):
         task.save()
         result = CrawlerTask.objects.first()
         self.assertTrue(result)
-        task.delete()
+        # task.delete()
 
     def test_get_generator_with_job_id(self):
         job_id = '570f73f6c3666e0af4a9efad'
