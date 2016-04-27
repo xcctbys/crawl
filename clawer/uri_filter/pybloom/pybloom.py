@@ -439,16 +439,16 @@ if __name__ == "__main__":
     # import doctest
     # doctest.testmod()
     bl = BloomFilter(100, 0.01, 6)
-    bl.add('wwww.baidu.com')
+    bl.add('wwwww.baidu.com')
     print 3322323
-    bl.add('wwww.baidu.com')
-    bl.add('wwww.baidu.comt')
-    bl.add('wwww.baidu.com')
-    bl.add('wwww.baidu.comc')
+    bl.add('wwwww.baidu.com')
+    bl.add('wwwww.baidu.comt')
+    bl.add('wwwww.baidu.com')
+    bl.add('wwwww.baidu.comc')
     print 4444
-    db = BloomFilter(13131231,0.23,redisdb=6)
+    db = BloomFilter(100,0.01,redisdb=6)
     print 55555
-    db.add('wwww.baidu.comc')
+    db.add('wwwww.baidu.comc')
     print 6666
-    db.add('wwww.baidu.comssf')
-    db.add('wwww.baidu.comt')
+    db.add('wwwww.baidu.comssf')
+    db.add('wwwww.baidu.comt')
