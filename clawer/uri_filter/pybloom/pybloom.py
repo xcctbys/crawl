@@ -3,13 +3,49 @@
 from __future__ import absolute_import
 import math
 import hashlib
-from uri_filter.pybloom.utils import range_fn, is_string_io, running_python_3
+#from uri_filter.pybloom.utils import range_fn, is_string_io, running_python_3
 from struct import unpack, pack, calcsize
+import redis
 
+import sys
+try:
+    import StringIO
+    import cStringIO
+except ImportError:
+    from io import BytesIO
+
+running_python_3 = sys.version_info[0] == 3
+
+
+
+
+
+def range_fn(*args):
+    if running_python_3:
+        return range(*args)
+    else:
+        return xrange(*args)
+
+
+def is_string_io(instance):
+    if running_python_3:
+       return isinstance(instance, BytesIO)
+    else:
+        return isinstance(instance, (StringIO.StringIO,
+                                     cStringIO.InputType,
+                                     cStringIO.OutputType))
+
+
+
+
+'''
 try:
     import bitarray
 except ImportError:
     raise ImportError('pybloom requires bitarray >= 0.3.4')
+'''
+
+
 
 
 def make_hashfuncs(num_slices, num_bits):
@@ -35,6 +71,7 @@ def make_hashfuncs(num_slices, num_bits):
     if extra:
         num_salts += 1
     salts = tuple(hashfn(hashfn(pack('I', i)).digest()) for i in range_fn(num_salts))
+
     def _make_hashfuncs(key):
         if running_python_3:
             if isinstance(key, str):
@@ -62,7 +99,7 @@ def make_hashfuncs(num_slices, num_bits):
 class BloomFilter(object):
     FILE_FMT = b'<dQQQQ'
 
-    def __init__(self, capacity, error_rate=0.001):
+    def __init__(self, capacity, error_rate, redisdb):
         """Implements a space-efficient probabilistic data structure
         capacity
             this BloomFilter must be able to store at least *capacity* elements
@@ -74,6 +111,8 @@ class BloomFilter(object):
             elements greatly increases the chance of false positives.
 
         """
+        print redisdb
+
         if not (0 < error_rate < 1):
             raise ValueError("Error_Rate must be between 0 and 1.")
         if not capacity > 0:
@@ -89,8 +128,17 @@ class BloomFilter(object):
             (capacity * abs(math.log(error_rate))) /
             (num_slices * (math.log(2) ** 2))))
         self._setup(error_rate, num_slices, bits_per_slice, capacity, 0)
-        self.bitarray = bitarray.bitarray(self.num_bits, endian='little')
-        self.bitarray.setall(False)
+
+        self._rediscontpool(redisdb, host='localhost', port='6379')
+        # self.bitarray = bitarray.bitarray(self.num_bits, endian='little')
+        # self.bitarray.setall(False)
+
+    def _rediscontpool(self, redisdb, host, port):
+        pool = redis.Redis(host, port, redisdb)
+        self.redisdb = redisdb
+        self.redispool = redis.StrictRedis(host = 'localhost',port=6379,db= redisdb)
+        #self.redispool = redis.StrictRedis(connection_pool=pool)
+
 
     def _setup(self, error_rate, num_slices, bits_per_slice, capacity, count):
         self.error_rate = error_rate
@@ -110,11 +158,13 @@ class BloomFilter(object):
         True
         """
         bits_per_slice = self.bits_per_slice
-        bitarray = self.bitarray
+        # bitarray = self.bitarray
         hashes = self.make_hashes(key)
         offset = 0
+        red = self.redispool
         for k in hashes:
-            if not bitarray[offset + k]:
+            # if not bitarray[offset + k]:
+            if not redispool.getbit(self.redisdb, offset + k):
                 return False
             offset += bits_per_slice
         return True
@@ -134,26 +184,35 @@ class BloomFilter(object):
         >>> b.count
         1
         """
-        bitarray = self.bitarray
+        # bitarray = self.bitarray
         bits_per_slice = self.bits_per_slice
         hashes = self.make_hashes(key)
         found_all_bits = True
+        redispool = self.redispool
+        redisdb = self.redisdb
         if self.count > self.capacity:
             raise IndexError("BloomFilter is at capacity")
         offset = 0
+
         for k in hashes:
-            if not skip_check and found_all_bits and not bitarray[offset + k]:
+            ###if not skip_check and found_all_bits and not bitarray[offset + k]
+            bit_value = redispool.setbit('uri', offset + k, 1)
+            if not skip_check and found_all_bits and not bit_value:
                 found_all_bits = False
-            self.bitarray[offset + k] = True
+
+            # self.bitarray[offset + k] = True
             offset += bits_per_slice
 
         if skip_check:
             self.count += 1
+
             return False
         elif not found_all_bits:
             self.count += 1
+            print 1111111111111
             return False
         else:
+            print 22222222222222222
             return True
 
     def copy(self):
@@ -167,7 +226,7 @@ class BloomFilter(object):
         """ Calculates the union of the two underlying bitarrays and returns
         a new bloom filter object."""
         if self.capacity != other.capacity or \
-            self.error_rate != other.error_rate:
+                        self.error_rate != other.error_rate:
             raise ValueError("Unioning filters requires both filters to have \
 both the same capacity and error rate")
         new_bloom = self.copy()
@@ -181,7 +240,7 @@ both the same capacity and error rate")
         """ Calculates the intersection of the two underlying bitarrays and returns
         a new bloom filter object."""
         if self.capacity != other.capacity or \
-            self.error_rate != other.error_rate:
+                        self.error_rate != other.error_rate:
             raise ValueError("Intersecting filters requires both filters to \
 have equal capacity and error rate")
         new_bloom = self.copy()
@@ -213,14 +272,14 @@ have equal capacity and error rate")
         filter._setup(*unpack(cls.FILE_FMT, f.read(headerlen)))
         filter.bitarray = bitarray.bitarray(endian='little')
         if n > 0:
-            (filter.bitarray.frombytes(f.read(n-headerlen)) if is_string_io(f)
+            (filter.bitarray.frombytes(f.read(n - headerlen)) if is_string_io(f)
              else filter.bitarray.fromfile(f, n - headerlen))
         else:
             (filter.bitarray.frombytes(f.read()) if is_string_io(f)
              else filter.bitarray.fromfile(f))
         if filter.num_bits != filter.bitarray.length() and \
-               (filter.num_bits + (8 - filter.num_bits % 8)
-                != filter.bitarray.length()):
+                (filter.num_bits + (8 - filter.num_bits % 8)
+                     != filter.bitarray.length()):
             raise ValueError('Bit length mismatch!')
 
         return filter
@@ -234,9 +293,10 @@ have equal capacity and error rate")
         self.__dict__.update(d)
         self.make_hashes = make_hashfuncs(self.num_slices, self.bits_per_slice)
 
+
 class ScalableBloomFilter(object):
-    SMALL_SET_GROWTH = 2 # slower, but takes up less memory
-    LARGE_SET_GROWTH = 4 # faster, but takes up more memory faster
+    SMALL_SET_GROWTH = 2  # slower, but takes up less memory
+    LARGE_SET_GROWTH = 4  # faster, but takes up more memory faster
     FILE_FMT = '<idQd'
 
     def __init__(self, initial_capacity=100, error_rate=0.001,
@@ -342,7 +402,7 @@ class ScalableBloomFilter(object):
             # Then each filter directly, with a header describing
             # their lengths.
             headerpos = f.tell()
-            headerfmt = b'<' + b'Q'*(len(self.filters))
+            headerfmt = b'<' + b'Q' * (len(self.filters))
             f.write(b'.' * calcsize(headerfmt))
             filter_sizes = []
             for filter in self.filters:
@@ -360,7 +420,7 @@ class ScalableBloomFilter(object):
         filter._setup(*unpack(cls.FILE_FMT, f.read(calcsize(cls.FILE_FMT))))
         nfilters, = unpack(b'<l', f.read(calcsize(b'<l')))
         if nfilters > 0:
-            header_fmt = b'<' + b'Q'*nfilters
+            header_fmt = b'<' + b'Q' * nfilters
             bytes = f.read(calcsize(header_fmt))
             filter_lengths = unpack(header_fmt, bytes)
             for fl in filter_lengths:
@@ -376,5 +436,19 @@ class ScalableBloomFilter(object):
 
 
 if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
+    # import doctest
+    # doctest.testmod()
+    bl = BloomFilter(100, 0.01, 6)
+    bl.add('wwwww.baidu.com')
+    print 3322323
+    bl.add('wwwww.baidu.com')
+    bl.add('wwwww.baidu.comt')
+    bl.add('wwwww.baidu.com')
+    bl.add('wwwww.baidu.comc')
+    print 4444
+    db = BloomFilter(100,0.01,redisdb=6)
+    print 55555
+    db.add('wwwww.baidu.comc')
+    print 6666
+    db.add('wwwww.baidu.comssf')
+    db.add('wwwww.baidu.comt')
