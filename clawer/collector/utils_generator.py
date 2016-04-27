@@ -64,14 +64,17 @@ class DataPreprocess(object):
         self.extend_schemes(schemes)
         val = URLValidator(self.schemes)
         for uri in uri_list:
-            try:
-                val(uri)
-                uris.append(uri)
-            except ValidationError, e:
-                content = "%s : URI ValidationError: %s" %(type(e) ,uri)
-                logging.error(content)
-                CrawlerGeneratorErrorLog(name="ERROR_URI", content=content, hostname=socket.gethostname() ).save()
-                self.failed_uris.append(uri)
+            for uri in uri.split(";"):
+                if uri:
+                    try:
+                        # for csv file
+                        val(uri)
+                        uris.append(uri)
+                    except ValidationError, e:
+                        content = "%s : URI ValidationError: %s" %(type(e) ,uri)
+                        logging.error(content)
+                        CrawlerGeneratorErrorLog(name="ERROR_URI", content=content, hostname=socket.gethostname() ).save()
+                        self.failed_uris.append(uri)
         return uris
 
     def __dereplicate_uris(self, uri_list):

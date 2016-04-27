@@ -182,6 +182,29 @@ class TestPreprocess(TestCase):
         self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num)
 
 
+    def test_save_csv(self):
+        txt = """
+            www.baidu.com;;
+            http:baidu.com;;
+            http://baidu1.con,htps://baidu.cn;ttp://baidu.com;htt://www.baidu.com
+            "https:/baidu4.com
+            http://baidu.com";;
+            ftp://guge.com ftps://guge.cn  ftps://ddd.com;;
+            http://blog.csdn.net/?aspxerrorpath=/nanjunxiao/article/details/9086079;;
+        """
+        job = Job(name='csv')
+        job.save()
+        # content = ""
+        # with open('/Users/princetechs5/Downloads/csv_text.csv'),'r') as f:
+        #     content = f.read()
+        # print content
+        pre_count = CrawlerTask.objects.count()
+        pre = DataPreprocess(job_id= job.id)
+        pre.save(text= txt, settings = {'schemes':[]})
+        after_count = CrawlerTask.objects.count()
+        job.delete()
+        self.assertEqual(pre_count+1, after_count)
+
 
     def test_read_from_string(self):
         inputs = """
