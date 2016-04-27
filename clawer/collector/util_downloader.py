@@ -37,31 +37,34 @@ class Download(object):
 	def download_with_enterprise(self):
 		print 'i am come in enterprise download'
 		pass
-		# start_time = time.time()
+		start_time = time.time()
 		
-		# try:
-		# 	downloader = EnterpriseDownload(self.task.uri)
-		# 	result = downloader.download()
+		try:
+			#  uri = 'enterprise://%E9%87%8D%E5%BA%86/%E9%87%8D%E5%BA%86%E7%90%86%E5%BF%85%E6%98%93%E6%8A%95%E8%B5%84%E7%AE%A1%E7%90%86%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/500905004651063/'
+			downloader = EnterpriseDownload(self.task.uri)
+			result = downloader.download()
 
-		# 	# 改变这个任务的状态为下载成功
-		# 	self.task.status == CrawlerTask.STATUS_SUCCESS
-		# 	self.task.save()
+			print '----------------json data---------------------'
+			print result
+			# 改变这个任务的状态为下载成功
+			self.task.status = CrawlerTask.STATUS_SUCCESS
+			self.task.save()
 
-		# except Exception as e:
-		# 	# 改变这个任务的状态为下载失败
-		# 	self.task.status == CrawlerTask.STATUS_FAIL
-		# 	self.task.save()
-		# 	print 'ERROR:',e
-		# 	# self.failed = True
-		# 	# self.failed_exception = traceback.format_exc(10)
-		# 	# self.sentry.capture()
-		# 	# logging.warning(self.failed_exception)
+		except Exception as e:
+			# 改变这个任务的状态为下载失败
+			self.task.status = CrawlerTask.STATUS_FAIL
+			self.task.save()
+			print 'ERROR:',e
+			# self.failed = True
+			# self.failed_exception = traceback.format_exc(10)
+			# self.sentry.capture()
+			# logging.warning(self.failed_exception)
 			
-		# end_time = time.time()
-		# spend_time = end_time - start_time
+		end_time = time.time()
+		spend_time = end_time - start_time
 
 	def download(self):
-		self.task.status == CrawlerTask.STATUS_PROCESS
+		self.task.status = CrawlerTask.STATUS_PROCESS
 		self.task.retry_times += 1
 		self.task.save()
 
@@ -83,7 +86,7 @@ class Download(object):
 			cdl.save()
 
 			# 改变这个任务的状态为下载失败
-			self.task.status == CrawlerTask.STATUS_FAIL
+			self.task.status = CrawlerTask.STATUS_FAIL
 			self.task.save()
 			return
 
@@ -138,12 +141,14 @@ class Download(object):
 				cdl.save()
 
 				# 改变这个任务的状态为下载成功
-				self.task.status == CrawlerTask.STATUS_SUCCESS
+				self.task.status = CrawlerTask.STATUS_SUCCESS
 				self.task.save()
+
+				# os.remove(filename)
 
 			except Exception as e:
 				# 改变这个任务的状态为下载失败
-				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.status = CrawlerTask.STATUS_FAIL
 				self.task.save()
 
 
@@ -215,12 +220,12 @@ class Download(object):
 				cdl.save()
 
 				# 改变这个任务的状态为下载成功
-				self.task.status == CrawlerTask.STATUS_SUCCESS
+				self.task.status = CrawlerTask.STATUS_SUCCESS
 				self.task.save()
 
 			except Exception as e:
 				# 改变这个任务的状态为下载失败
-				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.status = CrawlerTask.STATUS_FAIL
 				self.task.save()
 
 				end_time = time.time()
@@ -278,13 +283,13 @@ class Download(object):
 				cdl.save()
 
 				# 改变这个任务的状态为下载成功
-				self.task.status == CrawlerTask.STATUS_SUCCESS
+				self.task.status = CrawlerTask.STATUS_SUCCESS
 				self.task.save()
 
 
 			except Exception as e:
 				# 改变这个任务的状态为下载失败
-				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.status = CrawlerTask.STATUS_FAIL
 				self.task.save()
 
 				end_time = time.time()
@@ -342,12 +347,12 @@ class Download(object):
 				cdl.save()
 
 				# 改变这个任务的状态为下载成功
-				self.task.status == CrawlerTask.STATUS_SUCCESS
+				self.task.status = CrawlerTask.STATUS_SUCCESS
 				self.task.save()
 
 			except Exception as e:
 				# 改变这个任务的状态为下载失败
-				self.task.status == CrawlerTask.STATUS_FAIL
+				self.task.status = CrawlerTask.STATUS_FAIL
 				self.task.save()
 
 				end_time = time.time()
@@ -370,7 +375,7 @@ def force_exit(download_timeout, task):
 	"""
 	pgid = os.getpgid(0)
 	# 改变这个任务的状态为下载失败
-	self.task.status == CrawlerTask.STATUS_FAIL
+	self.task.status = CrawlerTask.STATUS_FAIL
 	self.task.save()
 
 	# write_downloaddata_fail_log_to_mongo
@@ -396,7 +401,7 @@ def download_clawer_task(task):
 		crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job)[0]
 		# print crawler_download_setting
 	except Exception as e:
-		self.task.status == CrawlerTask.STATUS_FAILED
+		self.task.status = CrawlerTask.STATUS_FAILED
 		self.task.save()
 		print e,'sentry.excepterror()'
 	down = Download(task, crawler_download, crawler_download_setting)
