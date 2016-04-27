@@ -17,6 +17,7 @@ import multiprocessing
 import ast
 import time
 import re
+import dateutil
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
@@ -37,8 +38,9 @@ class DataPreprocess(object):
         try:
             job_doc = Job.objects.with_id(job_id)
         except Exception as e:
-            # logging.error("Can't find job_id: %s in mongodb!"%(job_id))
-            CrawlerGeneratorErrorLog(name="ERROR_JOB", content="Can't find job_id: %s in mongodb!"%(job_id), hostname= socket.gethostname()).save()
+            content = "%s : Can't find job_id: %s in mongodb!"%(type(e) ,job_id)
+            logging.error(content)
+            CrawlerGeneratorErrorLog(name="ERROR_JOB", content=content, hostname= socket.gethostname()).save()
             raise KeyError("Can't find job_id: %s in mongodb!"%(str(job_id)))
         self.job_id = job_id
         self.job = job_doc
@@ -66,8 +68,9 @@ class DataPreprocess(object):
                 val(uri)
                 uris.append(uri)
             except ValidationError, e:
-                # logging.error("URI ValidationError: %s" %(uri))
-                CrawlerGeneratorErrorLog(name="ERROR_URI", content="URI ValidationError: %s" %(uri), hostname=socket.gethostname() ).save()
+                content = "%s : URI ValidationError: %s" %(type(e) ,uri)
+                logging.error(content)
+                CrawlerGeneratorErrorLog(name="ERROR_URI", content=content, hostname=socket.gethostname() ).save()
                 self.failed_uris.append(uri)
         return uris
 
@@ -96,11 +99,12 @@ class DataPreprocess(object):
             try:
                 CrawlerTask(job= self.job, uri= uri).save()
             except Exception as e:
-                # logging.error("error occured when saving uri-- %s"%(type(e)))
-                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content="Error occured when saving uris --%s"%(type(e)), hostname= socket.gethostname()).save()
+                content = "%s : Error occured when saving uris %s."%(type(e), uri)
+                logging.error(content)
+                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
         return True
 
-    def save_script(self, script, cron, code_type, schemes):
+    def save_script(self, script, cron, code_type=1, schemes=[]):
         """ saving script with cron settings to mongodb
             if params are None or saving excepts return False
             else return True
@@ -118,8 +122,9 @@ class DataPreprocess(object):
         try:
             CrawlerTaskGenerator(job = self.job, code = script, cron = cron, code_type = code_type, schemes= self.schemes).save()
         except Exception as e:
-            # logging.error("Error occured when saving script --%s"%(type(e)))
-            CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content="Error occured when saving script --%s"%(type(e)), hostname= socket.gethostname()).save()
+            content = "%s : Error occured when saving script with job :%s !"%(type(e), job.id)
+            logging.error(content)
+            CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
             return False
         return True
 
@@ -132,9 +137,10 @@ class DataPreprocess(object):
             try:
                 schemes = settings.pop('schemes', None)
                 assert self.save_text(text, schemes)
-            except AssertionError :
+            except AssertionError as e:
+                content = "%s : Error occured when saving text"%( type(e) )
                 # logging.error("Error occured when saving text")
-                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content="Error occured when saving text", hostname= socket.gethostname()).save()
+                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content=content, hostname= socket.gethostname()).save()
         elif script is not None:
             if not settings.has_key('cron'):
                 logging.error("cron is not found in settings")
@@ -438,6 +444,9 @@ class CrawlerCronTab(object):
         self.crontab = CronTab(tabfile = filename)
         self.cron_timeout = 60
 
+    def remove_all_jobs_from_crontab(self):
+        count = self.crontab.remove_all()
+
     def remove_offline_jobs_from_crontab(self):
         jobs = Job.objects(status = Job.STATUS_OFF)
         for job in jobs:
@@ -449,7 +458,7 @@ class CrawlerCronTab(object):
 
     def update_online_jobs(self):
         jobs= Job.objects(status = Job.STATUS_ON)
-        print len(jobs)
+        print "job number is %d"%(len(jobs))
         for job in jobs:
             generator = CrawlerTaskGenerator.objects(job = job).order_by('-add_datetime').first()
             if not generator:
@@ -498,13 +507,13 @@ class CrawlerCronTab(object):
         """
             定期更新所有job的生成器crontab的本地文件信息
         """
-        self.remove_offline_jobs_from_crontab()
+        # self.remove_offline_jobs_from_crontab()
+        self.remove_all_jobs_from_crontab()
         self.update_online_jobs()
         self.save_cron_to_file()
         return True
 
     def exec_and_save_current_crons(self):
-        from dateutil.parser import parse
         # 获取出当前分钟 需要执行的任务列表
         last_time = datetime.now()
         # 定时任务，到时间强制退出。
@@ -514,10 +523,12 @@ class CrawlerCronTab(object):
         for job in self.crontab.crons:
             # 获得当前需要运行的cron任务
             now = datetime.now()
-            base = parse(job.last_run)
+            base = dateutil.parser.parse( str(job.last_run))
+            print "last time "+ str(base)
             slices= job.slices.clean_render()
             iters = croniter(slices , base)
             next_time = iters.get_next(datetime)
+            print "next_time "+ str(next_time)
             if next_time < now:
                 try:
                     command = job.command
@@ -527,12 +538,14 @@ class CrawlerCronTab(object):
                 except:
                     raise
                 job.set_last_run(now)
-        print 'Waiting for all subprocesses done...'
+        logging.info('Waiting for all subprocesses done...')
         pool.close()
         pool.join()
         # 将本次运行的cron任务的上次运行时间写回到tabfile文件中
-        print 'All subprocesses done.'
+        logging.info('All subprocesses done.')
         self.save_cron_to_file()
+        logging.info('Save to file!')
+        timer.cancel()
 
     def task_generator_run(self):
         """
@@ -555,7 +568,9 @@ def exec_command(command, comment, cron):
     job_name, job_id = get_name_id_with_comment(comment)
     job = Job.objects(id= job_id).first()
     if not job:
-        logging.error("Job %s with id %s is not found in mongodb!"%(job_name, job_id))
+        failed_reason = "Job %s with id %s is not found in mongodb!"%(job_name, job_id)
+        logging.error(failed_reason)
+        CrawlerGeneratorCronLog(job = job, status = CrawlerGeneratorCronLog.STATUS_FAIL, cron = cron, failed_reason= failed_reason, spend_msecs = 0).save()
         return
     pid = os.getpid()
     start_time = time.time()

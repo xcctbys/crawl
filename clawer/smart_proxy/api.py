@@ -14,15 +14,16 @@ class Proxy(object):
     def get_proxy(self, num=5, province=None, is_valid=True):
         print province
         if province:
-            ip_list = ProxyIp.objects.filter(province=province, is_valid=is_valid)
-            print ip_list
+            ip_list = ProxyIp.objects.filter(province__icontains=province, is_valid=is_valid).order_by('?')
+            ip_list = [item.ip_port for item in ip_list]
+            # print ip_list
         else:
             # print ProxyIp.objects.filter(is_valid=True)
-            ip_list = ProxyIp.objects.filter(is_valid=True)
+            ip_list = ProxyIp.objects.filter(is_valid=is_valid).order_by('?')
             ip_list = [item.ip_port for item in ip_list]
 
         if len(ip_list) < num:
-            temp_list = ProxyIp.objects.filter(province='OTHER', is_valid=is_valid)
+            temp_list = ProxyIp.objects.filter(province__icontains='OTHER', is_valid=is_valid).order_by('?')
             temp_list = [item.ip_port for item in temp_list]
             ip_list.extend(temp_list)
         if len(ip_list) <= num:

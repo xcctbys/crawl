@@ -3,12 +3,11 @@ import os
 import os.path
 import django.conf
 # from plugins import *
-from plugins.xici import Xici
-from plugins.xici import HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy
+from plugins.xici import XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy
 
 from models import ProxyIp
 
-proxy_list = [Xici, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy]
+proxy_list = [XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy]
 
 class Crawer(object):
     def __init__(self):
@@ -29,7 +28,7 @@ class Crawer(object):
                 except:
                     pass
         except Exception as e:
-            print 'error',e
+            print 'error in do_with',e
             pass
 
     def run(self):
@@ -38,7 +37,7 @@ class Crawer(object):
             # print 'item:----', item
             self.do_with(item())
 if __name__ == '__main__':
-    os.environ["DJANGO_SETTINGS_MODULE"] = "mydj.settings"
+    os.environ["DJANGO_SETTINGS_MODULE"] = "crawer.settings"
     django.setup()
     crawer = Crawer()
     crawer.run()
