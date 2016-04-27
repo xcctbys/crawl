@@ -33,7 +33,7 @@ def filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,):
     if uri_list == []:
         return filter_list_unique
     else:
-        for uri in bfilter_list:
+        for uri in uri_list:
             if blmfilter.add(uri) == True:
                 pass
             else:
@@ -46,7 +46,7 @@ def filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,):
 if __name__ == "__main__":
     # import doctest
     # doctest.testmod()
-    uri_list = ['www.baidu.com','www.baidu.com','www.princetechs.com','www.hao.com','www.clawr.com']
+    uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
     bl = filter_api('uri_generator',uri_list)
-    type(bl)
+    print type(bl)
     print bl
