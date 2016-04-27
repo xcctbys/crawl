@@ -473,6 +473,12 @@ if __name__ == "__main__":
     db = BloomFilter(100,0.01,redisdb=6)
     print 55555
     db.add('wwwww.baidu.comc')
+    print 777
+    db.add('')
+    db.add('')
+    print 777
+    db.add(' ')
+    db.add(' ')
     print 6666
     db.add('wwwww.baidu.comssf')
     db.add('wwwww.baidu.comt')

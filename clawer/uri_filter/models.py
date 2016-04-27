@@ -27,7 +27,7 @@ class FilterBitMap(Document):
         (STATUS_ON, u"启用"),
         (STATUS_OFF, u"弃用"),
      )
-    #bitmap_array = IntArray(bits_size)  # IntArray  需要实现
+    reids_dump = FieldField() # IntArray  需要实现
     bitmap_type= StringField(max_length=128)
     creat_datetime = DateTimeField(default= datetime.datetime.now())
     meta = {"db_alias": "source"}
