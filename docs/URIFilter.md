@@ -630,11 +630,11 @@ cd src
 看到redis服务和端口号即开启成功
  redis-server *:6379
 - 关闭
-终端输入
+在终端输入
 ~  redis-cli shutdown
 - start
-在terminal下输入 python manage.py shell 进入环境
-IN[0]:from uri_filter.api.api_uri_filter import *
+在terminal下输入 python manage.py shell 进入环境  
+IN[0]:from uri_filter.api.api_uri_filter import *  
 uri  
 uri_list可从txt文件中读入，每条uri之间以回车换行分割。
 [IN1]:from uri_filter.tests.test_uri_filter import *  
