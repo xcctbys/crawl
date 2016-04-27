@@ -636,7 +636,7 @@ cd src
 在terminal下输入 python manage.py shell 进入环境  
 IN[0]:from uri_filter.api.api_uri_filter import *  
 uri  
-uri_list可从txt文件中读入，每条uri之间以回车换行分割。
+uri_list可从txt文件中读入，每条uri之间以回车换行分割。  
 [IN1]:from uri_filter.tests.test_uri_filter import *  
 [IN2]:file_path = "/tmp/filter_test.txt" ##自定义txt目录  
 [IN3]:res = read_urilist_from_txt(file_path)#res 为获取到的uri list，同时会print到终端上  
