@@ -8,7 +8,7 @@ import sys
 import os
 #sys.path.append('/Users/princetechs/cr-clawer/clawer/uri_filter/pybloom')
 #from util_filter.utils.bloomfilter import BloomFilter
-#from pybloomfilter import BloomFilter
+##from pybloomfilter import BloomFilter
 from uri_filter.pybloom.pybloom import BloomFilter
 
 # from uri_filter.pybloom import pybloom
@@ -43,7 +43,8 @@ class FilterAPI():
         self.filter_name = filter_typename
         self.bfilter_list = uri_list
         self.filter_list_unique = []
-        self.filename = '/home/xcc/Downloads/bloomfilter'
+        #self.filename = '/home/xcc/Downloads/bloomfilter'
+        self.filename = '/Users/princetechs/Downloads/bloomfilter'
 
     def filter(self):
         urigenerator = None
@@ -103,7 +104,7 @@ class FilterAPI():
 
             else:
                 urigenerator = BloomFilter(100000000, 0.0001)
-                os.makedirs('/home/xcc/Downloads/bloomfilter')
+                os.makedirs(self.filename)
 
                 #f = open('/home/xcc/Downloads/bloomfilter/urigenerator.bloom', 'wb')
                 f = open(bloomfilepath, 'wb')

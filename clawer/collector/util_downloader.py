@@ -40,6 +40,7 @@ class Download(object):
 		start_time = time.time()
 		
 		try:
+			#  uri = 'enterprise://%E9%87%8D%E5%BA%86/%E9%87%8D%E5%BA%86%E7%90%86%E5%BF%85%E6%98%93%E6%8A%95%E8%B5%84%E7%AE%A1%E7%90%86%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/500905004651063/'
 			downloader = EnterpriseDownload(self.task.uri)
 			result = downloader.download()
 
@@ -142,6 +143,8 @@ class Download(object):
 				# 改变这个任务的状态为下载成功
 				self.task.status = CrawlerTask.STATUS_SUCCESS
 				self.task.save()
+
+				# os.remove(filename)
 
 			except Exception as e:
 				# 改变这个任务的状态为下载失败
