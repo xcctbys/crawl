@@ -19,7 +19,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.utils.six import StringIO
 
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorErrorLog
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
 from collector.utils_generator import force_exit, exec_command
 from collector.utils_cron import CronTab
@@ -78,7 +78,7 @@ class TestMongodb(TestCase):
         job.save()
         count = Job.objects(name='job').count()
         self.assertGreater(count, 0)
-        job.delete()
+        # job.delete()
 
     def test_task_save(self):
         jobs = Job.objects(id='570ded84c3666e0541c9e8d9').first()
@@ -87,7 +87,7 @@ class TestMongodb(TestCase):
         task.save()
         result = CrawlerTask.objects.first()
         self.assertTrue(result)
-        task.delete()
+        # task.delete()
 
     def test_get_generator_with_job_id(self):
         job_id = '570f73f6c3666e0af4a9efad'
@@ -144,8 +144,8 @@ class TestMongodb(TestCase):
 class TestPreprocess(TestCase):
     def setUp(self):
         TestCase.setUp(self)
-        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
-        self.pre = DataPreprocess(job_id= self.job.id)
+        # self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        # self.pre = DataPreprocess(job_id= self.job.id)
 
     def tearDown(self):
         TestCase.tearDown(self)
@@ -182,15 +182,39 @@ class TestPreprocess(TestCase):
         self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num)
 
 
+    def test_save_csv(self):
+        txt = """
+            www.baidu.com;;
+            http:baidu.com;;
+            http://baidu1.con,htps://baidu.cn;ttp://baidu.com;htt://www.baidu.com
+            "https:/baidu4.com
+            http://baidu.com";;
+            ftp://guge.com ftps://guge.cn  ftps://ddd.com;;
+            http://blog.csdn.net/?aspxerrorpath=/nanjunxiao/article/details/9086079;;
+        """
+        job = Job(name='csv')
+        job.save()
+        # content = ""
+        # with open('/Users/princetechs5/Downloads/csv_text.csv'),'r') as f:
+        #     content = f.read()
+        # print content
+        pre_count = CrawlerTask.objects.count()
+        pre = DataPreprocess(job_id= job.id)
+        pre.save(text= txt, settings = {'schemes':[]})
+        after_count = CrawlerTask.objects.count()
+        job.delete()
+        self.assertEqual(pre_count+1, after_count)
+
 
     def test_read_from_string(self):
         inputs = """
         http://www.baidu.com
         https://www.baidu.com
-        ftp://www.baidu.com
-        ftps://www.baidu.com
+        ftp://www.baidu.com\nftps://www.baidu.com
+        ftps://www.baidu.com\tftps://www.baidu.com
         enterprise://baidu.com
 
+        http://www.wrong. command
         www.baidu.com
         baidu.com
         httd://baidu.com
@@ -199,7 +223,7 @@ class TestPreprocess(TestCase):
         """
         uris = self.pre.read_from_strings(inputs, schemes=['enterprise'])
         print uris
-        self.assertEqual(len(uris), 5)
+        self.assertEqual(len(uris), 7)
 
 
     def test_save_text_with_large_length(self):
@@ -210,7 +234,7 @@ class TestPreprocess(TestCase):
         count = CrawlerTask.objects.count()
         self.assertEqual(count, 1)
 
-    @unittest.skip("skipping read from file")
+    # @unittest.skip("skipping read from file")
     def test_read_from_file(self):
         filename = "/Users/princetechs5/Documents/uri.csv"
         uris_string = ""
@@ -227,7 +251,16 @@ class TestPreprocess(TestCase):
         print uris
         self.assertListEqual( ['http://www.baidu.com', 'http://www.google.com'], uris)
 
-    def test_save_text(self):
+    def test_read_from_file_and_save(self):
+        CrawlerTask.objects.delete()
+        filename = "/Users/princetechs5/Documents/txt_text.txt"
+        uris_string = ""
+        with open(filename, 'r') as f:
+            uris_string= f.read()
+        self.pre.save(text = uris_string, settings = {"schemes":[] })
+        self.assertEqual( CrawlerTask.objects.count(), 2)
+
+    def test_save_text_with_default_scheme(self):
         inputs = """
         http://www.baidu.com
         """
@@ -237,6 +270,16 @@ class TestPreprocess(TestCase):
         result = CrawlerTask.objects.first()
         print result
         self.assertTrue(result)
+
+    def test_save_with_other_scheme(self):
+        inputs = """
+        htttp://www.baidu
+        """
+        CrawlerTask.objects.delete()
+        self.pre.save(text= "pulikeji://hi.ziyang", settings={"schemes":['ttt']})
+
+        count = CrawlerTask.objects().count()
+        self.assertEqual(count, 0)
 
     def test_save_script(self):
         script = """import json\nprint json.dumps({'uri':"http://www.souhu.com"})"""
@@ -276,6 +319,26 @@ class TestPreprocess(TestCase):
         self.assertEqual(generators.count(), 1)
         for g in generators:
             g.delete()
+
+    def test_read_from_file(self):
+        filename = "/Users/princetechs5/crawler/cr-clawer/sources/qyxy/cloud/task_generator.py"
+        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        pre = DataPreprocess(job_id= self.job.id)
+        content = pre.read_from_file(filename)
+
+        print content
+
+
+    def test_save_script_with_invalid_cron(self):
+        script = """import json\nprint json.dumps({'uri':"http://www.google.com"})"""
+        cron = "* * * *"
+        code_type=1
+        schemes=['http']
+        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        self.pre = DataPreprocess(job_id= self.job.id)
+        result = self.pre.save_script(script = script, cron = cron, code_type=code_type, schemes=schemes)
+        self.assertFalse(result)
+
 
 # @unittest.skip("showing class skipping")
 class TestDispatch(TestCase):
@@ -397,6 +460,31 @@ class TestGenerateTask(TestCase):
         contents = fd.read().strip()
         # key 与value 之间有个空格
         self.assertEqual(contents, """{"uri": "http://www.baidu.com"}""")
+
+    def test_save_task_with_invalid_uri(self):
+        job = Job( name = 'invalid uri', status= 1, priority =1)
+        job.save()
+        script = """import json\nprint json.dumps({'uri':"www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+        error_count = CrawlerGeneratorErrorLog.objects().delete()
+        print "generator error count = %d"%(error_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+
+        generator.delete()
+        job.delete()
+        self.assertTrue(os.path.exists(gt.out_path))
+        self.assertGreater(CrawlerGeneratorErrorLog.objects.count(), 0)
+        self.assertEqual(CrawlerTask.objects.count(), 0)
+
 
 
     def test_save_task(self):
