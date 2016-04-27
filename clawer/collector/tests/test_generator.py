@@ -19,7 +19,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.utils.six import StringIO
 
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorErrorLog
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
 from collector.utils_generator import force_exit, exec_command
 from collector.utils_cron import CronTab
@@ -320,12 +320,22 @@ class TestPreprocess(TestCase):
         for g in generators:
             g.delete()
 
+    def test_read_from_file(self):
+        filename = "/Users/princetechs5/crawler/cr-clawer/sources/qyxy/cloud/task_generator.py"
+        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        pre = DataPreprocess(job_id= self.job.id)
+        content = pre.read_from_file(filename)
+
+        print content
+
 
     def test_save_script_with_invalid_cron(self):
         script = """import json\nprint json.dumps({'uri':"http://www.google.com"})"""
         cron = "* * * *"
         code_type=1
         schemes=['http']
+        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        self.pre = DataPreprocess(job_id= self.job.id)
         result = self.pre.save_script(script = script, cron = cron, code_type=code_type, schemes=schemes)
         self.assertFalse(result)
 
@@ -450,6 +460,31 @@ class TestGenerateTask(TestCase):
         contents = fd.read().strip()
         # key 与value 之间有个空格
         self.assertEqual(contents, """{"uri": "http://www.baidu.com"}""")
+
+    def test_save_task_with_invalid_uri(self):
+        job = Job( name = 'invalid uri', status= 1, priority =1)
+        job.save()
+        script = """import json\nprint json.dumps({'uri':"www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+        error_count = CrawlerGeneratorErrorLog.objects().delete()
+        print "generator error count = %d"%(error_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+
+        generator.delete()
+        job.delete()
+        self.assertTrue(os.path.exists(gt.out_path))
+        self.assertGreater(CrawlerGeneratorErrorLog.objects.count(), 0)
+        self.assertEqual(CrawlerTask.objects.count(), 0)
+
 
 
     def test_save_task(self):

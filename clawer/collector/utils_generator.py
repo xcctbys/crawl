@@ -94,6 +94,18 @@ class DataPreprocess(object):
         self.uris = dereplicated_uris
         return dereplicated_uris
 
+    def read_from_file(self, filename=""):
+        content = ""
+        try:
+            with open(filename, 'r') as f:
+                content = f.read()
+        except Exception as e:
+            print "%s :Cannot open this file %s"%(type(e), filename)
+
+        return content
+
+
+
     def save_text(self, text, schemes=None):
         """
         """
@@ -113,20 +125,20 @@ class DataPreprocess(object):
             else return True
         """
         if script is None:
-            logging.error("Error occured when saving script -- script is None")
-            return False
-        if cron is None:
-            logging.error("Error occured when saving script -- cron is None")
+            content = "ScriptError : Error occured when saving script with job :%s !"%(job.id)
+            CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
             return False
         if not CronSlices.is_valid(cron):
-            logging.error("CronSlices is not valid!")
+            # logging.error("CronSlices is not valid!")
+            content = "CronError : Error occured when saving cron with job :%s !"%(job.id)
+            CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
             return False
         self.extend_schemes(schemes)
         try:
             CrawlerTaskGenerator(job = self.job, code = script, cron = cron, code_type = code_type, schemes= self.schemes).save()
         except Exception as e:
             content = "%s : Error occured when saving script with job :%s !"%(type(e), job.id)
-            logging.error(content)
+            # logging.error(content)
             CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
             return False
         return True
@@ -146,10 +158,14 @@ class DataPreprocess(object):
                 CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content=content, hostname= socket.gethostname()).save()
         elif script is not None:
             if not settings.has_key('cron'):
-                logging.error("cron is not found in settings")
+                # logging.error("cron is not found in settings")
+                content = "cron is not found in settings"
+                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content=content, hostname= socket.gethostname()).save()
                 return
             if not settings.has_key('code_type'):
-                logging.error("code_type is not found in settings")
+                # logging.error("code_type is not found in settings")
+                content = "code type is not found in settings"
+                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content=content, hostname= socket.gethostname()).save()
                 return
             try:
                 schemes = settings.pop('schemes', None)

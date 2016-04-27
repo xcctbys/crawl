@@ -38,7 +38,7 @@ class Job(Document):
 	customer = StringField(max_length=128, null = True)
 	status = IntField(default=STATUS_ON, choices=STATUS_CHOICES)
 	priority= IntField(default=PRIOR_6, choices= PRIOR_CHOICES)
-	add_datetime = DateTimeField(default= datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default= datetime.datetime.now)
 	meta = {"db_alias": "source"}
 
 
@@ -65,7 +65,7 @@ class CrawlerTaskGenerator(Document):
 	schemes=ListField(StringField(max_length=16))
 	cron = StringField(max_length=128)
 	status = IntField(default=STATUS_ALPHA, choices=STATUS_CHOICES)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "source"}
 
 	def status_name(self):
@@ -113,7 +113,7 @@ class CrawlerTask(Document):
     args = StringField(max_length=2048, null=True) # 存储cookie， header等信息
     status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
     from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
-    add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+    add_datetime = DateTimeField(default=datetime.datetime.now)
     retry_times = IntField(default=0)
     meta = {"db_alias": "source"} # 默认连接的数据库
 
@@ -132,7 +132,7 @@ class CrawlerGeneratorLog(Document):
 	content_bytes = IntField(default=0)
 	spend_msecs = IntField(default=0) #unit is microsecond
 	hostname = StringField(null=True, blank=True, max_length=32)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 
 	meta = {"db_alias": "log"}
 
@@ -148,7 +148,7 @@ class CrawlerGeneratorCronLog(Document):
 	cron = StringField(max_length=128)
 	failed_reason = StringField(max_length=10240, null=True, blank=True)
 	spend_msecs = IntField(default=0) #unit is microsecond
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 
 	meta = {"db_alias": "log"}
 
@@ -156,7 +156,7 @@ class CrawlerGeneratorDispatchLog(Document):
 	job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
 	task_generator = ReferenceField(CrawlerTaskGenerator, reverse_delete_rule=CASCADE)
 	content = StringField(max_length=1024, null=True)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 
 	meta = {"db_alias": "log"}
 
@@ -165,7 +165,7 @@ class CrawlerGeneratorErrorLog(Document):
 	name = StringField(max_length=128)
 	content = StringField(max_length=10240, null=True)
 	hostname = StringField(null=True, max_length=32)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 
 	meta = {"db_alias": "log"}
 
@@ -173,7 +173,7 @@ class CrawlerGeneratorAlertLog(Document):
 	name = StringField(max_length=128)
 	content = StringField(max_length=10240, null=True)
 	hostname = StringField(null=True, max_length=32)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 
 	meta = {"db_alias": "log"}
 
@@ -188,8 +188,8 @@ class CrawlerDownloadSetting(Document):
 	proxy = StringField()
 	cookie = StringField()
 	download_timeout = IntField(default=120)
-	last_update_datetime = DateTimeField(default=datetime.datetime.utcnow)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	last_update_datetime = DateTimeField(default=datetime.datetime.now)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "source"}
 
 # 生产者：由管理员产生，配置布暑该平台支持的下载器语言
@@ -197,7 +197,7 @@ class CrawlerDownloadSetting(Document):
 class CrawlerDownloadType(Document):
 	language = StringField()
 	is_support = BooleanField(default=True)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "source"} # 默认连接的数据库
 
 # 生产者：由用户新增一个job时，设置下载器产生。
@@ -213,7 +213,7 @@ class CrawlerDownload(Document):
 	code = StringField()  # code
 	types = ReferenceField(CrawlerDownloadType)
 	status = IntField(default=0, choices=STATUS_CHOICES)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "source"} # 默认连接的数据库
 
 # 生产者：下载程序
@@ -229,7 +229,7 @@ class CrawlerDownloadData(Document):
 	response_body = StringField()
 	hostname = StringField()
 	remote_ip = StringField()
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "source"} # 默认连接的数据库
 
 # 生产者：该日志由下载器在分发工作时队列满等警告产生
@@ -246,7 +246,7 @@ class CrawlerDispatchAlertLog(Document):
 	reason = StringField(max_length=10240, required=True)
 	content_bytes = IntField(default=0)
 	hostname = StringField(required=True, max_length=32)
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "log"} # 默认连接的数据库
 
 # 生产者： 下载程序
@@ -266,6 +266,6 @@ class CrawlerDownloadLog(Document):
 	failed_reason = StringField(max_length=10240, required=False)
 	downloads_hostname = StringField(required=True, max_length=32)
 	spend_time = IntField(default=0) #unit is microsecond
-	add_datetime = DateTimeField(default=datetime.datetime.utcnow)
+	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "log"} # 默认连接的数据库
 
