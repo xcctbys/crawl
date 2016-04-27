@@ -320,6 +320,16 @@ class TestPreprocess(TestCase):
         for g in generators:
             g.delete()
 
+
+    def test_save_script_with_invalid_cron(self):
+        script = """import json\nprint json.dumps({'uri':"http://www.google.com"})"""
+        cron = "* * * *"
+        code_type=1
+        schemes=['http']
+        result = self.pre.save_script(script = script, cron = cron, code_type=code_type, schemes=schemes)
+        self.assertFalse(result)
+
+
 # @unittest.skip("showing class skipping")
 class TestDispatch(TestCase):
     """Test for GeneratorDispatch"""
