@@ -6,7 +6,13 @@
 
 为了简化开发和运营人员部署环境的难度，我们将使用Fabric自动化部署工具实现如下子标题的功能。要使用Fabric部署，需要在本机（是开发机器，不是Linux服务器）安装Fabric，最终只需要在本机执行一个脚本`sh deploy all`在多台服务器上生成我们所需要的所有环境并在不同的服务器启动不同的服务，当然也可以指定只生成其中某一个所需的环境和服务`sh deploy downloader`（比如扩展下载器）。
 
+网络拓扑图：
+
+![Deploy Topology](images/deploy_topology.png)
+
 自动化部署的思路：
+
+![Deploy Mind](images/deploy.png)
 
 1. 将Git仓库代码打包成发布版本，这里压缩格式使用`7z`，打包后生成`cr-clawer-2016-04-23.12334.7z`文件
 2. 将步骤1生成的文件上传到公网服务器或阿里的OSS服务端，最终得到可以网络下载的地址
@@ -31,8 +37,6 @@
 - Mongo部署
 - Redis部署
 - Nginx部署
-
-![Deploy Image](images/deploy.png "Deploy")
 
 问题1：项目代码如何更新？
 
