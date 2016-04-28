@@ -46,7 +46,8 @@ def filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,):
 if __name__ == "__main__":
     # import doctest
     # doctest.testmod()
-    uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
+    #uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
+    uri_list = ['张','赵四','李','王','王二','赵','赵四','','',' ','w',' ']
     bl = filter_api('uri_generator',uri_list)
     print type(bl)
     print bl
