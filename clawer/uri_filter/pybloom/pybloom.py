@@ -129,7 +129,7 @@ class BloomFilter(object):
             (num_slices * (math.log(2) ** 2))))
         self._setup(error_rate, num_slices, bits_per_slice, capacity, 0)
 
-        self._rediscontpool(redisdb, host='localhost', port='6379')
+        self._rediscontpool(redisdb, host='localhost', port= 6379)
         # self.bitarray = bitarray.bitarray(self.num_bits, endian='little')
         # self.bitarray.setall(False)
 
@@ -435,6 +435,30 @@ class ScalableBloomFilter(object):
         return sum(f.count for f in self.filters)
 
 
+'''
+>>> r.client_setname('pppppppp')
+True
+>>> r.client_list()
+[{'sub': '0', 'multi': '-1', 'addr': '127.0.0.1:38679', 'omem': '0', 'obl': '0', 'oll': '0', 'age': '3378', 'cmd': 'client', 'db': '2', 'psub': '0', 'events': 'r', 'qbuf': '0', 'idle': '2927', 'flags': 'N', 'fd': '6', 'qbuf-free': '0', 'name': 'urisf'}, {'sub': '0', 'multi': '-1', 'addr': '127.0.0.1:39379', 'omem': '0', 'obl': '0', 'oll': '0', 'age': '210', 'cmd': 'client', 'db': '1', 'psub': '0', 'events': 'r', 'qbuf': '0', 'idle': '0', 'flags': 'N', 'fd': '5', 'qbuf-free': '32768', 'name': 'ppppppp'}]
+>>> a = r.client_list()
+>>> b = a[0]['addr']
+>>> b
+'127.0.0.1:38679'
+
+CLOSE_WAIT_TIME
+t=r.config_get()
+time_out 0
+程序结束是否主动断开
+redis 连接池
+redis-server会关闭空闲超时的连接
+redis.conf中可以设置超时时间
+idle 空闲时间
+
+搞成全局的
+每次用一个全局连接
+
+'''
+
 if __name__ == "__main__":
     # import doctest
     # doctest.testmod()
@@ -449,6 +473,12 @@ if __name__ == "__main__":
     db = BloomFilter(100,0.01,redisdb=6)
     print 55555
     db.add('wwwww.baidu.comc')
+    print 777
+    db.add('')
+    db.add('')
+    print 777
+    db.add(' ')
+    db.add(' ')
     print 6666
     db.add('wwwww.baidu.comssf')
     db.add('wwwww.baidu.comt')
