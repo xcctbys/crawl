@@ -26,25 +26,27 @@
 
 - 检测是否有注册号(数字)
 
-	```
+```
 	if uri.rsplit('\')[-1].isdigit():
 		download_by_registration('registrations_digit')
 	else:
 		download_by_enterprise_name('name') #使用模糊查询 
-	```
+```
+
 - 检测能否跳过验证码
 
-	```
+```
 	def download_by_registration(registrations_digit)
 		uri = get_uri_from_db_by_registration_or_enterprise_name(registrations_digit) # 数据库里是否有 企业首页 的uri
 		if valid_uri(uri): #如果能够直接访问，则进入爬取，跳过验证码
 			download_data()
 		else:
 			download_data_start_with_Captcha()
-	```
+```
+
 - 使用代理ip
 
-	```
+```
 	from smart_proxy.api import Proxy
 	def download_data(self):
 		proxy = Proxy()
@@ -53,8 +55,9 @@
 		else:
 			myproxy = []
 		self.reqst.get(url, proxy=proxy)
-	```
-	- 前提条件：将需要使用代理的省份存放在数据库，或者py文件里。
+```
+	
+- 前提条件：将需要使用代理的省份存放在数据库，或者py文件里。
 
 
 # 数据库设计
