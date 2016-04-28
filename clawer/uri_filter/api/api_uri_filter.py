@@ -9,7 +9,7 @@ import sys
 
 from uri_filter.pybloom.pybloom import *
 
-def filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,):
+def bloom_filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,):
 
     if filter_type == 'uri_generator':
         redisdb = 1
