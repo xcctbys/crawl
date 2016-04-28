@@ -28,6 +28,9 @@ from django.conf import settings
 
 pool = None
 
+
+
+
 class DataPreprocess(object):
     """ 数据保存 """
     def __init__(self, job_id):
@@ -106,6 +109,7 @@ class DataPreprocess(object):
 
 
 
+
     def save_text(self, text, schemes=None):
         """
         """
@@ -115,7 +119,7 @@ class DataPreprocess(object):
                 CrawlerTask(job= self.job, uri= uri).save()
             except Exception as e:
                 content = "%s : Error occured when saving uris %s."%(type(e), uri)
-                logging.error(content)
+                # logging.error(content)
                 CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
         return True
 
@@ -224,9 +228,9 @@ class GeneratorQueue(object):
         else:
             q = self.low_queue
 
-        if q.count > self.max_queue_length:
+        if q.count >= self.max_queue_length:
             # logging.error("%s queue count is big than %d" % (q ,self.max_queue_length) )
-            CrawlerGeneratorErrorLog(name= "ERROR_QUEUE_LENGTH", content="%s queue count is big than %d" % (q ,self.max_queue_length), hostname= socket.gethostname()).save()
+            # CrawlerGeneratorErrorLog(name= "ERROR_QUEUE_LENGTH", content="%s queue count is big than %d" % (q ,self.max_queue_length), hostname= socket.gethostname()).save()
             return None
         kwargs['at_front'] = at_front
         job = q.enqueue(func, *args, **kwargs)
@@ -353,11 +357,13 @@ class GenerateCrawlerTask(object):
                     continue
             try:
                 # validate uri
-                val(js['uri'])
-                uris.append(js['uri'])
+                if js.has_key('uri'):
+                    val(js['uri'])
+                    uris.append(js['uri'])
+                else:
+                    CrawlerGeneratorErrorLog(name="ERROR_JSON", content="JSON ValidationError without uri as key: %s" %(js), hostname= socket.gethostname()).save()
             except ValidationError, e:
-                # logging.error("URI ValidationError: %s" %(uri))
-                CrawlerGeneratorErrorLog(name="ERROR_URI", content="URI ValidationError: %s" %(uri), hostname= socket.gethostname()).save()
+                CrawlerGeneratorErrorLog(name="ERROR_URI", content="URI ValidationError: %s" %(js['uri']), hostname= socket.gethostname()).save()
         out_f.close()
         os.remove(self.out_path)
         dereplicated_uris = self.__dereplicate_uris(uris)
@@ -431,18 +437,17 @@ class GeneratorDispatch(object):
         while(priority < 6):
             if not queue.enqueue(priority, generate_uri_task, args = [generator_object]) :
                 if priority in (4, 5):
-                    # logging.error("The Queue is filled in! The new job is discarded.")
-                    CrawlerGeneratorAlertLog(name = "QUEUES_FILLED_UP", content="All queues is full. Discard the new generator(%s) Exit!"%(str(generator_object.id)), hostname= socket.gethostname() ).save()
+                    CrawlerGeneratorAlertLog(name = "QUEUES_FILLED_UP", content="Low queues is full. Discard the generator(%s) from priority %d Exit!"%(str(generator_object.id), generator_object.job.priority), hostname= socket.gethostname() ).save()
                     break
                 else:
                     # push the job in the front of closed queue with lower priority
                     # eg: if priority =2 ,then push job to high queue's front end, priority = 0
                     #   if priority = 1, then push job to medium queue's front end, priority = 2
-                    content="dispatch generator(%s) into queue with priority %d "%(str(generator_object.id), priority)
-                    CrawlerGeneratorDispatchLog(job = generator_object.job, task_generator= generator_object, content= content).save()
+                    # content="dispatch generator(%s) into queue with priority %d "%(str(generator_object.id), priority)
+                    # CrawlerGeneratorDispatchLog(job = generator_object.job, task_generator= generator_object, content= content).save()
                     priority += 2 if not priority%2 else 1
             else:
-                content="dispatch generator(%s) into queue with priority %d "%(str(generator_object.id), priority)
+                content="dispatch generator(%s)(%d) into queue with priority %d "%(str(generator_object.id), generator_object.job.priority, priority)
                 CrawlerGeneratorDispatchLog(job = generator_object.job, task_generator= generator_object, content= content).save()
                 break
         return queue

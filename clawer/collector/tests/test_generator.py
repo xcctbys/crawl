@@ -30,6 +30,26 @@ import time
 import unittest
 import random
 
+def insert_generator_with_priority_and_number(priority, number):
+    """
+        指定优先级和个数，生成Job和 CrawlerTaskGenerator
+    """
+    if priority not in range(-1, 6):
+        print "priority should be -1~5"
+        return
+    for i in range(number):
+        name = "P(%d)Job%d"%(priority ,i)
+        prior = priority
+        job = Job(name = name, info="", priority= prior)
+        job.save()
+        script = """import json\nprint json.dumps({'uri':"http://www.%s.com"})"""%(name)
+        cron = "* * * * *"
+        code_type = CrawlerTaskGenerator.TYPE_PYTHON
+        schemes=['http', 'https']
+        generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+        generator.save()
+
+
 # @unittest.skip("showing class skipping")
 class TestGeneratorCommand(TestCase):
     def setUp(self):
@@ -149,6 +169,7 @@ class TestPreprocess(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+
 
     def insert_4000_jobs_with_generators(self):
         for i in range(4000):
@@ -464,7 +485,7 @@ class TestGenerateTask(TestCase):
     def test_save_task_with_invalid_uri(self):
         job = Job( name = 'invalid uri', status= 1, priority =1)
         job.save()
-        script = """import json\nprint json.dumps({'uri':"www.baidu.com"})"""
+        script = """import json\nprint json.dumps({'uri':"http://www.baidu.com www.baidu.com"})"""
         cron = "* * * * *"
         generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
         generator.save()
@@ -481,11 +502,33 @@ class TestGenerateTask(TestCase):
 
         generator.delete()
         job.delete()
-        self.assertTrue(os.path.exists(gt.out_path))
+        self.assertFalse(os.path.exists(gt.out_path))
         self.assertGreater(CrawlerGeneratorErrorLog.objects.count(), 0)
         self.assertEqual(CrawlerTask.objects.count(), 0)
 
+    def test_save_task_with_invalid_json(self):
+        job = Job( name = 'invalid uri', status= 1, priority =1)
+        job.save()
+        script = """import json\nprint json.dumps({'url':"http://www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
 
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+        error_count = CrawlerGeneratorErrorLog.objects().delete()
+        print "generator error count = %d"%(error_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+
+        generator.delete()
+        job.delete()
+        self.assertFalse(os.path.exists(gt.out_path))
+        self.assertGreater(CrawlerGeneratorErrorLog.objects.count(), 0)
+        self.assertEqual(CrawlerTask.objects.count(), 0)
 
     def test_save_task(self):
         self.gt.save_task()
