@@ -115,7 +115,7 @@ class DataPreprocess(object):
                 CrawlerTask(job= self.job, uri= uri).save()
             except Exception as e:
                 content = "%s : Error occured when saving uris %s."%(type(e), uri)
-                logging.error(content)
+                # logging.error(content)
                 CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
         return True
 
@@ -353,11 +353,13 @@ class GenerateCrawlerTask(object):
                     continue
             try:
                 # validate uri
-                val(js['uri'])
-                uris.append(js['uri'])
+                if js.has_key('uri'):
+                    val(js['uri'])
+                    uris.append(js['uri'])
+                else:
+                    CrawlerGeneratorErrorLog(name="ERROR_JSON", content="JSON ValidationError without uri as key: %s" %(js), hostname= socket.gethostname()).save()
             except ValidationError, e:
-                # logging.error("URI ValidationError: %s" %(uri))
-                CrawlerGeneratorErrorLog(name="ERROR_URI", content="URI ValidationError: %s" %(uri), hostname= socket.gethostname()).save()
+                CrawlerGeneratorErrorLog(name="ERROR_URI", content="URI ValidationError: %s" %(js['uri']), hostname= socket.gethostname()).save()
         out_f.close()
         os.remove(self.out_path)
         dereplicated_uris = self.__dereplicate_uris(uris)
