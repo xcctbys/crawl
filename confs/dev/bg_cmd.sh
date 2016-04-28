@@ -1,14 +1,12 @@
 #!/bin/bash
 
-WORKDIR=/d/gitroom/cr-clawer/clawer
-PY=~/Documents/pyenv/dj18/bin/python
 
 if [ ! -d ${WORKDIR} ]; then
-    WORKDIR=~/Documents/gitroom/cr-clawer/clawer
+    WORKDIR=/Users/princetechs5/crawler/cr-clawer/clawer
 fi
 
-if [ ! -f ${PY} ]; then
-    PY=/d/virtualenvs/dj14/Scripts/python
+if [ ! -f ${PYTHON} ]; then
+    PYTHON=/Users/princetechs5/Documents/virtualenv/bin/python
 fi
 
-cd ${WORKDIR}; ${PY} manage.py $*
+cd ${WORKDIR}; ${PYTHON} manage.py $*
