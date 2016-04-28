@@ -30,6 +30,26 @@ import time
 import unittest
 import random
 
+def insert_generator_with_priority_and_number(priority, number):
+    """
+        指定优先级和个数，生成Job和 CrawlerTaskGenerator
+    """
+    if priority not in range(-1, 6):
+        print "priority should be -1~5"
+        return
+    for i in range(number):
+        name = "P(%d)Job%d"%(priority ,i)
+        prior = priority
+        job = Job(name = name, info="", priority= prior)
+        job.save()
+        script = """import json\nprint json.dumps({'uri':"http://www.%s.com"})"""%(name)
+        cron = "* * * * *"
+        code_type = CrawlerTaskGenerator.TYPE_PYTHON
+        schemes=['http', 'https']
+        generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+        generator.save()
+
+
 # @unittest.skip("showing class skipping")
 class TestGeneratorCommand(TestCase):
     def setUp(self):
@@ -149,6 +169,7 @@ class TestPreprocess(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+
 
     def insert_4000_jobs_with_generators(self):
         for i in range(4000):

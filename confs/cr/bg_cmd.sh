@@ -3,7 +3,6 @@
 WORKDIR="/home/webapps/cr-clawer/clawer"
 PYTHON="/home/virtualenvs/py27/bin/python"
 
-
 function safe_run()
 {
     file="/tmp/$1.lock"
