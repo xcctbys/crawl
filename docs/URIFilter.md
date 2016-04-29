@@ -640,14 +640,14 @@ redis-server *:6379
 ```
 - start  
 ```
-cd到cr－clawer目录下  
-在terminal下输入 python manage.py shell 进入环境  
-IN[0]:from uri_filter.api.api_uri_filter import *  
-IN[1]:from uri_filter.api.api_filter_timing import *  
-＃uri_list可从txt文件中读入，每条uri之间以回车换行分割。  
-[IN]:from uri_filter.tests.test_uri_filter import*  
-[IN2]:file_path = "/tmp/filter_test.txt" ##自定义txt目录  
+cd到cr－clawer目录下
+在terminal下输入 python manage.py shell 进入环境
+IN[0]:from uri_filter.api.api_uri_filter import *
+IN[1]:from uri_filter.api.api_filter_timing import *
+＃uri_list可从txt文件中读入，每条uri之间以回车换行分割。
+[IN]:from uri_filter.tests.test_uri_filter import*
+[IN2]:file_path = "/tmp/filter_test.txt" ##自定义txt目录
 [IN3]:uri_list = read_urilist_from_txt(file_path)
 [IN4]:uri_list_unique = bloom_filter_api('uri_generator', uri_list)
 [IN]: uri_list_timing = timing_filter_api('uri_parse',uri_list,expire)
- ```
+```
