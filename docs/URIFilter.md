@@ -609,7 +609,7 @@ eg: ['www.baidu.com','www.hao.com','www.princetechs.com',.....'www.google.com']
     ['apple','fruit','orange',......'peanch','lemon']
     ['192.168.1.10','127.127.38.42'....'145.213.32.44']
     ['张','赵','李','王' .....'大海','月亮','星星']
-##列表元素个数在1亿五千万条以内去重误差不大于0.01%
+ 列表元素个数在1亿五千万条以内去重误差不大于0.01%
 - 限制条件
 
   输入的格式为list,uri条数越多处理耗时越多,一般1000条左右uri处理用时在s(秒)级.
@@ -633,12 +633,13 @@ cd src
 在终端输入
 ~  redis-cli shutdown
 - start
+cd到cr－clawer目录下
 在terminal下输入 python manage.py shell 进入环境  
-IN[0]:from uri_filter.api.api_uri_filter import *  
-uri  
-uri_list可从txt文件中读入，每条uri之间以回车换行分割。  
-[IN1]:from uri_filter.tests.test_uri_filter import *  
-[IN2]:file_path = "/tmp/filter_test.txt" ##自定义txt目录  
-[IN3]:res = read_urilist_from_txt(file_path)#res 为获取到的uri list，同时会print到终端上  
-
-
+ IN[0]:from uri_filter.api.api_uri_filter import *  
+ IN[1]:from uri_filter.api.api_filter_timing import *  
+＃uri_list可从txt文件中读入，每条uri之间以回车换行分割。  
+ [IN]:from uri_filter.tests.test_uri_filter import*  
+ [IN2]:file_path = "/tmp/filter_test.txt" ##自定义txt目录  
+ [IN3]:uri_list = read_urilist_from_txt(file_path)
+ [IN4]:uri_list_unique = bloom_filter_api('uri_generator', uri_list)
+ [IN]: uri_list_timing = timing_filter_api('uri_parse',uri_list,expire)
