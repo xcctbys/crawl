@@ -6,10 +6,25 @@ from fabric.api import env, roles, run
 with open("servers.json") as conf:
     env.roledefs = json.load(conf)
 
+consts = {
+    "PROJECT_DIR": "/home/clawer",
+    "GIT_REPO_URL": "git.princetechs.com:/data/repos/cr-clawer.git",
+    "GIT_BRANCH": "dev",
+    "GIT_USER": "zhongyid",
+    "GIT_PASSWORD": "zhongyid0033",
+}
+
+
+@roles("WebServer")
+def deploy_web_server():
+    _if_project_not_exist_clone()
+    _install_deps()
+    _run_web_service()
+
 
 @roles("CaptchaServers")
 def deploy_captcha_servers():
-    _download_project("")
+    pass
 
 
 @roles("DownloaderServers")
@@ -52,17 +67,13 @@ def deploy_structure_servers():
     pass
 
 
-def _download_project(download_url):
-    run("wget {0}".format(download_url))
+def _if_project_not_exist_clone():
+    run("sh scripts/clone_project.sh")
 
 
-def _release():
-    pass
+def _install_deps():
+    run("sh ./scripts/install_deps.sh")
 
 
-def _publish():
-    pass
-
-
-def _change_dir(path):
-    run("cd {0}".path)
+def _run_web_service():
+    run("sh ./scripts/run_web_service.sh")
