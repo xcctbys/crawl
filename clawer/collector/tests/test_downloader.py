@@ -13,6 +13,7 @@ from redis import Redis
 from rq import Queue
 import commands
 import subprocess
+import random
 # from storage.models import Job
 from collector.models import CrawlerDownloadType, CrawlerTask, Job, CrawlerTaskGenerator, CrawlerDownloadSetting, CrawlerDownload
 
@@ -271,6 +272,27 @@ class TestMongodb(TestCase):
 		cds1 =CrawlerDownloadSetting(job=job1, proxy='122', cookie='22', dispatch_num=50)
 		cds1.save()
 		pass
+
+	def test_insert_20000_uri_job(self):
+		onetype = CrawlerDownloadType(language='other', is_support=True)
+		onetype.save()
+		for i in range(1, 11):
+			job = Job(name='1%s' %(str(i)), info='2%s' %(str(i)), customer='ddd%s' %(str(i)), priority=random.randint(-1, 5))
+			job.save()
+			ctg1 = CrawlerTaskGenerator(job=job, code='echo hello1', cron='* * * * *')
+			ctg1.save()
+			# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://重庆/重庆理必易投资管理有限公司/500905004651063/', args='i', from_host='1')
+			for j in range(1000):
+				ct1 = CrawlerTask(job=job, task_generator=ctg1, uri='http://www.baidu.com', args='i', from_host='1')
+				ct1.save()
+				ct1 = CrawlerTask(job=job, task_generator=ctg1, uri='http://www.fishc.com', args='i', from_host='1')
+				ct1.save()
+			cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+			cd1.save()
+			cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+			cds1.save()
+		pass
+
 
 
 

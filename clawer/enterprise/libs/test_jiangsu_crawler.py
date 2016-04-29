@@ -337,6 +337,8 @@ class JiangsuCrawler(object):
 	def run(self, ent_number=None, *args, **kwargs):
 		self.crack.run(ent_number)
 
+class TestJiangsuCrawler(unittest.Test):
+	pass
 
 if __name__ == '__main__':
 	crawler = JiangsuCrawler('./enterprise_crawler/jiangsu.json')
