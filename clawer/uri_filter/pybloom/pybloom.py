@@ -212,7 +212,7 @@ class BloomFilter(object):
             print 1111111111111
             return False
         else:
-            print 22222222222222222
+            print 2222222222222
             return True
 
     def copy(self):

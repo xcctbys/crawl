@@ -29,17 +29,23 @@ def bloom_filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,
 
 
     filter_list_unique = []
+    filter_list_old = []
 
     if uri_list == []:
+        print '[]'
         return filter_list_unique
     else:
         for uri in uri_list:
             if blmfilter.add(uri) == True:
-                pass
+                filter_list_old.append(uri)
+                #pass
             else:
                 filter_list_unique.append(uri)
-
-        return  filter_list_unique
+        print '------重复的---------'
+        print filter_list_old
+        print '---------去重后的------------'
+        print filter_list_unique
+        return filter_list_unique
 
 
 
@@ -48,6 +54,6 @@ if __name__ == "__main__":
     # doctest.testmod()
     #uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
     uri_list = ['张','赵四','李','王','王二','赵','赵四','','',' ','w',' ']
-    bl = filter_api('uri_generator',uri_list)
+    bl =  bloom_filter_api('uri_generator',uri_list)
     print type(bl)
     print bl
