@@ -76,7 +76,7 @@ def dispatch_use_pool(task):
 		if settings.OPEN_CRAWLER_FAILED_ONLY:
 			down_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_FAIL)[:dispatch_num]
 		else:
-			if datetime.datetime.now().minute >= 51:
+			if datetime.datetime.now().minute >= 56:
 				#max_retry_times <= max_retry_times
 				down_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_FAIL, retry_times__lte=max_retry_times)[:dispatch_num]
 			else:
