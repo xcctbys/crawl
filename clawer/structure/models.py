@@ -3,18 +3,19 @@
 import json
 import datetime
 
-from storage.models import Job
+#from storage.models import Job
+from collector.models import Job
 from collector.models import CrawlerTask, CrawlerDownloadData
 from mongoengine import (Document,
-                         IntField,
-                         StringField,
-                         ReferenceField,)
+                              IntField,
+                              StringField,
+                              ReferenceField,
+                              DateTimeField)
 
 
 class Parser(Document):
      parser_id = IntField()
      python_script = StringField()
-
 
 class StructureConfig(Document):
      job = ReferenceField(Job)

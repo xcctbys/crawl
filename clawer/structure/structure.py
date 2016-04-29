@@ -1,36 +1,38 @@
 # -*- coding: utf-8 -*-
-
+import random
 import logging
 import os
 import sys
-
-from redis import Redis
-from rq import Connection, Worker, Quene
+import datetime
+import redis
+import rq
 from mongoengine import *
 
-from collector.models import CrawlerTask, CrawlerDownloadData
+from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
 from models import StructureConfig, Parser, CrawlerAnalyzedData
 from django.conf import settings
 
 class Consts(object):
     QUEUE_PRIORITY_TOO_HIGH = u"structure:higher"
-    QUEUE_PRIORITY_HIGN = u"structure:high"
+    QUEUE_PRIORITY_HIGH = u"structure:high"
     QUEUE_PRIORITY_NORMAL = u"structure:normal"
     QUEUE_PRIORITY_LOW = u"structure:low"
     QUEUE_MAX_LENGTH = 10000
 
 class StructureGenerator(object):
     def filter_downloaded_tasks(self):
-        downloaded_tasks = self.CrawlerTask.objects(status = STATUS_SUCCESS)
-        
+        downloaded_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_SUCCESS)
+        if downloaded_tasks is None:
+            logging.info("No downloaded (status = 5) tasks")
         return downloaded_tasks                         #返回状态为下载成功的爬虫任务
 
     def filter_parsed_tasks(self):
-        parsed_tasks = self.CrawlerTask.objects(status = STATUS_ANALYSIS_SUCCESS)
-        
+        parsed_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_ANALYSIS_SUCCESS)
+        if downloaded_tasks is None:
+            logging.info("No parsed (status = 7) tasks")
         return parsed_tasks                             #返回状态为解析成功的爬虫任务
 
-    def get_task_priority(self, task):                  #将爬虫任务中的Job的priority(range(-1,6))装化为解析任务的priority(Consts)        
+    def get_task_priority(self, task):               #将爬虫任务中的Job的priority(range(-1,6))装化为解析任务的priority(Consts)        
         if task.job.priority == -1:
             task_priority = Consts.QUEUE_PRIORITY_TOO_HIGH
         elif task.job.priority == 0 or task.job.priority == 1:
@@ -40,64 +42,64 @@ class StructureGenerator(object):
         elif task.job.priority == 4 or task.job.priority == 5:
             task_priority = Consts.QUEUE_PRIORITY_LOW
         else:
-            task_priority = None
+            task_priority = Consts.QUEUE_PRIORITY_LOW
             
         return task_priority
 
     def get_task_source_data(self, task):
-        task_source_data = self.CrawlerDownloadData.objects(crawlertask__uri__ = task.uri)
-        
+        task_source_data = CrawlerDownloadData.objects(crawlertask = task).first()
         return task_source_data                         #根据uri返回爬虫的下载数据（类型）
 
 class ParserGenerator(StructureGenerator):
-    def assign_tasks(self):
+    def __init__(self):
         self.queues = QueueGenerator()
+
+    def assign_parse_tasks(self):
         tasks = self.filter_downloaded_tasks()
         for task in tasks:
             parser = self.get_parser(task)
-            priority = self.get_priority(task)
+            priority = self.get_task_priority(task)
             data = self.get_task_source_data(task)
             if not self.is_duplicates(data):
-                try:
-                    queues.enqueue(priority, parser, data)
-                    logging.info("add task succeed")
-                except:
-                    logging.error("assign task runtime error.")
+                self.assign_parse_task(priority, parser, data)
             else:
                 logging.error("duplicates")
         return self.queues
-    #def assign_task(self, priority, parser, data):   
+
+    def assign_parse_task(self, priority, parser, data):
+        try:
+            self.queues.enqueue(priority, parser, data)
+            logging.info("add task succeed")
+        except:
+            logging.error("assign task runtime error.")
+
     def get_parser(self, task):
         if task is not None:
-            try:
-                structureconfig = self.StructureConfig.objects(job__name__ = task.job.name)
-            except Exception as e:
-                logging.error("Error finding StructureConfig -- No file for the job name")
-            cur_dir = os.getcwd()
-            parsers_dir = cur_dir + "/parsers"
-            if os.path.isdir(parsers_dir):              #判断解析器目录是否存在，如不存在则创建
-                pass
-            else:
-                os.mkdir(parsers_dir)
-            os.chdir(parsers_dir)
-            parser_init = open("__init__.py")
-            parser_init.close()            
-            parser_py_script = open(str(structureconfig.parser.parser_id) + ".py",'w')
-            parser_py_script.write(structureconfig.parser.python_script)
-            parser_py_script.close()                    #将python脚本写进解析器文件中并关闭文件
-            os.chdir(current_dir)                       #切换回之前的工作目录
-            sys.path.append(parsers_dir)                #把解析器路徑添加到系統路徑
-            try:
-                parser_module = __import__(str(structureconfig.parser.parser_id))
-            except Exception as e:
-                logging.error("Error importing parser(function) from parser_id.py")
-            def parser_func(self, data):
+            structureconfig = StructureConfig.objects(job= task.job).first()
+            if structureconfig is not None:
+                current_dir = os.getcwd()
+                parsers_dir = current_dir + "/structure/parsers"
+                if not os.path.isdir(parsers_dir):              #判断解析器目录是否存在，如不存在则创建
+                    os.mkdir(parsers_dir)
+                os.chdir(parsers_dir)
+                parser_init = open("__init__.py", 'w')
+                parser_init.close()            
+                parser_py_script = open(str(structureconfig.parser.parser_id) + ".py", 'w')
+                parser_py_script.write(structureconfig.parser.python_script)
+                parser_py_script.close()                    #将python脚本写进解析器文件中并关闭文件
+                sys.path.append(parsers_dir)               #把解析器路徑添加到系統路徑
                 try:
-                    analyzed_data = parser_module.RawParser.parser(data)
-                except:
-                    logging.error("Error Parsing")
-                CrawlerAnalyzedData(task.uri, task.job, datetime.datetime.now(), analyzed_data).save()
-            return parser_func(self, data)                
+                    parser_module = __import__(str(structureconfig.parser.parser_id))
+                except Exception as e:
+                    logging.error("Error importing parser(function) from parser_id.py")
+                os.chdir(current_dir)                        #切换回之前的工作目录
+                def parser_func(self, data):
+                    try:
+                        analyzed_data = parser_module.RawParser.parser(data)
+                    except:
+                        logging.error("Error Parsing")
+                    CrawlerAnalyzedData(task.uri, task.job, datetime.datetime.now(), analyzed_data).save()
+                return parser_func             
         else:
             logging.error("Error finding parser -- Null task")
             
@@ -117,7 +119,7 @@ class QueueGenerator(object):
         q = None
         if priority == Consts.QUEUE_PRIORITY_TOO_HIGH:
             q = self.too_high_queue
-        elif priority == Consts.QUEUE_PRIORITY_HIGN:
+        elif priority == Consts.QUEUE_PRIORITY_HIGH:
             q = self.high_queue
         elif priority == Consts.QUEUE_PRIORITY_NORMAL:
             q = self.normal_queue
@@ -127,8 +129,8 @@ class QueueGenerator(object):
             q = self.low_queue
         if q.count > Consts.QUEUE_MAX_LENGTH:
             return None
-        parser_job = q.enqueue(func = func, args = (data), timeout = 30)
-        return parser_job.id
+        parser_job = q.enqueue_call(func = func, args = (data,), timeout = 30)
+        return  parser_job.id
         
 class ExtracterGenerator(StructureGenerator):
     def assign_tasks(self):
@@ -181,3 +183,49 @@ class ExecutionTasks(object):
         with Connection([queue]):
             w = Worker()
             w.work()
+
+def insert_test_data():
+    
+    script = """class RawParser(object):
+def parser(crawlerdownloaddata):
+    data = "JSON Format Data After Parsing"
+    return data"""
+    
+    for count in range(0,100):
+        test_job = Job("creator",
+            "job_%d" % count,
+            "info",
+            "customer",
+            random.choice(range(0,2)),
+            random.choice(range(-1,6)),
+            datetime.datetime.now())
+        test_job.save()
+
+        test_parser = Parser(count, script)
+        test_parser.save()
+
+        test_crawlertask = CrawlerTask(test_job,
+            uri = "test_uri_%d" % count,
+            status = random.choice(range(1,8))).save(validate = False)
+        test_crawlertask.save()
+
+        test_downloader = CrawlerDownload(test_job)
+        test_downloader.save()
+
+        StructureConfig(test_job, test_parser).save()
+
+        CrawlerDownloadData(test_job, test_downloader, test_crawlertask).save()
+
+    print "Data Inserted!"
+
+def empty_test_data():
+    
+    Job.drop_collection()
+    Parser.drop_collection()
+    CrawlerTask.drop_collection()
+    CrawlerDownload.drop_collection()
+    StructureConfig.drop_collection()
+    CrawlerDownloadData.drop_collection()
+
+    print "Data Cleaned!"
+
