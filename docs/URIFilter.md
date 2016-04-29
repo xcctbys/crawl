@@ -626,14 +626,21 @@ cd src
 ./redis-server &后台启动
 
 ### 检查是否启动成功
- $ ps -ef | grep redis
-看到redis服务和端口号即开启成功
- redis-server *:6379
-- 关闭
-在终端输入
-~  redis-cli shutdown
-- start
-cd到cr－clawer目录下
+``` 
+$ ps -ef | grep redis
+```
+看到redis服务和端口号即开启成功  
+``` 
+redis-server *:6379  
+```
+- 关闭  
+在终端输入  
+```
+~  redis-cli shutdown  
+```
+- start  
+```
+cd到cr－clawer目录下  
 在terminal下输入 python manage.py shell 进入环境  
  IN[0]:from uri_filter.api.api_uri_filter import *  
  IN[1]:from uri_filter.api.api_filter_timing import *  
@@ -643,3 +650,4 @@ cd到cr－clawer目录下
  [IN3]:uri_list = read_urilist_from_txt(file_path)
  [IN4]:uri_list_unique = bloom_filter_api('uri_generator', uri_list)
  [IN]: uri_list_timing = timing_filter_api('uri_parse',uri_list,expire)
+ ```
