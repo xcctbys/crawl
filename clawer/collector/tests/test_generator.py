@@ -30,6 +30,21 @@ import time
 import unittest
 import random
 
+
+class TestExeScript(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_enterprise(self):
+        dp = DataPreprocess('570ded84c3666e0541c9e8d8')
+        script = dp.read_from_file('/Users/princetechs5/Documents/pythontest/enterprice.py')
+        cron = "* * * * *"
+        dp.save(script=script, settings={'cron':cron, 'code_type':1, 'schemes':['enterprise']})
+
+
 def insert_generator_with_priority_and_number(priority, number):
     """
         指定优先级和个数，生成Job和 CrawlerTaskGenerator
@@ -48,6 +63,7 @@ def insert_generator_with_priority_and_number(priority, number):
         schemes=['http', 'https']
         generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
         generator.save()
+
 
 
 # @unittest.skip("showing class skipping")
