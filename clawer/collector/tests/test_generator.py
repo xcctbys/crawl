@@ -39,11 +39,21 @@ class TestExeScript(TestCase):
         TestCase.tearDown(self)
 
     def test_enterprise(self):
-        dp = DataPreprocess('570ded84c3666e0541c9e8d8')
+        job_id = '570ded84c3666e0541c9e8d8'
+        Job.objects(id__ne= job_id).update(status = Job.STATUS_OFF)
+        CrawlerTask.objects.delete()
+        dp = DataPreprocess(job_id)
         script = dp.read_from_file('/Users/princetechs5/Documents/pythontest/enterprice.py')
         cron = "* * * * *"
         dp.save(script=script, settings={'cron':cron, 'code_type':1, 'schemes':['enterprise']})
 
+        crontab = CrawlerCronTab()
+        crontab.task_generator_install()
+        Job.objects.update(status= Job.STATUS_ON)
+        # time.sleep(10)
+        crontab.task_generator_run()
+        count = CrawlerTask.objects.count()
+        self.assertGreater(count, 0)
 
 def insert_generator_with_priority_and_number(priority, number):
     """
