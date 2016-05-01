@@ -21,7 +21,7 @@ from django.utils.six import StringIO
 
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorErrorLog
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
-from collector.utils_generator import force_exit, exec_command
+from collector.utils_generator import exec_command
 from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
@@ -210,6 +210,19 @@ class TestPreprocess(TestCase):
             generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
             generator.save()
 
+    def delete_4000_jobs_with_generators(self):
+        for i in range(4000):
+            name = "job%d"%(i)
+            job = Job.objects(name= name).first()
+            if job :
+                CrawlerTaskGenerator.objects(job = job).first().delete()
+                job.delete()
+
+    def test_delete_4000_jobs_with_generators(self):
+        job_num = Job.objects.count()
+        generator_num = CrawlerTaskGenerator.objects.count()
+        self.delete_4000_jobs_with_generators()
+        self.assertEqual(CrawlerTaskGenerator.objects.count()+4000, generator_num)
 
     def test_insert_4000_jobs_with_generators(self):
         job_num = Job.objects.count()
@@ -220,13 +233,9 @@ class TestPreprocess(TestCase):
         self.assertEqual(Job.objects.count(), job_num+4000)
         self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num + 4000)
 
-        for i in range(4000):
-            name = "job%d"%(i)
-            job = Job.objects(name= name).first()
-            CrawlerTaskGenerator.objects(job = job).first().delete()
-            job.delete()
+        # self.delete_4000_jobs_with_generators()
 
-        self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num)
+        # self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num)
 
 
     def test_save_csv(self):
@@ -448,6 +457,13 @@ class TestGenerateTask(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+
+    def test_get_tools(self):
+        python = GenerateCrawlerTask.get_tools_by_code_type(1)
+        self.assertEqual(python, settings.PYTHON)
+
+        shell = GenerateCrawlerTask.get_tools_by_code_type(2)
+        self.assertEqual(shell, settings.SHELL)
 
     def test_settings_shell(self):
         SHELL = os.environ.get('SHELL', '/bin/bash')
@@ -808,7 +824,7 @@ class TestCrawlerCron(TestCase):
 
     def test_force_exit(self):
         CrawlerGeneratorAlertLog.objects.delete()
-        print force_exit()
+        print CrawlerCronTab.force_exit()
 
     def test_exec_command(self):
         cron = "*/6 * * * *"
