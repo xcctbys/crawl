@@ -28,7 +28,7 @@ class Crawer(object):
                 except:
                     pass
         except Exception as e:
-            print 'error in do_with',e
+            # print 'error in do_with',e
             pass
 
     def run(self):
