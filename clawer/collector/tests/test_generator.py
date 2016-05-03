@@ -21,7 +21,7 @@ from django.utils.six import StringIO
 
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorErrorLog
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
-from collector.utils_generator import exec_command
+from collector.utils_generator import exec_command, force_exit
 from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
@@ -824,7 +824,7 @@ class TestCrawlerCron(TestCase):
 
     def test_force_exit(self):
         CrawlerGeneratorAlertLog.objects.delete()
-        print CrawlerCronTab.force_exit()
+        print force_exit()
 
     def test_exec_command(self):
         cron = "*/6 * * * *"

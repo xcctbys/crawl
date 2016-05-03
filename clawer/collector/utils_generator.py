@@ -107,9 +107,6 @@ class DataPreprocess(object):
 
         return content
 
-
-
-
     def save_text(self, text, schemes=None):
         """
         """
@@ -228,7 +225,7 @@ class GeneratorQueue(object):
         else:
             q = self.low_queue
 
-        if q.count > self.max_queue_length:
+        if q.count >= self.max_queue_length:
             return None
         kwargs['at_front'] = at_front
         job = q.enqueue(func, *args, **kwargs)
@@ -545,10 +542,11 @@ class CrawlerCronTab(object):
         # 获取出当前分钟 需要执行的任务列表
         last_time = datetime.now()
         # 定时任务，到时间强制退出。
-        timer = threading.Timer(self.cron_timeout, self.force_exit)
+        timer = threading.Timer(self.cron_timeout, force_exit)
         timer.start()
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
         self.exe_number = 0
+        # time.sleep(50)
         for job in self.crontab.crons:
             # 获得当前需要运行的cron任务
             now = datetime.now()
@@ -582,21 +580,6 @@ class CrawlerCronTab(object):
         self.exec_and_save_current_crons()
         return True
 
-    @classmethod
-    def force_exit(self):
-        """
-            通过定时器触发此函数，强制退出运行父进程，并将子进程杀死。
-        """
-        pgid = os.getpgid(0)
-        if pool is not None:
-            pool.terminate()
-            raise UnboundLocalError("Pool is not None!")
-        # 将本次运行的cron任务的上次运行时间写回到tabfile文件中
-        self.save_cron_to_file()
-        logging.error("Cron runtime exceeds 60s. Exit!")
-        CrawlerGeneratorAlertLog(name = "TIMEOUT", content="Cron runtime exceeds 60s. Exit!", hostname= socket.gethostname() ).save()
-        os.killpg(pgid, 9)
-        os._exit(1)
 
 def exec_command(command, comment, cron):
     """
@@ -631,15 +614,15 @@ def exec_command(command, comment, cron):
 
 
 
-# def force_exit():
-#     """
-#         通过定时器触发此函数，强制退出运行父进程，并将子进程杀死。
-#     """
-#     pgid = os.getpgid(0)
-#     if pool is not None:
-#         pool.terminate()
-#         raise UnboundLocalError("Pool is not None!")
-#     logging.error("Cron runtime exceeds 60s. Exit!")
-#     CrawlerGeneratorAlertLog(name = "TIMEOUT", content="Cron runtime exceeds 60s. Exit!", hostname= socket.gethostname() ).save()
-#     os.killpg(pgid, 9)
-#     os._exit(1)
+def force_exit():
+    """
+        通过定时器触发此函数，强制退出运行父进程，并将子进程杀死。
+    """
+    pgid = os.getpgid(0)
+    if pool is not None:
+        pool.terminate()
+        raise UnboundLocalError("Pool is not None!")
+    logging.error("Cron runtime exceeds 60s. Exit!")
+    CrawlerGeneratorAlertLog(name = "TIMEOUT", content="Cron runtime exceeds 60s. Exit!", hostname= socket.gethostname() ).save()
+    os.killpg(pgid, 9)
+    os._exit(1)
