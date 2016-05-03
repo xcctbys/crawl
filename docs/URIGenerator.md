@@ -512,8 +512,9 @@ class CrawlerTaskGenerator(Document):
 ```
 ## CrawlerGeneratorLog
 
-```
+应用于记录：保存脚本到本地，执行脚本，并保存完毕URI后整个过程。
 
+```
 class GrawlerGeneratorLog(Document):
     (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
     STATUS_CHOICES = (
@@ -533,6 +534,8 @@ class GrawlerGeneratorLog(Document):
 
 ## CrawlerGeneratorCronLog
 
+每执行一条crontab的语句，就插入一条记录。
+
 ```
 class GrawlerGeneratorCronLog(Document):
     (STATUS_FAIL, STATUS_SUCCESS) = range(1, 3)
@@ -550,17 +553,22 @@ class GrawlerGeneratorCronLog(Document):
 ```
 
 ## CrawlerGeneratorErrorLog
+
+name 分为 ERROR_SAVE, ERROR_JOB, ERROR_URI, ERROR_JSON, 
+
 ``` 
 class CrawlerGeneratorErrorLog(Document):
-    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    failed_reason = StringField(max_length=10240, null=True)
-    content_bytes = IntField(default=0)
+    name = StringField(max_length=128)
+    content = StringField(max_length=10240, null=True)
     hostname = StringField(null=True, max_length=16)
     add_datetime = DateTimeField(default=datetime.datetime.now())
     meta = {"db_alias": "log"} # 默认连接的数据库
 ```
 
 ## CrawlerGeneratorAlertLog
+
+警告日志用于记录cron超时和有未入队列的任务。
+
 ``` 
 class CrawlerGeneratorAlertLog(Document):
     job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
