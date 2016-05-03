@@ -31,10 +31,14 @@ CACHES = {
     }
 }
 
-PYTHON = "/Users/princetechs5/Documents/virtualenv/bin/python"
+PYTHON = "/home/mingming/Documents/pyenv/dj18/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
-MAX_QUEUE_LENGTH = 1000
+
+SUPER_MAX_QUEUE_LENGTH = 1000
+HIGH_MAX_QUEUE_LENGTH = 2000
+MEDIUM_MAX_QUEUE_LENGTH = 3000
+LOW_MAX_QUEUE_LENGTH = 4000
 
 URI_TTL = 60*60*24
 CRONTAB_USER = "pengxt"

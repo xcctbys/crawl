@@ -48,7 +48,14 @@ REDIS = "redis://10.100.90.51/0"
 URL_REDIS = "redis://10.100.90.52/0"
 MONITOR_REDIS = "redis://10.100.90.51/0"
 # add by wang ziyang 2016-04-14
-MAX_QUEUE_LENGTH = 500
+#MAX_QUEUE_LENGTH = 500
+
+# add my zhangyongming 2016.5.3
+SUPER_MAX_QUEUE_LENGTH = 1000
+HIGH_MAX_QUEUE_LENGTH = 2000
+MEDIUM_MAX_QUEUE_LENGTH = 3000
+LOW_MAX_QUEUE_LENGTH = 4000
+
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
 
