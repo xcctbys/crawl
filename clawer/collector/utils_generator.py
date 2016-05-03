@@ -187,16 +187,31 @@ class GeneratorQueue(object):
     HIGHT_QUEUE = "uri_high"
     MEDIUM_QUEUE = "uri_medium"
     LOW_QUEUE = "uri_low"
-    MAX_COUNT = 1000
+    #MAX_COUNT = 1000
 
-    def __init__(self, redis_url= settings.REDIS, queue_length=settings.MAX_QUEUE_LENGTH):
-    # def __init__(self, redis_url= None, queue_length=None):
+    SUPER_MAX_COUNT = 1000
+    HIGH_MAX_COUNT = 2000
+    MEDIUM_MAX_COUNT = 3000
+    LOW_MAX_COUNT = 4000
+
+    def __init__( self, redis_url= settings.REDIS, \
+                  super_queue_length=settings.SUPER_MAX_QUEUE_LENGTH, \
+                  high_queue_length=settings.HIGH_MAX_QUEUE_LENGTH, \
+                  medium_queue_length=settings.MEDIUM_MAX_QUEUE_LENGTH, \
+                  low_queue_length=settings.LOW_MAX_QUEUE_LENGTH):
+
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.super_queue = rq.Queue(self.SUPER_QUEUE, connection=self.connection)
         self.high_queue = rq.Queue(self.HIGHT_QUEUE, connection=self.connection)
         self.medium_queue = rq.Queue(self.MEDIUM_QUEUE, connection=self.connection)
         self.low_queue = rq.Queue(self.LOW_QUEUE, connection=self.connection)
-        self.max_queue_length = queue_length if queue_length is not None else self.MAX_COUNT
+        #self.max_queue_length = queue_length if queue_length is not None else self.MAX_COUNT
+
+        self.super_max_queue_length = super_queue_length if super_queue_length is not None else self.SUPER_MAX_COUNT
+        self.high_max_queue_length = high_queue_length if high_queue_length is not None else self.HIGH_MAX_COUNT
+        self.medium_max_queue_length = medium_queue_length if medium_queue_length is not None else self.MEDIUM_MAX_COUNT
+        self.low_max_queue_length = low_queue_length if low_queue_length is not None else self.LOW_MAX_COUNT
+
         # self.jobs = []
 
     def enqueue(self, priority, func, *args, **kwargs):
@@ -207,7 +222,7 @@ class GeneratorQueue(object):
         elif priority == 0 :
             q = self.high_queue
             at_front = True
-        elif priority == 1:
+        elif priority == 1 :
             q = self.high_queue
             # at_front = False
         elif priority == 2:
@@ -225,8 +240,21 @@ class GeneratorQueue(object):
         else:
             q = self.low_queue
 
-        if q.count >= self.max_queue_length:
-            return None
+
+        if q == self.super_queue:
+            if q.count >= self.super_max_queue_length:
+                return None
+        elif q ==self.high_queue:
+            if q.count >= self.high_max_queue_length:
+                return None
+        elif q == self.medium_queue:
+            if q.count >= self.medium_max_queue_length:
+                return None
+        else:
+            if q.count >= self.low_max_queue_length:
+                return None
+
+
         kwargs['at_front'] = at_front
         job = q.enqueue(func, *args, **kwargs)
         # self.jobs.append(job)
