@@ -21,6 +21,7 @@ from django.utils.six import StringIO
 
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorErrorLog
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
+from collector.models import CrawlerDownloadType, CrawlerDownload, CrawlerDownloadSetting
 from collector.utils_generator import exec_command, force_exit
 from collector.utils_cron import CronTab
 from redis import Redis
@@ -195,6 +196,28 @@ class TestPreprocess(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+
+    def test_insert_1000_jobs_with_downloaders(self):
+        job_num = Job.objects.count()
+        for i in range(1000):
+            name = "job%d"%(i)
+            prior = random.randint(-1, 5)
+
+            onetype = CrawlerDownloadType(language='other', is_support=True)
+            onetype.save()
+            job = Job(name = name, info="", priority= prior)
+            job.save()
+            script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+            cron = "* * * * *"
+            code_type = CrawlerTaskGenerator.TYPE_PYTHON
+            schemes=['http', 'https']
+            generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+            generator.save()
+            cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+            cd1.save()
+            cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+            cds1.save()
+        self.assertEqual(job_num+1000, Job.objects.count())
 
 
     def insert_4000_jobs_with_generators(self):
