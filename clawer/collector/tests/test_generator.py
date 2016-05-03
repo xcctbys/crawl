@@ -22,7 +22,7 @@ from django.utils.six import StringIO
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorErrorLog
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
 from collector.models import CrawlerDownloadType, CrawlerDownload, CrawlerDownloadSetting
-from collector.utils_generator import exec_command, force_exit
+from collector.utils_generator import exec_command, force_exit, dereplicate_uris
 from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
@@ -196,6 +196,19 @@ class TestPreprocess(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+
+    def test_dereplicate_uris(self):
+        uris=['http://www.baidu.com', 'http://google.com']
+        de_uri = dereplicate_uris(uris)
+        uri = dereplicate_uris(uris)
+        self.assertFalse(uri)
+
+    def test_dereplicate_uris_with_ttl(self):
+        uris=['http://www.baidu.com', 'http://google.com']
+        de_uri = dereplicate_uris(uris, ttl=1)
+        time.sleep(2)
+        uri = dereplicate_uris(uris)
+        self.assertListEqual(uri, uris)
 
     def test_insert_1000_jobs_with_downloaders(self):
         job_num = Job.objects.count()

@@ -25,11 +25,19 @@ from django.core.exceptions import ValidationError
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorDispatchLog
 from collector.utils_cron import CronTab, CronSlices
 from django.conf import settings
+from uri_filter.api.api_filter_timing import timing_filter_api
 
 pool = None
 
+TTL = 60*60*24
 
-
+def dereplicate_uris(uri_list, ttl = settings.URI_TTL):
+    """ dereplicate uri list using APIs from other modules
+        return dereplicated uri list
+    """
+    ttl = TTL if not ttl else ttl
+    uri_list = timing_filter_api("timing_filter_api", uri_list, ttl)
+    return uri_list
 
 class DataPreprocess(object):
     """ 数据保存 """
@@ -80,12 +88,7 @@ class DataPreprocess(object):
                         self.failed_uris.append(uri)
         return uris
 
-    def __dereplicate_uris(self, uri_list):
-        """ dereplicate uri list using APIs from other modules
-            return dereplicated uri list
-        """
-        pass
-        return uri_list
+
 
     def read_from_strings(self, textarea, schemes=None):
         """ validate strings from textarea with schemes
@@ -93,7 +96,7 @@ class DataPreprocess(object):
         """
         uri_list = textarea.strip().splitlines()
         valid_uris = self.__validate_uris(uri_list, schemes)
-        dereplicated_uris = self.__dereplicate_uris(valid_uris)
+        dereplicated_uris = dereplicate_uris(valid_uris)
         self.uris = dereplicated_uris
         return dereplicated_uris
 
@@ -329,12 +332,6 @@ class GenerateCrawlerTask(object):
         out_f.close()
         return True
 
-    def __dereplicate_uris(self, uris):
-        """ dereplicate uri using APIs from other modules
-            return  true if uri is not dereplicated or false
-        """
-        return uris
-
     def save_task(self):
         uris = []
         val = URLValidator(self.schemes)
@@ -360,7 +357,7 @@ class GenerateCrawlerTask(object):
                 CrawlerGeneratorErrorLog(name="ERROR_URI", content="URI ValidationError: %s" %(js['uri']), hostname= socket.gethostname()).save()
         out_f.close()
         os.remove(self.out_path)
-        dereplicated_uris = self.__dereplicate_uris(uris)
+        dereplicated_uris = dereplicate_uris(uris)
 
         for uri in dereplicated_uris:
             try:
