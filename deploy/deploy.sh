@@ -140,7 +140,7 @@ useage() {
   echo "        genertor:       生成器部署"
   echo "        downloader:     下载器部署"
   echo "        structure:      解析器部署"
-  echo "        sshkey:       同步本地ssh pub key到远程服务器"
+  echo "        sshkey:         同步本地ssh pub key到远程服务器"
   echo ""
 }
 

@@ -34,9 +34,13 @@ class TimingFilter(object):
     def add(self, key):
         expire = self.expire
         redispool = self.redispool
+        print redispool
+        print "-------redispool----"
 
         m = redispool.info()
         info= m.get('used_memory')
+        print info
+        print "--------memory-------"
 
         md5str = self._md5(key)
         expire = self.expire
@@ -100,9 +104,9 @@ if __name__ == "__main__":
     # doctest.testmod()
     #uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
     uri_list = ['张','赵四','李','王','王二','赵','赵四','','',' ','w',' ','fafasfsfsf','fafsf2']
-    dingshilist = timing_filter_api('uri_parse',uri_list,20)
+    dingshilist = timing_filter_api('uri_generator',uri_list,20)
     print "定时去重后"
-    print dignshilist
+    print  dingshilist
 
 
 

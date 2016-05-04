@@ -40,6 +40,7 @@ HIGH_MAX_QUEUE_LENGTH = 2000
 MEDIUM_MAX_QUEUE_LENGTH = 3000
 LOW_MAX_QUEUE_LENGTH = 4000
 
+URI_TTL = 60*60*24
 CRONTAB_USER = "pengxt"
 CLAWER_SOURCE = "/Users/pengxt/Documents/clawer/source/"
 CLAWER_RESULT = "/Users/pengxt/Documents/clawer/result/"
