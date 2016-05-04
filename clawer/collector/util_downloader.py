@@ -310,6 +310,7 @@ class Download(object):
 			start_time = time.time()
 			try:
 				resp = self.reqst.get(self.task.uri)
+                                resp.encoding = 'utf-8'
 				# print resp.headers
 				# print resp.request.headers
 				# print resp.text
@@ -375,12 +376,12 @@ def force_exit(download_timeout, task):
 	"""
 	pgid = os.getpgid(0)
 	# 改变这个任务的状态为下载失败
-	self.task.status = CrawlerTask.STATUS_FAIL
-	self.task.save()
+	task.status = CrawlerTask.STATUS_FAIL
+	task.save()
 
 	# write_downloaddata_fail_log_to_mongo
-	cdl = CrawlerDownloadLog(	job = self.task.job,
-								task = self.task,
+	cdl = CrawlerDownloadLog(	job = task.job,
+								task = task,
 								status = CrawlerDownloadLog.STATUS_FAIL,
 								requests_size = 0,
 								response_size = 0,

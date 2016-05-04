@@ -21,7 +21,8 @@ from django.utils.six import StringIO
 
 from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorErrorLog
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
-from collector.utils_generator import force_exit, exec_command
+from collector.models import CrawlerDownloadType, CrawlerDownload, CrawlerDownloadSetting
+from collector.utils_generator import exec_command, force_exit, dereplicate_uris
 from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
@@ -29,6 +30,31 @@ import subprocess
 import time
 import unittest
 import random
+
+
+class TestExeScript(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_enterprise(self):
+        job_id = '570ded84c3666e0541c9e8d8'
+        Job.objects(id__ne= job_id).update(status = Job.STATUS_OFF)
+        CrawlerTask.objects.delete()
+        dp = DataPreprocess(job_id)
+        script = dp.read_from_file('/Users/princetechs5/Documents/pythontest/enterprice.py')
+        cron = "* * * * *"
+        dp.save(script=script, settings={'cron':cron, 'code_type':1, 'schemes':['enterprise']})
+
+        crontab = CrawlerCronTab()
+        crontab.task_generator_install()
+        Job.objects.update(status= Job.STATUS_ON)
+        # time.sleep(10)
+        crontab.task_generator_run()
+        count = CrawlerTask.objects.count()
+        self.assertGreater(count, 0)
 
 def insert_generator_with_priority_and_number(priority, number):
     """
@@ -48,6 +74,7 @@ def insert_generator_with_priority_and_number(priority, number):
         schemes=['http', 'https']
         generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
         generator.save()
+
 
 
 # @unittest.skip("showing class skipping")
@@ -170,6 +197,41 @@ class TestPreprocess(TestCase):
     def tearDown(self):
         TestCase.tearDown(self)
 
+    def test_dereplicate_uris(self):
+        uris=['http://www.baidu.com', 'http://google.com']
+        de_uri = dereplicate_uris(uris)
+        uri = dereplicate_uris(uris)
+        self.assertFalse(uri)
+
+    def test_dereplicate_uris_with_ttl(self):
+        uris=['http://www.baidu.com', 'http://google.com']
+        de_uri = dereplicate_uris(uris, ttl=1)
+        time.sleep(2)
+        uri = dereplicate_uris(uris)
+        self.assertListEqual(uri, uris)
+
+    def test_insert_1000_jobs_with_downloaders(self):
+        job_num = Job.objects.count()
+        for i in range(1000):
+            name = "job%d"%(i)
+            prior = random.randint(-1, 5)
+
+            onetype = CrawlerDownloadType(language='other', is_support=True)
+            onetype.save()
+            job = Job(name = name, info="", priority= prior)
+            job.save()
+            script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+            cron = "* * * * *"
+            code_type = CrawlerTaskGenerator.TYPE_PYTHON
+            schemes=['http', 'https']
+            generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+            generator.save()
+            cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+            cd1.save()
+            cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+            cds1.save()
+        self.assertEqual(job_num+1000, Job.objects.count())
+
 
     def insert_4000_jobs_with_generators(self):
         for i in range(4000):
@@ -184,6 +246,19 @@ class TestPreprocess(TestCase):
             generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
             generator.save()
 
+    def delete_4000_jobs_with_generators(self):
+        for i in range(4000):
+            name = "job%d"%(i)
+            job = Job.objects(name= name).first()
+            if job :
+                CrawlerTaskGenerator.objects(job = job).first().delete()
+                job.delete()
+
+    def test_delete_4000_jobs_with_generators(self):
+        job_num = Job.objects.count()
+        generator_num = CrawlerTaskGenerator.objects.count()
+        self.delete_4000_jobs_with_generators()
+        self.assertEqual(CrawlerTaskGenerator.objects.count()+4000, generator_num)
 
     def test_insert_4000_jobs_with_generators(self):
         job_num = Job.objects.count()
@@ -194,13 +269,9 @@ class TestPreprocess(TestCase):
         self.assertEqual(Job.objects.count(), job_num+4000)
         self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num + 4000)
 
-        for i in range(4000):
-            name = "job%d"%(i)
-            job = Job.objects(name= name).first()
-            CrawlerTaskGenerator.objects(job = job).first().delete()
-            job.delete()
+        # self.delete_4000_jobs_with_generators()
 
-        self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num)
+        # self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num)
 
 
     def test_save_csv(self):
@@ -422,6 +493,13 @@ class TestGenerateTask(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+
+    def test_get_tools(self):
+        python = GenerateCrawlerTask.get_tools_by_code_type(1)
+        self.assertEqual(python, settings.PYTHON)
+
+        shell = GenerateCrawlerTask.get_tools_by_code_type(2)
+        self.assertEqual(shell, settings.SHELL)
 
     def test_settings_shell(self):
         SHELL = os.environ.get('SHELL', '/bin/bash')

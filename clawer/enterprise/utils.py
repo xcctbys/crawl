@@ -97,15 +97,16 @@ class EnterpriseDownload(object):
         if os.path.exists(settings.json_restore_path) is False:
             os.makedirs(settings.json_restore_path, 0775)
 
+        self.province, self.name, self.register_no = self.parse_url(url)
+
+    def parse_url(self, url):
         o = urlparse.urlparse(self.url)
-        self.province = o.hostname
 
         tmp = filter(lambda x: x.strip() != "", o.path.split("/"))
-        if len(tmp) != 2:
+        if len(tmp) != 3:
             raise Exception("'%s' format invalid" % self.url)
 
-        self.name = tmp[0]
-        self.register_no = tmp[1]
+        return tmp
 
     def download(self):
         """ Returns: json data

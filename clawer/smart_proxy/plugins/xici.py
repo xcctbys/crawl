@@ -79,12 +79,18 @@ class XiciProxy(object):
 
 class HaoProxy(XiciProxy):
     def __init__(self):
-        XiciProxy.__init__(self)
+        self.reqst = requests.Session()
+        self.reqst.headers.update(
+            {'Accept': 'text/html, application/xhtml+xml, */*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
         self.url = 'http://www.haodailiip.com/guonei/'          #好代理
     def run(self):
         hao_proxy_list = []
+        resp = self.reqst.get('http://www.haodialiip.com')
         for i in range(1,3):
-            resp = self.reqst.get(self.url+str(i), timeout=20)
+            resp = self.reqst.get(self.url+str(i), timeout=30)
             trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr')[5:]
             for tr in trs:
                 tds = [td.get_text().strip() for td in tr.find_all('td')]
@@ -101,7 +107,12 @@ class HaoProxy(XiciProxy):
 
 class KuaiProxy(XiciProxy):
     def __init__(self):
-        XiciProxy.__init__(self)
+        self.reqst = requests.Session()
+        self.reqst.headers.update(
+            {'Accept': 'text/html, application/xhtml+xml, */*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
         self.url = 'http://www.kuaidaili.com/free/inha/'          #快代理
     def run(self):
         pass
@@ -127,7 +138,12 @@ class KuaiProxy(XiciProxy):
 
 class YouProxy(XiciProxy):
     def __init__(self):
-        XiciProxy.__init__(self)
+        self.reqst = requests.Session()
+        self.reqst.headers.update(
+            {'Accept': 'text/html, application/xhtml+xml, */*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
         self.url = 'http://www.youdaili.net/Daili/guonei/'          #有代理
     def run(self):
         resp = self.reqst.get(self.url, timeout=20)
