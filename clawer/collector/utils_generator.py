@@ -36,7 +36,7 @@ def dereplicate_uris(uri_list, ttl = settings.URI_TTL):
         return dereplicated uri list
     """
     ttl = TTL if not ttl else ttl
-    uri_list = timing_filter_api("timing_filter_api", uri_list, ttl)
+    uri_list = timing_filter_api("uri_generator", uri_list, ttl)
     return uri_list
 
 class DataPreprocess(object):
