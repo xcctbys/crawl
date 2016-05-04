@@ -310,7 +310,7 @@ class Download(object):
 			start_time = time.time()
 			try:
 				resp = self.reqst.get(self.task.uri)
-                                resp.encoding = 'utf-8'
+				resp.encoding = 'utf-8'
 				# print resp.headers
 				# print resp.request.headers
 				# print resp.text
