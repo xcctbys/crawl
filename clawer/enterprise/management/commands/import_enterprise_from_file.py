@@ -37,41 +37,10 @@ class Command(BaseCommand):
             print "The file %s doesn't exist!"%(filename)
             return
         start_time = time.time()
-        # print self.add(filename)
-        self.read(filename)
+        print self.add(filename)
+        # self.read(filename)
         end_time = time.time()
         print "Run time is %f s!"%(end_time - start_time)
-
-    def read(self, filename):
-        # , 'mac_roman'
-        with codecs.open(filename, 'r', 'gb2312') as f:
-            # f.readline()
-            success = 0
-            failed = 0
-            multiple = 0
-            line_count = 0
-            while True:
-                try:
-                    _line = f.readlines()
-                    print _line
-                except UnicodeDecodeError:
-                    failed+= 1
-                    continue
-                if not _line:
-                    break
-
-                line = _line.strip().split(";")[0]
-                fields = line.strip().split(",")
-                if len(fields) < 3:
-                    failed += 1
-                    continue
-
-                name = smart_unicode(fields[0])
-                province = self.auto_fix_name(smart_unicode(fields[1]))
-                province_id = Province.to_id(province)
-                register_no = fields[2]
-                print name +":"+ province +":" + str(province_id)+":"+register_no
-            print failed
 
     def add(self, filename):
         try:
