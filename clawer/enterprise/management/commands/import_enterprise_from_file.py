@@ -8,6 +8,7 @@ from html5helper.utils import wrapper_raven
 
 from collector.utils_generator import CrawlerCronTab
 from enterprise.models import Enterprise, Province
+from uri_filter.api.api_uri_filter import bloom_filter_api
 import time
 import os
 import traceback
@@ -91,9 +92,9 @@ class Command(BaseCommand):
                 if not register_no:
                     register_no = "***"
 
-                if Enterprise.objects.filter(name=name).count() > 0:
-                    multiple += 1
-                    continue
+                # if Enterprise.objects.filter(name=name).count() > 0:
+                #     multiple += 1
+                #     continue
                 # elif Enterprise.objects.filter(register_no=register_no).count() > 0:
                 #     multiple += 1
                 #     continue
@@ -130,23 +131,30 @@ class Command(BaseCommand):
                     province_id = Province.to_id(province)
                     register_no = fields[2]
 
-
                     if not province_id:
                         failed += 1
                         continue
                     if not register_no:
                         register_no = "***"
 
-                    if Enterprise.objects.filter(name=name).count() > 0:
-                        multiple += 1
-                        continue
+                    # if Enterprise.objects.filter(name=name).count() > 0:
+                    #     multiple += 1
+                    #     continue
                     # elif Enterprise.objects.filter(register_no=register_no).count() > 0:
                     #     multiple += 1
                     #     continue
 
                     enterprises.append(Enterprise(name=name, province=province_id, register_no=register_no))
                     success += 1
-                Enterprise.objects.bulk_create(enterprises)
+                    if line_count %1000 == 0:   # 每1000个存一次
+                        dereplicate_ents = bloom_filter_api("uri_generator", enterprises)
+                        multiple += len(enterprises) - len(dereplicate_ents)
+                        Enterprise.objects.bulk_create(dereplicate_ents)
+                        enterprises=[]
+                        print "line_count = %d."%(line_count)
+                dereplicate_ents = bloom_filter_api("uri_generator", enterprises)
+                multiple += len(enterprises) - len(dereplicate_ents)
+                Enterprise.objects.bulk_create(dereplicate_ents)
 
                 return {"is_ok": True, "line_count": line_count, 'success': success, 'failed': failed, 'multiple': multiple}
         except Exception, e:
