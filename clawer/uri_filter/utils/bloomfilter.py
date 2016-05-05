@@ -75,11 +75,11 @@ def uri_filter(uri_list):
     bloomfilter = BloomFilter()
     if uri_list == []:
         return 0
-    for uri in uri_list:
         uricode = md5(uri)
         if bloomfilter.isContaions(uricode) == False:
             uri_list_new.append(uri)
             bloomfilter.insert(uricode)
+    for uri in uri_list:
         else:
             #print 'uri :%s has exist' % url
             pass
