@@ -144,17 +144,22 @@ class Command(BaseCommand):
                     #     multiple += 1
                     #     continue
 
-                    if not bloom_filter_api("uri_generator", [name]) :
-                        multiple += 1
-                        continue
-
-                    enterprises.append(Enterprise(name=name, province=province_id, register_no=register_no))
+                    # if not bloom_filter_api("uri_generator", [name]) :
+                    #     multiple += 1
+                    #     continue
+                    enterprises.append([name, province_id, register_no])
+                    # enterprises.append(Enterprise(name=name, province=province_id, register_no=register_no))
                     success += 1
                     if line_count %1000 == 0:   # 每1000个存一次
-                        Enterprise.objects.bulk_create(enterprises)
+                        de_ents =bloom_filter_api("uri_generator", enterprises)
+                        multiple += len(enterprises) - len(de_ents)
+                        ent_list = []
+                        for ent in de_ents:
+                            ent_list.append(Enterprise(name=ent[0], province=ent[1], register_no=ent[2]))
+                        Enterprise.objects.bulk_create(ent_list)
                         enterprises=[]
                         print "line_count = %d."%(line_count)
-                Enterprise.objects.bulk_create(enterprises)
+                # Enterprise.objects.bulk_create(enterprises)
 
                 return {"is_ok": True, "line_count": line_count, 'success': success, 'failed': failed, 'multiple': multiple}
         except Exception, e:

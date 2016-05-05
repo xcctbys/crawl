@@ -19,8 +19,8 @@ import MySQLdb
 requests.packages.urllib3.disable_warnings()
 
 
-STEP =  1 # 每个step取10个。
-DEBUG = True  # 是否开启DEBUG
+STEP =  2 # 每个step取10个。
+DEBUG = False  # 是否开启DEBUG
 if DEBUG:
     level = logging.DEBUG
 else:
@@ -47,7 +47,7 @@ class History(object):  # 实现程序的可持续性，每次运行时读取上
         # self.company_num = 0  # 初始化pickle中用作公司名称位置索引值
         self.total_page = 0
         self.current_page = 0
-        self.path = "/tmp/new3_baidu_company_search"  # pickle文件存放路径（提交至平台的代码记住带上tmp前斜杠）
+        self.path = "/tmp/baidu_company_search"  # pickle文件存放路径（提交至平台的代码记住带上tmp前斜杠）
 
     def load(self):  # pickle的载入
         if os.path.exists(self.path) is False:  # 读取pickle失败则返回
@@ -72,17 +72,9 @@ class Generator(object):
         self.args = set()
         self.history = History()
         self.history.load()
-        self.source_url = "http://clawer.princetechs.com/enterprise/api/get/all/"
+        # self.source_url = "http://clawer.princetechs.com/enterprise/api/get/all/"
         self.enterprises= []
         self.step = STEP
-
-    # def search_url(self):
-    #     company = COMPANYS[self.history.company_num]  # 根据索引值找到此次程序运行所要搜索的公司名称
-    #     for each_keyword in KEYWORD:  # 遍历搜索关键词
-    #         keyword = each_keyword
-    #         self.page_url(company, keyword)  # 传参调用url构造函数
-    #     self.history.company_num += 1  # 索引值加一
-    #     self.history.save()  # 将索引值存入pickle
 
     def search_url_with_batch(self):
         self.obtain_enterprises()
@@ -97,26 +89,21 @@ class Generator(object):
             self._load_total_page()
 
         for _ in range(self.step):
-            self.history.current_page += 1
-            self.history.save()
-            # query = urllib.urlencode({'page':self.history.current_page, 'rows': 10, 'sort': 'id', 'order': 'asc'})
-            # r = requests.get(self.source_url, query)
-            # if r.status_code != 200:
-                # continue
             r = self.paginate(self.history.current_page, 10)
+            self.history.current_page += 1
+            self.history.total_page = r['total_page']
 
             for item in r['rows']:
                 self.enterprises.append(item['name'])
 
-            if self.history.current_page >= self.history.total_page:
+            if self.history.current_page > self.history.total_page:
                 self.history.current_page = 0
                 self.history.total_page = 0
-                self.history.save()
+                # self.history.save()
                 break
+        self.history.save()
 
     def _load_total_page(self):
-        # query = urllib.urlencode({'page':1, 'rows': 10, 'sort': 'id', 'order': 'asc'})
-        # r = requests.get(self.source_url, query)
         r = self.paginate(0, 10)
         self.history.current_page = 0
         self.history.total_page = r['total_page']
@@ -163,7 +150,7 @@ class Generator(object):
         # print total_page
         if current_page  > total_page:
             current_page = 0
-        sql = "select name from enterprise_enterprise limit %d, %d"%(current_page, rows)
+        sql = "select name from enterprise_enterprise limit %d, %d"%(current_page*rows, rows)
         count = cur.execute(sql)
         columns = [desc[0] for desc in cur.description]
         result = []
@@ -181,7 +168,7 @@ class GeneratorTest(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
 
-    # @unittest.skip("skipping read from file")
+    @unittest.skip("skipping read from file")
     def test_obtain_enterprises(self):
         self.generator = Generator()
         self.generator.obtain_enterprises()
@@ -206,6 +193,21 @@ class GeneratorTest(unittest.TestCase):
         generator = Generator()
         result = generator.paginate(0, 10)
         print result
+
+
+    # @unittest.skip("skipping read from file")
+    def test_generator_over_totalpage(self):
+        generator = Generator()
+        conn = MySQLdb.connect(host='localhost', user='root', passwd='', db='clawer', charset='utf8', port=3306)
+        sql='select count(*) from enterprise_enterprise'
+        cur = conn.cursor()
+        count = cur.execute(sql)
+        total_rows = cur.fetchone()[0]
+        total_page = total_rows/10
+
+        result = generator.paginate(total_page+1, 10)
+        print result
+        self.assertEqual(result['current_page'], 0)
 
 
 
