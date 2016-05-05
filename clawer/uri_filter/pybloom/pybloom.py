@@ -111,7 +111,7 @@ class BloomFilter(object):
             elements greatly increases the chance of false positives.
 
         """
-        print redisdb
+        #print redisdb
 
         if not (0 < error_rate < 1):
             raise ValueError("Error_Rate must be between 0 and 1.")
@@ -209,10 +209,10 @@ class BloomFilter(object):
             return False
         elif not found_all_bits:
             self.count += 1
-            print 1111111111111
+            #print 1111111111111
             return False
         else:
-            print 2222222222222
+            #print 2222222222222
             return True
 
     def copy(self):
