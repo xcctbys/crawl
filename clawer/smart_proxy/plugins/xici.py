@@ -61,15 +61,16 @@ class XiciProxy(object):
 
     def run(self):
         resp = self.reqst.get(self.url, timeout=60)
-        trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr')[:60]
+        # trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr')[:60]
+        trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr', class_='odd')
         a_list = []
-        for tr in trs[2:]:
+        for tr in trs:
             tds = [td.get_text().strip() for td in tr.find_all('td')]
             try:
-                province = choices[tds[4][:2]]
+                province = choices[tds[3][:2]]
             except:
                 province = 'OTHER'
-            http =  "%s:%s" % (tds[2],tds[3])
+            http =  "%s:%s" % (tds[1],tds[2])
             http = (http, province)
             # print http
             a_list.append(http)
@@ -88,7 +89,6 @@ class HaoProxy(XiciProxy):
         self.url = 'http://www.haodailiip.com/guonei/'          #好代理
     def run(self):
         hao_proxy_list = []
-        resp = self.reqst.get('http://www.haodialiip.com')
         for i in range(1,3):
             resp = self.reqst.get(self.url+str(i), timeout=30)
             trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr')[5:]
