@@ -13,8 +13,8 @@ import hashlib
 
 class TimingFilter(object):
     def __init__(self, redisdb, expire):
-        print redisdb
-        print '######redis db###'
+        #print redisdb
+        #print '######redis db###'
         self.expire = expire
         self.redisdb = redisdb
         self._rediscontpool(redisdb, host='localhost', port= 6379)
@@ -34,9 +34,13 @@ class TimingFilter(object):
     def add(self, key):
         expire = self.expire
         redispool = self.redispool
+        #print redispool
+        #print "-------redispool----"
 
         m = redispool.info()
         info= m.get('used_memory')
+        #print info
+        #print "--------memory-------"
 
         md5str = self._md5(key)
         expire = self.expire
@@ -76,8 +80,8 @@ def timing_filter_api(filter_type, uri_list =[], duration =20):
     filter_list_unique = []
 
     if uri_list == []:
-        print "#####定时去重后###"
-        print  filter_list_unique
+        #print "#####定时去重后###"
+        #print  filter_list_unique
         return filter_list_unique
     else:
         for uri in uri_list:
@@ -86,8 +90,8 @@ def timing_filter_api(filter_type, uri_list =[], duration =20):
             else:
                 filter_list_unique.append(uri)
 
-        print "定时去重后  ############"
-        print filter_list_unique
+        #print "定时去重后  ############"
+        #print filter_list_unique
         return  filter_list_unique
 
 
@@ -100,9 +104,9 @@ if __name__ == "__main__":
     # doctest.testmod()
     #uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
     uri_list = ['张','赵四','李','王','王二','赵','赵四','','',' ','w',' ','fafasfsfsf','fafsf2']
-    dingshilist = timing_filter_api('uri_parse',uri_list,20)
-    print "定时去重后"
-    print dignshilist
+    dingshilist = timing_filter_api('uri_generator',uri_list,20)
+    #print "定时去重后"
+    #print  dingshilist
 
 
 

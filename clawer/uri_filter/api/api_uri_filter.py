@@ -41,10 +41,10 @@ def bloom_filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,
                 #pass
             else:
                 filter_list_unique.append(uri)
-        print '------重复的---------'
-        print filter_list_old
-        print '---------去重后的------------'
-        print filter_list_unique
+        #print '------重复的---------'
+        #print filter_list_old
+        #print '---------去重后的------------'
+        #print filter_list_unique
         return filter_list_unique
 
 
