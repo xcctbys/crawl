@@ -19,7 +19,8 @@ import MySQLdb
 requests.packages.urllib3.disable_warnings()
 
 
-STEP =  2 # 每个step取10个。
+STEP =  1 # 每个step取10个。
+ROWS = 3
 DEBUG = False  # 是否开启DEBUG
 if DEBUG:
     level = logging.DEBUG
@@ -89,7 +90,7 @@ class Generator(object):
             self._load_total_page()
 
         for _ in range(self.step):
-            r = self.paginate(self.history.current_page, 10)
+            r = self.paginate(self.history.current_page, ROWS)
             self.history.current_page += 1
             self.history.total_page = r['total_page']
 
@@ -104,7 +105,7 @@ class Generator(object):
         self.history.save()
 
     def _load_total_page(self):
-        r = self.paginate(0, 10)
+        r = self.paginate(0, ROWS)
         self.history.current_page = 0
         self.history.total_page = r['total_page']
         self.history.save()
@@ -168,7 +169,7 @@ class GeneratorTest(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
 
-    @unittest.skip("skipping read from file")
+    # @unittest.skip("skipping read from file")
     def test_obtain_enterprises(self):
         self.generator = Generator()
         self.generator.obtain_enterprises()
@@ -195,7 +196,7 @@ class GeneratorTest(unittest.TestCase):
         print result
 
 
-    # @unittest.skip("skipping read from file")
+    @unittest.skip("skipping read from file")
     def test_generator_over_totalpage(self):
         generator = Generator()
         conn = MySQLdb.connect(host='localhost', user='root', passwd='', db='clawer', charset='utf8', port=3306)
@@ -219,6 +220,7 @@ if __name__ == "__main__":
         generator = Generator()
         generator.search_url_with_batch()
 
-        for uri in generator.uris:  # 遍历输出uris
-            str_uri = str(uri.encode("utf-8")).split(" ")
+        for uri in generator.uris:
+            # str_uri = str(uri.encode("utf-8")).split(" ")
+            str_uri = uri.encode("utf-8").split(" ")
             print json.dumps({"uri": str_uri[0], "args": str_uri[1]})
