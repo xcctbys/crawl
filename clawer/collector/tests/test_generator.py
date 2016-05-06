@@ -384,6 +384,29 @@ class TestPreprocess(TestCase):
         for g in generators:
             g.delete()
 
+    def test_bulk_save_text(self):
+        inputs = """
+        search://baidu.com
+        search://baidu.comm
+        search://baidu.comr
+        search://baidu.come
+        search://baidu.comew
+        search://baidu.comweq
+        http://baidu.comeraer
+        http://baidu.comerar
+        http://baidu.comg
+        http://baidu.comy
+        """
+        CrawlerTask.objects.delete()
+        schemes= ['search']
+        self.job = Job.objects.first()
+        pre = DataPreprocess(job_id= self.job.id)
+        pre.save_text(inputs, schemes)
+        count = CrawlerTask.objects().count()
+        CrawlerTask.objects.delete()
+        self.assertEqual(count, 10)
+
+
     def test_save_with_text(self):
         inputs = """
         search://baidu.com
@@ -393,7 +416,8 @@ class TestPreprocess(TestCase):
         httd://baidu.com
         """
         schemes= ['search']
-
+        self.job = Job.objects.first()
+        self.pre = DataPreprocess(job_id= self.job.id)
         self.pre.save(text = inputs, settings={'schemes': schemes})
         uris = CrawlerTask.objects(uri = "search://baidu.com")
         self.assertEqual(len(uris), 1)

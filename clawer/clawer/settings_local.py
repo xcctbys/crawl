@@ -31,7 +31,7 @@ CACHES = {
     }
 }
 
-PYTHON = "/home/mingming/Documents/pyenv/dj18/bin/python"
+PYTHON = "/Users/princetechs5/Documents/virtualenv/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
 

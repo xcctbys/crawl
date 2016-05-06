@@ -79,6 +79,7 @@ class DataPreprocess(object):
                 if uri:
                     try:
                         # for csv file
+                        uri = uri.strip()
                         val(uri)
                         uris.append(uri)
                     except ValidationError, e:
@@ -114,13 +115,21 @@ class DataPreprocess(object):
         """
         """
         uris = self.read_from_strings(text, schemes)
+        # for uri in uris:
+        #     try:
+        #         CrawlerTask(job= self.job, uri= uri, from_host= socket.gethostname()).save()
+        #     except Exception as e:
+        #         content = "%s : Error occured when saving uris %s."%(type(e), uri)
+        #         # logging.error(content)
+        #         CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
+        bulk = []
         for uri in uris:
-            try:
-                CrawlerTask(job= self.job, uri= uri, from_host= socket.gethostname()).save()
-            except Exception as e:
-                content = "%s : Error occured when saving uris %s."%(type(e), uri)
-                # logging.error(content)
-                CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= content, hostname= socket.gethostname()).save()
+            bulk.append( CrawlerTask(job = self.job, uri = uri, from_host=socket.gethostname()) )
+        try:
+            CrawlerTask.objects.insert(bulk)
+        except Exception, e:
+            CrawlerGeneratorErrorLog(name= "ERROR_SAVE", content= "%s : Error occured when saving uris."%(type(e)), hostname= socket.gethostname()).save()
+
         return True
 
     def save_script(self, script, cron, code_type=1, schemes=[]):
