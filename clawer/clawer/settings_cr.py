@@ -43,9 +43,9 @@ CLAWER_SOURCE = "/data/clawer/"
 CLAWER_RESULT = "/data/clawer_result/"
 CLAWER_RESULT_URL = "http://10.0.1.3/media/clawer_result/"
 
-REDIS = "redis://10.0.1.2/0"
-# URL_REDIS = "redis://10.100.90.52/0"
-# MONITOR_REDIS = "redis://10.100.90.51/0"
+REDIS = "redis://10.0.1.2:6379/0"
+URL_REDIS = "redis://10.0.1.2:6379//0"
+MONITOR_REDIS = "redis://10.100.90.51/0"
 # add by wang ziyang 2016-04-14
 #MAX_QUEUE_LENGTH = 500
 
@@ -57,6 +57,7 @@ LOW_MAX_QUEUE_LENGTH = 4000
 
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
+URI_TTL = 60*60*24
 
 # for storage
 
