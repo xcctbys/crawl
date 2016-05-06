@@ -64,7 +64,7 @@ def insert_generator_with_priority_and_number(priority, number):
         print "priority should be -1~5"
         return
     for i in range(number):
-        name = "P(%d)Job%d"%(priority ,i)
+        name = "P%dJob%d"%(priority ,i)
         prior = priority
         job = Job(name = name, info="", priority= prior)
         job.save()
