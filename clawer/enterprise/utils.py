@@ -3,7 +3,8 @@ import os
 
 from enterprise.models import Province
 
-from .libs.beijing_crawler import BeijingCrawler
+# from .libs.beijing_crawler import BeijingCrawler
+from .libs.tt_beijing_crawler import BeijingCrawler
 from .libs.chongqing_crawler import ChongqingClawer
 from .libs.tianjin_crawler import TianjinCrawler
 ##
@@ -117,7 +118,10 @@ class EnterpriseDownload(object):
                 continue
 
             cls = item['class'](settings.json_restore_path)
-            data = cls.run(self.register_no)
+            if self.register_no == '***':
+                data = cls.run(self.name)
+            else:
+                data = cls.run(self.register_no)
             return data
 
         raise Exception(u"unknown province %s" % self.province)

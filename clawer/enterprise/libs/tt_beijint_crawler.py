@@ -268,10 +268,13 @@ class MyParser(Parser):
 			logging.error('fail to find openEntInfo')
 			return False
 
+		# print 'ent:', ent
 		m = re.search(r'\'([\w]*)\'[ ,]+\'([\w]*)\'[ ,]+\'([\w]*)\'', ent)
 		if m:
 			self.info.ent_id = m.group(1)
 			self.info.credit_ticket = m.group(3)
+			self.info.ent_number = m.group(2)
+			# print 'm:',m.group(1),m.group(2), m.group(3)
 
 		# r = soup.find_all('input', {'type': "hidden", 'name': "currentTimeMillis", 'id': "currentTimeMillis"})
 		r = BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('input', {'type': "hidden", 'name': "currentTimeMillis", 'id': "currentTimeMillis"})
@@ -527,9 +530,9 @@ class EnterprisePubliction(object):
 	def get_corporate_annual_reports_info(self, *args, **kwargs):
 		param = {'entid':self.info.ent_id, 'clear':'true', 'timeStamp':self.info.time_stamp}
 		resp = self.crawler.crawl_page_by_url(self.info.urls['ent_pub_ent_annual_report'], params=param)
-		content = BeautifulSoup(resp.content, 'html5lib')
-		# print '-------------get_corporate_annual_reports_info--------------'
-		# print content
+		content = BeautifulSoup(resp.content, 'html.parser')
+		print '-------------get_corporate_annual_reports_info--------------'
+		print content
 		ths, tds = self.parser.parser_ent_pub_ent_annual_report(what='parser_ent_pub_ent_annual_report', content=content, element='table', attrs={'cellspacing':"0", 'cellpadding':"0"})
 		ths.insert(2, u'详情')
 		for i,td in enumerate(tds):
@@ -741,6 +744,7 @@ if __name__ == '__main__':
 		unittest.main()
 	crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
 	ent_list = [u'110113014453083']
-	# ent_list = [u'创业投资中心']
+	ent_list = [u'创业投资中心']
+	# ent_list = [u'北京仙瞳创业投资中心（有限合伙）']
 	for ent_number in ent_list:
 		crawler.run(ent_number=ent_number)
