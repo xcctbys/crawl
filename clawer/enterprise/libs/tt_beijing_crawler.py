@@ -17,6 +17,7 @@ import logging
 from crawler import Crawler, Parser
 from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
+from smart_proxy.api import Proxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -194,6 +195,9 @@ class CrackCheckcode(object):
 class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
 		self.proxies = []
+		proxy = Proxy()
+		self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
+						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
 		self.info = info
 		self.parser = MyParser(info=self.info)
 		self.write_file_mutex = threading.Lock()
@@ -704,10 +708,11 @@ class BeijingCrawler(object):
 			other.run()
 			judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
 			judical.run()
-			print self.info.result_json
+			# print self.info.result_json
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
-		# return self.info.result_json_list
+		return self.info.result_json_list
+		
 		for item in self.info.result_json_list:
 			self.json_dump_to_file('beijing.json',  item )
 			# self.json_dump_to_file('jiangsu.json', {self.info.ent_number: self.info.result_json})
