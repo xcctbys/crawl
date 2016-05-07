@@ -22,7 +22,8 @@ from .libs.shaanxi_crawler import ShaanxiCrawler
 ##
 from .libs.shanghai_crawler import ShanghaiCrawler
 from .libs.zongju_crawler import ZongjuCrawler
-from .libs.jiangsu_crawler import JiangsuCrawler
+# from .libs.jiangsu_crawler import JiangsuCrawler
+from .libs.test_jiangsu_crawler import JiangsuCrawler
 from .libs.heilongjiang_crawler import HeilongjiangClawer
 from .libs.shanxi_crawler import ShanxiCrawler
 ##
