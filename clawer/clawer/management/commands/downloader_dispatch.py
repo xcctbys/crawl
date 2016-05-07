@@ -154,9 +154,12 @@ def run():
 		pool = Pool()
 		jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
 		for job in jobs:
-			print 'priority:',job.priority
-			total += CrawlerTask.objects(job=job).count()
-			print 'total:', total
+			# print 'priority:',job.priority
+			count = CrawlerTask.objects(job=job).count()
+			if count == 0:
+				continue
+			total += count
+			# print 'total:', total
 			if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
 				break
 			tasks = CrawlerTask.objects(job=job)
