@@ -1,12 +1,12 @@
 #!/bin/bash
 
-WORKDIR=~/crawler/cr-clawer/clawer
-PY=~/Documents/virtualenv/bin/python
-RQWORKER=~/Documents/virtualenv/bin/rqworker
+WORKDIR=~/Documents/gitroom/cr-clawer/clawer
+PY=~/Documents/pyenv/dj18/bin/python
+#PY=/home/mingming/Documents/pyenv/dj18/bin/python
+RQWORKER=~/Documents/pyenv/dj18/bin/rqworker
 
 WORKDIR_DOWN=~/Documents/pyenv/cr-clawer/clawer
 #PY_DOWN=~/Documents/virtualenv/bin/python
-# RQWORKER_DOWN=~/Documents/virtualenv/bin/rqworker
 RQWORKER_DOWN=/Users/princetechs3/anaconda/bin/rqworker
 
 

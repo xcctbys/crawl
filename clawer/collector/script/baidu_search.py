@@ -199,7 +199,7 @@ class GeneratorTest(unittest.TestCase):
     @unittest.skip("skipping read from file")
     def test_generator_over_totalpage(self):
         generator = Generator()
-        conn = MySQLdb.connect(host='localhost', user='root', passwd='', db='clawer', charset='utf8', port=3306)
+        conn = MySQLdb.connect(host='localhost', user='cacti', passwd='cacti', db='clawer', charset='utf8', port=3306)
         sql='select count(*) from enterprise_enterprise'
         cur = conn.cursor()
         count = cur.execute(sql)
