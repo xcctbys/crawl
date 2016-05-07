@@ -96,6 +96,7 @@ class Enterprise(models.Model):
     name = models.CharField(max_length=128)
     province = models.IntegerField(choices=Province.choices)
     register_no = models.CharField(max_length=128)
+    slice =  models.IntegerField(default=0)
     add_datetime = models.DateTimeField(auto_now_add=True)
 
     def as_json(self):
@@ -105,6 +106,7 @@ class Enterprise(models.Model):
             "province": self.province,
             "province_name": Province.to_name(self.province),
             "register_no": self.register_no,
+            "slice": self.slice,
             "add_datetime": self.add_datetime.strftime("%Y-%m-%d %H:%M:%S"),
         }
         return result
