@@ -3,11 +3,13 @@ import os
 import os.path
 import django.conf
 # from plugins import *
-from plugins.xici import XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy
+from plugins.xici import XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy, NovaProxy
 
 from models import ProxyIp
+import smart_proxy.round_proxy_ip as checkip
 
-proxy_list = [XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy]
+# proxy_list = [XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy]
+proxy_list = [XiciProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy, NovaProxy]
 
 class Crawer(object):
     def __init__(self):
@@ -21,12 +23,17 @@ class Crawer(object):
             if not address:
                 address = []
             for item in address:
-                print item
+                # print item
                 try:
-                    self.proxyip = ProxyIp(ip_port=item[0], province=item[1], is_valid=False) #放入mysql中
-                    self.proxyip.save()
+                    if checkip.check_is_valid(item[0]):
+                        print item
+                        self.proxyip = ProxyIp(ip_port=item[0], province=item[1], is_valid=True) #放入mysql中
+                        self.proxyip.save()
                 except:
                     pass
+        except KeyboardInterrupt as e:
+            return
+
         except Exception as e:
             # print 'error in do_with',e
             pass

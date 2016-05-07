@@ -184,7 +184,7 @@ class CrawlerGeneratorAlertLog(Document):
 class CrawlerDownloadSetting(Document):
 	job = ReferenceField(Job)
 	dispatch_num = IntField(default=100)
-	max_retry_times = IntField(default=0)
+	max_retry_times = IntField(default=5)
 	proxy = StringField()
 	cookie = StringField()
 	download_timeout = IntField(default=120)

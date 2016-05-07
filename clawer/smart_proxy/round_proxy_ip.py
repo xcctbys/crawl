@@ -66,6 +66,18 @@ reqst.headers.update({'Accept': 'text/html, application/xhtml+xml, */*',
                     'Accept-Encoding': 'gzip, deflate',
                     'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+
+def check_is_valid(ip_port):
+    try:
+        proxy = {'http':'http://'+ ip_port}
+        resp = reqst.get('http://baidu.com', timeout=15, proxies=proxy)
+        if resp.status_code == 200:
+            return True
+        return False
+    except Exception as e:
+        # print e
+        return False
+
 def change_valid(one_ip):
     try:
         # one_ip = ProxyIp.objects.get(id=id) #得到对应id的代理。
