@@ -10,6 +10,18 @@ import time
 import redis
 
 import hashlib
+from django.conf import settings
+
+import urlparse
+
+try:
+    redis_addr=urlparse.urlparse(settings.REDIS)
+    redis_addr='redis://'+redis_addr[1]
+    print redis_addr
+except:
+    redis_addr = None
+
+
 
 class TimingFilter(object):
     def __init__(self, redisdb, expire):
@@ -17,23 +29,28 @@ class TimingFilter(object):
         #print '######redis db###'
         self.expire = expire
         self.redisdb = redisdb
-        self._rediscontpool(redisdb, host='localhost', port= 6379)
+        #self._rediscontpool(redisdb, host='localhost', port= 6379)
+        self._rediscontpool(redisdb)
 
-    def _rediscontpool(self, redisdb, host, port):
-        pool = redis.Redis(host, port, redisdb)
+    def _rediscontpool(self, redisdb):
+        #pool = redis.Redis(host, port, redisdb)
         self.redisdb = redisdb
-        self.redispool = redis.StrictRedis(host = 'localhost',port=6379,db= redisdb)
+        #self.redispool = redis.StrictRedis(host = 'localhost',port=6379,db= redisdb)
+        redisdbstr =str(redisdb)
+        redis_url = redis_addr+'/'+redisdbstr
+        print redis_url
+        self.redisconn = redis.StrictRedis.from_url(redis_url)
 
     def _md5(self,code):
         m2 = hashlib.md5()
         m2.update(code)
-        print m2.hexdigest()
+        #print m2.hexdigest()
         return m2.hexdigest()
 
 
     def add(self, key):
         expire = self.expire
-        redispool = self.redispool
+        redispool = self.redisconn
         #print redispool
         #print "-------redispool----"
 
@@ -103,10 +120,10 @@ if __name__ == "__main__":
     # import doctest
     # doctest.testmod()
     #uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
-    uri_list = ['张','赵四','李','王','王二','赵','赵四','','',' ','w',' ','fafasfsfsf','fafsf2']
-    dingshilist = timing_filter_api('uri_generator',uri_list,20)
-    #print "定时去重后"
-    #print  dingshilist
+    uri_list = ['张','赵四','李','王','王二','赵','赵四','','',' ','w',' ','fafasfsfsf','fafsf2','ffa','2ee','2fddsf','ff']
+    dingshilist = timing_filter_api('uri_generator',uri_list,200000)
+    print "定时去重后"
+    print  dingshilist
 
 
 

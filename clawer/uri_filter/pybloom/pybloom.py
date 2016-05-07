@@ -6,17 +6,32 @@ import hashlib
 #from uri_filter.pybloom.utils import range_fn, is_string_io, running_python_3
 from struct import unpack, pack, calcsize
 import redis
-
+import urlparse
 import sys
+"""
 try:
     import StringIO
     import cStringIO
 except ImportError:
     from io import BytesIO
-
+"""
 running_python_3 = sys.version_info[0] == 3
 
+#from django.conf import settings
 
+
+
+
+
+try:
+    REDIS = "redis://127.0.0.1:6379/0"
+
+    redis_addr=urlparse.urlparse(REDIS)
+
+    redis_addr='redis://'+redis_addr[1]
+
+except:
+    redis_addr = None
 
 
 
@@ -127,17 +142,34 @@ class BloomFilter(object):
         bits_per_slice = int(math.ceil(
             (capacity * abs(math.log(error_rate))) /
             (num_slices * (math.log(2) ** 2))))
-        self._setup(error_rate, num_slices, bits_per_slice, capacity, 0)
 
-        self._rediscontpool(redisdb, host='localhost', port= 6379)
+
+
+
+
+        self._setup(error_rate, num_slices, bits_per_slice, capacity, 0)
+        self._rediscontpool(redisdb)
+        #self._rediscontpool(redisdb, host='localhost', port= 6379)
         # self.bitarray = bitarray.bitarray(self.num_bits, endian='little')
         # self.bitarray.setall(False)
-
+    """
     def _rediscontpool(self, redisdb, host, port):
-        pool = redis.Redis(host, port, redisdb)
+        #pool = redis.Redis(host, port, redisdb)
         self.redisdb = redisdb
         self.redispool = redis.StrictRedis(host = 'localhost',port=6379,db= redisdb)
         #self.redispool = redis.StrictRedis(connection_pool=pool)
+    """
+
+
+    def _rediscontpool(self, redisdb):
+        #pool = redis.Redis(host, port, redisdb)
+        self.redisdb = redisdb
+        #self.redispool = redis.StrictRedis(host = 'localhost',port=6379,db= redisdb)
+        redisdbstr =str(redisdb)
+        redis_url = redis_addr+ '/' + redisdbstr
+
+        self.redispool = redis.StrictRedis.from_url(redis_url)
+
 
 
     def _setup(self, error_rate, num_slices, bits_per_slice, capacity, count):
@@ -189,6 +221,7 @@ class BloomFilter(object):
         hashes = self.make_hashes(key)
         found_all_bits = True
         redispool = self.redispool
+
         redisdb = self.redisdb
         if self.count > self.capacity:
             raise IndexError("BloomFilter is at capacity")
@@ -209,10 +242,8 @@ class BloomFilter(object):
             return False
         elif not found_all_bits:
             self.count += 1
-            #print 1111111111111
             return False
         else:
-            #print 2222222222222
             return True
 
     def copy(self):
@@ -436,24 +467,7 @@ class ScalableBloomFilter(object):
 
 
 '''
->>> r.client_setname('pppppppp')
-True
->>> r.client_list()
-[{'sub': '0', 'multi': '-1', 'addr': '127.0.0.1:38679', 'omem': '0', 'obl': '0', 'oll': '0', 'age': '3378', 'cmd': 'client', 'db': '2', 'psub': '0', 'events': 'r', 'qbuf': '0', 'idle': '2927', 'flags': 'N', 'fd': '6', 'qbuf-free': '0', 'name': 'urisf'}, {'sub': '0', 'multi': '-1', 'addr': '127.0.0.1:39379', 'omem': '0', 'obl': '0', 'oll': '0', 'age': '210', 'cmd': 'client', 'db': '1', 'psub': '0', 'events': 'r', 'qbuf': '0', 'idle': '0', 'flags': 'N', 'fd': '5', 'qbuf-free': '32768', 'name': 'ppppppp'}]
->>> a = r.client_list()
->>> b = a[0]['addr']
->>> b
-'127.0.0.1:38679'
-
-CLOSE_WAIT_TIME
-t=r.config_get()
-time_out 0
-程序结束是否主动断开
-redis 连接池
-redis-server会关闭空闲超时的连接
-redis.conf中可以设置超时时间
-idle 空闲时间
-
+redis
 搞成全局的
 每次用一个全局连接
 
@@ -463,16 +477,16 @@ if __name__ == "__main__":
     # import doctest
     # doctest.testmod()
     bl = BloomFilter(100, 0.01, 6)
-    bl.add('wwwww.baidu.com')
-    print 3322323
-    bl.add('wwwww.baidu.com')
-    bl.add('wwwww.baidu.comt')
-    bl.add('wwwww.baidu.com')
-    bl.add('wwwww.baidu.comc')
+    bl.add('wwwwww.baidu.com')
+    print 332232323
+    bl.add('wwwwww.baidu.com')
+    bl.add('wwwwww.baidu.comt')
+    bl.add('wwwwww.baidu.com')
+    bl.add('wwwwww.baidu.comc')
     print 4444
     db = BloomFilter(100,0.01,redisdb=6)
     print 55555
-    db.add('wwwww.baidu.comc')
+    db.add('wwwwww.baidu.comc')
     print 777
     db.add('')
     db.add('')
@@ -480,5 +494,5 @@ if __name__ == "__main__":
     db.add(' ')
     db.add(' ')
     print 6666
-    db.add('wwwww.baidu.comssf')
-    db.add('wwwww.baidu.comt')
+    db.add('wwwwww.baidu.comssf')
+    db.add('wwwwww.baidu.comt')
