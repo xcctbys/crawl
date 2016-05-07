@@ -33,7 +33,7 @@ import datetime
 requests.packages.urllib3.disable_warnings()
 running_python_3 = sys.version_info[0] == 3
 try:
-    REDIS = "redis://localhost:6379/0"
+    REDIS = "redis://10.0.1.3:6379/0"
     redis_addr=urlparse.urlparse(REDIS)
     redis_addr='redis://'+redis_addr[1]
 except:
@@ -70,7 +70,7 @@ class History(object):  # 实现程序的可持续性，每次运行时读取上
         # self.company_num = 0  # 初始化pickle中用作公司名称位置索引值
         self.total_page = 0
         self.current_page = 0
-        self.path = "/tmp/baidu_company_search"  # pickle文件存放路径（提交至平台的代码记住带上tmp前斜杠）
+        self.path = "/tmp/baidu_company_search_<SLICE>"  # pickle文件存放路径（提交至平台的代码记住带上tmp前斜杠）
 
     def load(self):  # pickle的载入
         if os.path.exists(self.path) is False:  # 读取pickle失败则返回
