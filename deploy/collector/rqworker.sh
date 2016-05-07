@@ -1,5 +1,7 @@
 #!/bin/bash
 
-WORKDIR=/home/webapps/cr-crawler/cr-clawer/clawer
+WORKDIR=/home/clawer/cr-crawler/clawer
 
-DJANGO_SETTINGS_MODULE="clawer.settings_local" rqworker --url redis://127.0.0.1/0  -v -P ${WORKDIR} uri_super uri_high uri_medium uri_low
+REDIS_GENERATOR=redis://10.0.1.3/0
+
+DJANGO_SETTINGS_MODULE="clawer.settings_cr" rqworker --url ${REDIS_GENERATOR}  -v -P ${WORKDIR} uri_super uri_high uri_medium uri_low

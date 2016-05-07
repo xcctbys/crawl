@@ -64,7 +64,7 @@ def insert_generator_with_priority_and_number(priority, number):
         print "priority should be -1~5"
         return
     for i in range(number):
-        name = "P(%d)Job%d"%(priority ,i)
+        name = "P%dJob%d"%(priority ,i)
         prior = priority
         job = Job(name = name, info="", priority= prior)
         job.save()
@@ -74,6 +74,48 @@ def insert_generator_with_priority_and_number(priority, number):
         schemes=['http', 'https']
         generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
         generator.save()
+
+
+def insert_text_without_job(text, settings ):
+    name = "This is a test."
+    prior = random.randint(-1, 5)
+
+    onetype = CrawlerDownloadType(language='other', is_support=True)
+    onetype.save()
+    job = Job(name = name, info="", priority= prior)
+    job.save()
+    script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+    cron = "* * * * *"
+    code_type = CrawlerTaskGenerator.TYPE_PYTHON
+    schemes=['http', 'https']
+    generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+    generator.save()
+    cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+    cds1.save()
+    cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+    cd1.save()
+    dp = DataPreprocess(job.id)
+    dp.save(text =text, settings =  settings)
+
+def insert_script_without_job(script, settings ):
+    name = "This is a script."
+    prior = random.randint(-1, 5)
+
+    onetype = CrawlerDownloadType(language='other', is_support=True)
+    onetype.save()
+    job = Job(name = name, info="", priority= prior)
+    job.save()
+
+    schemes = settings['schemes']
+    cron = settings['cron']
+    code_type = settings['code_type']
+
+    generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+    generator.save()
+    cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+    cds1.save()
+    cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+    cd1.save()
 
 
 
@@ -129,7 +171,7 @@ class TestMongodb(TestCase):
 
     def test_task_save(self):
         jobs = Job.objects(id='570ded84c3666e0541c9e8d9').first()
-        task = CrawlerTask(uri='http://www.baidu.com')
+        task = CrawlerTask(uri='http://www.tianyancha.com/company/619159222')
         task.job=jobs
         task.save()
         result = CrawlerTask.objects.first()
@@ -384,6 +426,29 @@ class TestPreprocess(TestCase):
         for g in generators:
             g.delete()
 
+    def test_bulk_save_text(self):
+        inputs = """
+        search://baidu.com
+        search://baidu.comm
+        search://baidu.comr
+        search://baidu.come
+        search://baidu.comew
+        search://baidu.comweq
+        http://baidu.comeraer
+        http://baidu.comerar
+        http://baidu.comg
+        http://baidu.comy
+        """
+        CrawlerTask.objects.delete()
+        schemes= ['search']
+        self.job = Job.objects.first()
+        pre = DataPreprocess(job_id= self.job.id)
+        pre.save_text(inputs, schemes)
+        count = CrawlerTask.objects().count()
+        CrawlerTask.objects.delete()
+        self.assertEqual(count, 10)
+
+
     def test_save_with_text(self):
         inputs = """
         search://baidu.com
@@ -393,7 +458,8 @@ class TestPreprocess(TestCase):
         httd://baidu.com
         """
         schemes= ['search']
-
+        self.job = Job.objects.first()
+        self.pre = DataPreprocess(job_id= self.job.id)
         self.pre.save(text = inputs, settings={'schemes': schemes})
         uris = CrawlerTask.objects(uri = "search://baidu.com")
         self.assertEqual(len(uris), 1)

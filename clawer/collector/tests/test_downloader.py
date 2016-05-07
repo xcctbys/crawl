@@ -204,7 +204,7 @@ class TestMongodb(TestCase):
 		job1.save()
 		ctg1 = CrawlerTaskGenerator(job=job1, code='echo hello1', cron='* * * * *')
 		ctg1.save()
-		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='http://www.fishc.com', args='i', from_host='1')
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='http://www.sougou.com', args='i', from_host='1')
 		ct1.save()
 		# codestr2 = open('/Users/princetechs3/my_code/code2.sh','r').read()
 		cd1 =CrawlerDownload(job=job1, code='codestr2', types=onetype)

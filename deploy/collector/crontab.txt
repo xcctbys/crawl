@@ -1,5 +1,7 @@
       ## master
 
       ### for root
-      */5    *    *    *    * cd ~/crawler/cr-clawer/confs/cr;./bg_cmd.sh generator_install  # for generator
-      *      *    *    *    * cd ~/crawler/cr-clawer/confs/cr;./bg_cmd.sh generator_dispatch  # for generator
+      */5    *    *    *    * cd /home/clawer/cr-crawler/confs/cr;./bg_cmd.sh generator_install  # for generator
+      *      *    *    *    * cd /home/clawer/cr-crawler/confs/cr;./bg_cmd.sh generator_dispatch  # for generator
+
+      */5    *    *    *    * cd /home/clawer/cr-crawler/confs/cr;./bg_cmd.sh downloader_dispatch  # for downloader
