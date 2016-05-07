@@ -15,8 +15,17 @@ DATABASES = {
         'NAME': 'clawer',                      # Or path to database file if using sqlite3.
         'USER': 'cacti',                      # Not used with sqlite3.
         'PASSWORD': 'cacti',                  # Not used with sqlite3.
-        'HOST': '10.0.1.2',                      # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '10.0.1.3',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'OPTIONS': {
+            'sql_mode': 'TRADITIONAL',
+            'charset': 'utf8',
+            'init_command': 'SET '
+                'storage_engine=INNODB,'
+                'character_set_connection=utf8,'
+                'collation_connection=utf8_bin'
+        }  # Note that later we find out that this is still not enough. Read on.
+
     }
 }
 
@@ -26,7 +35,7 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'KEY_PREFIX': "crawler",
         'LOCATION': [
-            '10.0.1.2:11211',
+            '10.0.1.3:11211',
         ],
     }
 }
@@ -34,18 +43,22 @@ CACHES = {
 ALLOWED_HOSTS = ["*"]
 
 MEDIA_ROOT = "/data/media/"
-MEDIA_URL = "http://10.0.1.3/media/"
+MEDIA_URL = "http://10.0.1.2/media/"
 
 PYTHON = "/usr/local/bin/python"
+SHELL = os.environ.get('SHELL', '/bin/bash')
+CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
+URI_TTL = 60*60*24
+
 CRONTAB_USER = "nginx"
 CRONTAB_HOME = "/home/clawer/cr-clawer/confs/cr"
 CLAWER_SOURCE = "/data/clawer/"
 CLAWER_RESULT = "/data/clawer_result/"
-CLAWER_RESULT_URL = "http://10.0.1.3/media/clawer_result/"
+CLAWER_RESULT_URL = "http://10.0.1.2/media/clawer_result/"
 
-REDIS = "redis://10.0.1.2:6379/0"
-URL_REDIS = "redis://10.0.1.2:6379//0"
-MONITOR_REDIS = "redis://10.100.90.51/0"
+REDIS = "redis://10.0.1.3:6379/0"
+URL_REDIS = "redis://10.0.1.3:6379/0"
+MONITOR_REDIS = "redis://10.0.1.3:6379/0"
 # add by wang ziyang 2016-04-14
 #MAX_QUEUE_LENGTH = 500
 
@@ -55,24 +68,21 @@ HIGH_MAX_QUEUE_LENGTH = 2000
 MEDIUM_MAX_QUEUE_LENGTH = 3000
 LOW_MAX_QUEUE_LENGTH = 4000
 
-SHELL = os.environ.get('SHELL', '/bin/bash')
-CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
-URI_TTL = 60*60*24
 
 # for storage
 
 MongoDBS = {
     'default': {
-        'host': 'mongodb://10.0.1.2/default',
+        'host': 'mongodb://10.0.1.3/default',
     },
     'log': {
-        'host': 'mongodb://10.0.1.2/log',
+        'host': 'mongodb://10.0.1.3/log',
     },
     'source': {
-        'host': 'mongodb://10.0.1.2/source',
+        'host': 'mongodb://10.0.1.3/source',
     },
     'structure': {
-        'host': 'mongodb://10.0.1.2/structure',
+        'host': 'mongodb://10.0.1.3/structure',
     }
 }
 

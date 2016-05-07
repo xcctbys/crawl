@@ -31,7 +31,7 @@ CACHES = {
     }
 }
 
-PYTHON = "/Users/princetechs5/Documents/virtualenv/bin/python"
+PYTHON = "/home/mingming/Documents/pyenv/dj18/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
 
@@ -50,9 +50,9 @@ CLAWER_RESULT_URL = "http://localhost:8000/media/clawer/result/"
 MEDIA_URL = 'http://localhost:8000/media/'
 MEDIA_ROOT = os.path.join(os.path.dirname(__file__), "media")
 
-REDIS = "redis://localhost:6379//0"
-URL_REDIS = "redis://localhost:6379//0"
-MONITOR_REDIS = "redis://localhost:6379//0"
+REDIS = "redis://localhost:6379/0"
+URL_REDIS = "redis://localhost:6379/0"
+MONITOR_REDIS = "redis://localhost:6379/0"
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtp.exmail.qq.com'

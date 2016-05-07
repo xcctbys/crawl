@@ -3,7 +3,8 @@ import os
 
 from enterprise.models import Province
 
-from .libs.beijing_crawler import BeijingCrawler
+# from .libs.beijing_crawler import BeijingCrawler
+from .libs.tt_beijing_crawler import BeijingCrawler
 from .libs.chongqing_crawler import ChongqingClawer
 from .libs.tianjin_crawler import TianjinCrawler
 ##
@@ -21,7 +22,8 @@ from .libs.shaanxi_crawler import ShaanxiCrawler
 ##
 from .libs.shanghai_crawler import ShanghaiCrawler
 from .libs.zongju_crawler import ZongjuCrawler
-from .libs.jiangsu_crawler import JiangsuCrawler
+# from .libs.jiangsu_crawler import JiangsuCrawler
+from .libs.test_jiangsu_crawler import JiangsuCrawler
 from .libs.heilongjiang_crawler import HeilongjiangClawer
 from .libs.shanxi_crawler import ShanxiCrawler
 ##
@@ -101,7 +103,8 @@ class EnterpriseDownload(object):
 
     def parse_url(self, url):
         o = urlparse.urlparse(self.url)
-
+        print 'o',o
+        print 'url',url
         tmp = filter(lambda x: x.strip() != "", o.path.split("/"))
         if len(tmp) != 3:
             raise Exception("'%s' format invalid" % self.url)
@@ -117,7 +120,10 @@ class EnterpriseDownload(object):
                 continue
 
             cls = item['class'](settings.json_restore_path)
-            data = cls.run(self.register_no)
+            if self.register_no == '***':
+                data = cls.run(self.name)
+            else:
+                data = cls.run(self.register_no)
             return data
 
         raise Exception(u"unknown province %s" % self.province)

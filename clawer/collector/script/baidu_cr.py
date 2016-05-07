@@ -19,6 +19,10 @@ import MySQLdb
 requests.packages.urllib3.disable_warnings()
 
 
+HOST = '10.0.1.3'
+USER = 'cacti'
+PASSWD = 'cacti'
+PORT = 3306
 STEP =  1 # 每个step取10个。
 ROWS = 3
 DEBUG = False  # 是否开启DEBUG
@@ -142,7 +146,7 @@ class Generator(object):
                         self.uris.add(test)  # 将url加入uris中
 
     def paginate(self, current_page, rows=10):
-        conn = MySQLdb.connect(host='localhost', user="root", passwd="", db='clawer', port=3306,charset='utf8')
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='clawer', port=PORT,charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
         cur = conn.cursor()
         count = cur.execute(sql)
@@ -199,7 +203,7 @@ class GeneratorTest(unittest.TestCase):
     @unittest.skip("skipping read from file")
     def test_generator_over_totalpage(self):
         generator = Generator()
-        conn = MySQLdb.connect(host='localhost', user='cacti', passwd='cacti', db='clawer', charset='utf8', port=3306)
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='clawer', charset='utf8', port=PORT)
         sql='select count(*) from enterprise_enterprise'
         cur = conn.cursor()
         count = cur.execute(sql)
