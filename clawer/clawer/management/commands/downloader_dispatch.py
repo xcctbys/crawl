@@ -16,7 +16,7 @@ import sys
 from multiprocessing import Pool
 
 try:
-	redis_url = settings.REDIS_URL
+	redis_url = settings.URL_REDIS
 except:
 	redis_url = None
 
@@ -46,7 +46,7 @@ def write_dispatch_success_log(job, reason):
 	cdal.save()
 	pass
 def write_dispatch_failed_log(job, reason):
-	print 'reason'
+	print reason
 	cdal = CrawlerDispatchAlertLog(job=job, types=3, reason=reason, hostname=str(socket.gethostname()))
 	cdal.content_bytes = sys.getsizeof(cdal)
 	cdal.save()
@@ -154,9 +154,12 @@ def run():
 		pool = Pool()
 		jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
 		for job in jobs:
-			print 'priority:',job.priority
-			total += CrawlerTask.objects(job=job).count()
-			print 'total:', total
+			# print 'priority:',job.priority
+			count = CrawlerTask.objects(job=job).count()
+			if count == 0:
+				continue
+			total += count
+			# print 'total:', total
 			if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
 				break
 			tasks = CrawlerTask.objects(job=job)

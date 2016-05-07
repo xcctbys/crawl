@@ -397,13 +397,13 @@ def download_clawer_task(task):
 	#加载对应job的设置任务
 	print '----------------------come in------------------------------'
 	try:
-		crawler_download = CrawlerDownload.objects(job=task.job)[0]
+		crawler_download = CrawlerDownload.objects(job=task.job).first()
 		# print crawler_download.code,crawler_download.types.language
-		crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job)[0]
+		crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job).first()
 		# print crawler_download_setting
 	except Exception as e:
-		self.task.status = CrawlerTask.STATUS_FAILED
-		self.task.save()
+		task.status = CrawlerTask.STATUS_FAIL
+		task.save()
 		print e,'sentry.excepterror()'
 	down = Download(task, crawler_download, crawler_download_setting)
 
