@@ -17,16 +17,15 @@ except ImportError:
 """
 running_python_3 = sys.version_info[0] == 3
 
-#from django.conf import settings
+from django.conf import settings
 
 
 
 
 
 try:
-    REDIS = "redis://127.0.0.1:6379/0"
 
-    redis_addr=urlparse.urlparse(REDIS)
+    redis_addr=urlparse.urlparse(settings.REDIS)
 
     redis_addr='redis://'+redis_addr[1]
 
