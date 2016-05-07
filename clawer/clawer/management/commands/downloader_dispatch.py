@@ -16,7 +16,7 @@ import sys
 from multiprocessing import Pool
 
 try:
-	redis_url = settings.REDIS_URL
+	redis_url = settings.URL_REDIS
 except:
 	redis_url = None
 
