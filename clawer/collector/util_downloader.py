@@ -402,8 +402,8 @@ def download_clawer_task(task):
 		crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job).first()
 		# print crawler_download_setting
 	except Exception as e:
-		self.task.status = CrawlerTask.STATUS_FAIL
-		self.task.save()
+		task.status = CrawlerTask.STATUS_FAIL
+		task.save()
 		print e,'sentry.excepterror()'
 	down = Download(task, crawler_download, crawler_download_setting)
 
