@@ -46,7 +46,7 @@ def write_dispatch_success_log(job, reason):
 	cdal.save()
 	pass
 def write_dispatch_failed_log(job, reason):
-	print 'reason'
+	print reason
 	cdal = CrawlerDispatchAlertLog(job=job, types=3, reason=reason, hostname=str(socket.gethostname()))
 	cdal.content_bytes = sys.getsizeof(cdal)
 	cdal.save()
