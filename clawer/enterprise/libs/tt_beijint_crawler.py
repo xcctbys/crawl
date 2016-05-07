@@ -63,7 +63,10 @@ class InitInfo(object):
 				'ent_pub_administration_sanction':   'http://qyxy.baic.gov.cn/gdgq/gdgqAction!qyxzcfFrame.dhtml?',
 				'other_dept_pub_administration_license':   'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzxk.dhtml?',
 				'other_dept_pub_administration_sanction':   'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzcf.dhtml?',
-				'shareholder_detail': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!touzirenInfo.dhtml?'
+				'shareholder_detail': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!touzirenInfo.dhtml?',
+				'annual_report_detail' : 'http://qyxy.baic.gov.cn/entPub/entPubAction!gdcz_bj.dhtml',
+				'annual_report_detail_for_fro' : 'http://qyxy.baic.gov.cn/entPub/entPubAction!qydwdb_bj.dhtml',
+				'annual_report_detail_change' : 'http://qyxy.baic.gov.cn/entPub/entPubAction!qybg_bj.dhtml',
 				}
 
 # 破解验证码类
@@ -291,7 +294,42 @@ class MyParser(Parser):
 		else:
 			return [dict(zip(ths, tds))]
 
-	def parser_ind_comm_pub_reg_modefy(self, content=None):
+	def parser_ent_pub_ent_annual_report(self, what=None, content=None, element=None, attrs=None): # 针对企业年报，
+		table = content.find_all(element, attrs=attrs)[0]
+		ths = [th.get_text().strip() for th in table.find_all('th') if th.get_text()]
+		tds = []
+		for td in table.find_all('td'):
+			if td.find('a'):
+				tds.append(td.a['href'])
+				tds.append(td.get_text().strip())
+			else:
+				if td.get_text():
+					tds.append(td.get_text().strip())
+				else:
+					tds.append(None)
+		print 'len(ths):', len(ths)
+		for th in ths:
+			print th
+		print 'len(tds):', len(tds)
+		for td in tds:
+			print td
+		return (ths, tds)
+
+	def parser_ent_pub_ent_annual_report_for_detail(self, what=None, content=None, element=None, attrs=None):#返回企业年报的每一个表。
+		table = content
+		ths = [th.get_text().strip() for th in table.find_all('th') if th.get_text()]
+		for i, th in enumerate(ths):
+			if th[:2] == '<<' or th[-2:] == '>>':
+				ths = ths[:i]
+				break
+		if what=='basic':
+			ths = ths[2:]
+		else:
+			ths = ths[1:]
+		tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
+		return self.zip_ths_tds(ths, tds)
+
+	def parser_ind_comm_pub_reg_modefy(self, content=None): # 得到变更信息的 td,包括详细页面的地址。
 		# print '---------------content-------------------'
 		# print content
 		tds = content.find_all('td')
@@ -306,29 +344,30 @@ class MyParser(Parser):
 				else:
 					my_tds.append(None)
 		return my_tds
-		# return [td.a['onclick'] if td.find('a') else td.get_text() for td in tds]
+
+	def parser_classic_ths_tds_data_for_ind_comm_pub(self, what=None, content=None, element=None, attrs=None): #单独处理变更信息的详细页面地址。
+		table = content
+		ths = [th.get_text().strip() for th in table.find_all('th') if th.get_text()]
+		tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')][1:]
+		return self.zip_ths_tds(ths, tds)
 
 	def parser_classic_ths_tds_data(self, what=None, content=None, element=None, attrs=None):
 		# print '---------------content-------------------'
 		# print content
-		# table = content.find_all(element, attrs=attrs)[0]
+		table = content.find_all(element, attrs=attrs)[0]
 		# print table
-		table = content
-		for th in content.find_all('th'):
-			print th.get_text().strip()
-		if what == 'ind_comm_pub_arch_liquidation' or what == 'parser_ind_comm_pub_reg_modefy':
+		# table = content
+		if what == 'ind_comm_pub_arch_liquidation' :
 			ths = [th.get_text().strip() for th in table.find_all('th') if th.get_text()]
 		else:
 			ths = [th.get_text().strip() for th in table.find_all('th') if th.get_text()][1:]
 		for i, th in enumerate(ths):
 			if th[:2] == '<<' or th[-2:] == '>>':
+				ths = ths[:i]
 				break
-		try:
-			ths = ths[:i]
-		except:
-			pass
 		if what == 'ind_comm_pub_arch_key_persons':
 			ths = ths[:int(len(ths)/2)]
+
 		if what == 'ind_comm_pub_reg_modify':
 			tds = self.parser_ind_comm_pub_reg_modefy(content=content)
 			return (ths, tds)
@@ -336,15 +375,14 @@ class MyParser(Parser):
 		elif what == 'wait':
 			pass
 		else:
+			# print table.find_all('tr')
 			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
-		if what == 'parser_ind_comm_pub_reg_modefy':
-			tds = tds[1:]
-		print 'len(ths):', len(ths)
-		for th in ths:
-			print th
-		print 'len(tds):', len(tds)
-		for td in tds:
-			print td
+		# print 'len(ths):', len(ths)
+		# for th in ths:
+		# 	print th
+		# print 'len(tds):', len(tds)
+		# for td in tds:
+		# 	print td
 
 		return self.zip_ths_tds(ths=ths, tds=tds)
 	
@@ -376,20 +414,21 @@ class IndustrialPubliction(object):
 		ths, tds = self.parser.parser_classic_ths_tds_data(what='ind_comm_pub_reg_modify', content=content, element='table', attrs={'cellspacing':"0", 'cellpadding':"0", 'class':"detailsList"})
 		for i, td in enumerate(tds):
 			if isinstance(td, basestring) and td.find('show')==0:
-				print td.split(',')[0][12:-1]
+				# print td.split(',')[0][12:-1]
 				resp = self.crawler.crawl_page_by_url(self.info.urls['host']+td.split(',')[0][12:-1])
 				content = BeautifulSoup(resp.content, 'html.parser')
 				# print content
 				tables = content.find_all('table', attrs={'cellspacing':"0", 'id':"tableIdStyle"})
-				print '---------table_one----len(tables):%s----------' % len(tables)
-				print tables[0]
-				print tables[1]
-				tds[i] = self.parser.parser_classic_ths_tds_data(what='parser_ind_comm_pub_reg_modefy', content=tables[0], element='table')
-				print tds[i]
-				tds[i+1] = self.parser.parser_classic_ths_tds_data(what='parser_ind_comm_pub_reg_modefy', content=tables[1], element='table')
-				print tds[i+1]
+				# print '---------table_one----len(tables):%s----------' % len(tables)
+				# print tables[0]
+				# print tables[1]
+				tds[i] = self.parser.parser_classic_ths_tds_data_for_ind_comm_pub(what='parser_ind_comm_pub_reg_modefy', content=tables[0], element='table')
+				# print tds[i]
+				tds[i+1] = self.parser.parser_classic_ths_tds_data_for_ind_comm_pub(what='parser_ind_comm_pub_reg_modefy', content=tables[1], element='table')
+				# print tds[i+1]
 			else:
-				print td
+				pass
+				# print td
 		self.info.result_json['ind_comm_pub_reg_modify'] = self.parser.zip_ths_tds(ths, tds)
 		# self.crawler.get_page_json_data('ind_comm_pub_reg_basic', 1)
 		# self.crawler.get_page_json_data('ind_comm_pub_reg_shareholder', 1)
@@ -486,11 +525,49 @@ class EnterprisePubliction(object):
 		self.parser = parser
 	# 企业年报
 	def get_corporate_annual_reports_info(self, *args, **kwargs):
-		param = {'entId':self.info.ent_id, 'clear':'true', 'timeStamp':self.info.time_stamp}
+		param = {'entid':self.info.ent_id, 'clear':'true', 'timeStamp':self.info.time_stamp}
 		resp = self.crawler.crawl_page_by_url(self.info.urls['ent_pub_ent_annual_report'], params=param)
-		content = BeautifulSoup(resp.content, 'html.parser')
-		result = self.parser.parser_classic_ths_tds_data(what='ent_pub_ent_annual_report', content=content, element='table', attrs={'cellspacing':"0", 'cellpadding':"0", 'class':"detailsList"})
-		self.info.result_json['ent_pub_ent_annual_report'] = result
+		content = BeautifulSoup(resp.content, 'html5lib')
+		# print '-------------get_corporate_annual_reports_info--------------'
+		# print content
+		ths, tds = self.parser.parser_ent_pub_ent_annual_report(what='parser_ent_pub_ent_annual_report', content=content, element='table', attrs={'cellspacing':"0", 'cellpadding':"0"})
+		ths.insert(2, u'详情')
+		for i,td in enumerate(tds):
+			if td.find('qynb') != -1:
+				# print td
+				# http://qyxy.baic.gov.cn/qynb/entinfoAction!qynbxx.dhtml?cid=e8a67d252a0347378ccdbc9738129e95&entid=20e38b8c33c9804a0133ee29ecaa17b5&credit_ticket=5A3B020816AE7E1B8937AC076710E6AB
+				# print self.info.urls['host'] + '/' + td[1:]
+				# print self.info.ent_id
+				# print self.info.credit_ticket
+				resp = self.crawler.crawl_page_by_url(self.info.urls['host']+ '/' + tds[i][1:])
+				content = BeautifulSoup(resp.content, 'html.parser').find_all('table')
+				# print content
+				temp = {}
+				temp[u'企业基本信息'] = self.parser.parser_ent_pub_ent_annual_report_for_detail(what='basic', content=content[0])
+				temp[u'企业资产状况信息'] = self.parser.parser_ent_pub_ent_annual_report_for_detail(what='', content=content[1])
+				cid = td[td.find('cid=')+4:td.find('cid=')+4+32]
+				# print cid
+				param = {'clear':'true', 'cid':cid, 'entnature':''}
+				resp = self.crawler.crawl_page_by_url(self.info.urls['annual_report_detail'], params=param)
+				content = BeautifulSoup(resp.content, 'html.parser').find_all('table')
+				# print content
+				temp[u'股东及出资信息'] = self.parser.parser_ent_pub_ent_annual_report_for_detail(what='', content=content[0])
+
+				param = {'clear':'true', 'cid':cid}
+				resp = self.crawler.crawl_page_by_url(self.info.urls['annual_report_detail_for_fro'], params=param)
+				content = BeautifulSoup(resp.content, 'html.parser').find_all('table')
+				# print content
+				temp[u'对外提供保证担保信息'] = self.parser.parser_ent_pub_ent_annual_report_for_detail(what='', content=content[0])
+				# print 'year:',tds[i+1][0:4]
+				param = {'clear':'true', 'cid':cid, 'year':tds[i+1][0:4]}
+				resp = self.crawler.crawl_page_by_url(self.info.urls['annual_report_detail_change'], params=param)
+				content = BeautifulSoup(resp.content, 'html.parser').find_all('table')
+				print content
+				temp[u'修改记录'] = self.parser.parser_ent_pub_ent_annual_report_for_detail(what='', content=content[0])
+				tds[i] = temp
+				# tds[i] = self.parser.parser_ent_pub_ent_annual_report_for_detail(tds[i])
+		# result = self.parser.parser_classic_ths_tds_data(what='ent_pub_ent_annual_report', content=content, element='table', attrs={'cellspacing':"0", 'cellpadding':"0"})
+		self.info.result_json['ent_pub_ent_annual_report'] = self.parser.zip_ths_tds(ths[1:], tds)
 		# self.crawler.get_page_json_data('ent_pub_ent_annual_report', 2)
 	# 股东及出资信息
 	def get_shareholder_contribution_info(self, *args, **kwargs):
@@ -590,7 +667,7 @@ class JudicialAssistancePubliction(object):
 
 # 省份的爬取类
 class BeijingCrawler(object):
-	"""江苏工商公示信息网页爬虫
+	"""北京工商公示信息网页爬虫
 	"""
 	def __init__(self, json_restore_path= None, *args, **kwargs):
 		self.info = InitInfo()
