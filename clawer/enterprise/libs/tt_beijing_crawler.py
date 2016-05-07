@@ -708,10 +708,11 @@ class BeijingCrawler(object):
 			other.run()
 			judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
 			judical.run()
-			print self.info.result_json
+			# print self.info.result_json
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
-		# return self.info.result_json_list
+		return self.info.result_json_list
+		
 		for item in self.info.result_json_list:
 			self.json_dump_to_file('beijing.json',  item )
 			# self.json_dump_to_file('jiangsu.json', {self.info.ent_number: self.info.result_json})
