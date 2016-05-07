@@ -8,16 +8,13 @@ from struct import unpack, pack, calcsize
 import redis
 import urlparse
 import sys
-"""
-try:
-    import StringIO
-    import cStringIO
-except ImportError:
-    from io import BytesIO
-"""
-running_python_3 = sys.version_info[0] == 3
+import StringIO
+import cStringIO
+from io import BytesIO
 
 from django.conf import settings
+running_python_3 = sys.version_info[0] == 3
+
 
 
 

@@ -17,7 +17,7 @@ import urlparse
 try:
     redis_addr=urlparse.urlparse(settings.REDIS)
     redis_addr='redis://'+redis_addr[1]
-    print redis_addr
+    #print redis_addr
 except:
     redis_addr = None
 
@@ -38,7 +38,7 @@ class TimingFilter(object):
         #self.redispool = redis.StrictRedis(host = 'localhost',port=6379,db= redisdb)
         redisdbstr =str(redisdb)
         redis_url = redis_addr+'/'+redisdbstr
-        print redis_url
+        #print redis_url
         self.redisconn = redis.StrictRedis.from_url(redis_url)
 
     def _md5(self,code):
