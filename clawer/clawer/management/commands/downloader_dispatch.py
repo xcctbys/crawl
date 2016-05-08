@@ -52,7 +52,6 @@ def write_dispatch_success_log(job, reason):
 
 
 def write_dispatch_failed_log(job, reason):
-<<<<<<< HEAD
     print reason
     cdal = CrawlerDispatchAlertLog(
         job=job, types=3, reason=reason, hostname=str(socket.gethostname()))
@@ -179,7 +178,6 @@ def force_exit():
 
 
 def run():
-<<<<<<< HEAD
     # timer = threading.Timer(settings.DISPATCH_USE_POOL_TIMEOUT, force_exit)
     # timer.start()
     print 'begin'
