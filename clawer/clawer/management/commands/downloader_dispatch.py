@@ -16,11 +16,7 @@ import sys
 from multiprocessing import Pool
 
 try:
-<<<<<<< HEAD
-    redis_url = settings.REDIS_URL
-=======
-	redis_url = settings.URL_REDIS
->>>>>>> e2b5ca6e6b15d3feb66e2731a6a4fba1cb6576e8
+    redis_url = settings.URL_REDIS
 except:
     redis_url = None
 
@@ -65,13 +61,6 @@ def write_dispatch_failed_log(job, reason):
     pass
 
 
-=======
-	print reason
-	cdal = CrawlerDispatchAlertLog(job=job, types=3, reason=reason, hostname=str(socket.gethostname()))
-	cdal.content_bytes = sys.getsizeof(cdal)
-	cdal.save()
-	pass
->>>>>>> e2b5ca6e6b15d3feb66e2731a6a4fba1cb6576e8
 def write_dispatch_error_log(job, reason):
     print reason
     cdal = CrawlerDispatchAlertLog(
@@ -214,35 +203,6 @@ def run():
     elif settings.DISPATCH_BY_HOSTNAME:
         # TODO:按照主机进行分发
         pass
-=======
-	# timer = threading.Timer(settings.DISPATCH_USE_POOL_TIMEOUT, force_exit)
-	# timer.start()
-	print 'begin'
-	if settings.DISPATCH_BY_PRIORITY:
-		total = 0
-		pool = Pool()
-		jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
-		for job in jobs:
-			# print 'priority:',job.priority
-			count = CrawlerTask.objects(job=job).count()
-			if count == 0:
-				continue
-			total += count
-			# print 'total:', total
-			if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
-				break
-			tasks = CrawlerTask.objects(job=job)
-			for task in tasks:
-				dispatch_use_pool(task)
-			# pool.map(dispatch_use_pool, tasks)
-			# pool.close()
-			# pool.join()
-		# tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_LIVE).order_by('job.priority')[:settings.MAX_TOTAL_DISPATCH_COUNT_ONCE]
-	elif settings.DISPATCH_BY_HOSTNAME:
-		#TODO:按照主机进行分发
-		pass
-	
->>>>>>> e2b5ca6e6b15d3feb66e2731a6a4fba1cb6576e8
 
 
 def empty_all():
