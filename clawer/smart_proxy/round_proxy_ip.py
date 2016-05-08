@@ -2,7 +2,7 @@
 import os
 import sys
 sys.path.append(os.getcwd())
-print os.getcwd()
+# print os.getcwd()
 from smart_proxy.models import ProxyIp
 import requests
 from clawer import settings
@@ -75,35 +75,30 @@ def check_is_valid(ip_port):
             return True
         return False
     except Exception as e:
-        # print e
         return False
 
 def change_valid(one_ip):
-    try:
         # one_ip = ProxyIp.objects.get(id=id) #得到对应id的代理。
-        proxy = {'http':'http://'+ one_ip.ip_port}
-        print one_ip.id, proxy
-    except Exception as e:
-        # print e
-        return
+    proxy = {'http':'http://'+ one_ip.ip_port}
+    # print one_ip.id, proxy
     try:
-        # ‘http://lwons.com/wx’ 更加快点。
-        resp = reqst.get('http://lwons.com/wx', timeout=15, proxies=proxy)
+        resp = reqst.get('http://baidu.com', timeout=15, proxies=proxy)
     except Exception as e:
-        # print e
         # update_data(id, flag=False) #更新，置为不可用。
         if one_ip.is_valid is False:
+            print proxy, 'already died......'
             return False
         one_ip.is_valid = False
         one_ip.save()
-        print 'no'
+        print proxy, 'died......'
         return False
     if resp.status_code == 200:
         if one_ip.is_valid is True:
+            print proxy, 'living!'
             return True
         one_ip.is_valid = True
         one_ip.save()
-        print 'yes'
+        print proxy, 'live again!'
         return True
     # update_data(id, falg=False)
     if one_ip.is_valid is False:

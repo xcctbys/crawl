@@ -3,11 +3,11 @@ import os
 import os.path
 import django.conf
 # from plugins import *
-from plugins.xici import XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy
-
+from plugins.xici import XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy, NovaProxy, Ip84Proxy
 from models import ProxyIp
+import smart_proxy.round_proxy_ip as check
 
-proxy_list = [XiciProxy, HaoProxy, KuaiProxy, IPCNProxy, SixProxy, YouProxy]
+proxy_list = [XiciProxy, SixProxy, YouProxy, NovaProxy, Ip84Proxy, IPCNProxy] # HaoProxy, KuaiProxy 目前不可用
 
 class Crawler(object):
 	def __init__(self):
@@ -20,13 +20,27 @@ class Crawler(object):
 			address = func.run()
 			if not address:
 				address = []
+			# valid = 0
+			# notvalid = 0
 			for item in address:
-				print item
 				try:
-					self.proxyip = ProxyIp(ip_port=item[0], province=item[1], is_valid=False) #放入mysql中
-					self.proxyip.save()
+					if check.check_is_valid(item[0]):
+						print item, '✓ valid'
+						# valid += 1
+						self.proxyip = ProxyIp(ip_port=item[0], province=item[1], is_valid=True) #放入mysql中
+						self.proxyip.save()
+					else:
+						print item, '✗ not valid'
+						# notvalid += 1
+				except KeyboardInterrupt:
+					return
 				except:
 					pass
+			# print 'valid:    ', valid
+			# print 'notvalid: ', notvalid
+			# print 'valid rate: ', float(valid)/(valid + notvalid)
+		except KeyboardInterrupt:
+			return
 		except Exception as e:
 			# print 'error in do_with',e
 			pass
@@ -34,7 +48,7 @@ class Crawler(object):
 	def run(self):
 		#得到有多少个爬虫，多少个插件。
 		for item in proxy_list:
-			# print 'item:----', item
+                        # print 'item:----', item
 			self.do_with(item())
 if __name__ == '__main__':
 	os.environ["DJANGO_SETTINGS_MODULE"] = "crawler.settings"
