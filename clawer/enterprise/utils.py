@@ -103,8 +103,8 @@ class EnterpriseDownload(object):
 
     def parse_url(self, url):
         o = urlparse.urlparse(self.url)
-        print 'o',o
-        print 'url',url
+        # print 'o',o
+        # print 'url',url
         tmp = filter(lambda x: x.strip() != "", o.path.split("/"))
         if len(tmp) != 3:
             raise Exception("'%s' format invalid" % self.url)
