@@ -88,7 +88,7 @@ class Proxy(object):
 			else:
 				print '这个ip代理 %s 失效了，还不能够访问地址 %s http响应码为 %d' % (ip_port, 'http://lwons.com/wx', resp.status_code)
 
-class UseProxy(objects):
+class UseProxy(object):
 	def __init__(self):
 		pass
 	def set_all_default(self):
@@ -150,7 +150,7 @@ class UseProxy(objects):
 
 
 		
-if name__ == '__main__':
+if __name__ == '__main__':
 	proxy = Proxy()
 	print proxy.get_proxy()
 	proxy.change_valid(_id=1)
