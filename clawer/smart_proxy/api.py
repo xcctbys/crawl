@@ -129,7 +129,7 @@ class UseProxy(object):
 			one_set.save()
 
 	def change_use_proxy_one_province(self, province=None, is_use_proxy=None):
-		one_province = IpUser.objects.filter(province__icontains=province)
+		one_province = IpUser.objects.filter(province__icontains=province)[0]
 		if is_use_proxy is None:
 			return
 		else:
@@ -145,7 +145,7 @@ class UseProxy(object):
 		if province is None:
 			return False
 		else:
-			one_province = IpUser.objects.filter(province__icontains=province)
+			one_province = IpUser.objects.filter(province__icontains=province)[0]
 			return one_province.is_use_proxy                                                                                                                                                
 
 

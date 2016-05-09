@@ -4,9 +4,11 @@ WORKDIR=~/crawler/cr-clawer/clawer
 PY=~/Documents/virtualenv/bin/python
 RQWORKER=~/Documents/virtualenv/bin/rqworker
 
-WORKDIR_DOWN=~/crawler/cr-clawer/clawer
+# WORKDIR_DOWN=~/crawler/cr-clawer/clawer
 #PY_DOWN=~/Documents/virtualenv/bin/python
-RQWORKER_DOWN=~/Documents/virtualenv/bin/rqworker
+# RQWORKER_DOWN=~/Documents/virtualenv/bin/rqworker
+WORKDIR_DOWN=~/Documents/pyenv/cr-clawer/clawer
+RQWORKER_DOWN=/Users/princetechs3/anaconda/bin/rqworker
 
 
 function app()
