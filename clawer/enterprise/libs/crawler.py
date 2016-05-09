@@ -448,14 +448,20 @@ class Parser(object):
         """解析表结构，表中的数据可能为字典形式，或者为列表形式
         """
         table_dict = {}
+        # print 'bs_table:', bs_table
+        # print 'table_name:', table_name
+        # print 'page:', page
+        # print '--------------\n---------------\n-------------'
         try:
             columns = self.get_columns_of_record_table(bs_table, page)
+        
             if columns:
                 table_dict = self.parse_list_table(bs_table, table_name, page, columns)
             else:
                 table_dict = self.parse_dict_table(bs_table, table_name)
+
         except Exception as e:
-            logging.error('parse table %s failed with exception %s' % (table_name, type(e)))
+            logging.error('parse table %s failed with exception %s' % (table_name, e))
             raise e
         finally:
             return table_dict

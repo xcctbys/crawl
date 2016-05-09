@@ -3,7 +3,10 @@
 from django.shortcuts import render
 import httplib, urllib
 import request
-import json
+import jsonimport cgi
+import logging
+import time
+
 """
 import sys
 reload(sys)
@@ -11,10 +14,14 @@ sys.setdefaultencoding('utf-8')
 """
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from os import curdir, sep
-import cgi
-import logging
-import time
 from Django.http import HttpResponse
+from __future__ import unicode_literals
+from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
+
+
+
+
 
 PORT_NUMBER = 8080
 RES_FILE_DIR = "."
@@ -90,3 +97,38 @@ def sendPost(uri_list):
     finally:
         if httpClient:
             httpClient.close()
+
+
+
+""" 'DEBUG = True' 这个 DEBUG 的值改为 false"""
+"""django，如果没改过默认设置，在传输post表单的时候是要经过csrf校验的
+装饰器@csrf_exempt来装饰view中的函数以避过csrf"""
+
+
+
+
+
+
+"""客户端"""
+def http_post(values):
+    json_data = json.dumps(values)
+    try:
+        req = urllib2.Request(post_server,json_data)   #生成页面请求的完整数据
+        response = urllib2.urlopen(req)    # 发送页面请求
+    except urllib2.HTTPError,error:
+        print "ERROR: ",error.read()
+
+
+
+
+
+"""服务端"""
+@csrf_exempt
+def recv_data(request):
+    if request.method == 'POST':
+        received_json_data = json.loads(request.body)
+        return received_json_data
+    else:
+        print 'abc'
+
+

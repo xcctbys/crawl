@@ -68,7 +68,10 @@ def deploy_mongo_servers():
 
 @roles("MysqlServers")
 def deploy_mysql_servers():
-    pass
+    run("yum install mariadb-*")
+    run("systemctl start mariadb")
+    run("systemctl enable mariadb")
+    run("mysqladmin -u root password 'plkjplkj'")
 
 
 @roles("NginxServers")

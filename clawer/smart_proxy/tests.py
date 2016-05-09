@@ -9,8 +9,8 @@ from smart_proxy.api import Proxy
 class SimpleTest(TestCase):
 
 	def test_crawer(self):
-		crawer = Crawer()
-		crawer.run()
+		crawler = Crawler()
+		crawler.run()
 		pass
 
 	def test_api(self):

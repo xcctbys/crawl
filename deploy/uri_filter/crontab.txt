@@ -1,0 +1,3 @@
+
+      ### for root
+      *    *    */20    *    * cd /home/clawer/cr-clawer/confs/cr;./filter_save.sh   uri_filter save  # for uri_filter

@@ -1,10 +1,8 @@
 #coding=utf-8
-#!/usr/bin/env python
+
 
 import os
-import json
-import hashlib
-import datetime
+
 import sys
 
 from uri_filter.pybloom.pybloom import *
@@ -29,7 +27,7 @@ def bloom_filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,
 
 
     filter_list_unique = []
-    filter_list_old = []
+
 
     if uri_list == []:
         print '[]'
@@ -37,14 +35,9 @@ def bloom_filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,
     else:
         for uri in uri_list:
             if blmfilter.add(uri) == True:
-                filter_list_old.append(uri)
-                #pass
+                pass
             else:
                 filter_list_unique.append(uri)
-        print '------重复的---------'
-        print filter_list_old
-        print '---------去重后的------------'
-        print filter_list_unique
         return filter_list_unique
 
 
@@ -52,8 +45,7 @@ def bloom_filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,
 if __name__ == "__main__":
     # import doctest
     # doctest.testmod()
-    #uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
-    uri_list = ['张','赵四','李','王','王二','赵','赵四','','',' ','w',' ']
+    uri_list = ['wwww.baidu.com','wwww.baidu.com','wwww.princetechs.com','wwww.hao.com','wwww.clawr.com']
     bl =  bloom_filter_api('uri_generator',uri_list)
     print type(bl)
     print bl
