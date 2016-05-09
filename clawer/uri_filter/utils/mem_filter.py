@@ -1,9 +1,6 @@
 #coding=utf-8
 #!/usr/bin/env python
-import json
-import hashlib
-import datetime
-import sys
+
 
 import os
 #sys.path.append('/Users/princetechs/cr-clawer/clawer/uri_filter/pybloom')
@@ -12,11 +9,6 @@ import os
 from uri_filter.pybloom.pybloom import *
 
 # from uri_filter.pybloom import pybloom
-# from django.conf import settings
-
-#global urigenerator
-
-
 
 
 def singleton(cls, *args, **kw):
