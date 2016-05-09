@@ -347,7 +347,7 @@ class Download(object):
 		else:
 			start_time = time.time()
 			try:
-				resp = self.reqst.get(self.task.uri)
+				resp = self.reqst.get(self.task.uri, timeout=25)
 				# print resp.headers
 				# print resp.request.headers
 				# print resp.text

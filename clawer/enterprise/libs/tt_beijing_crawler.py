@@ -145,7 +145,7 @@ class CrackCheckcode(object):
 		try:
 			ckcode = self.info.code_cracker.predict_result(self.info.ckcode_image_path)
 		except Exception as e:
-			logging.error('exception occured when crack checkcode')
+			logging.error('%s,exception occured when crack checkcode' % str(e))
 			ckcode = ('', '')
 		finally:
 			pass
