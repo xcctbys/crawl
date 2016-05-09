@@ -28,7 +28,7 @@ if DEBUG:
 else:
     level = logging.ERROR
 
-logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
+logging.basicConfig(filename="/tmp/baidu.log" ,level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
 
 # 所需爬取的相应关键词
