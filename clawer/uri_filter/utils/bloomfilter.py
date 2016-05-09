@@ -42,6 +42,7 @@ class BloomFilter():
 
 
 
+
         #self.BIT_SIZE = 1 << 25
         #self.bitset = BitVector.BitVector(size=self.BIT_SIZE)
 

@@ -195,7 +195,7 @@ class FilterAPI():
         '''
 
 
-'''
+    '''
     def uri_filter_api(self):
 
         encode_urilist = json.dumps(self.uri_list)
@@ -212,9 +212,9 @@ class FilterAPI():
 
 
         uri_list_unique = BloomFilter(self.uri_list)
-'''
+    '''
 
-''''''
+
 
 if __name__=='__main__':
     urilist = ['www.baidu.com','www.baidu.com','www.prittn.com']
