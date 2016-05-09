@@ -186,9 +186,9 @@ def run():
         pool = Pool()
         jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
         for job in jobs:
-            print 'priority:', job.priority
+            # print 'priority:', job.priority
             total += CrawlerTask.objects(job=job).count()
-            print 'total:', total
+            # print 'total:', total
             if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
                 break
             tasks = CrawlerTask.objects(job=job)
@@ -208,9 +208,6 @@ def empty_all():
 
 
 class Command(BaseCommand):
-    args = ""
-    help = "Dispatch clawer task"
-
     # @wrapper_raven
     def handle(self, *args, **options):
         run()

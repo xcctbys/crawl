@@ -17,7 +17,7 @@ import logging
 from crawler import Crawler, Parser
 from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
-from smart_proxy.api import Proxy
+from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -194,10 +194,15 @@ class CrackCheckcode(object):
 # 自己的爬取类，继承爬取类
 class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
-		self.proxies = []
-		proxy = Proxy()
-		self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
-						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
+		
+		useproxy = UseProxy()
+		is_use_proxy = useproxy.get_province_is_use_province(province='beijing')
+		if not is_use_proxy:
+			self.proxies = []
+		else:
+			proxy = Proxy()
+			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
+						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
 		self.info = info
 		self.parser = MyParser(info=self.info)
 		self.write_file_mutex = threading.Lock()
