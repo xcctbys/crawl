@@ -3,7 +3,10 @@
 from django.shortcuts import render
 import httplib, urllib
 import request
-import json
+import jsonimport cgi
+import logging
+import time
+
 """
 import sys
 reload(sys)
@@ -11,11 +14,7 @@ sys.setdefaultencoding('utf-8')
 """
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from os import curdir, sep
-import cgi
-import logging
-import time
 from Django.http import HttpResponse
-
 from __future__ import unicode_literals
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt

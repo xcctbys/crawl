@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 #
+
+
 """Test performance of BloomFilter at a set capacity and error rate."""
+
 import sys
 from uri_filter.pybloom.pybloom import BloomFilter
 import bitarray, math, time

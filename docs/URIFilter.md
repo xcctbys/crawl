@@ -29,7 +29,8 @@ URIFilter( )内部
  
 - md5 加密后：
 ```
-      16位 大写	49545C5F7D247B3A  
+      32位 dab19e82e1f9a681ee73346d3e7a575e  
+
 ```
 
   
@@ -565,26 +566,35 @@ def install_redis():
 ```
 uri_filter
 ├── __init__.py
+├── admin.py
 ├── api
 │   ├── __init__.py
-│   └── uri_filter.py
-├── management
+│   ├── api_filter_timing.py
+│   └── api_uri_filter.py
+├── migrations
+│   ├── __init__.py
 │   └── commands
 │       ├── __init__.py
 │       └── start_server.py
-├── migrations
-│   └── __init__.py
 ├── models.py
+├── pybloom
+│   ├── __init__.py
+│   ├── benchmarks.py
+│   ├── pybloom.py
+│   ├── tests.py
+│   └── utils.py
 ├── tests
 │   ├── __init__.py
+│   ├── test_connect_times.py
 │   └── test_uri_filter.py
 ├── urls.py
 ├── utils
 │   ├── __init__.py
+│   ├── bitmap_init.py
 │   ├── bloomfilter.py
-│   ├── filter_utils.py
-│   └── update.py
-└── view.py
+│   ├── gridfs.py
+│   └── mem_filter.py
+└── views.py
 
 
 ```
