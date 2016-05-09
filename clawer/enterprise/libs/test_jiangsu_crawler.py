@@ -16,7 +16,7 @@ import requests
 import logging
 from crawler import Crawler, Parser
 from bs4 import BeautifulSoup
-from smart_proxy.api import Proxy
+from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -219,7 +219,7 @@ class MyCrawler(Crawler):
 			proxy = Proxy()
 			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
 						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
-						
+		print 'self.proxies:', self.proxies		
 		self.reqst = requests.Session()
 		self.reqst.headers.update({
 				'Accept': 'text/html, application/xhtml+xml, */*',

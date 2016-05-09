@@ -203,6 +203,7 @@ class MyCrawler(Crawler):
 			proxy = Proxy()
 			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
 						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
+		print 'self.proxies:', self.proxies
 		self.info = info
 		self.parser = MyParser(info=self.info)
 		self.write_file_mutex = threading.Lock()
