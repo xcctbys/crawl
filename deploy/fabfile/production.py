@@ -12,6 +12,7 @@ with open("config/servers.json") as conf:
 
 # Consts
 REMOTE_PROJECT_PATH = "/home/webapps"
+MYSQL_ROOT_PASSWORD = "plkjplkj"
 
 env.user = "root"
 env.password = "plkj"
@@ -57,21 +58,45 @@ def deploy_structure_servers():
 
 @roles("MongoServers")
 def deploy_mongo_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
-                   remote_project_path=REMOTE_PROJECT_PATH)
-    run("cd /home/webapps/cr-clawer && cp deploy/mongo/mongodb.repo /etc/yum.repos.d/")
-    run("yum -y update")
-    run("yum -y install mongodb-org mongodb-org-server")
+    # Configure the package management system(yum).
+    repo_path = "/etc/yum.repos.d/mongodb-org-3.2.repo"
+    repo = """[mongodb-org-3.2]
+name=MongoDB Repository
+baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.2/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc
+"""
+    if not exists(repo_path):
+        append(repo_path, repo)
+
+    # Install mongodb and all libs.
+    run("yum install -y mongodb-org")
+
+    # Start mongodb server and Add self turn on.
     run("systemctl start mongod")
-    run("systemctl status mongod")
+    run("systemctl enable mongod")
+
+    # Stop fire wall and change system config.
+    # TODO: Add iptables, because it's unsafe.
+    run("systemctl stop firewalld.service")
+    run("systemctl disable firewalld.service")
 
 
 @roles("MysqlServers")
 def deploy_mysql_servers():
-    run("yum install mariadb-*")
+    # Install mariadb and all libs.
+    run("yum install -y mariadb-*")
+
+    # Start mariadb server and add self turn on.
     run("systemctl start mariadb")
     run("systemctl enable mariadb")
-    run("mysqladmin -u root password 'plkjplkj'")
+    run("mysqladmin -u root password {0}".format(MYSQL_ROOT_PASSWORD))
+
+    # Stop fire wall and change system config.
+    # TODO: Add iptables, because it's unsafe.
+    run("systemctl stop firewalld.service")
+    run("systemctl disable firewalld.service")
 
 
 @roles("NginxServers")
@@ -84,10 +109,8 @@ def deploy_redis_servers():
     # Install deps.
     run("yum install -y make wget gcc")
 
-    if exists("redis-3.0.7.tar.gz"):
+    if not exists("redis-3.0.7.tar.gz"):
         # Already install redis, do nothing.
-        pass
-    else:
         # Get redis package.
         run("wget http://download.redis.io/releases/redis-3.0.7.tar.gz")
         run("tar xzvf redis-3.0.7.tar.gz")
@@ -100,6 +123,7 @@ def deploy_redis_servers():
             run("make install")
 
         # Stop fire wall and change system config.
+        # TODO: Add iptables, because it's unsafe.
         run("systemctl stop firewalld.service")
         run("systemctl disable firewalld.service")
         run("sysctl vm.overcommit_memory=1")
@@ -127,6 +151,7 @@ def ssh_key(key_file="~/.ssh/id_rsa.pub"):
 #####################
 def _read_ssh_pub_key(key_file):
     key_file = os.path.expanduser(key_file)
+    # Check is it a pub key.
     if not key_file.endswith('pub'):
         raise RuntimeWarning('Trying to push non-public part of key pair')
     with open(key_file) as f:
@@ -146,4 +171,4 @@ def _add_crontab(crontab_path="", mode="a"):
         run("echo {0} >> /tmp/crondump".format(lines))
         run("crontab /tmp/crondump")
     else:
-        run("crontab {0}".format("{0}/cr-clawer/deploy/{1}".format(REMOTE_PROJECT_PATH, crontab_path)))
+        run("crontab {0}/cr-clawer/deploy/{1}".format(REMOTE_PROJECT_PATH, crontab_path))
