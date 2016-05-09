@@ -19,46 +19,46 @@ env.password = "plkj"
 
 @roles("WebServer")
 def deploy_web_server():
-    # Rsync local project files to remote project.
-    _copy_project(local_project_path="~/Projects/cr-clawer",
-                  remote_project_path=REMOTE_PROJECT_PATH)
+    # Rsync local project files to remote server.
+    _rsync_project(local_project_path="~/Projects/cr-clawer",
+                   remote_project_path=REMOTE_PROJECT_PATH)
     _add_crontab(crontab_path="collector/crontab.txt", mode="w")
 
 
 @roles("CaptchaServers")
 def deploy_captcha_servers():
-    _copy_project(local_project_path="~/Projects/cr-clawer",
-                  remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path="~/Projects/cr-clawer",
+                   remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("DownloaderServers")
 def deploy_downloader_servers():
-    _copy_project(local_project_path="~/Projects/cr-clawer",
-                  remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path="~/Projects/cr-clawer",
+                   remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("FilterServers")
 def deploy_filter_servers():
-    _copy_project(local_project_path="~/Projects/cr-clawer",
-                  remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path="~/Projects/cr-clawer",
+                   remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("GeneratorServers")
 def deploy_genertor_servers():
-    _copy_project(local_project_path="~/Projects/cr-clawer",
-                  remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path="~/Projects/cr-clawer",
+                   remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("StructureSevers")
 def deploy_structure_servers():
-    _copy_project(local_project_path="~/Projects/cr-clawer",
-                  remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path="~/Projects/cr-clawer",
+                   remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("MongoServers")
 def deploy_mongo_servers():
-    _copy_project(local_project_path="~/Projects/cr-clawer",
-                  remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path="~/Projects/cr-clawer",
+                   remote_project_path=REMOTE_PROJECT_PATH)
     run("cd /home/webapps/cr-clawer && cp deploy/mongo/mongodb.repo /etc/yum.repos.d/")
     run("yum -y update")
     run("yum -y install mongodb-org mongodb-org-server")
@@ -130,7 +130,7 @@ def _read_ssh_pub_key(key_file):
         return f.read()
 
 
-def _copy_project(local_project_path="~/Projects/cr-clawer", remote_project_path="/home/cr-clawer"):
+def _rsync_project(local_project_path="~/Projects/cr-clawer", remote_project_path="/home/cr-clawer"):
     run("yum install -y rsync")
     rsync_project(local_dir=local_project_path, remote_dir=remote_project_path, exclude=".git")
 
