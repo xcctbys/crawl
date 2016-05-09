@@ -26,12 +26,6 @@ class  CreatBitmap():
     elif filter_typename == 'ip':
         ip = BloomFilter(self.uri_num,self.err_rate,'/tmp/ipfilter.bloom')
 
-     #write  to  redis
-     #write to mongodb
-     #write to file
-
-
-
 
 
 if __name__=='__main__':

@@ -2,11 +2,7 @@
 #!/usr/bin/env python
 
 import os
-import json
-import hashlib
-import datetime
-import sys
-import time
+
 import redis
 
 import hashlib

@@ -1,10 +1,8 @@
 #coding=utf-8
-#!/usr/bin/env python
+
 
 import os
-import json
-import hashlib
-import datetime
+
 import sys
 
 from uri_filter.pybloom.pybloom import *
