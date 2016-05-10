@@ -82,7 +82,7 @@ class ExecutionTasks(object):
 1. 筛选`collector.models.CrawlerTask`中`status`为`下载成功`的下载器任务
 2. 解析器中必须包含`RawParser`类和其方法`parse`方法，该方法的参数为要解析的原始数据。
 3. 在`1`中筛选出的下载器任务中可以找到其对应的`Job`，通过`Job`在结构化层配置数据库`StructureConfig`中找到对应`Job`的配置，在`StructureConfig`中可以在解析器数据库`Parser`中找到对应的Python脚本，将该脚本存储到本地`structure/parsers/`目录中以解析器`id`命名。每次查找解析器脚本时先从数据库同步到本地（防止数据库更新本地未更新的问题）。
-4. 将解析过得任务存到本地，计算原始数据的hash值作为键，以及任务本身的一些数据全部存储。每次解析先查看数据库是否存在，如果配置时间策略等必须重新结构化，可以更新对应hash值得内容。
+4. 将解析过得任务存到数据库，计算原始数据的hash值作为键，以及任务本身的一些数据全部存储。每次解析先查看数据库是否存在，如果配置时间策略等必须重新结构化，可以更新对应hash值得内容。
 5. 限制RQ队列的总长度，为每个任务设定超时时间。(可配置)
 
 ### 输入
@@ -324,4 +324,72 @@ class TestExecutionTasks(TestCase):
     def test_exec_task(self):
         pass
 ```
+#测试方案
+正确性测试，容错性测试，数据库测试
 
+##测试环境
+CentOS 7
+service mariadb start
+service memcached start
+./redis-server
+./mongod
+
+##添加与清空测试数据
+from structure.structure import insert_test_data, empty_test_data
+insert_test_data()
+
+MongoDB中存入Job(Collector.Models), Parser(Structure.Models), StructureConfig(Structure.Models), CrawlerTask(Collector.Models), CrawlerDownloadData(Collector.Models), CrawlerDownload(Collector.Models)等六类结构化数据
+
+查看：
+打开MongoDB:./mongo
+查看数据库: show dbs
+使用数据库: use default
+查看列表: show collections
+输出: parser, structure
+查看/筛选列表数据: 例如db.parser.find({field_name:field_value})#直接.find()可以查看该该列表所有数据
+use source
+show collections可以看到其他的四类结构化数据
+
+可以在structure.structure.py文件中的insert_test_data()函数中修改，改变测试数据的个数、内容等
+使用empty_test_data()将清空MongoDB中本程序用到的所有结构化数据
+
+##分发解析任务
+cd ./cr-clawer/clawer
+python manage.py task_parser_dispatch
+
+rq-dashboard
+根据提供的IP从浏览器打开RQ的Web UI可以查看有structure:higher, structure:high, structure:normal, structure:low四个队列产生
+
+进入MongoDB，输入:
+use default
+show collections
+可以看到有新的ParseJobInfo类数据产生，输入
+db.parse_job_info.find().count()
+可以看到其数量和RQ队列中任务的总数相同
+use source
+show collections
+db.crawler_task.find({status:5}).count()
+也可以看到数据库中状态为5（下载成功）的任务总数和RQ队列中的任务总数是一致的
+
+##执行解析任务
+cd ./clawer/clawer/management/commands
+vi task_parser_dispatck
+
+可以看到：
+def run():
+    	parsergenerator = ParserGenerator()
+    	parser_task_queues = parsergenerator.assign_parse_tasks()
+    	#executiontasks = ExecutionTasks()
+    	#executiontasks.exec_task(parsergenerator.queues[0])
+    	return parser_task_queues
+
+将第二行及第四行注释掉，并取消第三和第四行的注释，保存退出，执行
+python manage.py task_parser_dispatch
+提示对应队列中的Job已经被完成，回到RQ Web UI中可以看到指定队列的任务已经被完成
+进入MongoDB,输入
+use default
+db.crawler_analyzed_data.find()
+可以看到worker成功执行的任务后的解析文本已经被存在了数据库中的这个结构中
+
+其中，queues[0]指队列structure:higher;queues[1]指structure:high;queues[2]指structure:normal;queues[3]指structure:low,表示给worker指定执行任务的队列
+日志在./clawer/clawer/clawer.debug.log目录下，任务分发和解析的信息在其中可以看到
