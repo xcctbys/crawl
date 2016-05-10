@@ -698,20 +698,20 @@ class BeijingCrawler(object):
 			f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
 	
 	def run(self, ent_number=None, *args, **kwargs):
+		start_time = time.time()
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler, parser=self.parser)
 		is_valid = self.crack.run(ent_number)
 		if not is_valid:
 			print 'error,the register is not valid...........'
 			return
+		end_time = time.time()
+		print '------------------------------------crack_spent_time:%s--------------------' % (end_time - start_time)
 		self.info.result_json_list = []
 		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs= {'class':"list", 'style':"min-height: 400px;"})[0].find_all('ul'):
 			# print item_page
 			# print self.info.ent_number
-			start_time = time.time()
 			self.info.result_json = {}
 			self.crack.parser.parse_post_check_page(item_page)
-			end_time = time.time()
-			print '------------------------------------crack_spent_time:%s--------------------' % (end_time - start_time)
 			start_time = time.time()
 			industrial = IndustrialPubliction(self.info, self.crawler, self.parser)
 			industrial.run()
