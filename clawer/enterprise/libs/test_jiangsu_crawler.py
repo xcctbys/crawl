@@ -3,7 +3,7 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import re
 import codecs
 import json
@@ -619,15 +619,19 @@ class JiangsuCrawler(object):
 			f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
 	
 	def run(self, ent_number=None, *args, **kwargs):
+		start_time = time.time()
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
 		is_valid = self.crack.run(ent_number)
 		if not is_valid:
 			print 'error,the register is not valid...........'
 			return
+		end_time = time.time()
+		print '-------------------------crack_spend_time:%s--------------' % (end_time - start_time)
 		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('a'):
 			# print item_page
 			print self.info.ent_number
 			self.info.result_json = {}
+			start_time = time.time()
 			self.crack.parse_post_check_page(item_page)
 			industrial = IndustrialPubliction(self.info, self.crawler, self.parser)
 			industrial.run()
@@ -637,6 +641,8 @@ class JiangsuCrawler(object):
 			other.run()
 			judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
 			judical.run()
+			end_time = time.time()
+			print '--------------------------crawler_spend_time:%s' % (end_time - start_time)
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
 		return self.info.result_json_list
