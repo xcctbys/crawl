@@ -1,37 +1,34 @@
 # encoding=utf-8
 
 import logging
-import re
 import json
 import urllib
 import unittest
-import traceback
+# import traceback
 import os
 import cPickle as pickle
-try:
-    import pwd
-except:
-    pass
+
 from bs4 import BeautifulSoup
 import requests
 import MySQLdb
-
+import time
 requests.packages.urllib3.disable_warnings()
 
 
 HOST = '10.0.1.3'
+# HOST ='localhost'
 USER = 'cacti'
 PASSWD = 'cacti'
 PORT = 3306
-STEP =  1 # 每个step取10个。
-ROWS = 3
+STEP =  1 # 每个step取ROWS个。
+ROWS = 10
 DEBUG = False  # 是否开启DEBUG
 if DEBUG:
     level = logging.DEBUG
 else:
     level = logging.ERROR
 
-logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
+logging.basicConfig(filename="/tmp/baidu.log" ,level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
 
 # 所需爬取的相应关键词
@@ -49,9 +46,8 @@ KEYWORD = [
 class History(object):  # 实现程序的可持续性，每次运行时读取上次运行时保存的参数，跳到相应位置继续执行程序
 
     def __init__(self):
-        # self.company_num = 0  # 初始化pickle中用作公司名称位置索引值
         self.total_page = 0
-        self.current_page = 0
+        self.current_page = 0# 初始化pickle中用作公司名称位置索引值
         self.path = "/tmp/baidu_company_search"  # pickle文件存放路径（提交至平台的代码记住带上tmp前斜杠）
 
     def load(self):  # pickle的载入
@@ -60,7 +56,6 @@ class History(object):  # 实现程序的可持续性，每次运行时读取上
 
         with open(self.path, "r") as f:  # 打开pickle文件并载入
             old = pickle.load(f)
-            # self.company_num = old.company_num  # 取出文件中存入的索引值
             self.total_page = old.total_page
             self.current_page = old.current_page
 
@@ -77,17 +72,21 @@ class Generator(object):
         self.args = set()
         self.history = History()
         self.history.load()
-        # self.source_url = "http://clawer.princetechs.com/enterprise/api/get/all/"
         self.enterprises= []
         self.step = STEP
 
     def search_url_with_batch(self):
         self.obtain_enterprises()
         for company in self.enterprises:
-            logging.debug("%s"%(company))
+            starts = time.time()
             for each_keyword in KEYWORD:  # 遍历搜索关键词
                 keyword = each_keyword
+                start = time.time()
                 self.page_url(company, keyword)  # 传参调用url构造函数
+                end = time.time()
+                logging.error("%s search time %f !"%(company.encode('utf8'), end - start) )
+            ends = time.time()
+            logging.error("The company %s run time %f."%(company.encode('utf8'), ends-starts))
 
     def obtain_enterprises(self):
         if self.history.current_page <= 0 and self.history.total_page <= 0:
@@ -104,7 +103,6 @@ class Generator(object):
             if self.history.current_page > self.history.total_page:
                 self.history.current_page = 0
                 self.history.total_page = 0
-                # self.history.save()
                 break
         self.history.save()
 
@@ -119,7 +117,11 @@ class Generator(object):
             params = {"wd": current_company.encode("gbk") + " " + current_keyword.encode("gbk"),
                       "pn": page_num}  # 构造url参数
             url = "%s%s" % (self.HOST, urllib.urlencode(params))  # 构造url
-            r = requests.get(url, verify=False, headers={"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"})  # 浏览器代理请求url
+            try:
+                r = requests.get(url, verify=False, headers={"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}, timeout=5)  # 浏览器代理请求url
+            except Exception as e:
+                logging.error(traceback.format_exc(10))
+                continue
             soup = BeautifulSoup(r.text, "html5lib")  # 使用html5lib解析页面内容
             contents = soup.find("div", {"id": "content_left"})  # 找到页面中id为content_left的div
             divs = contents.find_all("div", {"class": "result"})  # 在目标div中找到所有class为result的div
@@ -152,7 +154,6 @@ class Generator(object):
         count = cur.execute(sql)
         total_rows =cur.fetchone()[0]
         total_page = total_rows/rows
-        # print total_page
         if current_page  > total_page:
             current_page = 0
         sql = "select name from enterprise_enterprise limit %d, %d"%(current_page*rows, rows)
@@ -160,8 +161,6 @@ class Generator(object):
         columns = [desc[0] for desc in cur.description]
         result = []
         for r in cur.fetchall():
-            # for v in r:
-                # print str(v.encode('utf-8'))
             result.append(dict(zip(columns, r)))
 
         conn.close()
@@ -221,10 +220,12 @@ if __name__ == "__main__":
     if DEBUG:  # 如果DEBUG为True则进入测试单元
         unittest.main()
     else:
+        start = time.time()
         generator = Generator()
         generator.search_url_with_batch()
+        end = time.time()
+        logging.error("Totoal run time = %f ."%(end - start))
 
         for uri in generator.uris:
-            # str_uri = str(uri.encode("utf-8")).split(" ")
             str_uri = uri.encode("utf-8").split(" ")
             print json.dumps({"uri": str_uri[0], "args": str_uri[1]})

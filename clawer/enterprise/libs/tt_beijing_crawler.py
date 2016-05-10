@@ -3,6 +3,7 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+sys.path.append('/home/clawer/cr-clawer/clawer')
 # sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import re
 import codecs
@@ -17,7 +18,7 @@ import logging
 from crawler import Crawler, Parser
 from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
-from smart_proxy.api import Proxy, UseProxy
+# from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -114,6 +115,7 @@ class CrackCheckcode(object):
 
 			# crack_result = self.parse_post_check_page(resp.content)
 			self.info.after_crack_checkcode_page = resp.content
+			print '--------------count:%d---------' % count
 			return True
 			# crack_result = self.parser.parse_post_check_page(resp)
 			# if crack_result:
@@ -195,15 +197,16 @@ class CrackCheckcode(object):
 class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
 		
-		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_province(province='beijing')
-		if not is_use_proxy:
-			self.proxies = []
-		else:
-			proxy = Proxy()
-			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
-						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
-		print 'self.proxies:', self.proxies
+		# useproxy = UseProxy()
+		# is_use_proxy = useproxy.get_province_is_use_province(province='beijing')
+		# if not is_use_proxy:
+		# 	self.proxies = []
+		# else:
+		# 	proxy = Proxy()
+		# 	self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
+		# 				'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
+		# print 'self.proxies:', self.proxies
+		self.proxies = []
 		self.info = info
 		self.parser = MyParser(info=self.info)
 		self.write_file_mutex = threading.Lock()
@@ -695,17 +698,21 @@ class BeijingCrawler(object):
 			f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
 	
 	def run(self, ent_number=None, *args, **kwargs):
+		start_time = time.time()
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler, parser=self.parser)
 		is_valid = self.crack.run(ent_number)
 		if not is_valid:
 			print 'error,the register is not valid...........'
 			return
+		end_time = time.time()
+		print '------------------------------------crack_spent_time:%s--------------------' % (end_time - start_time)
 		self.info.result_json_list = []
 		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs= {'class':"list", 'style':"min-height: 400px;"})[0].find_all('ul'):
 			# print item_page
 			# print self.info.ent_number
 			self.info.result_json = {}
 			self.crack.parser.parse_post_check_page(item_page)
+			start_time = time.time()
 			industrial = IndustrialPubliction(self.info, self.crawler, self.parser)
 			industrial.run()
 			enterprise = EnterprisePubliction(self.info, self.crawler, self.parser)
@@ -714,10 +721,12 @@ class BeijingCrawler(object):
 			other.run()
 			judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
 			judical.run()
+			end_time = time.time()
+			print '---------------------------------------------spent_time---%s----------------------------' % (end_time - start_time)
 			# print self.info.result_json
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
-		return self.info.result_json_list
+		# return self.info.result_json_list
 		
 		for item in self.info.result_json_list:
 			self.json_dump_to_file('beijing.json',  item )
@@ -754,8 +763,8 @@ if __name__ == '__main__':
 	if DEBUG:
 		unittest.main()
 	crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-	ent_list = [u'110113014453083']
-	ent_list = [u'创业投资中心']
+	ent_list = [u'110000410227029'] #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
+	# ent_list = [u'创业投资中心']
 	# ent_list = [u'北京仙瞳创业投资中心（有限合伙）']
 	for ent_number in ent_list:
 		crawler.run(ent_number=ent_number)
