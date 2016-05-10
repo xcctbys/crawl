@@ -115,31 +115,57 @@ def deploy_redis_servers():
         # Already install redis, do nothing.
         # Get redis package.
         run("wget http://download.redis.io/releases/redis-3.0.7.tar.gz")
-    run("tar xzvf redis-3.0.7.tar.gz")
+        run("tar xzvf redis-3.0.7.tar.gz")
 
-    # Compile and install redis.
-    with cd("redis-3.0.7"):
-        with cd("deps"):
-            run("make hiredis jemalloc linenoise lua")
-        run("make")
-        run("make install")
+        # Compile and install redis.
+        with cd("redis-3.0.7"):
+            with cd("deps"):
+                run("make hiredis jemalloc linenoise lua")
+            run("make")
+            run("make install")
 
     # Stop fire wall and change system config.
     # TODO: Add iptables, because it's unsafe.
     run("systemctl stop firewalld.service")
     run("systemctl disable firewalld.service")
+
+    # Redis system configs.
     run("sysctl vm.overcommit_memory=1")
     run("sysctl -w fs.file-max=100000")
+
+    # Create redis configs dir.
+    run("mkdir -p /etc/redis")
+
+    # Create redis data dir.
+    run("mkdir -p /var/db/redis/7001")
+    run("mkdir -p /var/db/redis/7002")
+    run("mkdir -p /var/db/redis/7003")
+    run("mkdir -p /var/db/redis/7004")
+
+    # rsync config file.
+    _rsync_project(local_project_path="config/redis", remote_project_path="/root/")
+    run("cp -r redis/redis /etc/redis/")
+    run("cp -r redis/init.d/ /etc/init.d/")
+    run("cp -r redis/system/ /etc/systemd/system/")
+
+    # Add self turn on.
+    run("chkconfig redis_7001 on")
+    run("chkconfig redis_7002 on")
+    run("chkconfig redis_7003 on")
+    run("chkconfig redis_7004 on")
 
     # Start redis service on port 7001, 7002, 7003, 7004.
     # 7001 -> Generator rq
     # 7002 -> Downloader rq
     # 7003 -> Structure rq
     # 7004 -> Filter bitmap
-    run("nohup redis-server redis-3.0.7/redis.conf --port 7001 >& /dev/null < /dev/null &", pty=False)
-    run("nohup redis-server redis-3.0.7/redis.conf --port 7002 >& /dev/null < /dev/null &", pty=False)
-    run("nohup redis-server redis-3.0.7/redis.conf --port 7003 >& /dev/null < /dev/null &", pty=False)
-    run("nohup redis-server redis-3.0.7/redis.conf --port 7004 >& /dev/null < /dev/null &", pty=False)
+    run("service redis_7001 start")
+    run("service redis_7002 start")
+    run("service redis_7003 start")
+    run("service redis_7004 start")
+
+    # Clear
+    run("rm -rf /root/redis")
 
 
 def ssh_key(key_file="~/.ssh/id_rsa.pub"):
