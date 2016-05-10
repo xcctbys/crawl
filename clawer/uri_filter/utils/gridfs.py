@@ -3,7 +3,6 @@ from pymongo import Connection
 from gridfs import *
 #from PIL import Image
 from bson.objectid import ObjectId
-import StringIO
 import threading, time
 from gridfs import *
 from io import BytesIO
@@ -11,7 +10,7 @@ from io import StringIO
 import BitVector
 import io
 import os
-from pymongo.database import Database
+
 '''
 con = Connection("mongodb://admin:admin@127.0.0.1:27017")#用URI建立数据库的链接,也有其他的方式进行授权
 db = con['repository']#连接到具体的数据库
@@ -146,8 +145,8 @@ class GFS:
 
 ##############mongoengine############
 '''
-######MongoDB的GridFS支持直接在数据库中存储文件。要在MongoEngine中使用GridFS，只要使用 FileField 对象#########
-######将 gtk.png 这个图片存入了数据库中#############
+#MongoDB的GridFS支持直接在数据库中存储文件。要在MongoEngine中使用GridFS，只要使用 FileField 对象
+#将 gtk.png 这个图片存入了数据库中
 
 
 
@@ -165,42 +164,30 @@ marmot.save()
 
 
 
-########文件的读取#########
+#文件的读取
 marmot = Animal.objects(genus='Marmota').first()
 photo = marmot.photo.read()
 content_type = marmot.photo.content_type
 
-##########FileField不仅可以存储文件，还可以用来存储数据流。#########################
-#####要存储数据流，首先先创建一个新的文件，然后再往里面写入数据。#########
+#FileField不仅可以存储文件，还可以用来存储数据流。
+#要存储数据流，首先先创建一个新的文件，然后再往里面写入数据。
 marmot.photo.new_file()
 marmot.photo.write('some_image_data')
 marmot.photo.write('some_more_image_data')
 marmot.photo.close()
 marmot.save()
 
-####删除文件###########
+#删除文件
 marmot.photo.delete()
 
 
-#########已存储替换修改
+#已存储替换修改
 another_marmot = open('python.png', 'rb')
 marmot.photo.replace(another_marmot, content_type='image/png')
 
 
 
-
-
-
-
-
-
-
-
 '''
-
-
-
-
 
 
 if __name__== '__main__':

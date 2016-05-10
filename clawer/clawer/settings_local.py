@@ -31,11 +31,16 @@ CACHES = {
     }
 }
 
-PYTHON = "/usr/bin/python"
+PYTHON = "/home/mingming/Documents/pyenv/dj18/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
-MAX_QUEUE_LENGTH = 1000
 
+SUPER_MAX_QUEUE_LENGTH = 1000
+HIGH_MAX_QUEUE_LENGTH = 2000
+MEDIUM_MAX_QUEUE_LENGTH = 3000
+LOW_MAX_QUEUE_LENGTH = 4000
+
+URI_TTL = 60*60*24
 CRONTAB_USER = "pengxt"
 CLAWER_SOURCE = "/Users/pengxt/Documents/clawer/source/"
 CLAWER_RESULT = "/Users/pengxt/Documents/clawer/result/"
@@ -45,9 +50,9 @@ CLAWER_RESULT_URL = "http://localhost:8000/media/clawer/result/"
 MEDIA_URL = 'http://localhost:8000/media/'
 MEDIA_ROOT = os.path.join(os.path.dirname(__file__), "media")
 
-REDIS = "redis://localhost:6379//0"
-URL_REDIS = "redis://localhost:6379//0"
-MONITOR_REDIS = "redis://localhost:6379//0"
+REDIS = "redis://localhost:6379/0"
+URL_REDIS = "redis://localhost:6379/0"
+MONITOR_REDIS = "redis://localhost:6379/0"
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtp.exmail.qq.com'

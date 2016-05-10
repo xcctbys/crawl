@@ -43,25 +43,63 @@ class Download(object):
 			#  uri = 'enterprise://%E9%87%8D%E5%BA%86/%E9%87%8D%E5%BA%86%E7%90%86%E5%BF%85%E6%98%93%E6%8A%95%E8%B5%84%E7%AE%A1%E7%90%86%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/500905004651063/'
 			downloader = EnterpriseDownload(self.task.uri)
 			result = downloader.download()
-
+			end_time = time.time()
 			print '----------------json data---------------------'
 			print result
+
+			spend_time = end_time - start_time
+			requests_headers = result.get('requests_headers', 'None')
+			response_headers = result.get('response_headers', 'None')
+			requests_body = result
+			response_body = result.get('response_body', 'None')
+			remote_ip = result.get('remote_ip', 'None')
+			hostname = str(socket.gethostname())
+
+			# write_downloaddata_to_mongo
+			cdd = CrawlerDownloadData(	job=self.task.job, 
+										downloader=self.crawler_download,
+										crawlertask=self.task,
+										requests_headers=requests_headers,
+										response_headers=response_headers,
+										requests_body=requests_body,
+										response_body=response_body,
+										hostname=hostname,
+										remote_ip=remote_ip)
+			cdd.save()
+			# write_downloaddata_success_log_to_mongo
+			cdl = CrawlerDownloadLog(	job = self.task.job,
+										task = self.task,
+										status = CrawlerDownloadLog.STATUS_SUCCESS,
+										requests_size = sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
+										response_size = sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
+										failed_reason = 'None',
+										downloads_hostname = hostname,
+										spend_time = spend_time)
+			cdl.save()
+
 			# 改变这个任务的状态为下载成功
 			self.task.status = CrawlerTask.STATUS_SUCCESS
 			self.task.save()
 
 		except Exception as e:
 			# 改变这个任务的状态为下载失败
+			end_time = time.time()
+			spend_time = end_time - start_time
+			# write_downloaddata_fail_log_to_mongo
+			cdl = CrawlerDownloadLog(	job = self.task.job,
+										task = self.task,
+										status = CrawlerDownloadLog.STATUS_FAIL,
+										requests_size = 0,
+										response_size = 0,
+										failed_reason = str(e),
+										downloads_hostname = str(socket.gethostname()),
+										spend_time = spend_time)
+			cdl.save()
+
 			self.task.status = CrawlerTask.STATUS_FAIL
 			self.task.save()
 			print 'ERROR:',e
-			# self.failed = True
-			# self.failed_exception = traceback.format_exc(10)
-			# self.sentry.capture()
-			# logging.warning(self.failed_exception)
 			
-		end_time = time.time()
-		spend_time = end_time - start_time
 
 	def download(self):
 		self.task.status = CrawlerTask.STATUS_PROCESS
@@ -309,7 +347,7 @@ class Download(object):
 		else:
 			start_time = time.time()
 			try:
-				resp = self.reqst.get(self.task.uri)
+				resp = self.reqst.get(self.task.uri, timeout=25)
 				# print resp.headers
 				# print resp.request.headers
 				# print resp.text
@@ -375,12 +413,12 @@ def force_exit(download_timeout, task):
 	"""
 	pgid = os.getpgid(0)
 	# 改变这个任务的状态为下载失败
-	self.task.status = CrawlerTask.STATUS_FAIL
-	self.task.save()
+	task.status = CrawlerTask.STATUS_FAIL
+	task.save()
 
 	# write_downloaddata_fail_log_to_mongo
-	cdl = CrawlerDownloadLog(	job = self.task.job,
-								task = self.task,
+	cdl = CrawlerDownloadLog(	job = task.job,
+								task = task,
 								status = CrawlerDownloadLog.STATUS_FAIL,
 								requests_size = 0,
 								response_size = 0,
@@ -396,13 +434,13 @@ def download_clawer_task(task):
 	#加载对应job的设置任务
 	print '----------------------come in------------------------------'
 	try:
-		crawler_download = CrawlerDownload.objects(job=task.job)[0]
+		crawler_download = CrawlerDownload.objects(job=task.job).first()
 		# print crawler_download.code,crawler_download.types.language
-		crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job)[0]
+		crawler_download_setting = CrawlerDownloadSetting.objects(job=task.job).first()
 		# print crawler_download_setting
 	except Exception as e:
-		self.task.status = CrawlerTask.STATUS_FAILED
-		self.task.save()
+		task.status = CrawlerTask.STATUS_FAIL
+		task.save()
 		print e,'sentry.excepterror()'
 	down = Download(task, crawler_download, crawler_download_setting)
 

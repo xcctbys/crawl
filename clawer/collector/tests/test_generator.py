@@ -19,9 +19,10 @@ from django.conf import settings
 from django.core.management import call_command
 from django.utils.six import StringIO
 
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog
+from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorErrorLog
 from collector.utils_generator import DataPreprocess, GeneratorDispatch, GeneratorQueue, GenerateCrawlerTask, SafeProcess, CrawlerCronTab
-from collector.utils_generator import force_exit, exec_command
+from collector.models import CrawlerDownloadType, CrawlerDownload, CrawlerDownloadSetting
+from collector.utils_generator import exec_command, force_exit, dereplicate_uris
 from collector.utils_cron import CronTab
 from redis import Redis
 from rq import Queue
@@ -29,6 +30,94 @@ import subprocess
 import time
 import unittest
 import random
+
+
+class TestExeScript(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_enterprise(self):
+        job_id = '570ded84c3666e0541c9e8d8'
+        Job.objects(id__ne= job_id).update(status = Job.STATUS_OFF)
+        CrawlerTask.objects.delete()
+        dp = DataPreprocess(job_id)
+        script = dp.read_from_file('/Users/princetechs5/Documents/pythontest/enterprice.py')
+        cron = "* * * * *"
+        dp.save(script=script, settings={'cron':cron, 'code_type':1, 'schemes':['enterprise']})
+
+        crontab = CrawlerCronTab()
+        crontab.task_generator_install()
+        Job.objects.update(status= Job.STATUS_ON)
+        # time.sleep(10)
+        crontab.task_generator_run()
+        count = CrawlerTask.objects.count()
+        self.assertGreater(count, 0)
+
+def insert_generator_with_priority_and_number(priority, number):
+    """
+        指定优先级和个数，生成Job和 CrawlerTaskGenerator
+    """
+    if priority not in range(-1, 6):
+        print "priority should be -1~5"
+        return
+    for i in range(number):
+        name = "P%dJob%d"%(priority ,i)
+        prior = priority
+        job = Job(name = name, info="", priority= prior)
+        job.save()
+        script = """import json\nprint json.dumps({'uri':"http://www.%s.com"})"""%(name)
+        cron = "* * * * *"
+        code_type = CrawlerTaskGenerator.TYPE_PYTHON
+        schemes=['http', 'https']
+        generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+        generator.save()
+
+
+def insert_text_without_job(text, settings ):
+    name = "This is a test."
+    prior = random.randint(-1, 5)
+
+    onetype = CrawlerDownloadType(language='other', is_support=True)
+    onetype.save()
+    job = Job(name = name, info="", priority= prior)
+    job.save()
+    script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+    cron = "* * * * *"
+    code_type = CrawlerTaskGenerator.TYPE_PYTHON
+    schemes=['http', 'https']
+    generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+    generator.save()
+    cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+    cds1.save()
+    cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+    cd1.save()
+    dp = DataPreprocess(job.id)
+    dp.save(text =text, settings =  settings)
+
+def insert_script_without_job(script, settings ):
+    name = "This is a script."
+    prior = random.randint(-1, 5)
+
+    onetype = CrawlerDownloadType(language='other', is_support=True)
+    onetype.save()
+    job = Job(name = name, info="", priority= prior)
+    job.save()
+
+    schemes = settings['schemes']
+    cron = settings['cron']
+    code_type = settings['code_type']
+
+    generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+    generator.save()
+    cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+    cds1.save()
+    cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+    cd1.save()
+
+
 
 # @unittest.skip("showing class skipping")
 class TestGeneratorCommand(TestCase):
@@ -78,16 +167,16 @@ class TestMongodb(TestCase):
         job.save()
         count = Job.objects(name='job').count()
         self.assertGreater(count, 0)
-        job.delete()
+        # job.delete()
 
     def test_task_save(self):
         jobs = Job.objects(id='570ded84c3666e0541c9e8d9').first()
-        task = CrawlerTask(uri='http://www.baidu.com')
+        task = CrawlerTask(uri='http://www.tianyancha.com/company/619159222')
         task.job=jobs
         task.save()
         result = CrawlerTask.objects.first()
         self.assertTrue(result)
-        task.delete()
+        # task.delete()
 
     def test_get_generator_with_job_id(self):
         job_id = '570f73f6c3666e0af4a9efad'
@@ -144,11 +233,47 @@ class TestMongodb(TestCase):
 class TestPreprocess(TestCase):
     def setUp(self):
         TestCase.setUp(self)
-        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
-        self.pre = DataPreprocess(job_id= self.job.id)
+        # self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        # self.pre = DataPreprocess(job_id= self.job.id)
 
     def tearDown(self):
         TestCase.tearDown(self)
+
+    def test_dereplicate_uris(self):
+        uris=['http://www.baidu.com', 'http://google.com']
+        de_uri = dereplicate_uris(uris)
+        uri = dereplicate_uris(uris)
+        self.assertFalse(uri)
+
+    def test_dereplicate_uris_with_ttl(self):
+        uris=['http://www.baidu.com', 'http://google.com']
+        de_uri = dereplicate_uris(uris, ttl=1)
+        time.sleep(2)
+        uri = dereplicate_uris(uris)
+        self.assertListEqual(uri, uris)
+
+    def test_insert_1000_jobs_with_downloaders(self):
+        job_num = Job.objects.count()
+        for i in range(1000):
+            name = "job%d"%(i)
+            prior = random.randint(-1, 5)
+
+            onetype = CrawlerDownloadType(language='other', is_support=True)
+            onetype.save()
+            job = Job(name = name, info="", priority= prior)
+            job.save()
+            script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+            cron = "* * * * *"
+            code_type = CrawlerTaskGenerator.TYPE_PYTHON
+            schemes=['http', 'https']
+            generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+            generator.save()
+            cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+            cd1.save()
+            cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+            cds1.save()
+        self.assertEqual(job_num+1000, Job.objects.count())
+
 
     def insert_4000_jobs_with_generators(self):
         for i in range(4000):
@@ -163,6 +288,19 @@ class TestPreprocess(TestCase):
             generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
             generator.save()
 
+    def delete_4000_jobs_with_generators(self):
+        for i in range(4000):
+            name = "job%d"%(i)
+            job = Job.objects(name= name).first()
+            if job :
+                CrawlerTaskGenerator.objects(job = job).first().delete()
+                job.delete()
+
+    def test_delete_4000_jobs_with_generators(self):
+        job_num = Job.objects.count()
+        generator_num = CrawlerTaskGenerator.objects.count()
+        self.delete_4000_jobs_with_generators()
+        self.assertEqual(CrawlerTaskGenerator.objects.count()+4000, generator_num)
 
     def test_insert_4000_jobs_with_generators(self):
         job_num = Job.objects.count()
@@ -173,24 +311,44 @@ class TestPreprocess(TestCase):
         self.assertEqual(Job.objects.count(), job_num+4000)
         self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num + 4000)
 
-        for i in range(4000):
-            name = "job%d"%(i)
-            job = Job.objects(name= name).first()
-            CrawlerTaskGenerator.objects(job = job).first().delete()
-            job.delete()
+        # self.delete_4000_jobs_with_generators()
 
-        self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num)
+        # self.assertEqual(CrawlerTaskGenerator.objects.count(), generator_num)
 
+
+    def test_save_csv(self):
+        txt = """
+            www.baidu.com;;
+            http:baidu.com;;
+            http://baidu1.con,htps://baidu.cn;ttp://baidu.com;htt://www.baidu.com
+            "https:/baidu4.com
+            http://baidu.com";;
+            ftp://guge.com ftps://guge.cn  ftps://ddd.com;;
+            http://blog.csdn.net/?aspxerrorpath=/nanjunxiao/article/details/9086079;;
+        """
+        job = Job(name='csv')
+        job.save()
+        # content = ""
+        # with open('/Users/princetechs5/Downloads/csv_text.csv'),'r') as f:
+        #     content = f.read()
+        # print content
+        pre_count = CrawlerTask.objects.count()
+        pre = DataPreprocess(job_id= job.id)
+        pre.save(text= txt, settings = {'schemes':[]})
+        after_count = CrawlerTask.objects.count()
+        job.delete()
+        self.assertEqual(pre_count+1, after_count)
 
 
     def test_read_from_string(self):
         inputs = """
         http://www.baidu.com
         https://www.baidu.com
-        ftp://www.baidu.com
-        ftps://www.baidu.com
+        ftp://www.baidu.com\nftps://www.baidu.com
+        ftps://www.baidu.com\tftps://www.baidu.com
         enterprise://baidu.com
 
+        http://www.wrong. command
         www.baidu.com
         baidu.com
         httd://baidu.com
@@ -199,7 +357,7 @@ class TestPreprocess(TestCase):
         """
         uris = self.pre.read_from_strings(inputs, schemes=['enterprise'])
         print uris
-        self.assertEqual(len(uris), 5)
+        self.assertEqual(len(uris), 7)
 
 
     def test_save_text_with_large_length(self):
@@ -210,7 +368,7 @@ class TestPreprocess(TestCase):
         count = CrawlerTask.objects.count()
         self.assertEqual(count, 1)
 
-    @unittest.skip("skipping read from file")
+    # @unittest.skip("skipping read from file")
     def test_read_from_file(self):
         filename = "/Users/princetechs5/Documents/uri.csv"
         uris_string = ""
@@ -227,7 +385,16 @@ class TestPreprocess(TestCase):
         print uris
         self.assertListEqual( ['http://www.baidu.com', 'http://www.google.com'], uris)
 
-    def test_save_text(self):
+    def test_read_from_file_and_save(self):
+        CrawlerTask.objects.delete()
+        filename = "/Users/princetechs5/Documents/txt_text.txt"
+        uris_string = ""
+        with open(filename, 'r') as f:
+            uris_string= f.read()
+        self.pre.save(text = uris_string, settings = {"schemes":[] })
+        self.assertEqual( CrawlerTask.objects.count(), 2)
+
+    def test_save_text_with_default_scheme(self):
         inputs = """
         http://www.baidu.com
         """
@@ -237,6 +404,16 @@ class TestPreprocess(TestCase):
         result = CrawlerTask.objects.first()
         print result
         self.assertTrue(result)
+
+    def test_save_with_other_scheme(self):
+        inputs = """
+        htttp://www.baidu
+        """
+        CrawlerTask.objects.delete()
+        self.pre.save(text= "pulikeji://hi.ziyang", settings={"schemes":['ttt']})
+
+        count = CrawlerTask.objects().count()
+        self.assertEqual(count, 0)
 
     def test_save_script(self):
         script = """import json\nprint json.dumps({'uri':"http://www.souhu.com"})"""
@@ -249,6 +426,29 @@ class TestPreprocess(TestCase):
         for g in generators:
             g.delete()
 
+    def test_bulk_save_text(self):
+        inputs = """
+        search://baidu.com
+        search://baidu.comm
+        search://baidu.comr
+        search://baidu.come
+        search://baidu.comew
+        search://baidu.comweq
+        http://baidu.comeraer
+        http://baidu.comerar
+        http://baidu.comg
+        http://baidu.comy
+        """
+        CrawlerTask.objects.delete()
+        schemes= ['search']
+        self.job = Job.objects.first()
+        pre = DataPreprocess(job_id= self.job.id)
+        pre.save_text(inputs, schemes)
+        count = CrawlerTask.objects().count()
+        CrawlerTask.objects.delete()
+        self.assertEqual(count, 10)
+
+
     def test_save_with_text(self):
         inputs = """
         search://baidu.com
@@ -258,7 +458,8 @@ class TestPreprocess(TestCase):
         httd://baidu.com
         """
         schemes= ['search']
-
+        self.job = Job.objects.first()
+        self.pre = DataPreprocess(job_id= self.job.id)
         self.pre.save(text = inputs, settings={'schemes': schemes})
         uris = CrawlerTask.objects(uri = "search://baidu.com")
         self.assertEqual(len(uris), 1)
@@ -276,6 +477,26 @@ class TestPreprocess(TestCase):
         self.assertEqual(generators.count(), 1)
         for g in generators:
             g.delete()
+
+    def test_read_from_file(self):
+        filename = "/Users/princetechs5/crawler/cr-clawer/sources/qyxy/cloud/task_generator.py"
+        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        pre = DataPreprocess(job_id= self.job.id)
+        content = pre.read_from_file(filename)
+
+        print content
+
+
+    def test_save_script_with_invalid_cron(self):
+        script = """import json\nprint json.dumps({'uri':"http://www.google.com"})"""
+        cron = "* * * *"
+        code_type=1
+        schemes=['http']
+        self.job = Job.objects(id='570f73f6c3666e0af4a9efad').first()
+        self.pre = DataPreprocess(job_id= self.job.id)
+        result = self.pre.save_script(script = script, cron = cron, code_type=code_type, schemes=schemes)
+        self.assertFalse(result)
+
 
 # @unittest.skip("showing class skipping")
 class TestDispatch(TestCase):
@@ -339,6 +560,13 @@ class TestGenerateTask(TestCase):
     def tearDown(self):
         TestCase.tearDown(self)
 
+    def test_get_tools(self):
+        python = GenerateCrawlerTask.get_tools_by_code_type(1)
+        self.assertEqual(python, settings.PYTHON)
+
+        shell = GenerateCrawlerTask.get_tools_by_code_type(2)
+        self.assertEqual(shell, settings.SHELL)
+
     def test_settings_shell(self):
         SHELL = os.environ.get('SHELL', '/bin/bash')
         print SHELL
@@ -398,6 +626,53 @@ class TestGenerateTask(TestCase):
         # key 与value 之间有个空格
         self.assertEqual(contents, """{"uri": "http://www.baidu.com"}""")
 
+    def test_save_task_with_invalid_uri(self):
+        job = Job( name = 'invalid uri', status= 1, priority =1)
+        job.save()
+        script = """import json\nprint json.dumps({'uri':"http://www.baidu.com www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+        error_count = CrawlerGeneratorErrorLog.objects().delete()
+        print "generator error count = %d"%(error_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+
+        generator.delete()
+        job.delete()
+        self.assertFalse(os.path.exists(gt.out_path))
+        self.assertGreater(CrawlerGeneratorErrorLog.objects.count(), 0)
+        self.assertEqual(CrawlerTask.objects.count(), 0)
+
+    def test_save_task_with_invalid_json(self):
+        job = Job( name = 'invalid uri', status= 1, priority =1)
+        job.save()
+        script = """import json\nprint json.dumps({'url':"http://www.baidu.com"})"""
+        cron = "* * * * *"
+        generator = CrawlerTaskGenerator(job = job, code = script, cron = cron, code_type= CrawlerTaskGenerator.TYPE_PYTHON, status= CrawlerTaskGenerator.STATUS_ON)
+        generator.save()
+
+        task_count = CrawlerTask.objects.delete()
+        print "task count = %d" %(task_count)
+        log_count = CrawlerGeneratorLog.objects().delete()
+        print "generator log count = %d"%(log_count)
+        error_count = CrawlerGeneratorErrorLog.objects().delete()
+        print "generator error count = %d"%(error_count)
+
+        gt = GenerateCrawlerTask(generator)
+        gt.run()
+
+        generator.delete()
+        job.delete()
+        self.assertFalse(os.path.exists(gt.out_path))
+        self.assertGreater(CrawlerGeneratorErrorLog.objects.count(), 0)
+        self.assertEqual(CrawlerTask.objects.count(), 0)
 
     def test_save_task(self):
         self.gt.save_task()

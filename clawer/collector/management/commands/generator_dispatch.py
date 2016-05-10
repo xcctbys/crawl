@@ -7,6 +7,7 @@ from django.conf import settings
 from html5helper.utils import wrapper_raven
 
 from collector.utils_generator import CrawlerCronTab
+import time
 
 
 class Command(BaseCommand):
@@ -19,5 +20,8 @@ class Command(BaseCommand):
 
     # @wrapper_raven
     def handle(self, *args, **options):
+        print "Before run !Expected output from generator dispatch"
+        start_time = time.time()
         self.cron.task_generator_run()
-        print "After run !Expected output from generator dispatch"
+        end_time = time.time()
+        print "Run time is %f s!"%(end_time - start_time)

@@ -2,7 +2,7 @@
 
 开发人员调用去重器接口,输入由 URIGenerator 等产生的uri列表 ,`uri_list` ,返回去重后的 `uri_list_unique`。运维人员对去重器进行本地或远程部署.
 
-# aFunctional Description
+# Functional Description
 
 ### URI及其它数据类型的去重。
 ### 输入
@@ -29,7 +29,8 @@ URIFilter( )内部
  
 - md5 加密后：
 ```
-      16位 大写	49545C5F7D247B3A  
+      32位 dab19e82e1f9a681ee73346d3e7a575e  
+
 ```
 
   
@@ -565,39 +566,98 @@ def install_redis():
 ```
 uri_filter
 ├── __init__.py
+├── admin.py
 ├── api
 │   ├── __init__.py
-│   └── uri_filter.py
-├── management
+│   ├── api_filter_timing.py
+│   └── api_uri_filter.py
+├── migrations
+│   ├── __init__.py
 │   └── commands
 │       ├── __init__.py
 │       └── start_server.py
-├── migrations
-│   └── __init__.py
 ├── models.py
+├── pybloom
+│   ├── __init__.py
+│   ├── benchmarks.py
+│   ├── pybloom.py
+│   ├── tests.py
+│   └── utils.py
 ├── tests
 │   ├── __init__.py
+│   ├── test_connect_times.py
 │   └── test_uri_filter.py
 ├── urls.py
 ├── utils
 │   ├── __init__.py
+│   ├── bitmap_init.py
 │   ├── bloomfilter.py
-│   ├── filter_utils.py
-│   └── update.py
-└── view.py
+│   ├── gridfs.py
+│   └── mem_filter.py
+└── views.py
 
 
 ```
 
 
   
-# Test 测试
+# Test 测试方案
 
 | 输入            |                                                                      |          输出       |
 |-----------------------------------------------------------|---------------------------------------------|
 |去重类型`filter_typeid` (`int`类型)和 成员数据类型不限的list (列表)           |                   |筛选后的list  |
+### 去重类型
+- filter_typeid 对应参数可以为：
+'uri_generator' ＃uri生成器去重
+'uri_download'#uri下载器去重
+'ip'#ip去重
+'uri_parse'#uri解析去重
 
+- list 为要去重的元素列表
+  元素不限于uri，ip等
+eg: ['www.baidu.com','www.hao.com','www.princetechs.com',.....'www.google.com']
+    ['apple','fruit','orange',......'peanch','lemon']
+    ['192.168.1.10','127.127.38.42'....'145.213.32.44']
+    ['张','赵','李','王' .....'大海','月亮','星星']
+ 列表元素个数在1亿五千万条以内去重误差不大于0.01%
 - 限制条件
 
   输入的格式为list,uri条数越多处理耗时越多,一般1000条左右uri处理用时在s(秒)级.
 
+## 准备工作
+#### 环境要求
+- 项目requirement中所需基本环境
+- redis3.0.7
+- pyredis
+
+### 开启redis服务
+cd到redis安装目录下，
+cd src
+./redis-server &后台启动
+
+### 检查是否启动成功
+``` 
+$ ps -ef | grep redis
+```
+看到redis服务和端口号即开启成功  
+``` 
+redis-server *:6379  
+```
+- 关闭  
+在终端输入  
+```
+~  redis-cli shutdown  
+```
+- start  
+```
+cd到cr－clawer目录下
+在terminal下输入 python manage.py shell 进入环境
+IN[0]:from uri_filter.api.api_uri_filter import *
+IN[1]:from uri_filter.api.api_filter_timing import *
+＃uri_list可从txt文件中读入，每条uri之间以回车换行分割。
+[IN]:from uri_filter.tests.test_uri_filter import*
+[IN2]:file_path = "/tmp/filter_test.txt" ##自定义txt目录
+[IN3]:uri_list = read_urilist_from_txt(file_path)
+[IN4]:uri_list_unique = bloom_filter_api('uri_generator', uri_list)
+[IN]: uri_list_timing = timing_filter_api('uri_parse',uri_list,expire)
+```

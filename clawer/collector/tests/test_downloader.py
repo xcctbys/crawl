@@ -13,6 +13,7 @@ from redis import Redis
 from rq import Queue
 import commands
 import subprocess
+import random
 # from storage.models import Job
 from collector.models import CrawlerDownloadType, CrawlerTask, Job, CrawlerTaskGenerator, CrawlerDownloadSetting, CrawlerDownload
 
@@ -203,7 +204,7 @@ class TestMongodb(TestCase):
 		job1.save()
 		ctg1 = CrawlerTaskGenerator(job=job1, code='echo hello1', cron='* * * * *')
 		ctg1.save()
-		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='http://www.fishc.com', args='i', from_host='1')
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='http://www.sougou.com', args='i', from_host='1')
 		ct1.save()
 		# codestr2 = open('/Users/princetechs3/my_code/code2.sh','r').read()
 		cd1 =CrawlerDownload(job=job1, code='codestr2', types=onetype)
@@ -245,14 +246,65 @@ class TestMongodb(TestCase):
 		ctg1 = CrawlerTaskGenerator(job=job1, code='echo hello1', cron='* * * * *')
 		ctg1.save()
 		# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://重庆/重庆理必易投资管理有限公司/500905004651063/', args='i', from_host='1')
-		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://云南/昆明道岚投资中心（有限合伙）/500905004651063/', args='i', from_host='1')
+		# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/云南/昆明道岚投资中心（有限合伙）/500905004651063/', args='i', from_host='1')
+		# ct1.save()
+		# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/云南/大理富民兴业股权投资基金管理有限公司/532910100007315/', args='i', from_host='1')
+		# ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/北京/北京众润投资基金管理有限公司/110105018837481/', args='i', from_host='1')
 		ct1.save()
-		# codestr2 = open('/Users/princetechs3/my_code/code2.sh','r').read()
+		# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/广东/深圳市郞润承泽资产管理有限公司/440301113021601/', args='i', from_host='1')
+		# ct1.save()
+		# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/广东/金匙资本管理（深圳）有限公司/440301113278486/', args='i', from_host='1')
+		# ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/江苏/江苏银凤金革资产管理有限公司/320106000236597/', args='i', from_host='1')
+		ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/北京/北京汇泽融盛投资有限公司/110106013355060/', args='i', from_host='1')
+		ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/北京/北京盛运德诚投资管理有限公司/110117019169872/', args='i', from_host='1')
+		ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/北京/北京东方汇投资咨询有限公司/1100000015407592/', args='i', from_host='1')
+		ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/北京/瀚丰资本管理有限公司/110108019181240/', args='i', from_host='1')
+		ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/江苏/江苏康耀资产管理有限公司/320125000170935/', args='i', from_host='1')
+		ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/北京/北京匀丰资产管理有限公司/110105019391209/', args='i', from_host='1')
+		ct1.save()
+		ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/北京/中安富海投资管理有限公司/110105010701073/', args='i', from_host='1')
+		ct1.save()
+		# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/广东/深圳润阁投资管理有限公司/440301111930453/', args='i', from_host='1')
+		# ct1.save()
+		# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/广东/深圳市金汇隆投资管理有限公司/440301109991545/', args='i', from_host='1')
+		# ct1.save()
+		# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://localhost/山东/山东正融资产管理有限公司/371300200058462/', args='i', from_host='1')
+		# ct1.save()
+		codestr2 = open('/Users/princetechs3/my_code/code2.sh','r').read()
 		cd1 =CrawlerDownload(job=job1, code='codestr2', types=onetype)
 		cd1.save()
 		cds1 =CrawlerDownloadSetting(job=job1, proxy='122', cookie='22', dispatch_num=50)
 		cds1.save()
 		pass
+
+	def test_insert_20000_uri_job(self):
+		onetype = CrawlerDownloadType(language='other', is_support=True)
+		onetype.save()
+		for i in range(1, 11):
+			job = Job(name='1%s' %(str(i)), info='2%s' %(str(i)), customer='ddd%s' %(str(i)), priority=random.randint(-1, 5))
+			job.save()
+			ctg1 = CrawlerTaskGenerator(job=job, code='echo hello1', cron='* * * * *')
+			ctg1.save()
+			# ct1 = CrawlerTask(job=job1, task_generator=ctg1, uri='enterprise://重庆/重庆理必易投资管理有限公司/500905004651063/', args='i', from_host='1')
+			for j in range(1000):
+				ct1 = CrawlerTask(job=job, task_generator=ctg1, uri='http://www.baidu.com', args='i', from_host='1')
+				ct1.save()
+				ct1 = CrawlerTask(job=job, task_generator=ctg1, uri='http://www.fishc.com', args='i', from_host='1')
+				ct1.save()
+			cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+			cd1.save()
+			cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+			cds1.save()
+		pass
+
 
 
 

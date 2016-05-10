@@ -1,8 +1,7 @@
 #!/bin/bash
 
-WORKDIR="/home/webapps/cr-clawer/clawer"
-PYTHON="/home/virtualenvs/py27/bin/python"
-
+WORKDIR="/home/clawer/cr-clawer/clawer"
+PYTHON="/usr/local/bin/python"
 
 function safe_run()
 {
