@@ -763,7 +763,7 @@ if __name__ == '__main__':
 	if DEBUG:
 		unittest.main()
 	crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-	ent_list = [u'110113014453083'] #, u'110000410227029', u'110000005791844', u'110000007977503', u'110000007552812']
+	ent_list = [u'110000410227029'] #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
 	# ent_list = [u'创业投资中心']
 	# ent_list = [u'北京仙瞳创业投资中心（有限合伙）']
 	for ent_number in ent_list:
