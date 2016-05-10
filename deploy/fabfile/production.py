@@ -115,31 +115,31 @@ def deploy_redis_servers():
         # Already install redis, do nothing.
         # Get redis package.
         run("wget http://download.redis.io/releases/redis-3.0.7.tar.gz")
-        run("tar xzvf redis-3.0.7.tar.gz")
+    run("tar xzvf redis-3.0.7.tar.gz")
 
-        # Compile and install redis.
-        with cd("redis-3.0.7"):
-            with cd("deps"):
-                run("make hiredis jemalloc linenoise lua")
-            run("make")
-            run("make install")
+    # Compile and install redis.
+    with cd("redis-3.0.7"):
+        with cd("deps"):
+            run("make hiredis jemalloc linenoise lua")
+        run("make")
+        run("make install")
 
-        # Stop fire wall and change system config.
-        # TODO: Add iptables, because it's unsafe.
-        run("systemctl stop firewalld.service")
-        run("systemctl disable firewalld.service")
-        run("sysctl vm.overcommit_memory=1")
-        run("sysctl -w fs.file-max=100000")
+    # Stop fire wall and change system config.
+    # TODO: Add iptables, because it's unsafe.
+    run("systemctl stop firewalld.service")
+    run("systemctl disable firewalld.service")
+    run("sysctl vm.overcommit_memory=1")
+    run("sysctl -w fs.file-max=100000")
 
-        # Start redis service on port 7001, 7002, 7003, 7004.
-        # 7001 -> Generator rq
-        # 7002 -> Downloader rq
-        # 7003 -> Structure rq
-        # 7004 -> Filter bitmap
-        run("nohup redis-server redis-3.0.7/redis.conf --port 7001 >& /dev/null < /dev/null &", pty=False)
-        run("nohup redis-server redis-3.0.7/redis.conf --port 7002 >& /dev/null < /dev/null &", pty=False)
-        run("nohup redis-server redis-3.0.7/redis.conf --port 7003 >& /dev/null < /dev/null &", pty=False)
-        run("nohup redis-server redis-3.0.7/redis.conf --port 7004 >& /dev/null < /dev/null &", pty=False)
+    # Start redis service on port 7001, 7002, 7003, 7004.
+    # 7001 -> Generator rq
+    # 7002 -> Downloader rq
+    # 7003 -> Structure rq
+    # 7004 -> Filter bitmap
+    run("nohup redis-server redis-3.0.7/redis.conf --port 7001 >& /dev/null < /dev/null &", pty=False)
+    run("nohup redis-server redis-3.0.7/redis.conf --port 7002 >& /dev/null < /dev/null &", pty=False)
+    run("nohup redis-server redis-3.0.7/redis.conf --port 7003 >& /dev/null < /dev/null &", pty=False)
+    run("nohup redis-server redis-3.0.7/redis.conf --port 7004 >& /dev/null < /dev/null &", pty=False)
 
 
 def ssh_key(key_file="~/.ssh/id_rsa.pub"):
