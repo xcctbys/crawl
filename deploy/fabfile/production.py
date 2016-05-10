@@ -73,9 +73,11 @@ gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc
     # Install mongodb and all libs.
     run("yum install -y mongodb-org")
 
+    run("chown -R mongod:mongod /var/lib/mongo")
+
     # Start mongodb server and Add self turn on.
-    run("systemctl start mongod")
-    run("systemctl enable mongod")
+    run("service mongod start")
+    run("chkconfig mongod on")
 
     # Stop fire wall and change system config.
     # TODO: Add iptables, because it's unsafe.
