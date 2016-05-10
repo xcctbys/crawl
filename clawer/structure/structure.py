@@ -56,40 +56,15 @@ class ParserGenerator(StructureGenerator):
         self.queuegenerator = QueueGenerator()
         self.queues = self.queuegenerator.rq_queues
 
-    def get_parser(self, task):                          #返回解析脚本中的RawParser类的实例
-        if task is not None:
-            structureconfig = StructureConfig.objects(crawlertask = task).first()
-            if structureconfig is not None:
-                current_dir = os.getcwd()
-                parsers_dir = current_dir + "/structure/parsers"
-                if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
-                    os.mkdir(parsers_dir)
-                os.chdir(parsers_dir)
-                parser_init = open("__init__.py", 'w')
-                parser_init.close()            
-                parser_py_script = open(str(structureconfig.parser.parser_id) + ".py", 'w')
-                parser_py_script.write(structureconfig.parser.python_script)
-                parser_py_script.close()                #将python脚本写进解析器文件中并关闭文件
-                sys.path.append(parsers_dir)           #把解析器路徑添加到系統路徑
-                try:
-                    parser_module = __import__(str(structureconfig.parser.parser_id))
-                    rawparser = parser_module.RawParser()
-                except Exception as e:
-                    logging.error("Error importing parser from % d.py" % structureconfig.parser.parser_id)
-                os.chdir(current_dir)                    #切换回之前的工作目录
-                return rawparser
-            else:
-                logging.error("Error finding Configuration file (StructureConfig) for task: % s (uri)" % task.uri)             
-        else:
-            logging.error("Error finding parser from % s (uri) -- Null task" % task.uri)
-            return None
+    def get_parser(self):                          #返回解析脚本中的RawParser类的实例
+        return parser_func
 
     def is_duplicates(self, data):
         return False
 
-    def assign_parse_task(self, priority, rawparser, data):
+    def assign_parse_task(self, priority, parser_function, data):
         try:
-            parse_job_id = self.queuegenerator.enqueue(priority, parser_func, args = [rawparser, data])
+            parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args = [data])
             if parse_job_id == None:
                 return None
             else:
@@ -102,11 +77,11 @@ class ParserGenerator(StructureGenerator):
     def assign_parse_tasks(self):
         tasks = self.filter_downloaded_tasks()
         for task in tasks:
-            rawparser = self.get_parser(task)
+            parser_function = self.get_parser()
             priority = self.get_task_priority(task)
             data = self.get_task_source_data(task)
             if not self.is_duplicates(data):
-                if self.assign_parse_task(priority, rawparser, data) is not None:
+                if self.assign_parse_task(priority, parser_function, data) is not None:
                     pass
                 else:
                     logging.info('Queue for priority "% s" is full' % priority)
@@ -147,23 +122,45 @@ class QueueGenerator(object):
             #parser_job.meta.setdefault("failures", 0)
             return  parser_job.id
 
-def parser_func(rawparser, data):
+def parser_func(data):
     #print "This is the start of parse_func"
-    try:
-        analyzed_data = str(rawparser.parser(data))
-        if analyzed_data is not None:
-            data.crawlertask.update(status = 7)          #如果解析函数执行完且结果为不为空的字符串，则认为解析成功，写回标志位
-            #print "Status updated!"
-            CrawlerAnalyzedData(uri = data.crawlertask.uri,
-                job = data.job,
-                update_date = datetime.datetime.now(),
-                analyzed_data = analyzed_data).save()
-            logging.info("% s (uri) is successfully parsed -- Results saved" % data.crawlertask.uri)
-            return analyzed_data
+    if data is not None:
+        structureconfig = StructureConfig.objects(crawlertask = data.crawlertask).first()
+        if structureconfig is not None:
+            current_dir = os.getcwd()
+            parsers_dir = current_dir + "/structure/parsers"
+            if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
+                os.mkdir(parsers_dir)
+            os.chdir(parsers_dir)
+            parser_init = open("__init__.py", 'w')
+            parser_init.close()            
+            parser_py_script = open(str(structureconfig.parser.parser_id) + ".py", 'w')
+            parser_py_script.write(structureconfig.parser.python_script)
+            parser_py_script.close()                #将python脚本写进解析器文件中并关闭文件
+            sys.path.append(parsers_dir)           #把解析器路徑添加到系統路徑
+            try:
+                parser_module = __import__(str(structureconfig.parser.parser_id))
+                rawparser = parser_module.RawParser()
+                analyzed_data = str(rawparser.parser(data))
+            except Exception as e:
+                logging.error("Error parsing with % d.py" % structureconfig.parser.parser_id)
+            os.chdir(current_dir)                    #切换回之前的工作目录
         else:
-            logging.error("Something wrong while parsing % s (uri) -- NULL result" % data.crawlertask.uri)
-    except:
-            logging.error("Error parsing % s (uri) when using the instance referenced from the script" % data.crawlertask.uri)
+            logging.error("Error finding Configuration file (StructureConfig) for task: % s (uri)" % data.crawlertask.uri)             
+    else:
+        logging.error("Error finding parser from % s (uri) -- Null data" % data.crawlertask.uri)
+
+    if analyzed_data is not None:
+        data.crawlertask.update(status = 7)          #如果解析函数执行完且结果为不为空的字符串，则认为解析成功，写回标志位
+        #print "Status updated!"
+        CrawlerAnalyzedData(uri = data.crawlertask.uri,
+            job = data.job,
+            update_date = datetime.datetime.now(),
+            analyzed_data = analyzed_data).save()
+        logging.info("% s (uri) is successfully parsed -- Results saved" % data.crawlertask.uri)
+        return analyzed_data
+    else:
+        logging.error("Something wrong while parsing % s (uri) -- NULL result" % data.crawlertask.uri)
 
 class ExtracterGenerator(StructureGenerator):
     def assign_tasks(self):

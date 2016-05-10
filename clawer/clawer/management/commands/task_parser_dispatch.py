@@ -6,8 +6,8 @@ from structure.structure import ParserGenerator, insert_test_data, ExecutionTask
 def run():
     	parsergenerator = ParserGenerator()
     	parser_task_queues = parsergenerator.assign_parse_tasks()
-    	#xecutiontasks = ExecutionTasks()
-    	#executiontasks.exec_task()
+    	#executiontasks = ExecutionTasks()
+    	#executiontasks.exec_task(parsergenerator.queues[0])
     	return parser_task_queues
     
 class Command(BaseCommand):
