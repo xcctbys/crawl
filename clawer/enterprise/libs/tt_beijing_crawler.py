@@ -115,6 +115,7 @@ class CrackCheckcode(object):
 
 			# crack_result = self.parse_post_check_page(resp.content)
 			self.info.after_crack_checkcode_page = resp.content
+			print '--------------count:%d---------' % count
 			return True
 			# crack_result = self.parser.parse_post_check_page(resp)
 			# if crack_result:
@@ -706,8 +707,11 @@ class BeijingCrawler(object):
 		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs= {'class':"list", 'style':"min-height: 400px;"})[0].find_all('ul'):
 			# print item_page
 			# print self.info.ent_number
+			start_time = time.time()
 			self.info.result_json = {}
 			self.crack.parser.parse_post_check_page(item_page)
+			end_time = time.time()
+			print '------------------------------------crack_spent_time:%s--------------------' % (end_time - start_time)
 			start_time = time.time()
 			industrial = IndustrialPubliction(self.info, self.crawler, self.parser)
 			industrial.run()
@@ -759,7 +763,7 @@ if __name__ == '__main__':
 	if DEBUG:
 		unittest.main()
 	crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-	ent_list = [u'110113014453083', u'110000410227029', u'110000005791844', u'110000007977503', u'110000007552812']
+	ent_list = [u'110113014453083'] #, u'110000410227029', u'110000005791844', u'110000007977503', u'110000007552812']
 	# ent_list = [u'创业投资中心']
 	# ent_list = [u'北京仙瞳创业投资中心（有限合伙）']
 	for ent_number in ent_list:
