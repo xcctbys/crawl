@@ -330,7 +330,7 @@ crontab -e
 		from smart_proxy.api import Proxy, UseProxy
 
 		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_province(province='beijing') # True or False
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='beijing') # True or False
 		if not is_use_proxy:
 			# 北京不使用代理
 			self.proxies = []
