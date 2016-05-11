@@ -36,6 +36,8 @@ def deploy_web_server():
     run("service nginx start")
     run("chkconfig nginx on")
 
+    # Start web server.
+
     _add_crontab(crontab_path="collector/crontab.txt", mode="w")
 
 
