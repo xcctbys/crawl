@@ -27,6 +27,15 @@ def deploy_web_server():
     _rsync_project(local_project_path="~/Projects/cr-clawer",
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
+
+    # Install nginx and start nginx server.
+    run("yum install epel-release")
+    run("yum install nginx")
+    with cd("{0}/cr-clawer/deploy/".format(REMOTE_PROJECT_PATH)):
+        run("yes | cp -rf config/nginx.conf /etc/nginx/nginx.conf")
+    run("service nginx start")
+    run("chkconfig nginx on")
+
     _add_crontab(crontab_path="collector/crontab.txt", mode="w")
 
 
@@ -162,9 +171,9 @@ def deploy_redis_servers():
 
     # rsync config file.
     _rsync_project(local_project_path="config/redis", remote_project_path="/root/")
-    run("cp -r redis/redis /etc/redis/")
-    run("cp -r redis/init.d/ /etc/init.d/")
-    run("cp -r redis/system/ /etc/systemd/system/")
+    run("yes | cp -r redis/redis /etc/redis/")
+    run("yes | cp -r redis/init.d/ /etc/init.d/")
+    run("yes | cp -r redis/system/ /etc/systemd/system/")
 
     # Add self turn on.
     run("chkconfig redis_7001 on")
@@ -227,7 +236,8 @@ def _execute_in_mysql(sql):
 def _install_project_deps():
 
     # Install all projects deps, such as python-devel, mysql-devel and pip, setuptools ...
-    run("yum install -y wget python-devel mysql-devel gcc gcc-c++ blas-devel lapack-devel")
+    run("yum install -y wget python-devel mysql-devel gcc gcc-c++ blas-devel \
+        lapack-devel libxml2 libxml2-devel libxslt libxslt-devel")
     run("wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py")
     run("pip install -U pip setuptools")
     with cd("{0}/cr-clawer".format(REMOTE_PROJECT_PATH)):
