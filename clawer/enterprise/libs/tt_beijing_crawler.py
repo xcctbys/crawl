@@ -198,7 +198,7 @@ class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
 		
 		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_province(province='beijing')
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='BEIJING')
 		if not is_use_proxy:
 			self.proxies = []
 		else:
