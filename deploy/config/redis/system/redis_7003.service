@@ -1,0 +1,10 @@
+[Unit]
+Description=Redis on port 7003
+
+[Service]
+Type=forking
+ExecStart=/etc/init.d/redis_7003 start
+ExecStop=/etc/init.d/redis_7003 stop
+
+[Install]
+WantedBy=multi-user.target

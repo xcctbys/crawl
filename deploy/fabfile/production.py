@@ -13,6 +13,9 @@ with open("config/servers.json") as conf:
 # Consts
 REMOTE_PROJECT_PATH = "/home/webapps"
 MYSQL_ROOT_PASSWORD = "plkjplkj"
+MYSQL_PROJECT_DATABASE = "clawer"
+MYSQL_PROJECT_USER = "cacti"
+MYSQL_PROJECT_PASSWORD = "cacti"
 
 env.user = "root"
 env.password = "plkj"
@@ -23,29 +26,42 @@ def deploy_web_server():
     # Rsync local project files to remote server.
     _rsync_project(local_project_path="~/Projects/cr-clawer",
                    remote_project_path=REMOTE_PROJECT_PATH)
+    _install_project_deps()
+
+    # Install nginx and start nginx server.
+    run("yum install epel-release")
+    run("yum install nginx")
+    with cd("{0}/cr-clawer/deploy/".format(REMOTE_PROJECT_PATH)):
+        run("yes | cp -rf config/nginx.conf /etc/nginx/nginx.conf")
+    run("service nginx start")
+    run("chkconfig nginx on")
+
     _add_crontab(crontab_path="collector/crontab.txt", mode="w")
 
 
-@roles("CaptchaServers")
-def deploy_captcha_servers():
+@roles("GeneratorServers")
+def deploy_genertor_servers():
     _rsync_project(local_project_path="~/Projects/cr-clawer",
                    remote_project_path=REMOTE_PROJECT_PATH)
+    _install_project_deps()
 
 
 @roles("DownloaderServers")
 def deploy_downloader_servers():
     _rsync_project(local_project_path="~/Projects/cr-clawer",
                    remote_project_path=REMOTE_PROJECT_PATH)
+    _install_project_deps()
 
 
 @roles("FilterServers")
 def deploy_filter_servers():
     _rsync_project(local_project_path="~/Projects/cr-clawer",
                    remote_project_path=REMOTE_PROJECT_PATH)
+    _install_project_deps()
 
 
-@roles("GeneratorServers")
-def deploy_genertor_servers():
+@roles("CaptchaServers")
+def deploy_captcha_servers():
     _rsync_project(local_project_path="~/Projects/cr-clawer",
                    remote_project_path=REMOTE_PROJECT_PATH)
 
@@ -58,6 +74,7 @@ def deploy_structure_servers():
 
 @roles("MongoServers")
 def deploy_mongo_servers():
+
     # Configure the package management system(yum).
     repo_path = "/etc/yum.repos.d/mongodb-org-3.2.repo"
     repo = """[mongodb-org-3.2]
@@ -67,15 +84,18 @@ gpgcheck=1
 enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc
 """
+
     if not exists(repo_path):
         append(repo_path, repo)
 
     # Install mongodb and all libs.
     run("yum install -y mongodb-org")
 
+    run("chown -R mongod:mongod /var/lib/mongo")
+
     # Start mongodb server and Add self turn on.
-    run("systemctl start mongod")
-    run("systemctl enable mongod")
+    run("service mongod start")
+    run("chkconfig mongod on")
 
     # Stop fire wall and change system config.
     # TODO: Add iptables, because it's unsafe.
@@ -85,18 +105,27 @@ gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc
 
 @roles("MysqlServers")
 def deploy_mysql_servers():
-    # Install mariadb and all libs.
-    run("yum install -y mariadb-*")
+    if not exists("/var/run/mariadb/mariadb.pid"):
+        # Install mariadb and all libs.
+        run("yum install -y mariadb-*")
 
-    # Start mariadb server and add self turn on.
-    run("systemctl start mariadb")
-    run("systemctl enable mariadb")
-    run("mysqladmin -u root password {0}".format(MYSQL_ROOT_PASSWORD))
+        # Start mariadb server and add self turn on.
+        run("systemctl start mariadb")
+        run("systemctl enable mariadb")
+        run("mysqladmin -u root password {0}".format(MYSQL_ROOT_PASSWORD))
 
-    # Stop fire wall and change system config.
-    # TODO: Add iptables, because it's unsafe.
-    run("systemctl stop firewalld.service")
-    run("systemctl disable firewalld.service")
+        # Create project database.
+        sql = "CREATE DATABASE {0} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
+        _execute_in_mysql(sql.format(MYSQL_PROJECT_DATABASE))
+
+        # Create project user and grant all privileges of the project database to the user.
+        sql = "CREATE USER '{0}'@'localhost' IDENTIFIED BY '{1}';GRANT ALL ON {2}.* TO 'cacti'@'localhost';CREATE USER '{0}'@'%' IDENTIFIED BY '{1}';GRANT ALL ON {2}.* TO 'cacti'@'%';FLUSH PRIVILEGES;"
+        _execute_in_mysql(sql.format(MYSQL_PROJECT_USER, MYSQL_PROJECT_PASSWORD, MYSQL_PROJECT_DATABASE))
+
+        # Stop fire wall and change system config.
+        # TODO: Add iptables, because it's unsafe.
+        run("systemctl stop firewalld.service")
+        run("systemctl disable firewalld.service")
 
 
 @roles("NginxServers")
@@ -122,22 +151,48 @@ def deploy_redis_servers():
             run("make")
             run("make install")
 
-        # Stop fire wall and change system config.
-        # TODO: Add iptables, because it's unsafe.
-        run("systemctl stop firewalld.service")
-        run("systemctl disable firewalld.service")
-        run("sysctl vm.overcommit_memory=1")
-        run("sysctl -w fs.file-max=100000")
+    # Stop fire wall and change system config.
+    # TODO: Add iptables, because it's unsafe.
+    run("systemctl stop firewalld.service")
+    run("systemctl disable firewalld.service")
 
-        # Start redis service on port 7001, 7002, 7003, 7004.
-        # 7001 -> Generator rq
-        # 7002 -> Downloader rq
-        # 7003 -> Structure rq
-        # 7004 -> Filter bitmap
-        run("nohup redis-server redis-3.0.7/redis.conf --port 7001 >& /dev/null < /dev/null &", pty=False)
-        run("nohup redis-server redis-3.0.7/redis.conf --port 7002 >& /dev/null < /dev/null &", pty=False)
-        run("nohup redis-server redis-3.0.7/redis.conf --port 7003 >& /dev/null < /dev/null &", pty=False)
-        run("nohup redis-server redis-3.0.7/redis.conf --port 7004 >& /dev/null < /dev/null &", pty=False)
+    # Redis system configs.
+    run("sysctl vm.overcommit_memory=1")
+    run("sysctl -w fs.file-max=100000")
+
+    # Create redis configs dir.
+    run("mkdir -p /etc/redis")
+
+    # Create redis data dir.
+    run("mkdir -p /var/db/redis/7001")
+    run("mkdir -p /var/db/redis/7002")
+    run("mkdir -p /var/db/redis/7003")
+    run("mkdir -p /var/db/redis/7004")
+
+    # rsync config file.
+    _rsync_project(local_project_path="config/redis", remote_project_path="/root/")
+    run("yes | cp -r redis/redis /etc/redis/")
+    run("yes | cp -r redis/init.d/ /etc/init.d/")
+    run("yes | cp -r redis/system/ /etc/systemd/system/")
+
+    # Add self turn on.
+    run("chkconfig redis_7001 on")
+    run("chkconfig redis_7002 on")
+    run("chkconfig redis_7003 on")
+    run("chkconfig redis_7004 on")
+
+    # Start redis service on port 7001, 7002, 7003, 7004.
+    # 7001 -> Generator rq
+    # 7002 -> Downloader rq
+    # 7003 -> Structure rq
+    # 7004 -> Filter bitmap
+    run("service redis_7001 start")
+    run("service redis_7002 start")
+    run("service redis_7003 start")
+    run("service redis_7004 start")
+
+    # Clear
+    run("rm -rf /root/redis")
 
 
 def ssh_key(key_file="~/.ssh/id_rsa.pub"):
@@ -172,3 +227,18 @@ def _add_crontab(crontab_path="", mode="a"):
         run("crontab /tmp/crondump")
     else:
         run("crontab {0}/cr-clawer/deploy/{1}".format(REMOTE_PROJECT_PATH, crontab_path))
+
+
+def _execute_in_mysql(sql):
+    run('mysql -u{0} -p{1} -e "{2}"'.format("root", MYSQL_ROOT_PASSWORD, sql))
+
+
+def _install_project_deps():
+
+    # Install all projects deps, such as python-devel, mysql-devel and pip, setuptools ...
+    run("yum install -y wget python-devel mysql-devel gcc gcc-c++ blas-devel \
+        lapack-devel libxml2 libxml2-devel libxslt libxslt-devel")
+    run("wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py")
+    run("pip install -U pip setuptools")
+    with cd("{0}/cr-clawer".format(REMOTE_PROJECT_PATH)):
+        run("pip install -r {0}".format("deploy/requirements/production.txt"))

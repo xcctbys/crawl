@@ -16,7 +16,7 @@ import requests
 import logging
 from crawler import Crawler, Parser
 from bs4 import BeautifulSoup
-from smart_proxy.api import Proxy, UseProxy
+# from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -104,6 +104,7 @@ class CrackCheckcode(object):
 			data = {'name': self.info.ent_number, 'verifyCode': ckcode[1]}
 			resp = self.crawler.crawl_page_by_url_post(self.info.urls['post_checkcode'], data=data)
 
+			print resp
 			if resp.find("onclick") >= 0 : #and self.parse_post_check_page(resp):
 				self.info.after_crack_checkcode_page = resp
 				return True
@@ -211,15 +212,16 @@ class CrackCheckcode(object):
 class MyCrawler(Crawler):
 	def __init__(self, info=None, *args, **kwargs):
 		# 调用代理，及配置是否使用代理的接口。完成使用代理或者不使用代理。
-		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_province(province='jiangsu')
-		if not is_use_proxy:
-			self.proxies = []
-		else:
-			proxy = Proxy()
-			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
-						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
-		print 'self.proxies:', self.proxies		
+		# useproxy = UseProxy()
+		# is_use_proxy = useproxy.get_province_is_use_province(province='jiangsu')
+		# if not is_use_proxy:
+		# 	self.proxies = []
+		# else:
+		# 	proxy = Proxy()
+		# 	self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
+		# 				'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
+		# print 'self.proxies:', self.proxies		
+		self.proxies = []
 		self.reqst = requests.Session()
 		self.reqst.headers.update({
 				'Accept': 'text/html, application/xhtml+xml, */*',
@@ -619,15 +621,19 @@ class JiangsuCrawler(object):
 			f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
 	
 	def run(self, ent_number=None, *args, **kwargs):
+		start_time = time.time()
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
 		is_valid = self.crack.run(ent_number)
 		if not is_valid:
 			print 'error,the register is not valid...........'
 			return
+		end_time = time.time()
+		print '-------------------------crack_spend_time:%s--------------' % (end_time - start_time)
 		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('a'):
 			# print item_page
 			print self.info.ent_number
 			self.info.result_json = {}
+			start_time = time.time()
 			self.crack.parse_post_check_page(item_page)
 			industrial = IndustrialPubliction(self.info, self.crawler, self.parser)
 			industrial.run()
@@ -637,6 +643,8 @@ class JiangsuCrawler(object):
 			other.run()
 			judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
 			judical.run()
+			end_time = time.time()
+			print '--------------------------crawler_spend_time:%s' % (end_time - start_time)
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
 		return self.info.result_json_list
@@ -669,14 +677,12 @@ class TestJiangsuCrawler(unittest.TestCase):
 			crawler.run(ent_number=ent_number)
 
 
-
-
 if __name__ == '__main__':
 
 	if DEBUG:
 		unittest.main()
 
 	crawler = JiangsuCrawler('./enterprise_crawler/jiangsu.json')
-	ent_list = [u'创业投资中心']
+	ent_list = [u'320100000149869'] #, u'320106000236597', '320125000170935']
 	for ent_number in ent_list:
 		crawler.run(ent_number=ent_number)

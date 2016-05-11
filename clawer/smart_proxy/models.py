@@ -18,4 +18,4 @@ class IpUser(models.Model):
 	update_datetime = models.DateTimeField(auto_now=True)
 
 	def __unicode__(self):
-		return '%s %s' % (self.province, self.is_use)
+		return '%s %s' % (self.province, self.is_use_proxy)

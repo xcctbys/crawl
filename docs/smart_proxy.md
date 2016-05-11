@@ -87,7 +87,12 @@ script/run.sh：安全运行django命令，实现代理ip抓取与轮询的定�
 </pre>
 
 ## Object Description 对象描述
-###  数据库表设计
+### 	数据库表 smart_proxy_useproxy 设计
+
+	id				:	1						# int, key, 自增
+	province		:	'beijing'				# char
+	is_use_proxy	:	True					# Bool, 该省份是否使用代理
+###  数据库表smart_proxy_proxyip设计
 	
 	id				:	1						# int, key, 自增
 	ip_port			:	'127.0.0.1:8080'		# char, unique, ip:port
@@ -102,6 +107,7 @@ script/run.sh：安全运行django命令，实现代理ip抓取与轮询的定�
 ### 数据库存储策略
 
 * 存入：在ip代理网页分析时，获取得到的 ip:port, province, is_valid.如果没有province,则设置为'other'.
+* 策略：调用判断省份是否使用代理 提供的 `get_province_is_use_province`， 获知该省份是否使用代理。
 * 读取：调用提供的 `get_proxy` 接口，获得代理ip列表，用多进程，或者使用单进程只运行一个代理，如果出错，则换取另外一个进行爬取。
 * 清理：根据标志字段及时间字段，轮询对数据库的每一条代理进行测试，并改变is_valid字段，根据配置文件设置存储的最大代理ip数量,并控制数据此数量。
 
@@ -112,6 +118,14 @@ script/run.sh：安全运行django命令，实现代理ip抓取与轮询的定�
 Define class `ProxyIp`
 	
 	# models.py
+	class IpUser(models.Model):
+		province = models.CharField(max_length=20)
+		is_use_proxy = models.BooleanField(default=False)
+		update_datetime = models.DateTimeField(auto_now=True)
+
+		def __unicode__(self):
+			return '%s %s' % (self.province, self.is_use_proxy)
+			
 	class ProxyIp(BaseModel):
 		ip_port = models.charField(max_length=20, unique=True)
 		province = models.CharField(max_length=20)
@@ -121,6 +135,7 @@ Define class `ProxyIp`
 		
 		def __unicode__(self):
 			return self.ip_port
+			
 ###  抓取及轮询实现
 	
 `crawer_proxy_ip.py` # 实现插件化的代理ip抓取
@@ -142,7 +157,7 @@ Define class `ProxyIp`
     	@generator
 		def run(self):
     		#得到有多少个爬虫，多少个插件。
-    		proxy_list = os.listdir(os.path.join(os.getcwd(), proxy)).pop('__init__.py')
+    		proxy_list = [XiciProxy, SixProxy, ...]
     		for item in porxy_list:
     			self.do_with(item)
     if __name__ == '__main__':
@@ -205,33 +220,13 @@ calss Proxy(object):
 </pre>
 		
 
-	
-#### url api 调用接口实现
-`urls.py` # 实现用户 url api 接口实现
-
-	urls = patterns("start_proxy", 
-    url(r"^show_ip/$", "show_ip"),	。
-   	)
- `views.py` 
- 
- 	from . proxy import *
-	from api import Proxy
-
-	def show_ip(requests):
-		num = requests.GET.get('num')
-		province = requests.GET.get('province')
-		proxy = Proxy()
-		json_ip = dict(zip(range(1,num), proxy.get_proxy()))
-    	return render('html', 'json_ip':json_ip)
-
-
 # Test 测试
 
 ### 测试环境
 - python manage.py shell 环境下测试（manage.py test 会使用test数据库并且每次结束后删除）
 
 ### 数据源的获取(plugins/xici.py 文件下有已经写好的测试，可以直接ctrl+b执行，也可以如下方法测试)
-python manage.py shell 环境下测试（manage.py test 会使用test数据库并且每次结束后删除）
+
 
 - 输入：
 
@@ -324,23 +319,59 @@ time safe_run  $*
 </pre> 
 crontab -e
 	
-		*/20 * * * * cd /home/webapps/cr-clawer/smart_proxy/script/ run.sh crawerproxyip
+		*/20 * * * * cd /home/webapps/cr-clawer/smart_proxy/script/ run.sh crawlerproxyip
 		*/10 * * * * cd /home/webapps/cr-clawer/smart_proxy/script/ run.sh roundproxyip
 
 	
 
 ### 使用代理ip
-* example use `get_proxy` 开发人员使用获取代理ip接口
+* example use `proxy` in beijing
 
-		from smart_proxy.api import Proxy
-		proxy = Proxy()
-		proxy_list = proxy.get_proxy(5,'Beijing') #['ip:port', ...]
+		from smart_proxy.api import Proxy, UseProxy
 
-* example use url  使用url获取json格式的代理ip
+		useproxy = UseProxy()
+		is_use_proxy = useproxy.get_province_is_use_province(province='beijing') # True or False
+		if not is_use_proxy:
+			# 北京不使用代理
+			self.proxies = []
+		else:
+			# 北京省份想使用代理
+			proxy = Proxy()
+			proxy_list = proxy.get_proxy(5,'Beijing') #['ip:port', ...]
+
+
+
+* `在执行之前，确保mysql里，数据库clawer 里有 smart_proxy_proxyip, smart_proxy_useproxy 两个表。
+在使用代理之前，需要初始化表 smart_proxy_useproxy,操作如下：`
+	- 1，启动shell环境
+	- python manage.py shell
+	- 2, 引入包
+	- from smart_proxy.api import UseProxy
+	- 3， 初始化
+		
+		
+			useproxy = UseProxy()
+			useproxy.set_all_default()
+			useproxy. change_use_proxy_one_province(province=‘beijing’, is_use_proxy=True) # 改变北京为需要使用代理状态
+
+
+	- 也可以全部设置
+	- useproxy.change_use_proxy_all_province(is_use_proxy=False)  # 改变全部为不使用代理。
+		
+* `在本地执行之前，确保mysql 里，数据库 smart_proxy_proxyip 表里有ip代理数据，否则需要先执行如下操作： `
+
+	- 手动爬取代理ip，进入 shell
 	
-		input: ‘http://.../show_ip?province=Beijing&num=5'
-		output: {'id_1':'127.0.0.1:8080', ...}
-
+			from smart_proxy.crawler_proxy_ip import Crawler
+			crawler = Crawler()
+			crawler.run() #	smart_porxy_proxyip 表将会有数据
+		
+	- 可以选择进行轮询
+	
+			from smart_poxy.round_proxy_ip import run
+			run()  ######会使用多进程进行轮询
+			
+			
 ## 已经找到有免费代理的网址
 1. 好代理 ：[http://www.haodailiip.com/guonei](http://www.haodailiip.com/guonei)
 2. 西刺代理：[http://www.xicidaili.com/nn/](http://www.xicidaili.com/nn/)
