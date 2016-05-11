@@ -3,7 +3,7 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import re
 import codecs
 import json
@@ -16,7 +16,7 @@ import requests
 import logging
 from crawler import Crawler, Parser
 from bs4 import BeautifulSoup
-from smart_proxy.api import Proxy, UseProxy
+# from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -104,6 +104,7 @@ class CrackCheckcode(object):
 			data = {'name': self.info.ent_number, 'verifyCode': ckcode[1]}
 			resp = self.crawler.crawl_page_by_url_post(self.info.urls['post_checkcode'], data=data)
 
+			print resp
 			if resp.find("onclick") >= 0 : #and self.parse_post_check_page(resp):
 				self.info.after_crack_checkcode_page = resp
 				return True
@@ -211,15 +212,16 @@ class CrackCheckcode(object):
 class MyCrawler(Crawler):
 	def __init__(self, info=None, *args, **kwargs):
 		# 调用代理，及配置是否使用代理的接口。完成使用代理或者不使用代理。
-		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_province(province='jiangsu')
-		if not is_use_proxy:
-			self.proxies = []
-		else:
-			proxy = Proxy()
-			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
-						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
-		print 'self.proxies:', self.proxies		
+		# useproxy = UseProxy()
+		# is_use_proxy = useproxy.get_province_is_use_province(province='jiangsu')
+		# if not is_use_proxy:
+		# 	self.proxies = []
+		# else:
+		# 	proxy = Proxy()
+		# 	self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
+		# 				'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
+		# print 'self.proxies:', self.proxies		
+		self.proxies = []
 		self.reqst = requests.Session()
 		self.reqst.headers.update({
 				'Accept': 'text/html, application/xhtml+xml, */*',
@@ -675,14 +677,12 @@ class TestJiangsuCrawler(unittest.TestCase):
 			crawler.run(ent_number=ent_number)
 
 
-
-
 if __name__ == '__main__':
 
 	if DEBUG:
 		unittest.main()
 
 	crawler = JiangsuCrawler('./enterprise_crawler/jiangsu.json')
-	ent_list = [u'创业投资中心']
+	ent_list = [u'320100000149869'] #, u'320106000236597', '320125000170935']
 	for ent_number in ent_list:
 		crawler.run(ent_number=ent_number)
