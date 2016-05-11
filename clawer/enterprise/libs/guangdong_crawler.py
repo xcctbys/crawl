@@ -3,8 +3,8 @@
 import requests
 import logging
 import os
-import sys
-import time
+# import sys
+# import time
 import re
 from . import settings
 import random
@@ -20,10 +20,8 @@ from .Guangdong2 import Guangdong2
 
 urls = {
     'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
-    'prefix_url_0':'http://www.szcredit.com.cn/web/GSZJGSPT/',
-    'prefix_url_1':'http://gsxt.gzaic.gov.cn/search/',
     'page_search': 'http://gsxt.gdgs.gov.cn/aiccips/index',
-    'page_Captcha': 'http://gsxt.gdgs.gov.cn/aiccips/verify.html',
+    'page_captcha': 'http://gsxt.gdgs.gov.cn/aiccips/verify.html',
     'page_showinfo': 'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/showInfo.html',
     'checkcode':'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/checkCode.html',
 }
@@ -33,7 +31,6 @@ headers = { 'Connetion': 'Keep-Alive',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
 
-#HOSTS =["www.szcredit.com.cn", "gsxt.gzaic.gov.cn", "gsxt.gdgs.gov.cn/aiccips"]
 HOSTS =["www.szcredit.com.cn", "gsxt.gzaic.gov.cn", "gsxt.gdgs.gov.cn/aiccips"]
 
 class GuangdongClawer(object):
@@ -48,11 +45,8 @@ class GuangdongClawer(object):
         self.requests = requests.Session()
         self.requests.headers.update(headers)
         self.ents = []
-        self.main_host = ""
-        self.json_dict={}
         self.json_restore_path = json_restore_path
         self.dir_restore_path = settings.json_restore_path + '/guangdong/'
-        #self.json_restore_path = settings.json_restore_path + '/guangdong.json'
         #验证码图片的存储路径
         self.path_captcha = settings.json_restore_path + '/guangdong/ckcode.jpg'
         self.timeout = 20
@@ -65,12 +59,12 @@ class GuangdongClawer(object):
             logging.error(u"Something wrong when getting the url:%s , status_code=%d", url, r.status_code)
             return
         r.encoding = "utf-8"
-        #logging.error("searchpage html :\n  %s", r.text)
-        self.html_search = r.text
+        return r.text
     #获得搜索结果展示页面
     def get_page_showInfo(self, url, datas):
         r = self.requests.post( url, data = datas , timeout = self.timeout)
         if r.status_code != 200:
+            logging.error(u"Something wrong when posting the url:%s , status_code=%d", url, r.status_code)
             return False
         r.encoding = "utf-8"
         #logging.error("showInfo page html :\n  %s", r.text)
@@ -80,7 +74,7 @@ class GuangdongClawer(object):
     def analyze_showInfo(self):
         if self.html_showInfo is None:
             logging.error(u"Getting Page ShowInfo failed\n")
-        # call Object Analyze's method
+            return
         Ent = []
         soup = BeautifulSoup(self.html_showInfo, "html5lib")
         divs = soup.find_all("div", {"class":"list"})
@@ -91,17 +85,17 @@ class GuangdongClawer(object):
         self.ents = Ent
 
     # 破解验证码页面
-    def crawl_page_captcha(self, url_Captcha, url_CheckCode,url_showInfo,  textfield= '440301102739085'):
+    def crawl_page_captcha(self, url_page_search ,url_captcha, url_CheckCode,url_showInfo,  textfield= '440301102739085'):
+        html = self.crawl_page_search(url_page_search)
 
         count = 0
         while count < 15:
             count+= 1
-            r = self.requests.get( url_Captcha, timeout = self.timeout)
+            r = self.requests.get( url_captcha, timeout = self.timeout)
             if r.status_code != 200:
-                logging.error(u"Something wrong when getting the Captcha url:%s , status_code=%d", url_Captcha, r.status_code)
+                logging.error(u"Something wrong when getting the Captcha url:%s , status_code=%d", url_captcha, r.status_code)
                 return
-            self.Captcha = r.content
-            if self.save_captcha():
+            if self.save_captcha(r.content):
                 result = self.crack_captcha()
                 #print result
                 datas= {
@@ -126,8 +120,8 @@ class GuangdongClawer(object):
         r = self.requests.post( url, data = datas, timeout =self.timeout)
         if r.status_code != 200:
             return False
-        #print r.json()
         return r.json()
+
     #调用函数，破解验证码图片并返回结果
     def crack_captcha(self):
         if os.path.exists(self.path_captcha) is False:
@@ -135,17 +129,17 @@ class GuangdongClawer(object):
             return
         result = self.CR.predict_result(self.path_captcha)
         return result[1]
-        #print result
+
     # 保存验证码图片
-    def save_captcha(self):
+    def save_captcha(self, captcha):
         url_Captcha = self.path_captcha
-        if self.Captcha is None:
+        if captcha is None:
             logging.error(u"Can not store Captcha: None\n")
             return False
         self.write_file_mutex.acquire()
         f = open(url_Captcha, 'w')
         try:
-            f.write(self.Captcha)
+            f.write(captcha)
         except IOError:
             logging.error("%s can not be written", url_Captcha)
         finally:
@@ -169,9 +163,9 @@ class GuangdongClawer(object):
 
             for ent in self.ents:
                 #http://www.szcredit.com.cn/web/GSZJGSPT/ QyxyDetail.aspx?rid=acc04ef9ac0145ecb8c87dd5710c2f86
-                #http://gsxt.gzaic.gov.cn/search/ search!entityShow?entityVo.pripid=440100100012003051400230
+                # http://gsxt.gzaic.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_cPlFMHz7UORGuPsot6Ab+gyFHBRDGmiqdLAvpr4C7UU=-7PUW92vxF0RgKhiSE63aCw==
                 #http://gsxt.gdgs.gov.cn/aiccips /GSpublicity/GSpublicityList.html?service=entInfo_+8/Z3ukM3JcWEfZvXVt+QiLPiIqemiEqqq4l7n9oAh/FI+v6zW/DL40+AV4Hja1y-dA+Hj5oOjXjQTgAhKSP1lA==
-                #HOSTS =["www.szcredit.com.cn", "121.8.227.200:7001", "gsxt.gdgs.gov.cn/aiccips"]
+
                 m = re.match('http', ent)
                 if m is None:
                     ent = urls['host']+ ent[3:]
@@ -184,6 +178,7 @@ class GuangdongClawer(object):
                             logging.error(u"This %s enterprise is type 0"%(self.ent_num))
                             guangdong = Guangdong0(self.requests, self.ent_num)
                             sub_json_dict =  guangdong.run(ent)
+                        # gsxt.gzaic.gov.cn
                         elif i==1:
                             logging.error(u"This %s enterprise is type 1"%(self.ent_num))
                             guangdong = Guangdong1(self.requests)
@@ -193,6 +188,8 @@ class GuangdongClawer(object):
                             logging.error(u"This %s enterprise is type 2"%(self.ent_num))
                             guangdong = Guangdong2(self.requests)
                             sub_json_dict = guangdong.run(ent)
+                        else:
+                            logging.error(u"This %s enterprise is no type!"%(self.ent_num))
                         break
                 else:
                     logging.error(u"There are no response hosts:%s\n" % self.ent_num)
@@ -209,13 +206,11 @@ class GuangdongClawer(object):
         json_dict = {}
         self.ent_num = str(ent_num)
         logging.error('crawl ID: %s\n'% ent_num)
-        self.crawl_page_search(urls['page_search'])
-        self.crawl_page_captcha(urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        self.crawl_page_captcha(urls['page_search'], urls['page_captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
         self.analyze_showInfo()
         data = self.crawl_page_main()
         json_dict[ent_num] = data
         return json.dumps(json_dict)
-        #json_dump_to_file(self.json_restore_path , self.json_dict)
 
 def html_to_file(path, html):
     write_type = 'w'

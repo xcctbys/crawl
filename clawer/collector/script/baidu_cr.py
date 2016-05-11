@@ -11,7 +11,10 @@ import cPickle as pickle
 from bs4 import BeautifulSoup
 import requests
 import MySQLdb
-import time
+import timefrom gevent import Greenlet
+# import gevent.monkey
+# gevent.monkey.patch_socket()
+import gevent
 requests.packages.urllib3.disable_warnings()
 
 
@@ -214,18 +217,49 @@ class GeneratorTest(unittest.TestCase):
         self.assertEqual(result['current_page'], 0)
 
 
+ents = []
+class MyGreenlet(Greenlet):
+
+    def __init__(self):
+        Greenlet.__init__(self)
+        self.g = Generator()
+
+    def _run(self):
+        # self.asynchronous()
+        self.obtain()
+
+    def obtain(self):
+        self.g.obtain_enterprises()
+        threads = []
+        for company in self.g.enterprises:
+            logging.debug("%s"%(company))
+            for each_keyword in KEYWORD:  # 遍历搜索关键词
+                keyword = each_keyword
+                threads.append(gevent.spawn(self.g.page_url, company, keyword))
+        gevent.joinall(threads)
 
 if __name__ == "__main__":
 
     if DEBUG:  # 如果DEBUG为True则进入测试单元
         unittest.main()
     else:
-        start = time.time()
-        generator = Generator()
-        generator.search_url_with_batch()
-        end = time.time()
-        logging.error("Totoal run time = %f ."%(end - start))
+        # start = time.time()
+        # generator = Generator()
+        # generator.search_url_with_batch()
+        # end = time.time()
+        # logging.error("Totoal run time = %f ."%(end - start))
 
-        for uri in generator.uris:
-            str_uri = uri.encode("utf-8").split(" ")
+        # for uri in generator.uris:
+        #     str_uri = uri.encode("utf-8").split(" ")
+        #     print json.dumps({"uri": str_uri[0], "args": str_uri[1]})
+
+        startd = time.time()
+        mg = MyGreenlet()
+        mg.start()
+        mg.join()
+        endd = time.time()
+        logging.error("Total running time is %f"%(endd - startd))
+
+        for uri in mg.g.uris:  # 遍历输出uris
+            str_uri = str(uri.encode("utf-8")).split(" ")
             print json.dumps({"uri": str_uri[0], "args": str_uri[1]})

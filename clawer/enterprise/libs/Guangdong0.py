@@ -12,8 +12,11 @@ import json
 import urlparse
 import codecs
 from bs4 import BeautifulSoup
-import common_func as common_func
+# import common_func as common_func
 import datetime
+import gevent
+from gevent import Greenlet
+
 
 urls = {
     'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
@@ -27,9 +30,13 @@ headers = { 'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
+
+
+
 class Crawler(object):
-    def __init__(self, analysis, req= None):
-        self.analysis = analysis
+    analysis = None
+    def __init__(self, req= None):
+        # self.analysis = analysis
         if req:
             self.requests = req
         else:
@@ -39,14 +46,13 @@ class Crawler(object):
         self.json_dict={}
         self.timeout = 20
 
-
     def crawl_xingzhengchufa_page(self, url, text):
         data = self.analysis.analyze_xingzhengchufa(text)
         r = self.requests.post( url, data, timeout =self.timeout)
         if r.status_code != 200:
             return False
-        #html_to_file("xingzhengchufa.html",r.text)
         return r.text
+
     def crawl_biangengxinxi_page(self, url, text):
         datas = self.analysis.analyze_biangengxinxi(text)
         r2 = self.requests.post( url, datas, timeout=self.timeout, headers = {'X-Requested-With': 'XMLHttpRequest', 'X-MicrosoftAjax': 'Delta=true', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',})
@@ -58,12 +64,11 @@ class Crawler(object):
         sub_json_dict={}
         try:
             page = self.crawl_page_by_url(url)['page']
-            common_func.save_to_html(self.path, 'ind_comm_pub.html', page)
-            #html_to_file("pub.html", page)
+            # common_func.save_to_html(self.path, 'ind_comm_pub.html', page)
             page_xingzhengchufa = self.crawl_xingzhengchufa_page(url, page)
-            common_func.save_to_html(self.path, 'xingzhengchufa.html', page_xingzhengchufa)
+            # common_func.save_to_html(self.path, 'xingzhengchufa.html', page_xingzhengchufa)
             page_biangengxinxi = self.crawl_biangengxinxi_page(url, page_xingzhengchufa)
-            common_func.save_to_html(self.path, 'biangengxinxi.html', page_biangengxinxi)
+            # common_func.save_to_html(self.path, 'biangengxinxi.html', page_biangengxinxi)
 
             dict_jiben = self.analysis.parse_page(page, 'jibenxinxi')  #   基本信息, 投资人信息
             sub_json_dict['ind_comm_pub_reg_shareholder'] = dict_jiben[u'投资人信息'] if dict_jiben.has_key(u'投资人信息') else []
@@ -92,15 +97,13 @@ class Crawler(object):
             raise e
         finally:
             return sub_json_dict
-        #json_dump_to_file("json_dict.json", self.json_dict)
-
 
     #爬取 企业公示信息 页面
     def crawl_ent_pub_pages(self, url):
         sub_json_dict = {}
         try:
             page = self.crawl_page_by_url(url)['page']
-            common_func.save_to_html(self.path, 'ent_pub_pages.html', page)
+            # common_func.save_to_html(self.path, 'ent_pub_pages.html', page)
             p = self.analysis.parse_page(page, 'qiyenianbao')
             sub_json_dict['ent_pub_ent_annual_report'] = p[u'企业年报'] if p.has_key(u'企业年报') else []
             p = self.analysis.parse_page(page, 'touziren')
@@ -125,7 +128,7 @@ class Crawler(object):
         sub_json_dict={}
         try:
             page = self.crawl_page_by_url(url)['page']
-            common_func.save_to_html(self.path, 'other_dept_pub_pages.html', page)
+            # common_func.save_to_html(self.path, 'other_dept_pub_pages.html', page)
             xk = self.analysis.parse_page(page, 'xingzhengxuke')
             sub_json_dict["other_dept_pub_administration_license"] =  xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []  #行政许可信息
             xk = self.analysis.parse_page(page, 'xingzhengchufa')
@@ -148,15 +151,14 @@ class Crawler(object):
             return False
         return {'page' : r.text, 'url': r.url}
 
-    def run(self, ent):
+    def run(self, ent_str):
 
-        todaystr = datetime.datetime.now()
-        self.path = os.path.join(common_func.PATH, todaystr.strftime("%Y/%m/%d") , str(self.ent_num))
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-
+        # todaystr = datetime.datetime.now()
+        # self.path = os.path.join(common_func.PATH, todaystr.strftime("%Y/%m/%d") , str(self.ent_num))
+        # if not os.path.exists(self.path):
+            # os.makedirs(self.path)
         sub_json_dict= {}
-        rid = ent[ent.index("rid")+4: len(ent)]
+        rid = ent_str[ent_str.index("rid")+4: len(ent_str)]
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=" + rid
         sub_json_dict.update(self.crawl_ind_comm_pub_pages(url))
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QynbDetail.aspx?rid=" + rid
@@ -165,6 +167,28 @@ class Crawler(object):
         sub_json_dict.update(self.crawl_other_dept_pub_pages(url))
 
         return sub_json_dict
+
+    def run_asyn(self, ent_str):
+        start_t = time.time()
+        threads = []
+        sub_json_dict= {}
+        rid = ent_str[ent_str.index("rid")+4: len(ent_str)]
+        url = "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=" + rid
+        thread1 = gevent.spawn(self.crawl_ind_comm_pub_pages, url)
+        # sub_json_dict.update(self.crawl_ind_comm_pub_pages(url))
+        url = "http://www.szcredit.com.cn/web/GSZJGSPT/QynbDetail.aspx?rid=" + rid
+        thread2 = gevent.spawn(self.crawl_ent_pub_pages, url)
+
+        # sub_json_dict.update(self.crawl_ent_pub_pages(url))
+        url = "http://www.szcredit.com.cn/web/GSZJGSPT/QtbmDetail.aspx?rid=" + rid
+        thread3 = gevent.spawn(self.crawl_other_dept_pub_pages, url)
+
+        # sub_json_dict.update(self.crawl_other_dept_pub_pages(url))
+
+        threads = [thread1, thread2, thread3]
+        gevent.joinall(threads)
+        end_t = time.time()
+        print "total time is %f s!"%(end_t - start_t)
 
 class Analyze(object):
 
@@ -640,132 +664,21 @@ class Analyze(object):
             pass
         return page_data
 
-    """
-    def parse_ent_pub_annual_report_page(self, page_dict, table_name):
-        url = page_dict['url']
-        page = page_dict['page']
-        page_data= {}
-        soup = BeautifulSoup(page, "html5lib")
-        number = len(soup.find('ul', {'id': 'ContentPlaceHolder1_ulTag'}).find_all('li'))
-        if number == 0 :
-            logging.error(u"Could not find tab in annual report page")
-            return
-        generator = soup.find("input", {"id": "__VIEWSTATEGENERATOR"})['value']
-        validation = soup.find("input", {"id": "__EVENTVALIDATION"})['value']
-        state = soup.find("input", {"id": "__VIEWSTATE"})['value']
-        ContentPlaceHolder = "ctl00$ContentPlaceHolder1$UpdatePanel1|ctl00$ContentPlaceHolder1$lbtnTag0"
-        target = "ctl00$ContentPlaceHolder1$lbtnTag0"
-        data= {
-            'ctl00$ContentPlaceHolder1$smObj':ContentPlaceHolder, #ctl00$ContentPlaceHolder1$UpdatePanel1|ctl00$ContentPlaceHolder1$lbtnTag1
-            '__EVENTTARGET': target,   #ctl00$ContentPlaceHolder1$lbtnTag0
-            '__EVENTARGUMENT': '',
-            '__VIEWSTATE':state,
-            '__VIEWSTATEGENERATOR':generator,
-            '__EVENTVALIDATION':validation,
-            '__ASYNCPOST':'true',
-        }
-        r = self.crawler.requests.post(url, data, headers = {'X-Requested-With': 'XMLHttpRequest', 'X-MicrosoftAjax': 'Delta=true', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'} )
-        if r.status_code != 200:
-            logging.error(u'Could not get response page')
-            return False
-        page = r.text
-        #html_to_file("annual.html", page)
-        table_name = ""
-        try:
-            soup = BeautifulSoup(page, 'html5lib')
-            content_table = soup.find_all('table')[1:]
-            for table in content_table:
-                table_name = self.get_table_title(table)
-                #logging.error(u"annual report table_name= %s\n", table_name)
-                table_data = self.parse_report_table(table, table_name)
-                page_data[table_name] = table_data
-        except Exception as e:
-            logging.error(u'annual page: fail to get table data with exception %s' % e)
-            raise e
 
-        #html_to_file("annual.html", page)
-        for i in range(number-1):
-            state = re.compile(r"__VIEWSTATE\|(.*?)\|").search(page).group().split('|')[1]
-            generator = re.compile(r"__VIEWSTATEGENERATOR\|(.*?)\|").search(page).group().split('|')[1]
-            validation = re.compile(r"__EVENTVALIDATION\|(.*?)\|").search(page).group().split('|')[1]
-            ContentPlaceHolder = "ctl00$ContentPlaceHolder1$UpdatePanel1|ctl00$ContentPlaceHolder1$lbtnTag%d"%(i+1)
-            target = "ctl00$ContentPlaceHolder1$lbtnTag%d"%(i+1)
-            data= {
-                'ctl00$ContentPlaceHolder1$smObj':ContentPlaceHolder, #ctl00$ContentPlaceHolder1$UpdatePanel1|ctl00$ContentPlaceHolder1$lbtnTag1
-                '__EVENTTARGET': target,   #ctl00$ContentPlaceHolder1$lbtnTag0
-                '__EVENTARGUMENT': '',
-                '__VIEWSTATE':state,
-                '__VIEWSTATEGENERATOR':generator,
-                '__EVENTVALIDATION':validation,
-                '__ASYNCPOST':'true',
-            }
-            r = self.crawler.requests.post(url, data, headers = {'X-Requested-With': 'XMLHttpRequest', 'X-MicrosoftAjax': 'Delta=true', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',} )
-            if r.status_code != 200:
-                logging.error(u'Could not get response page')
-                return False
-            page = r.text
-            #html_to_file("annual.html", page)
-            table_name = ""
-            try:
-                soup = BeautifulSoup(page, 'html5lib')
-                content_table = soup.find_all('table')[1:]
-                for table in content_table:
-                    table_name = self.get_table_title(table)
-                    #logging.error(u"annual report table_name= %s\n", table_name)
-                    table_data = self.parse_report_table(table, table_name)
-                    #json_dump_to_file('report_json.json', table_data)
-                    page_data[table_name] = table_data
-
-            except Exception as e:
-                logging.error(u'annual page: fail to parse page with exception %s'%e)
-                raise e
-        #json_dump_to_file('report_json.json', page_data)
-        return page_data
-    """
-
-def html_to_file(path, html):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(html)
-
-def json_dump_to_file(path, json_dict):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-
-def read_ent_from_file(path):
-    read_type = 'r'
-    if not os.path.exists(path):
-        logging.error(u"There is no path : %s"% path )
-    lines = []
-    with codecs.open(path, read_type, 'utf-8') as f:
-        lines = f.readlines()
-    lines = [ line.split(',') for line in lines ]
-    return lines
-
-def html_from_file(path):
-    read_type = 'r'
-    if not os.path.exists(path):
-        return None
-    datas = None
-    with codecs.open(path, read_type, 'utf8') as f:
-        datas = f.read()
-        f.close()
-    return datas
 
 
 
 class Guangdong0(object):
     def __init__(self, req= None, ent_number= None):
         self.analysis = Analyze()
-        self.crawler = Crawler(self.analysis, req)
+        self.crawler = Crawler(req)
+        self.crawler.analysis = self.analysis
         self.analysis.crawler = self.crawler
         self.analysis.ent_num = ent_number
         self.crawler.ent_num = ent_number
 
     def run(self, url):
         return self.crawler.run(url)
+
+    def run_asyn(self, url):
+        self.crawler.run_asyn(url)
