@@ -238,7 +238,8 @@ def _install_project_deps():
     # Install all projects deps, such as python-devel, mysql-devel and pip, setuptools ...
     run("yum install -y wget python-devel mysql-devel gcc gcc-c++ blas-devel \
         lapack-devel libxml2 libxml2-devel libxslt libxslt-devel")
-    run("wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py")
+    if not exists("get-pip.py"):
+        run("wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py")
     run("pip install -U pip setuptools")
     with cd("{0}/cr-clawer".format(REMOTE_PROJECT_PATH)):
         run("pip install -r {0}".format("deploy/requirements/production.txt"))
