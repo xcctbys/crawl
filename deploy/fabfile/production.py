@@ -38,7 +38,7 @@ def deploy_web_server():
 
     # Start web server.
 
-    _add_crontab(crontab_path="collector/crontab.txt", mode="w")
+    _add_crontab(crontab_path="web/crontab.txt", mode="w")
 
 
 @roles("GeneratorServers")
