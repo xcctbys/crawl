@@ -2,6 +2,9 @@
 #encoding=utf-8
 import os
 import codecs
+import random
+import time
+import datetime
 from smart_proxy.api import UseProxy, Proxy
 
 PATH = '/data/clawer/html/'
@@ -49,9 +52,19 @@ def html_from_file(path):
         f.close()
     return datas
 
+def exe_time(func):
+    def fnc(*args, **kwargs):
+        start = datetime.datetime.now()
+        print "call "+ func.__name__ + "()..."
+        print func.__name__ +" start :"+ str(start)
+        func(*args, **kwargs)
+        end = datetime.datetime.now()
+        print func.__name__ +" end :"+ str(end)
+    return fnc
+
 def get_proxy(province = '' ):
     useproxy = UseProxy()
-    is_use_proxy = useproxy.get_province_is_use_province(province= province)
+    is_use_proxy = useproxy.get_province_is_use_province(province)
     if not is_use_proxy:
         proxies = []
     else:

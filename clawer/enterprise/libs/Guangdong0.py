@@ -17,6 +17,10 @@ import datetime
 import gevent
 from gevent import Greenlet
 
+import gevent.monkey
+gevent.monkey.patch_socket()
+
+from common_func import exe_time
 
 urls = {
     'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
@@ -30,6 +34,7 @@ headers = { 'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
+
 
 
 
@@ -60,6 +65,7 @@ class Crawler(object):
             return False
         return r2.text
     # 爬取 工商公示信息 页面
+    @exe_time
     def crawl_ind_comm_pub_pages(self, url):
         sub_json_dict={}
         try:
@@ -96,9 +102,10 @@ class Crawler(object):
             logging.error(u"An error ocurred in crawl_ind_comm_pub_pages: %s, ID= %s"% (type(e), self.ent_num))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
 
     #爬取 企业公示信息 页面
+    @exe_time
     def crawl_ent_pub_pages(self, url):
         sub_json_dict = {}
         try:
@@ -121,9 +128,10 @@ class Crawler(object):
             logging.error(u"An error ocurred in crawl_ent_pub_pages: %s, ID= %s"% (type(e), self.ent_num))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
 
     #爬取 其他部门公示信息 页面
+    @exe_time
     def crawl_other_dept_pub_pages(self, url):
         sub_json_dict={}
         try:
@@ -138,7 +146,7 @@ class Crawler(object):
             logging.error(u"An error ocurred in crawl_other_dept_pub_pages: %s, ID= %s " %( type(e), self.ent_num))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
 
     #judical assist pub informations
     def crawl_judical_assist_pub_pages(self):
@@ -157,38 +165,30 @@ class Crawler(object):
         # self.path = os.path.join(common_func.PATH, todaystr.strftime("%Y/%m/%d") , str(self.ent_num))
         # if not os.path.exists(self.path):
             # os.makedirs(self.path)
-        sub_json_dict= {}
         rid = ent_str[ent_str.index("rid")+4: len(ent_str)]
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=" + rid
-        sub_json_dict.update(self.crawl_ind_comm_pub_pages(url))
+        self.crawl_ind_comm_pub_pages(url)
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QynbDetail.aspx?rid=" + rid
-        sub_json_dict.update(self.crawl_ent_pub_pages(url))
+        self.crawl_ent_pub_pages(url)
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QtbmDetail.aspx?rid=" + rid
-        sub_json_dict.update(self.crawl_other_dept_pub_pages(url))
+        self.crawl_other_dept_pub_pages(url)
 
-        return sub_json_dict
+        return self.json_dict
 
     def run_asyn(self, ent_str):
-        start_t = time.time()
+
         threads = []
-        sub_json_dict= {}
         rid = ent_str[ent_str.index("rid")+4: len(ent_str)]
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=" + rid
-        thread1 = gevent.spawn(self.crawl_ind_comm_pub_pages, url)
-        # sub_json_dict.update(self.crawl_ind_comm_pub_pages(url))
+        threads.append( gevent.spawn(self.crawl_ind_comm_pub_pages, url) )
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QynbDetail.aspx?rid=" + rid
-        thread2 = gevent.spawn(self.crawl_ent_pub_pages, url)
-
-        # sub_json_dict.update(self.crawl_ent_pub_pages(url))
+        threads.append( gevent.spawn(self.crawl_ent_pub_pages, url) )
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QtbmDetail.aspx?rid=" + rid
-        thread3 = gevent.spawn(self.crawl_other_dept_pub_pages, url)
+        threads.append( gevent.spawn(self.crawl_other_dept_pub_pages, url) )
 
-        # sub_json_dict.update(self.crawl_other_dept_pub_pages(url))
-
-        threads = [thread1, thread2, thread3]
         gevent.joinall(threads)
-        end_t = time.time()
-        print "total time is %f s!"%(end_t - start_t)
+
+        return self.json_dict
 
 class Analyze(object):
 
@@ -681,4 +681,4 @@ class Guangdong0(object):
         return self.crawler.run(url)
 
     def run_asyn(self, url):
-        self.crawler.run_asyn(url)
+        return self.crawler.run_asyn(url)

@@ -16,11 +16,18 @@ from bs4 import BeautifulSoup
 import requests
 import MySQLdb
 
+import datetime
+import gevent
+from gevent import Greenlet
+# 如果要达到异步的效果，就要添加这个猴子补丁
+import gevent.monkey
+gevent.monkey.patch_socket()
+
 requests.packages.urllib3.disable_warnings()
 
 
 STEP =  1 # 每个step取10个。
-ROWS = 3
+ROWS = 10
 DEBUG = False  # 是否开启DEBUG
 if DEBUG:
     level = logging.DEBUG
@@ -40,6 +47,17 @@ KEYWORD = [
         u'破产',
         u'清算'
 ]
+
+# 装饰器
+def exe_time(func):
+    def fnc(*args, **kwargs):
+        start = datetime.datetime.now()
+        # print "call "+ func.__name__ + "()..."
+        print func.__name__ +" start :"+ str(start) +" " +str(args)
+        func(*args, **kwargs)
+        end = datetime.datetime.now()
+        print func.__name__ +" end :"+ str(end)
+    return fnc
 
 
 class History(object):  # 实现程序的可持续性，每次运行时读取上次运行时保存的参数，跳到相应位置继续执行程序
@@ -66,7 +84,7 @@ class History(object):  # 实现程序的可持续性，每次运行时读取上
 
 
 class Generator(object):
-    HOST = "https://www.baidu.com/s?"
+    HOST = "http://www.baidu.com/s?"
 
     def __init__(self):  # 初始化
         self.uris = set()
@@ -84,6 +102,16 @@ class Generator(object):
             for each_keyword in KEYWORD:  # 遍历搜索关键词
                 keyword = each_keyword
                 self.page_url(company, keyword)  # 传参调用url构造函数
+
+    def search_url_with_batch_asyn(self):
+        self.obtain_enterprises()
+        for company in self.enterprises:
+            threads = []
+            logging.debug("%s"%(company))
+            for each_keyword in KEYWORD:  # 遍历搜索关键词
+                keyword = each_keyword
+                threads.append( gevent.spawn( self.page_url, company, keyword) )
+            gevent.joinall(threads)
 
     def obtain_enterprises(self):
         if self.history.current_page <= 0 and self.history.total_page <= 0:
@@ -110,12 +138,15 @@ class Generator(object):
         self.history.total_page = r['total_page']
         self.history.save()
 
+    @exe_time
     def page_url(self, current_company, current_keyword):
         for page_num in range(0, 10, 10):  # 遍历实现baidu搜索结果页翻页（第一页为0，第二页为10，第三页为20...）
             params = {"wd": current_company.encode("gbk") + " " + current_keyword.encode("gbk"),
                       "pn": page_num}  # 构造url参数
             url = "%s%s" % (self.HOST, urllib.urlencode(params))  # 构造url
-            r = requests.get(url, verify=False, headers={"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"})  # 浏览器代理请求url
+            headers= {"user-agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0"}
+            # {"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
+            r = requests.get(url,verify = False, headers = headers, timeout=60)  # 浏览器代理请求url
             soup = BeautifulSoup(r.text, "html5lib")  # 使用html5lib解析页面内容
             contents = soup.find("div", {"id": "content_left"})  # 找到页面中id为content_left的div
             divs = contents.find_all("div", {"class": "result"})  # 在目标div中找到所有class为result的div
@@ -124,7 +155,7 @@ class Generator(object):
                 if len(all_em) > 1:
                     ems = [em.get_text().strip() for em in all_em] # 将em建为一个列表
                     if current_company in ems and current_keyword in ems: # 判断关键词是否在em标签中，若判断为真则使用浏览器代理获取目标url中的headers信息
-                        target_head = requests.head(div.h3.a["href"], headers={"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}).headers
+                        target_head = requests.head(div.h3.a["href"], headers= headers).headers
                         target_url = target_head["Location"]  # 获取目标链接真实url]
                         proto, rest = urllib.splittype(target_url)
                         host, rest = urllib.splithost(rest)
@@ -218,9 +249,9 @@ if __name__ == "__main__":
         unittest.main()
     else:
         generator = Generator()
-        generator.search_url_with_batch()
+        # generator.search_url_with_batch()
+        generator.search_url_with_batch_asyn()
 
         for uri in generator.uris:
-            # str_uri = str(uri.encode("utf-8")).split(" ")
             str_uri = uri.encode("utf-8").split(" ")
             print json.dumps({"uri": str_uri[0], "args": str_uri[1]})
