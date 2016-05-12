@@ -3,7 +3,7 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import re
 import codecs
 import json
@@ -16,7 +16,7 @@ import requests
 import logging
 from crawler import Crawler, Parser
 from bs4 import BeautifulSoup
-# from smart_proxy.api import Proxy, UseProxy
+from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -34,6 +34,8 @@ class InitInfo(object):
 		self.html_restore_path = settings.json_restore_path + '/jiangsu/'
 		# 验证码图片的存储路径
 		self.ckcode_image_path = settings.json_restore_path + '/jiangsu/ckcode.jpg'
+		# if not os.path.exists(self.ckcode_image_path):
+		# 	os.makedirs(os.path.dirname(self.ckcode_image_path))
 		self.code_cracker = CaptchaRecognition('jiangsu')
 		#多线程爬取时往最后的json文件中写时的加锁保护
 		self.write_file_mutex = threading.Lock()
@@ -212,16 +214,16 @@ class CrackCheckcode(object):
 class MyCrawler(Crawler):
 	def __init__(self, info=None, *args, **kwargs):
 		# 调用代理，及配置是否使用代理的接口。完成使用代理或者不使用代理。
-		# useproxy = UseProxy()
-		# is_use_proxy = useproxy.get_province_is_use_province(province='jiangsu')
-		# if not is_use_proxy:
-		# 	self.proxies = []
-		# else:
-		# 	proxy = Proxy()
-		# 	self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
-		# 				'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
-		# print 'self.proxies:', self.proxies		
-		self.proxies = []
+		useproxy = UseProxy()
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='jiangsu')
+		if not is_use_proxy:
+			self.proxies = []
+		else:
+			proxy = Proxy()
+			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
+						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
+		print 'self.proxies:', self.proxies		
+		# self.proxies = []
 		self.reqst = requests.Session()
 		self.reqst.headers.update({
 				'Accept': 'text/html, application/xhtml+xml, */*',

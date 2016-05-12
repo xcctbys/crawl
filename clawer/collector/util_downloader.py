@@ -427,7 +427,7 @@ def force_exit(download_timeout, task):
 								spend_time = download_timeout)
 	cdl.save()
 
-	os.killpg(pgid, 9)
+	# os.killpg(pgid, 9)
 	os._exit(1)
 
 def download_clawer_task(task):

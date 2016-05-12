@@ -29,6 +29,8 @@ class JiangsuCrawler(Crawler):
 
     #验证码图片的存储路径
     ckcode_image_path = settings.json_restore_path + '/jiangsu/ckcode.jpg'
+    if not os.path.exists(ckcode_image_path):
+        os.makedirs(os.path.dirname(ckcode_image_path))
     code_cracker = CaptchaRecognition('jiangsu')
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()

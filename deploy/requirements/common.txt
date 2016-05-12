@@ -18,12 +18,10 @@ lxml
 html5lib
 numpy
 pandas
-supervisor
 scipy
 scikit-learn
 chardet
 Markdown
-gunicorn
 greenlet
 eventlet
 gevent

@@ -27,18 +27,18 @@
 - 检测是否有注册号(数字)
 
 ```
-	if uri.rsplit('\')[-1].isdigit():
-		download_by_registration('registrations_digit')
+	if register_no == '***':
+		cls.run('name') #使用模糊查询 
 	else:
-		download_by_enterprise_name('name') #使用模糊查询 
+		cls.run('registrations_digit')
 ```
 
 - 检测能否跳过验证码
 
 ```
 	def download_by_registration(registrations_digit)
-		uri = get_uri_from_db_by_registration_or_enterprise_name(registrations_digit) # 数据库里是否有 企业首页 的uri
-		if valid_uri(uri): #如果能够直接访问，则进入爬取，跳过验证码
+		uri_args = get_uri_arg_from_db_by_registration_or_enterprise_name(registrations_digit) # 数据库里是否有 企业首页 的uri.args,{}.
+		if valid_uri(uri+uri.args): #如果能够直接访问，则进入爬取，跳过验证码
 			download_data()
 		else:
 			download_data_start_with_Captcha()
@@ -47,14 +47,18 @@
 - 使用代理ip
 
 ```
-	from smart_proxy.api import Proxy
-	def download_data(self):
-		proxy = Proxy()
-		if self.is_need_proxy(province):
-			myproxy = proxy.get_proxy()
+
+		from smart_proxy.api import Proxy, UseProxy
+
+		useproxy = UseProxy()
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='beijing') # True or False
+		if not is_use_proxy:
+			# 北京不使用代理
+			self.proxies = []
 		else:
-			myproxy = []
-		self.reqst.get(url, proxy=proxy)
+			# 北京省份想使用代理
+			proxy = Proxy()
+			proxy_list = proxy.get_proxy(5,'Beijing') #['ip:port', ...]
 ```
 	
 - 前提条件：将需要使用代理的省份存放在数据库。
@@ -79,36 +83,24 @@ class CrackCheckcode(object):
 # 自己的爬取类，继承爬取类
 class MyCrawler(Crawler):
 	def __init__(self, *args, **kwargs):
-		self.write_file_mutex = threading.Lock()
+		useproxy = UseProxy()
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='beijing') # True or False
+		if not is_use_proxy:
+			# 北京不使用代理
+			self.proxies = []
+		else:
+			# 北京省份想使用代理
+			proxy = Proxy()
+			proxy_list = proxy.get_proxy(5,'Beijing') #['ip:port', ...]
 		self.reqst = requests.Session()
-		self.reqst.headers.update({
-				'Accept': 'text/html, application/xhtml+xml, */*',
-				'Accept-Encoding': 'gzip, deflate',
-				'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-				'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
 	def crawl_page_by_url(self, url):
 		"""根据url直接爬取页面
 		"""
-		try:
-			resp = self.info.reqst.get(url, proxies= self.info.proxies)
-			if resp.status_code != 200:
-				logging.error('crawl page by url failed! url = %s' % url)
-			page = resp.content
-			time.sleep(random.uniform(0.2, 1))
-			return page
-		except Exception as e:
-			logging.error("crawl page by url exception %s:%s"%(type(e), str(e)))
-		return None
+		pass
 	def crawl_page_by_url_post(self, url, data):
 		""" 根据url和post数据爬取页面
 		"""
-		r = self.reqst.post(url, data, proxies = self.proxies)
-		time.sleep(random.uniform(0.2, 1))
-		if r.status_code != 200:
-			logging.error(u"Getting page by url with post:%s\n, return status %s\n"% (url, r.status_code))
-			return False
-		return r.content
-
+		pass
 # 自己的解析类，继承解析类
 class MyParser(Parser):
 	def __init__(self, *args, **kwargs):

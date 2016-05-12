@@ -1,0 +1,6 @@
+# generator
+*/5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh generator_install
+*      *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh generator_dispatch
+
+# downloader
+*/2    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh downloader_dispatch
