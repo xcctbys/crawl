@@ -146,9 +146,9 @@ class UseProxy(object):
 			return False
 		else:
 			one_province = IpUser.objects.filter(province__icontains=province)
-			print 'len(one_province):', len(one_province)
-			print one_province
-			return one_province[0].is_use_proxy                                                                                                                                                
+			# print 'len(one_province):', len(one_province)
+			# print one_province
+			return one_province[0].is_use_proxy if one_province else None                                                                                                                                               
 
 
 		
