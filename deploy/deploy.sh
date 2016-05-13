@@ -26,7 +26,7 @@ error() {
 ############################  DEPLOY FUNCTIONS
 copy_ssh_key_to_remote_servers() {
 
-  ${FABRIC_BIN} -f ${FABFILE} -R WebServer,GeneratorServers,FilterServers,DownloaderServers,StructureSevers,CaptchaServers,MysqlServers,MongoServers,RedisServers ssh_key
+  ${FABRIC_BIN} -f ${FABFILE} -R WebServer,GeneratorServers,DownloaderServers,StructureSevers ssh_key
 }
 
 deploy_web_server() {
@@ -69,13 +69,8 @@ deploy_structure_servers() {
 main() {
   case "$1" in
     all)
-      deploy_mongo_servers
-      deploy_mysql_servers
-      deploy_redis_servers
       deploy_web_server
-      deploy_captcha_servers
       deploy_downloader_servers
-      deploy_filter_servers
       deploy_genertor_servers
       deploy_structure_servers
       ;;
