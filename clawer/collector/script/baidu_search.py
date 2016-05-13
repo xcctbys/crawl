@@ -173,7 +173,7 @@ class Generator(object):
                         self.uris.add(test)  # 将url加入uris中
 
     def paginate(self, current_page, rows=10):
-        conn = MySQLdb.connect(host='localhost', user="root", passwd="", db='clawer', port=3306,charset='utf8')
+        conn = MySQLdb.connect(host='localhost', user="cacti", passwd="cacti", db='clawer', port=3306,charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
         cur = conn.cursor()
         count = cur.execute(sql)
