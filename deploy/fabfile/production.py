@@ -239,5 +239,5 @@ def _install_project_deps():
         lapack-devel libxml2 libxml2-devel libxslt libxslt-devel")
     PIP = "pip install --no-index -f pypi"
     with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
-        run("{0} pip setuptools".format(PIP))
+        run("{0} --upgrade pip setuptools".format(PIP))
         run("{0} -r {1}".format(PIP, "requirements/production.txt"))
