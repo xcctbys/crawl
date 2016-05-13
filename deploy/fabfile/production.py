@@ -18,7 +18,7 @@ MYSQL_PROJECT_USER = "cacti"
 MYSQL_PROJECT_PASSWORD = "cacti"
 
 env.user = "root"
-env.password = "plkj"
+env.password = "P@ssw0rd2015"
 
 
 @roles("WebServer")
