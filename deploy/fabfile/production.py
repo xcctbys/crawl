@@ -235,7 +235,7 @@ def _execute_in_mysql(sql):
 def _install_project_deps():
 
     # Install all projects deps, such as python-devel, mysql-devel and pip, setuptools ...
-    run("yum install -y wget python-devel mysql-devel gcc gcc-c++ blas-devel \
+    run("yum install -y wget python-devel python-pip mysql-devel gcc gcc-c++ blas-devel \
         lapack-devel libxml2 libxml2-devel libxslt libxslt-devel")
     PIP = "pip install --no-index -f pypi"
     with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
