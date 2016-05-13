@@ -386,8 +386,9 @@ class GenerateCrawlerTask(object):
             try:
                 # validate uri
                 if js.has_key('uri'):
-                    val(js['uri'])
-                    uris.append(js['uri'])
+                    uri_de = js['uri'].encode("utf-8")
+                    val(uri_de)
+                    uris.append(uri_de)
                 else:
                     CrawlerGeneratorErrorLog(name="ERROR_JSON", content="JSON ValidationError without key 'uri' : %s" %(js), hostname= socket.gethostname()).save()
             except ValidationError, e:
