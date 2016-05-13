@@ -285,6 +285,9 @@ class Download(object):
 			start_time = time.time()
 			print 'it is curl ----------------------------'
 			try:
+
+
+
 				result = commands.getstatusoutput('curl %s' % self.task.uri)
 				# print result
 
@@ -358,6 +361,8 @@ class Download(object):
 				requests_headers = unicode(resp.request.headers)
 				response_headers = unicode(resp.headers)
 				requests_body = 'None'
+
+
 				response_body = unicode(resp.text)
 				remote_ip = resp.headers.get('remote_ip', 'None')
 				hostname = str(socket.gethostname())
@@ -372,6 +377,13 @@ class Download(object):
 											response_body=response_body,
 											hostname=hostname,
 											remote_ip=remote_ip)
+
+
+				if resp.headers.get('Content-Type', 'None') == 'application/pdf':
+					cdd.files_down.put(resp.text, content_type = 'pdf')
+				if resp.headers.get('Content-Type', 'None') in ['image/jpeg','image/png','image/gif']:
+					cdd.files_down.put(resp.text, content_type = 'image/png')
+
 				cdd.save()
 				# write_downloaddata_success_log_to_mongo
 				cdl = CrawlerDownloadLog(	job = self.task.job,

@@ -228,6 +228,8 @@ class CrawlerDownloadData(Document):
 	requests_body = StringField()
 	response_body = StringField()
 	hostname = StringField()
+	#大文件存储,存储下载的图片,pdf等.
+	files_down = FileField(default=0)
 	remote_ip = StringField()
 	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "source"} # 默认连接的数据库
