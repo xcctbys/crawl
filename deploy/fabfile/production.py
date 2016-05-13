@@ -11,6 +11,7 @@ with open("config/servers.json") as conf:
     env.roledefs = json.load(conf)
 
 # Consts
+LOCAL_PROJECT_PATH = "/root/cr-clawer"
 REMOTE_PROJECT_PATH = "/home/webapps"
 MYSQL_ROOT_PASSWORD = "plkjplkj"
 MYSQL_PROJECT_DATABASE = "clawer"
@@ -24,7 +25,7 @@ env.password = "P@ssw0rd2015"
 @roles("WebServer")
 def deploy_web_server():
     # Rsync local project files to remote server.
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
@@ -39,34 +40,34 @@ def deploy_web_server():
 
 @roles("GeneratorServers")
 def deploy_genertor_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
 
 @roles("DownloaderServers")
 def deploy_downloader_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
 
 @roles("FilterServers")
 def deploy_filter_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
 
 @roles("CaptchaServers")
 def deploy_captcha_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("StructureSevers")
 def deploy_structure_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
 
 
@@ -211,7 +212,7 @@ def _read_ssh_pub_key(key_file):
         return f.read()
 
 
-def _rsync_project(local_project_path="~/Projects/cr-clawer", remote_project_path="/home/cr-clawer"):
+def _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path="/home/cr-clawer"):
     run("yum install -y rsync")
     rsync_project(local_dir=local_project_path, remote_dir=remote_project_path, exclude=".git")
 
