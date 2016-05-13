@@ -124,6 +124,7 @@ class ParserGenerator(StructureGenerator):
         return False
 
 ```
+
 ## 2. 生成导出任务（In Master）
 
 从数据库过滤需要导出的task，读取该任务的导出器配置并生成对应的导出任务，根据任务的优先级分配到不同优先级的队列。
@@ -254,13 +255,13 @@ structure
 ├── __init__.py
 ├── admin.py
 ├── migrations
-│   └── __init__.py
+│   └── __init__.py
 ├── models.py
 ├── parsers
 ├── structure.py
 ├── tests
-│   ├── __init__.py
-│   └── test_structure.py
+│   ├── __init__.py
+│   └── test_structure.py
 └── views.py
 ```
 
@@ -377,11 +378,11 @@ vi task_parser_dispatck
 
 可以看到：
 def run():
-    	parsergenerator = ParserGenerator()
-    	parser_task_queues = parsergenerator.assign_parse_tasks()
-    	#executiontasks = ExecutionTasks()
-    	#executiontasks.exec_task(parsergenerator.queues[0])
-    	return parser_task_queues
+    parsergenerator = ParserGenerator()
+    parser_task_queues = parsergenerator.assign_parse_tasks()
+    #executiontasks = ExecutionTasks()
+    #executiontasks.exec_task(parsergenerator.queues[0])
+    return parser_task_queues
 
 将第二行及第四行注释掉，并取消第三和第四行的注释，保存退出，执行
 python manage.py task_parser_dispatch
