@@ -308,7 +308,8 @@ class MyParser(Parser):
 				y = x + len(ths)
 			return temp_list
 		else:
-			return [dict(zip(ths, tds))]
+			need_dict = dict(zip(ths, tds))
+			return [need_dict] if need_dict else []
 
 	def parser_ent_pub_ent_annual_report(self, what=None, content=None, element=None, attrs=None): # 针对企业年报，
 		table = content.find_all(element, attrs=attrs)[0]

@@ -260,7 +260,8 @@ class MyParser(Parser):
 		self.crawler = crawler
 
 	def zip_ths_tds(self, ths, tds):
-		return dict(zip(ths,tds))
+		need_dict = dict(zip(ths,tds))
+		return [need_dict] if need_dict else []
 
 	def test_print_ths_tds(self, ths, tds):
 		for th, td in zip(ths, tds):
