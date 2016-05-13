@@ -647,6 +647,7 @@ class JiangsuCrawler(object):
 			judical.run()
 			end_time = time.time()
 			print '--------------------------crawler_spend_time:%s' % (end_time - start_time)
+			print {self.info.ent_number: self.info.result_json}
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
 		return self.info.result_json_list

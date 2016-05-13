@@ -119,8 +119,8 @@ class TestEnterpriseDownload(TestCase):
         self.assertIsNotNone(data)
 
     def test_run_shanghai(self):
-        ent_num = '310000400542355'
-        url = u"enterprise://localhost/%s/%s/%s/" % (Province.to_name(Province.SHANGHAI), u"钧锋投资管理咨询（上海）有限公司", u'310000400542355')
+        ent_num = '310108000565783'
+        url = u"enterprise://localhost/%s/%s/%s/" % (Province.to_name(Province.SHANGHAI), u"钧锋投资管理咨询（上海）有限公司", u'310108000565783')
         downloader = EnterpriseDownload(url)
         data = downloader.download()
         # print data

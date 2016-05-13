@@ -164,7 +164,7 @@ class EnterprisePubliction(object):
 		pass
 		
 # 其他部门公示信息
-calss OtherDepartmentsPubliction(object):
+class OtherDepartmentsPubliction(object):
 	def __init__(self, *args, **kwargs):
 		pass
 	# 行政许可信息

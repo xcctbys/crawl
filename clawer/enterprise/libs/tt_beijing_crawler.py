@@ -726,11 +726,11 @@ class BeijingCrawler(object):
 			# print self.info.result_json
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
-		return self.info.result_json_list
-		
 		# for item in self.info.result_json_list:
 		# 	self.json_dump_to_file('beijing.json',  item )
 			# self.json_dump_to_file('jiangsu.json', {self.info.ent_number: self.info.result_json})
+
+		return self.info.result_json_list
 		
 
 class TestBeijingCrawler(unittest.TestCase):
@@ -763,7 +763,7 @@ if __name__ == '__main__':
 	if DEBUG:
 		unittest.main()
 	crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-	ent_list = [u'110000410227029'] #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
+	ent_list = [u'110101013510699'] #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
 	# ent_list = [u'创业投资中心']
 	# ent_list = [u'北京仙瞳创业投资中心（有限合伙）']
 	for ent_number in ent_list:
