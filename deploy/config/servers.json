@@ -19,12 +19,12 @@
     "hosts": []
   },
   "MysqlServers": {
-    "hosts": ["192.168.4.201"]
+    "hosts": [""]
   },
   "MongoServers": {
-    "hosts": ["192.168.4.203"]
+    "hosts": [""]
   },
   "RedisServers": {
-    "hosts": ["192.168.4.203"]
+    "hosts": [""]
   }
 }
