@@ -11,6 +11,7 @@ with open("config/servers.json") as conf:
     env.roledefs = json.load(conf)
 
 # Consts
+LOCAL_PROJECT_PATH = "/root/cr-clawer"
 REMOTE_PROJECT_PATH = "/home/webapps"
 MYSQL_ROOT_PASSWORD = "plkjplkj"
 MYSQL_PROJECT_DATABASE = "clawer"
@@ -18,13 +19,13 @@ MYSQL_PROJECT_USER = "cacti"
 MYSQL_PROJECT_PASSWORD = "cacti"
 
 env.user = "root"
-env.password = "plkj"
+env.password = "P@ssw0rd2015"
 
 
 @roles("WebServer")
 def deploy_web_server():
     # Rsync local project files to remote server.
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
@@ -36,41 +37,37 @@ def deploy_web_server():
     run("service nginx start")
     run("chkconfig nginx on")
 
-    # Start web server.
-
-    _add_crontab(crontab_path="web/crontab.txt", mode="w")
-
 
 @roles("GeneratorServers")
 def deploy_genertor_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
 
 @roles("DownloaderServers")
 def deploy_downloader_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
 
 @roles("FilterServers")
 def deploy_filter_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
 
 @roles("CaptchaServers")
 def deploy_captcha_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("StructureSevers")
 def deploy_structure_servers():
-    _rsync_project(local_project_path="~/Projects/cr-clawer",
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
 
 
@@ -215,7 +212,7 @@ def _read_ssh_pub_key(key_file):
         return f.read()
 
 
-def _rsync_project(local_project_path="~/Projects/cr-clawer", remote_project_path="/home/cr-clawer"):
+def _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path="/home/cr-clawer"):
     run("yum install -y rsync")
     rsync_project(local_dir=local_project_path, remote_dir=remote_project_path, exclude=".git")
 
@@ -238,10 +235,9 @@ def _execute_in_mysql(sql):
 def _install_project_deps():
 
     # Install all projects deps, such as python-devel, mysql-devel and pip, setuptools ...
-    run("yum install -y wget python-devel mysql-devel gcc gcc-c++ blas-devel \
+    run("yum install -y wget python-devel python-pip mysql-devel gcc gcc-c++ blas-devel \
         lapack-devel libxml2 libxml2-devel libxslt libxslt-devel")
-    if not exists("get-pip.py"):
-        run("wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py")
-    run("pip install -U pip setuptools")
-    with cd("{0}/cr-clawer".format(REMOTE_PROJECT_PATH)):
-        run("pip install -r {0}".format("deploy/requirements/production.txt"))
+    PIP = "pip install --no-index -f pypi"
+    with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
+        run("{0} --upgrade pip setuptools".format(PIP))
+        run("{0} -r {1}".format(PIP, "requirements/production.txt"))
