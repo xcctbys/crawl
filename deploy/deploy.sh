@@ -5,7 +5,7 @@
 ###
 
 FABRIC_BIN=`which fab`
-ENV_PATH="config/env.sh"
+ENV_PATH="config/production/env.sh"
 
 ############################  BASIC FUNCTIONS
 msg() {
