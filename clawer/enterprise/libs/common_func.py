@@ -64,9 +64,9 @@ def exe_time(func):
 
 def get_proxy(province = '' ):
     useproxy = UseProxy()
-    is_use_proxy = useproxy.get_province_is_use_province(province)
+    is_use_proxy = useproxy.get_province_is_use_proxy(province)
     if not is_use_proxy:
-        proxies = []
+        proxies = {}
     else:
         proxy = Proxy()
         proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),

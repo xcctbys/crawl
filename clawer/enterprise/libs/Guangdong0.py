@@ -12,7 +12,7 @@ import json
 import urlparse
 import codecs
 from bs4 import BeautifulSoup
-# import common_func as common_func
+
 import datetime
 import gevent
 from gevent import Greenlet
@@ -23,11 +23,7 @@ gevent.monkey.patch_socket()
 from common_func import exe_time
 
 urls = {
-    'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
     'prefix_url':'http://www.szcredit.com.cn/web/GSZJGSPT/',
-    'page_search': 'http://gsxt.gdgs.gov.cn/aiccips/index',
-    'page_showinfo': 'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/showInfo.html',
-    'checkcode':'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/checkCode.html',
 }
 
 headers = { 'Connetion': 'Keep-Alive',
@@ -50,17 +46,20 @@ class Crawler(object):
         self.ents = []
         self.json_dict={}
         self.timeout = 20
+        print self.requests.proxies
+        # self.proxies = get_proxy('guangdong')
 
     def crawl_xingzhengchufa_page(self, url, text):
         data = self.analysis.analyze_xingzhengchufa(text)
-        r = self.requests.post( url, data, timeout =self.timeout)
+        r = self.requests.post( url = url, data = data, timeout =self.timeout) # , proxies = self.proxies
         if r.status_code != 200:
             return False
         return r.text
 
     def crawl_biangengxinxi_page(self, url, text):
         datas = self.analysis.analyze_biangengxinxi(text)
-        r2 = self.requests.post( url, datas, timeout=self.timeout, headers = {'X-Requested-With': 'XMLHttpRequest', 'X-MicrosoftAjax': 'Delta=true', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',})
+        #, proxies = self.proxies
+        r2 = self.requests.post( url = url, data = datas, timeout=self.timeout, headers = {'X-Requested-With': 'XMLHttpRequest', 'X-MicrosoftAjax': 'Delta=true', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',})
         if r2.status_code != 200:
             return False
         return r2.text
@@ -153,7 +152,7 @@ class Crawler(object):
         pass
 
     def crawl_page_by_url(self, url):
-        r = self.requests.get( url, timeout=self.timeout)
+        r = self.requests.get( url = url, timeout=self.timeout)# , proxies = self.proxies
         if r.status_code != 200:
             logging.error(u"Getting page by url:%s\n, return status %s\n"% (url, r.status_code))
             return False
@@ -344,9 +343,7 @@ class Analyze(object):
                 tr = bs_table.find_all('tr')[0]
             elif bs_table.find_all('tr')[1].find('th') and not bs_table.find_all('tr')[1].find('td') and len(bs_table.find_all('tr')[1].find_all('th')) > 1:
                 tr = bs_table.find_all('tr')[1]
-        #logging.error(u"get_columns_of_record_table->tr:%s\n", tr)
         ret_val=  self.get_record_table_columns_by_tr(tr, table_name)
-        # logging.error(u"ret_val->%s\n, ID = %s"%( ret_val, self.ent_num))
         return  ret_val
 
     def get_record_table_columns_by_tr(self, tr_tag, table_name):

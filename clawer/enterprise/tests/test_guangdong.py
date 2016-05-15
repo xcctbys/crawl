@@ -8,6 +8,8 @@ from django.test import TestCase
 
 from enterprise.libs.guangdong_crawler import GuangdongClawer #, Crawler, Analyze
 from enterprise.libs.Guangdong0 import Guangdong0
+from enterprise.libs.Guangdong1 import Guangdong1
+from enterprise.libs.Guangdong2 import Guangdong2
 from enterprise.libs.common_func import get_proxy, read_ent_from_file, exe_time
 
 import gevent
@@ -90,7 +92,10 @@ class TestGuangdong0(TestCase):
         result = guangdong.run_asyn(ent_str)
         end_t = time.time()
         print "run asyn total time is %f s!"%(end_t - start_t)
+
         self.assertTrue(result)
+        self.assertTrue(result['ind_comm_pub_reg_basic'])
+        self.assertEqual(result['ind_comm_pub_reg_basic'][u'名称'], u'世纪证券有限责任公司')
 
     def test_run(self):
         start_t = time.time()
@@ -135,7 +140,59 @@ class TestGuangdong0(TestCase):
 
         self.assertGreater(total, total_asyn)
 
+class TestGuangdong1(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
 
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run_asyn(self):
+        # 万联证券有限责任公司,广东,440101000017862
+
+        start_t = time.time()
+        ent_str = "http://gsxt.gzaic.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_cPlFMHz7UORGuPsot6Ab+gyFHBRDGmiqdLAvpr4C7UU=-7PUW92vxF0RgKhiSE63aCw=="
+        guangdong = Guangdong1()
+        result = guangdong.run_asyn(ent_str)
+        end_t = time.time()
+        print "run asyn total time is %f s!"%(end_t - start_t)
+
+        self.assertTrue(result)
+        self.assertTrue(result['ind_comm_pub_reg_basic'])
+        self.assertEqual(result['ind_comm_pub_reg_basic'][u'名称'], u'万联证券有限责任公司')
+
+class TestGuangdong2(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run_asyn(self):
+        # 广发证券股份有限公司,广东,222400000001337
+        start_t = time.time()
+        ent_str = "http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_GmjYOaEEX9Xx3eeM0JcrtOywZcfQzs3Ry0M6NPS1/iCr+cQwm+oHVoPBzdIqEiYb-7vusEl1hPU+qjV70QwcUXQ=="
+        guangdong = Guangdong2()
+        result = guangdong.run_asyn(ent_str)
+        end_t = time.time()
+        print "run asyn total time is %f s!"%(end_t - start_t)
+
+        self.assertTrue(result)
+        self.assertTrue(result['ind_comm_pub_reg_basic'])
+        self.assertEqual(result['ind_comm_pub_reg_basic'][u'名称'], u'广发证券股份有限公司')
+
+    def test_run(self):
+        # 广发证券股份有限公司,广东,222400000001337
+        start_t = time.time()
+        ent_str = "http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_GmjYOaEEX9Xx3eeM0JcrtOywZcfQzs3Ry0M6NPS1/iCr+cQwm+oHVoPBzdIqEiYb-7vusEl1hPU+qjV70QwcUXQ=="
+        guangdong = Guangdong2()
+        result = guangdong.run(ent_str)
+        end_t = time.time()
+        print "run asyn total time is %f s!"%(end_t - start_t)
+
+        self.assertTrue(result)
+        self.assertTrue(result['ind_comm_pub_reg_basic'])
+        self.assertEqual(result['ind_comm_pub_reg_basic'][u'名称'], u'广发证券股份有限公司')
 
 class TestGuangdong(TestCase):
 
@@ -173,4 +230,16 @@ class TestGuangdong(TestCase):
         for ent in ents:
             logging.info("%s"%ent[0])
             guangdong.run(ent[2])
+
+    def test_run_with_proxies(self):
+        ent_str = '440301102739085'
+        guangdong = GuangdongClawer()
+        result = guangdong.run(ent_str)
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertTrue(result[ent_str])
+        self.assertTrue(result[ent_str]['ind_comm_pub_reg_basic'])
+        self.assertEqual(result[ent_str]['ind_comm_pub_reg_basic'][u'名称'], u'世纪证券有限责任公司')
 

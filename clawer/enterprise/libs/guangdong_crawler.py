@@ -3,20 +3,19 @@
 import requests
 import logging
 import os
-# import sys
-# import time
 import re
 from . import settings
 import random
+import time
 
 import json
-import codecs
 import threading
 from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from .Guangdong0 import Guangdong0
 from .Guangdong1 import Guangdong1
 from .Guangdong2 import Guangdong2
+from common_func import get_proxy
 
 urls = {
     'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
@@ -38,7 +37,6 @@ class GuangdongClawer(object):
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
     def __init__(self, json_restore_path= None):
-        self.html_search = None
         self.html_showInfo = None
         self.Captcha = None
         self.CR = CaptchaRecognition("guangdong")
@@ -49,25 +47,25 @@ class GuangdongClawer(object):
         self.dir_restore_path = settings.json_restore_path + '/guangdong/'
         #验证码图片的存储路径
         self.path_captcha = settings.json_restore_path + '/guangdong/ckcode.jpg'
-        self.timeout = 20
+        self.timeout = (10, 10)
+        self.requests.proxies = get_proxy('guangdong')
+        print self.requests.proxies
 
 
     # 破解搜索页面
     def crawl_page_search(self, url):
-        r = self.requests.get( url, timeout = self.timeout)
-        if r.status_code != 200:
+        r = self.request_by_method('GET', url, timeout=self.timeout)
+        if not r:
             logging.error(u"Something wrong when getting the url:%s , status_code=%d", url, r.status_code)
-            return
-        r.encoding = "utf-8"
+            return None
+        # r.encoding = "utf-8"
         return r.text
     #获得搜索结果展示页面
     def get_page_showInfo(self, url, datas):
-        r = self.requests.post( url, data = datas , timeout = self.timeout)
-        if r.status_code != 200:
+        r = self.request_by_method('POST', url, data = datas)
+        if not r:
             logging.error(u"Something wrong when posting the url:%s , status_code=%d", url, r.status_code)
             return False
-        r.encoding = "utf-8"
-        #logging.error("showInfo page html :\n  %s", r.text)
         self.html_showInfo = r.text
 
     #分析 展示页面， 获得搜索到的企业列表
@@ -87,14 +85,13 @@ class GuangdongClawer(object):
     # 破解验证码页面
     def crawl_page_captcha(self, url_page_search ,url_captcha, url_CheckCode,url_showInfo,  textfield= '440301102739085'):
         html = self.crawl_page_search(url_page_search)
-
         count = 0
         while count < 15:
             count+= 1
-            r = self.requests.get( url_captcha, timeout = self.timeout)
-            if r.status_code != 200:
+            r = self.request_by_method('GET', url_captcha, timeout= self.timeout)
+            if not r:
                 logging.error(u"Something wrong when getting the Captcha url:%s , status_code=%d", url_captcha, r.status_code)
-                return
+                continue
             if self.save_captcha(r.content):
                 result = self.crack_captcha()
                 #print result
@@ -102,7 +99,7 @@ class GuangdongClawer(object):
                         'textfield': textfield,
                         'code': result,
                 }
-                response = self.get_check_response(url_CheckCode, datas)
+                response = self.request_by_method('POST', url_CheckCode, data = datas).json()
                 # response返回的json结果: {u'flag': u'1', u'textfield': u'H+kiIP4DWBtMJPckUI3U3Q=='}
                 if response['flag'] == '1':
                     datas_showInfo = {'textfield': response['textfield'], 'code': result}
@@ -115,12 +112,6 @@ class GuangdongClawer(object):
                         break
             time.sleep(random.uniform(1, 4))
         return
-    #获得验证的结果信息
-    def get_check_response(self, url, datas):
-        r = self.requests.post( url, data = datas, timeout =self.timeout)
-        if r.status_code != 200:
-            return False
-        return r.json()
 
     #调用函数，破解验证码图片并返回结果
     def crack_captcha(self):
@@ -146,6 +137,21 @@ class GuangdongClawer(object):
             f.close
         self.write_file_mutex.release()
         return True
+
+    def request_by_method(self,method, url, *args, **kwargs):
+        r = None
+        try:
+            r = self.requests.request(method, url, *args, **kwargs)
+        except requests.Timeout as err:
+            logging.error(u'Getting url: %s timeout. %s .'%(url, err.message))
+            return False
+        except Exception as err:
+            logging.error(u'Getting url: %s exception:%s . %s .'%(url, type(err), err.message))
+            return False
+        if r.status_code != 200:
+            logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
+            return False
+        return r
     """
     The following functions are for main page
     """
@@ -177,7 +183,8 @@ class GuangdongClawer(object):
                         if i==0:
                             logging.error(u"This %s enterprise is type 0"%(self.ent_num))
                             guangdong = Guangdong0(self.requests, self.ent_num)
-                            sub_json_dict =  guangdong.run(ent)
+                            # sub_json_dict =  guangdong.run(ent)
+                            sub_json_dict = guangdong.run_asyn(ent)
                         # gsxt.gzaic.gov.cn
                         elif i==1:
                             logging.error(u"This %s enterprise is type 1"%(self.ent_num))
@@ -199,7 +206,6 @@ class GuangdongClawer(object):
         finally:
             return sub_json_dict
 
-    # main function
     def run(self, ent_num):
         if not os.path.exists( self.dir_restore_path ):
             os.makedirs(self.dir_restore_path)
@@ -211,44 +217,3 @@ class GuangdongClawer(object):
         data = self.crawl_page_main()
         json_dict[ent_num] = data
         return json.dumps(json_dict)
-
-def html_to_file(path, html):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(html)
-
-def json_dump_to_file(path, json_dict):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-
-def read_ent_from_file(path):
-    read_type = 'r'
-    if not os.path.exists(path):
-        logging.error(u"There is no path : %s"% path )
-    lines = []
-    with codecs.open(path, read_type, 'utf-8') as f:
-        lines = f.readlines()
-    lines = [ line.split(',') for line in lines ]
-    return lines
-
-
-"""
-if __name__ == "__main__":
-    reload (sys)
-    sys.setdefaultencoding('utf8')
-    import run
-    run.config_logging()
-    ents = read_ent_from_file("./enterprise_list/guangdong.txt")
-    if not os.path.exists("./enterprise_crawler"):
-        os.makedirs("./enterprise_crawler")
-    guangdong = GuangdongClawer('./enterprise_crawler/Guangdong.json')
-    for ent_str in ents:
-        logging.info(u'###################   Start to crawl enterprise with id %s   ###################\n' % ent_str[2])
-        guangdong.run(ent_num = ent_str[2])
-        logging.info(u'###################   Enterprise with id Finished : %s   ###################\n' % ent_str[2])
-"""

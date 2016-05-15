@@ -11,15 +11,16 @@ import json
 import urlparse
 import codecs
 from bs4 import BeautifulSoup
+import datetime
+import gevent
+from gevent import Greenlet
+
+import gevent.monkey
+gevent.monkey.patch_socket()
+from common_func import exe_time
 
 urls = {
-    'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
     'prefix_url':'http://www.szcredit.com.cn/web/GSZJGSPT/',
-    'page_search': 'http://gsxt.gdgs.gov.cn/aiccips/index',
-    'page_Captcha': 'http://gsxt.gdgs.gov.cn/aiccips/verify.html',
-    'page_showinfo': 'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/showInfo.html',
-    'checkcode':'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/checkCode.html',
-    'ind_comm_pub_reg_basic': 'http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo',
     'prefix_GSpublicity':'http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=',
 }
 
@@ -30,10 +31,10 @@ headers = { 'Connetion': 'Keep-Alive',
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
 
 class Crawler(object):
-    def __init__(self, analysis, requests= None):
-        self.analysis = analysis
-        if requests:
-            self.requests = requests
+    analysis = None
+    def __init__(self, req= None):
+        if req:
+            self.requests = req
         else:
             self.requests = requests.Session()
             self.requests.headers.update(headers)
@@ -42,6 +43,7 @@ class Crawler(object):
         self.timeout = 20
 
     # 爬取 工商公示信息 页面
+    @exe_time
     def crawl_ind_comm_pub_pages(self, url, types, post_data= {}):
         sub_json_dict={}
         try:
@@ -105,8 +107,9 @@ class Crawler(object):
             logging.error(u"An error ocurred in crawl_ind_comm_pub_pages: %s, type is %d"% (type(e), types))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
     #爬取 企业公示信息 页面
+    @exe_time
     def crawl_ent_pub_pages(self, url, types, post_data={}):
         sub_json_dict = {}
         try:
@@ -138,24 +141,13 @@ class Crawler(object):
             logging.error(u"An error ocurred in crawl_ent_pub_pages: %s, types = %d"% (type(e), types))
             raise e
         finally:
-            return sub_json_dict
-        #json_dump_to_file("json_dict.json", self.json_dict)
+            self.json_dict.update(sub_json_dict)
 
     #爬取 其他部门公示信息 页面
+    @exe_time
     def crawl_other_dept_pub_pages(self, url, types, post_data={}):
         sub_json_dict={}
-        # titles =(   'other_dept_pub_administration_license',#行政许可信息
-        #             'other_dept_pub_administration_sanction',#行政处罚信息
-        #         )
         try:
-            # other_dept_urls = {
-            #     "xzxk"  :   "http://gsxt.gdgs.gov.cn/aiccips/OtherPublicity/environmentalProtection.html",
-            #     "czcf"  :   "http://gsxt.gdgs.gov.cn/aiccips/OtherPublicity/environmentalProtection.html",
-            #     }
-            # for title, ids in zip(titles, other_dept_urls):
-            #     url = other_dept_urls[ids]
-            #     page = self.crawl_page_by_url_post(url, post_data)['page']
-            #     sub_json_dict[title] = self.analysis.parse_page_2(page, ids, post_data)
             page = self.crawl_page_by_url_post("http://gsxt.gdgs.gov.cn/aiccips/OtherPublicity/environmentalProtection.html", post_data)['page']
             xk = self.analysis.parse_page_2(page, "xzxk", post_data)
             sub_json_dict["other_dept_pub_administration_license"] =  xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
@@ -166,24 +158,14 @@ class Crawler(object):
             logging.error(u"An error ocurred in crawl_other_dept_pub_pages: %s, types = %d"% (type(e), types))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
+
     #judical assist pub informations
+    @exe_time
     def crawl_judical_assist_pub_pages(self, url, types, post_data= {}):
         sub_json_dict={}
-        # titles = (  'judical_assist_pub_equity_freeze', # 股权冻结信息
-        #             'judical_assist_pub_shareholder_modify', #股东变更信息
-        #             )
+
         try:
-
-            # judical_assist_url = {
-            #     "guquandongjie"   :   "http://gsxt.gdgs.gov.cn/aiccips/judiciaryAssist/judiciaryAssistInit.html",
-            #     "gudongbiangeng"  :   "http://gsxt.gdgs.gov.cn/aiccips/sfGuQuanChange/guQuanChange.html",
-            #     }
-
-            # for (title, ids) in zip(titles, judical_assist_url):
-            #     url = judical_assist_url[ids]
-            #     page = self.crawl_page_by_url_post(url, post_data)['page']
-            #     sub_json_dict[title] = self.analysis.parse_page_2(page, ids, post_data)
             page = self.crawl_page_by_url_post('http://gsxt.gdgs.gov.cn/aiccips/judiciaryAssist/judiciaryAssistInit.html', post_data)['page']
             xz  = self.analysis.parse_page_2(page, 'guquandongjie', post_data)
             sub_json_dict['judical_assist_pub_equity_freeze'] = xz[u'司法股权冻结信息'] if xz.has_key(u'司法股权冻结信息') else []
@@ -194,8 +176,7 @@ class Crawler(object):
             logging.error(u"An error ocurred in crawl_other_dept_pub_pages: %s, types = %d"% (type(e), types))
             raise e
         finally:
-            return sub_json_dict
-        pass
+            self.json_dict.update(sub_json_dict)
 
     def crawl_page_by_url(self, url):
         r = self.requests.get( url, timeout=self.timeout)
@@ -215,41 +196,6 @@ class Crawler(object):
             return False
         return {'page': r.text, 'url': r.url}
 
-    # main function
-    def work(self):
-        """
-        ens = read_ent_from_file("./enterprise_list/guangdong1.txt")
-        #os.makedirs("./Guangdong")
-        for i, ent in enumerate(ens):
-            self.crawl_page_search(urls['page_search'])
-            self.crawl_page_captcha(urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent[2])
-            self.analyze_showInfo()
-            data = self.crawl_page_main()
-            self.json_dict[ent[0]] = data
-            json_dump_to_file("./guangdong/final_json_%s.json" % ent[0], self.json_dict)
-            logging.error(u"Now %s was finished\n"% ent[0])
-        """
-        #url = "http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_06CAc+ibgylJZ6y3lp3JBNsJrQ1qA5gDU7qYIU/VOow9Am1tz4CcjiZg6BZzhZQU-QuOaBlqqlUykdKokb5yijg=="
-        #东莞证券
-        url = "http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_GmjYOaEEX9Xx3eeM0JcrtOywZcfQzs3Ry0M6NPS1/iCr+cQwm+oHVoPBzdIqEiYb-7vusEl1hPU+qjV70QwcUXQ=="
-        page_entInfo = self.crawl_page_by_url(url)['page']
-
-        post_data = self.analysis.parse_page_data_2(page_entInfo)
-        #self.crawl_ind_comm_pub_pages(url, 2, post_data)
-        self.crawl_ent_pub_pages(url, 2, post_data)
-        #
-        #self.crawl_other_dept_pub_pages(url, 2)
-        #self.crawl_judical_assist_pub_pages(url, 2)
-
-        #datas = html_from_file('next.html')
-        #self.analysis.parse_ent_pub_annual_report_page_2(datas, "_detail")
-        """
-        sub_json_dict = {}
-        datas = html_from_file('next.html')
-        sub_json_dict['guquanbiangeng'] = self.analysis.parse_page_2(datas, 'guquanbiangeng', {})
-        json_dump_to_file("crawl_ent_pub_pages.json", sub_json_dict)
-        """
-
     def run(self, ent):
         sub_json_dict= {}
         url = ent
@@ -265,14 +211,33 @@ class Crawler(object):
         sub_json_dict.update(self.crawl_judical_assist_pub_pages(url, 2, post_data))
         return sub_json_dict
 
+    def run_asyn(self, ent):
+        threads=[]
+        url = ent
+        page_entInfo = self.crawl_page_by_url(url)['page']
+        post_data = self.analysis.parse_page_data_2(page_entInfo)
+
+        threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url, 2, post_data))
+
+        url = "http://gsxt.gdgs.gov.cn/aiccips/BusinessAnnals/BusinessAnnalsList.html"
+        threads.append(gevent.spawn(self.crawl_ent_pub_pages, url, 2, post_data))
+
+        url = "http://gsxt.gdgs.gov.cn/aiccips/OtherPublicity/environmentalProtection.html"
+        threads.append(gevent.spawn(self.crawl_other_dept_pub_pages, url, 2, post_data))
+
+        url = "http://gsxt.gdgs.gov.cn/aiccips/judiciaryAssist/judiciaryAssistInit.html"
+        threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url, 2, post_data))
+
+        gevent.joinall(threads)
+
+        return self.json_dict
+
 class Analyze(object):
 
     crawler = None
     def __init__(self):
         self.Ent = []
         self.json_dict = {}
-
-
 
     def get_raw_text_by_tag(self, tag):
         return tag.get_text().strip()
@@ -788,57 +753,17 @@ class Analyze(object):
             return table_dict
 
 
-def html_to_file(path, html):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(html)
-
-def json_dump_to_file(path, json_dict):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-
-def read_ent_from_file(path):
-    read_type = 'r'
-    if not os.path.exists(path):
-        logging.error(u"There is no path : %s"% path )
-    lines = []
-    with codecs.open(path, read_type, 'utf-8') as f:
-        lines = f.readlines()
-    lines = [ line.split(',') for line in lines ]
-    return lines
-
-def html_from_file(path):
-    read_type = 'r'
-    if not os.path.exists(path):
-        return None
-    datas = None
-    with codecs.open(path, read_type, 'utf8') as f:
-        datas = f.read()
-        f.close()
-    return datas
-
-
 class Guangdong2(object):
-    def __init__(self, requests= None):
+    def __init__(self, req= None, ent_number= None):
         self.analysis = Analyze()
-        self.crawler = Crawler(self.analysis, requests)
+        self.crawler = Crawler(req)
+        self.crawler.analysis = self.analysis
         self.analysis.crawler = self.crawler
+        self.analysis.ent_num = ent_number
+        self.crawler.ent_num = ent_number
 
     def run(self, url):
         return self.crawler.run(url)
-    def work(self):
-        self.crawler.work()
 
-"""
-if __name__ == "__main__":
-    reload (sys)
-    sys.setdefaultencoding('utf8')
-    guangdong = Guangdong2()
-    guangdong.work()
-
-"""
+    def run_asyn(self, url):
+        return self.crawler.run_asyn(url)
