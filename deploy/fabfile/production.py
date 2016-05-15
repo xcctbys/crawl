@@ -12,10 +12,6 @@ with open("config/production/servers.json") as conf:
 # Consts
 LOCAL_PROJECT_PATH = "/root/cr-clawer"
 REMOTE_PROJECT_PATH = "/home/webapps"
-MYSQL_ROOT_PASSWORD = "plkjplkj"
-MYSQL_PROJECT_DATABASE = "clawer"
-MYSQL_PROJECT_USER = "cacti"
-MYSQL_PROJECT_PASSWORD = "cacti"
 
 env.user = "root"
 env.password = "P@ssw0rd2015"
