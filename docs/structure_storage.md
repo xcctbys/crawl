@@ -74,9 +74,13 @@ class JsonToSql(object):
     """
         pass
 
-    def run(self):
+    def run(self,config):
     """创建表结构，创建插入数据，导入数据库
     """
+        parser_json(config)
+        create_commond()
+        create_table_sql()
+        create_data_sql()
         pass
 ```
 
@@ -99,8 +103,16 @@ class JsonToSql(object):
 ## 编程接口
 
 - 调用方式
+config = './config.json'
+json_to_sql = JsonToSql()
+json_to_sql.run(config)
+
 - 输入
+conf.json
 - 输出
+create_table.sql
+data.sql
+创建数据库并插入数据
 - 例子
 
 

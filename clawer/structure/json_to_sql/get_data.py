@@ -10,7 +10,7 @@ config_json.close()
 tables_info = config_dic['table']
 
 # print config_dic['mapping']
-
+'''
 def get_data(source, para):
     try:
         pass
@@ -36,14 +36,35 @@ def get_data(source, para):
     else:
         print "Error"
         return
+'''
 
+def get_data(source,path):
+    if path == None:
+        print source
+        return
+    try:
+        get_data(source[path[0]],path[1:])
+    except TypeError:
+        for i in range(len(source)):
+            try:
+                #print source
+                get_data(source[i][path[0]],path[1:])
+            except IndexError:
+                get_data(source[i][path[0]], None)
+            except KeyError:
+                print i,path[0]
+    except IndexError:
+            get_data(source[path[0]],None)
 
 
 source_json = open('guangxi.json', 'r+')
 for line in source_json:
     source = json.loads(line)
-    para = ["ent_pub_ent_annual_report", "详情", "企业资产状况"]
-    get_data(source.values(), para)
+    para = ["ent_pub_ent_annual_report", u"详情", u"网站信息"]
+    get_data(source.values()[0],para)
+    #print source.values()[0]
+
+    #get_data(source.values(), para)
     print "result over",
     # result = source.values()[0]
     for k in source.keys():
