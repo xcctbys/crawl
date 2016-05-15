@@ -27,8 +27,8 @@ else:
 
 logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
-#HOST = '10.0.1.3'
-HOST = 'localhost'
+HOST = '10.0.1.3'
+#HOST = 'localhost'
 USER = 'cacti'
 PASSWD = 'cacti'
 PORT = 3306
