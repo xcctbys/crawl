@@ -1,0 +1,389 @@
+{
+    "database": {
+        "source_file": {
+            "filename": ["beijing.json", "shanghai.json", "jiangsu.json", "shandong.json"]
+        },
+        "source_db": {
+            "dbtype": "mongodb",
+            "host": "127.0.0.1",
+            "port": "27017",
+            "username": "",
+            "password": "",
+            "dbname": "gongshang_source"
+        },
+        "destination_db": {
+            "dbtype": "mysql",
+            "host": "127.0.0.1",
+            "port": "3306",
+            "username": "cacti",
+            "password": "cacti",
+            "dbname": "gongshang"
+        }
+    },
+    "mapping": {
+        "企业基本信息": "ind_comm_pub_reg_basic", 
+        "董监高主要人员信息": "ind_comm_pub_arch_key_persons",
+        "分支机构信息": "ind_comm_pub_arch_branch",
+        "企业年报基本信息": "ent_pub_ent_annual_report",
+        "企业资产状况": ["ent_pub_ent_annual_report", "详情"],
+        "网站信息": ["ent_pub_ent_annual_report", "详情"],
+        "股权转让信息": ["ent_pub_ent_annual_report", "详情"],
+        "投资其他公司": ["ent_pub_ent_annual_report", "详情"],
+        "对外担保情况": ["ent_pub_ent_annual_report", "详情"],
+        "股东出资状况": ["ent_pub_ent_annual_report", "详情"]
+    },
+    "table": {
+        "企业基本信息": [
+                {
+                    "field": "注册号/统一社会信用代码",
+                    "datatype": "INT",
+                    "option": "NOT NULL"
+                },
+                {
+                    "field": "企业名称",
+                    "datatype": "CHAR(50)",
+                    "option": "NOT NULL"
+                },
+                {
+                    "field": "类型",
+                    "datatype": "VARCHAR(50)",
+                    "option": ""
+                },
+                {
+                    "field": "注册资本",
+                    "datatype": "VARCHAR(50)",
+                    "option": ""
+                },
+                {
+                    "field": "成立日期",
+                    "datatype": "INT",
+                    "option": ""
+                },
+                {
+                    "field": "地址",
+                    "datatype": "CHAR(20)",
+                    "option": ""
+                },
+                {
+                    "field": "营业期限",
+                    "datatype": "CHAR(20)",
+                    "option": ""
+                },
+                {
+                    "field": "登记机关",
+                    "datatype": "CHAR(20)",
+                    "option": ""
+                },
+                {
+                    "field": "核准日期",
+                    "datatype": "CHAR(20)",
+                    "option": ""
+                },
+                {
+                    "field": "经营状态",
+                    "datatype": "CHAR(20)",
+                    "option": ""
+                },
+                {
+                    "field": "经营范围",
+                    "datatype": "CHAR(20)",
+                    "option": ""
+                }
+            ],
+        "董监高主要人员信息": [
+            {
+                "field": "序号",
+                "datatype": "INT",
+                "option": "NOT NULL PRIMARY KEY AUTO_INCREMENT"
+            },
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "姓名",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "职务",
+                "datatype": "CHAR(50)",
+                "option": ""
+            }
+
+        ],
+        "分支机构信息": [
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "序号",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "企业名称",
+                "datatype": "CHAR(50)",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "登记机关",
+                "datatype": "CHAR(20)",
+                "option": ""
+            }
+        ],
+        "企业年报基本信息": [
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": "NOT NULL PRIMARY KEY"
+            },
+            {
+                "field": "序号",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "报送年度",
+                "datatype": "CHAR(100)",
+                "option": ""
+            },
+            {
+                "field": "发布日期",
+                "datatype": "DATE",
+                "option":""
+            }
+        ],
+        "企业资产状况": [
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "名称",
+                "datatype": "CHAR(100)",
+                "option": ""
+            },
+            {
+                "field": "发布时间",
+                "datatype": "DATE",
+                "option": ""
+            },
+            {
+                "field": "联系电话",
+                "datatype": "CHAR(20)",
+                "option": ""
+            },
+            {
+                "field": "通信地址",
+                "datatype": "VARCHAR",
+                "option": ""
+            },
+            {
+                "field": "邮政编码",
+                "datatype": "INT",
+                "option": ""
+            },
+            {
+                "field": "电子邮件",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "资产总额",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "所有者权益合计",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "营业总收入",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "利润总额",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "纳税总额",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "负债总额",
+                "datatype": "FLOAT",
+                "option": ""
+            }
+        ],
+        "股东出资状况": [
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "股东名称",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "认缴出资额",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "认缴出资时间",
+                "datatype": "DATE",
+                "option": ""
+            },
+            {
+                "field": "认缴出资方式",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "实缴出资额",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "时间",
+                "datatype": "DATE",
+                "option": ""
+            },
+            {
+                "field": "方式",
+                "datatype": "CHAR(50)",
+                "option": ""
+            }
+        ],
+        "网站信息": [
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "网站类型",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "名称",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "网址",
+                "datatype": "VARCHAR",
+                "option": ""
+            }
+        ],
+
+        "股权转让信息": [
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": "NOT NULL"
+            },
+            {
+                "field": "股东",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "变更前股权比例",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "变更后股权比例",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "变更后股权比例",
+                "datatype": "FLOAT",
+                "option": ""
+            }
+        ],
+        "投资其他公司": [
+            {
+                "field": "本公司名称",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": ""
+            },
+            {
+                "field": "被投资公司名称",
+                "datatype": "CHAR(50)",
+                "option": ""
+            }
+        ],
+        "对外担保情况": [
+            {
+                "field": "本公司名称",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "注册号/统一社会信用代码",
+                "datatype": "INT",
+                "option": ""
+            },
+            {
+                "field": "债权人",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "债务人",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "主债权种类",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "主债权数额",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "保证期限",
+                "datatype": "INT",
+                "option": ""
+            },
+            {
+                "field": "保证方式",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "保证担保范围",
+                "datatype": "CHAR(50)",
+                "option": ""
+            }
+        ]
+    }
+}

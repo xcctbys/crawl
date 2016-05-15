@@ -1,10 +1,10 @@
 {
   "WebServer": {
-    "hosts": ["192.168.4.201"]
+    "hosts": []
 
   },
   "GeneratorServers": {
-    "hosts": ["192.168.4.202"]
+    "hosts": ["192.168.4.201"]
   },
   "FilterServers": {
     "hosts": []
@@ -19,15 +19,12 @@
     "hosts": []
   },
   "MysqlServers": {
-    "hosts": ["192.168.4.201"]
+    "hosts": []
   },
   "MongoServers": {
-    "hosts": ["192.168.4.203"]
+    "hosts": []
   },
   "RedisServers": {
-    "hosts": ["192.168.4.203"]
-  },
-  "NginxServers": {
-    "hosts": []
+    "hosts": ["192.168.4.201"]
   }
 }

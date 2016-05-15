@@ -110,13 +110,13 @@ class IndustrialPubliction(object):
 	def __init__(self, *args, **kwargs):
 		pass
 	# 登记信息
-	def get_regirster_info(self, *args, **kwargs):
+	def get_registration_info(self, *args, **kwargs):
 		pass
 	# 备案信息
 	def get_record_info(self, *args, **kwargs):
 		pass
 	# 动产抵押登记信息
-	def get_movable_property_register_info(self, *args, **kwargs):
+	def get_movable_property_registration_info(self, *args, **kwargs):
 		pass
 	# 股权出质登记信息
 	def get_stock_equity_pledge_info(self, *args, **kwargs):
@@ -164,7 +164,7 @@ class EnterprisePubliction(object):
 		pass
 		
 # 其他部门公示信息
-calss OtherDepartmentsPubliction(object):
+class OtherDepartmentsPubliction(object):
 	def __init__(self, *args, **kwargs):
 		pass
 	# 行政许可信息

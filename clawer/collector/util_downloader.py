@@ -42,40 +42,41 @@ class Download(object):
 		try:
 			#  uri = 'enterprise://%E9%87%8D%E5%BA%86/%E9%87%8D%E5%BA%86%E7%90%86%E5%BF%85%E6%98%93%E6%8A%95%E8%B5%84%E7%AE%A1%E7%90%86%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/500905004651063/'
 			downloader = EnterpriseDownload(self.task.uri)
-			result = downloader.download()
+			list_result = downloader.download()
 			end_time = time.time()
-			print '----------------json data---------------------'
-			print result
-
 			spend_time = end_time - start_time
-			requests_headers = result.get('requests_headers', 'None')
-			response_headers = result.get('response_headers', 'None')
-			requests_body = result
-			response_body = result.get('response_body', 'None')
-			remote_ip = result.get('remote_ip', 'None')
-			hostname = str(socket.gethostname())
+			print '----------------json data---------------------'
+			
+			for result in list_result:
+				# print result
+				requests_headers = result.get('requests_headers', 'None')
+				response_headers = result.get('response_headers', 'None')
+				requests_body = result
+				response_body = result.get('response_body', 'None')
+				remote_ip = result.get('remote_ip', 'None')
+				hostname = str(socket.gethostname())
 
-			# write_downloaddata_to_mongo
-			cdd = CrawlerDownloadData(	job=self.task.job, 
-										downloader=self.crawler_download,
-										crawlertask=self.task,
-										requests_headers=requests_headers,
-										response_headers=response_headers,
-										requests_body=requests_body,
-										response_body=response_body,
-										hostname=hostname,
-										remote_ip=remote_ip)
-			cdd.save()
-			# write_downloaddata_success_log_to_mongo
-			cdl = CrawlerDownloadLog(	job = self.task.job,
-										task = self.task,
-										status = CrawlerDownloadLog.STATUS_SUCCESS,
-										requests_size = sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
-										response_size = sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
-										failed_reason = 'None',
-										downloads_hostname = hostname,
-										spend_time = spend_time)
-			cdl.save()
+				# write_downloaddata_to_mongo
+				cdd = CrawlerDownloadData(	job=self.task.job, 
+											downloader=self.crawler_download,
+											crawlertask=self.task,
+											requests_headers=requests_headers,
+											response_headers=response_headers,
+											requests_body=requests_body,
+											response_body=response_body,
+											hostname=hostname,
+											remote_ip=remote_ip)
+				cdd.save()
+				# write_downloaddata_success_log_to_mongo
+				cdl = CrawlerDownloadLog(	job = self.task.job,
+											task = self.task,
+											status = CrawlerDownloadLog.STATUS_SUCCESS,
+											requests_size = sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
+											response_size = sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
+											failed_reason = 'None',
+											downloads_hostname = hostname,
+											spend_time = spend_time)
+				cdl.save()
 
 			# 改变这个任务的状态为下载成功
 			self.task.status = CrawlerTask.STATUS_SUCCESS
@@ -285,6 +286,9 @@ class Download(object):
 			start_time = time.time()
 			print 'it is curl ----------------------------'
 			try:
+
+
+
 				result = commands.getstatusoutput('curl %s' % self.task.uri)
 				# print result
 
@@ -358,6 +362,8 @@ class Download(object):
 				requests_headers = unicode(resp.request.headers)
 				response_headers = unicode(resp.headers)
 				requests_body = 'None'
+
+
 				response_body = unicode(resp.text)
 				remote_ip = resp.headers.get('remote_ip', 'None')
 				hostname = str(socket.gethostname())
@@ -372,6 +378,13 @@ class Download(object):
 											response_body=response_body,
 											hostname=hostname,
 											remote_ip=remote_ip)
+
+
+				if resp.headers.get('Content-Type', 'None') == 'application/pdf':
+					cdd.files_down.put(resp.text, content_type = 'pdf')
+				if resp.headers.get('Content-Type', 'None') in ['image/jpeg','image/png','image/gif']:
+					cdd.files_down.put(resp.text, content_type = 'image/png')
+
 				cdd.save()
 				# write_downloaddata_success_log_to_mongo
 				cdl = CrawlerDownloadLog(	job = self.task.job,
