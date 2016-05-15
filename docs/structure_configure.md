@@ -12,80 +12,100 @@
 ```
 {
     "database": {
-        "source_file": ["自定义_源数据文件1", "自定义_源数据文件2", "自定义_源数据文件3"], 
+        "source_file": ["源数据文件1", "源数据文件2", "源数据文件3"], 
         "source_db": {
-            "dbtype": "自定义_原始数据库类型",
-            "host": "自定义_源数据库地址",
-            "port": "自定义_源数据库端口",
-            "username": "自定义_源数据库用户名",
-            "password":, "自定义_源数据库秘密",
-            "dbname": "自定义_源数据库名"
+            "dbtype": "原始数据库类型",
+            "host": "源数据库地址",
+            "port": "源数据库端口",
+            "username": "源数据库用户名",
+            "password":, "源数据库秘密",
+            "dbname": "源数据库名"
         },
         "destination_db": {
-            "dbtype": "自定义_目标数据库类型",
-            "host": "自定义_目标数据库地址",
-            "port": "自定义_目标数据库端口",
-            "username": "自定义_目标数据库用户",
-            "password": "自定义_目标数据库秘密",
-            "dbname": "自定义_目标数据库库名"
+            "dbtype": "目标数据库类型",
+            "host": "目标数据库地址",
+            "port": "目标数据库端口",
+            "username": "目标数据库用户",
+            "password": "目标数据库秘码",
+            "dbname": "目标数据库库名"
         }
     },
 
     "mapping": {
-        "自定义_表1": "自定义_JSON源数据中的key1",
-        "自定义_表2": "自定义_JSON源数据中的key2",
-        "自定义_表3": ["自定义_JSON源数据中的一级key", "自定义_JSON源数据中的二级key"],
-        "自定义_表4": ["自定义_JSON源数据中的一级key", "自定义_二级key", "自定义_三级key"]
+        "表1": {
+            "name": "表1的英文名",
+            "path": ["表1的表名在JSON源数据中的搜索路径"]
+            "fields": {
+                "字段1": "字段1英文名",
+                "字段2": "字段2英文名",
+                "字段n": "字段n英文名"
+            },
+        "表2": {
+            "name": "表2英文名",
+            "path": ["表2的表名在JSON源数据中的搜索路径"]
+            "fields": {
+                "字段1": "字段1英文名",
+                "字段2": "字段2英文名",
+            },
+        "表n": {
+            "name": "表n英文名",
+            "path": ["表n的表名在JSON源数据中的搜索路径"]
+            "fields": {
+                "字段1": "字段1英文名",
+                "字段2": "字段2英文名",
+            }
     },
 
     "table": {
-        "自定义_表1": [
+        "表1英文名": [
 			{
-				"field": "自定义_字段1",
-				"datatype": "自定义_数据类型",
-				"option": "自定义_字段选项"
+				"field": "字段1英文名",
+				"datatype": "数据类型",
+				"option": "字段选项"
 			},
 			{
-				"field": "自定义_字段2",
-				"datatype": "自定义_数据类型",
-				"option": "自定义_字段选项"
+				"field": "字段2英文名,
+				"datatype": "数据类型",
+				"option": "字段选项"
 			},
 			{
-				"field": "自定义_字段n",
-				"datatype": "自定义_数据类型",
-				"option": "自定义_字段选项"
+				"field": "字段n英文名,
+				"datatype": "数据类型",
+				"option": "字段选项"
 			}
 		],
-		"自定义_表2": [
+		"表2英文名": [
 			{
-				"field": "自定义_字段1",
-				"datatype": "自定义_数据类型",
-				"option": "自定义_字段选项"
+				"field": "字段1英文名,
+				"datatype": "数据类型",
+				"option": "字段选项"
 			},
 			{
-				"field": "自定义_字段2",
-				"datatype": "自定义_数据类型",
-				"option": "自定义_字段选项"
+				"field": "字段2英文名,
+				"datatype": "数据类型",
+				"option": "字段选项"
 			}
 		],
-		"自定义_表n": [
+		"表n英文名": [
 			{
-				"field": "自定义_字段1",
-				"datatype": "自定义_数据类型",
-				"option": "自定义_字段选项"
+				"field": "字段1英文名,
+				"datatype": "数据类型",
+				"option": "字段选项"
 			},
 			{
-				"field": "自定义_字段2",
-				"datatype": "自定义_数据类型",
-				"option": "自定义_字段选项"
+				"field": "字段2英文名,
+				"datatype": "数据类型",
+				"option": "字段选项"
 			}
 		]
 	}
 }
 ```
 关于 mapping 部分: 
-指定 key-value 形式的映射关系, key 为关系数据库的表名, 要在原始JSON格式数据中找到 key, 需指定其所在位置 value.
-单层的对应关系直接指定即可, 嵌套的关系, 根据嵌套层级以列表给出 
+指定JSON源数据和关系数据库字段的映射关系和中英文表名的对应关系
+- name 自定义表的英文名称
+- path 一个列表, 用于指明如何在 JSON 源数据中找到表名, 根据源数据的嵌套层次, 依次写入列表
+- fields 关系数据库表中字段的定义 
 
 以工商为例, 某家企业信息的源始数据是这样的:
 ```
@@ -131,16 +151,106 @@
 ```
 现需获取"企业年报基本信息", 年报中的"股东及出资信息", mapping 中应这样写: 
 ```
+{
     "mapping": {
-        "企业年报基本信息": "ent_pub_ent_annual_report",
-        "股东及出资信息": ["ent_pub_ent_annual_report", "详情"]
+        "ent_pub_ent_annual_report": {
+            "name": "ent_pub_ent_annual_report",
+            "path": ["ent_pub_ent_annual_report"],
+            "fields": {
+                "注册号/统一社会信用代码": "register_num",
+                "序号": "order_num",
+                "报送年度": "report_year",
+                "发布日期": "putlish_date"
+            }
+        },
+		"股东及出资信息": {
+			"name": "shareholder_contrib",
+			"path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
+			"fields": {
+				"注册号/统一社会信用代码": "register_num",
+				"股东": "shareholder_name",
+				"认缴出资方式": "subscribed_contrib_form",
+				"认缴出资额": "subscribed_capital_contrib",
+				"认缴出资时间": "subscribed_contrib_date",
+				"出资方式": "contrib_form",
+				"出资时间": "contrib_date",
+				"实缴出资额": "actural_capital_contrib"
+			}
+		}
     },
+	"table": {
+		"ent_pub_ent_annual_report": [
+			{
+				"field": "order_num",
+				"datatype": "INT",
+				"option": "NOT NULL"
+			},
+			{
+				"field": "register_num",
+				"datatype": "INT",
+				"option": "NOT NULL PRIMARY KEY"
+			},
+			{
+				"field": "report_year",
+				"datatype": "DATE",
+				"option": ""
+			},
+			{
+				"field": "publish_date",
+				"datatype": "DATE",
+				"option":""
+			}
+		],
+		"shareholder_contrib": [
+			{
+				"field": "register_num",
+				"datatype": "INT",
+				"option": "NOT NULL"
+			},
+			{
+				"field": "shareholder_name",
+				"datatype": "CHAR(100)",
+				"option": ""
+			},
+			{
+				"field": "subscribed_capital_contrib",
+				"datatype": "VARCHAR(1000)",
+				"option": ""
+			},
+			{
+				"field": "subscribed_contrib_date",
+				"datatype": "DATE",
+				"option": ""
+			},
+			{
+				"field": "subscribed_contrib_form",
+				"datatype": "CHAR(50)",
+				"option": ""
+			},
+			{
+				"field": "actural_capital_contrib",
+				"datatype": "VARCHAR(1000)",
+				"option": ""
+			},
+			{
+				"field": "contrib_date",
+				"datatype": "DATE",
+				"option": ""
+			},
+			{
+				"field": "contrib_form",
+				"datatype": "CHAR(50)",
+				"option": ""
+			}
+		]
+	}
+}
 
 ```
+
 ## 注意事项
 
-- 用户仅可以更改模板中"自定义_"开头的数据
-- 可以添加任意张表, 保持模板中的格式, 并且和mapping中项目一致即可(列表最后一项后不要加逗号)
-- 每张表可以添加任意个字段(列表最后一项后不要加逗号) 
+- 用户仅可以更改模板中中文标明的数据
+- 可以添加任意张表, 每张表可以添加任意个字段, 保持模板中的格式, 并且和mapping中项目一致即可(列表最后一项后不要加逗号)
 - 目标数据库现只支持 MySQL
 
