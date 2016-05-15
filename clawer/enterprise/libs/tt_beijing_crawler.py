@@ -4,7 +4,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 # sys.path.append('/home/clawer/cr-clawer/clawer')
-# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import re
 import codecs
 import json
@@ -18,7 +18,7 @@ import logging
 from crawler import Crawler, Parser
 from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
-from smart_proxy.api import Proxy, UseProxy
+# from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -197,16 +197,17 @@ class CrackCheckcode(object):
 class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
 		
-		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_proxy(province='BEIJING')
-		if not is_use_proxy:
-			self.proxies = []
-		else:
-			proxy = Proxy()
-			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
-						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
-		print 'self.proxies:', self.proxies
-		# self.proxies = []
+		# useproxy = UseProxy()
+		# is_use_proxy = useproxy.get_province_is_use_proxy(province='BEIJING')
+		# if not is_use_proxy:
+		# 	self.proxies = []
+		# else:
+		# 	proxy = Proxy()
+		# 	self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
+		# 				'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
+		# print 'self.proxies:', self.proxies
+		self.proxies = []
+
 		self.info = info
 		self.parser = MyParser(info=self.info)
 		self.write_file_mutex = threading.Lock()
@@ -388,9 +389,6 @@ class MyParser(Parser):
 		if what == 'ind_comm_pub_reg_modify':
 			tds = self.parser_ind_comm_pub_reg_modify(content=content)
 			return (ths, tds)
-			pass
-		elif what == 'wait':
-			pass
 		else:
 			# print table.find_all('tr')
 			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
@@ -545,8 +543,8 @@ class EnterprisePubliction(object):
 		param = {'entid':self.info.ent_id, 'clear':'true', 'timeStamp':self.info.time_stamp}
 		resp = self.crawler.crawl_page_by_url(self.info.urls['ent_pub_ent_annual_report'], params=param)
 		content = BeautifulSoup(resp.content, 'html.parser')
-		print '-------------get_corporate_annual_reports_info--------------'
-		print content
+		# print '-------------get_corporate_annual_reports_info--------------'
+		# print content
 		ths, tds = self.parser.parser_ent_pub_ent_annual_report(what='parser_ent_pub_ent_annual_report', content=content, element='table', attrs={'cellspacing':"0", 'cellpadding':"0"})
 		ths.insert(2, u'详情')
 		for i,td in enumerate(tds):
@@ -579,7 +577,7 @@ class EnterprisePubliction(object):
 				param = {'clear':'true', 'cid':cid, 'year':tds[i+1][0:4]}
 				resp = self.crawler.crawl_page_by_url(self.info.urls['annual_report_detail_change'], params=param)
 				content = BeautifulSoup(resp.content, 'html.parser').find_all('table')
-				print content
+				# print content
 				temp[u'修改记录'] = self.parser.parser_ent_pub_ent_annual_report_for_detail(what='', content=content[0])
 				tds[i] = temp
 				# tds[i] = self.parser.parser_ent_pub_ent_annual_report_for_detail(tds[i])
@@ -727,9 +725,8 @@ class BeijingCrawler(object):
 			# print self.info.result_json
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
-		# for item in self.info.result_json_list:
-		# 	self.json_dump_to_file('beijing.json',  item )
-			# self.json_dump_to_file('jiangsu.json', {self.info.ent_number: self.info.result_json})
+		for item in self.info.result_json_list:
+			self.json_dump_to_file('beijing.json',  item )
 
 		return self.info.result_json_list
 		
@@ -764,7 +761,7 @@ if __name__ == '__main__':
 	if DEBUG:
 		unittest.main()
 	crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-	ent_list = [u'110101013510699'] #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
+	ent_list = [u'110116015763249'] #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
 	# ent_list = [u'创业投资中心']
 	# ent_list = [u'北京仙瞳创业投资中心（有限合伙）']
 	for ent_number in ent_list:

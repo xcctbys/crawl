@@ -254,16 +254,7 @@ class MyParser(Parser):
 					tds.append(td.get_text().strip() if td.get_text() else None)
 			ths.insert(2, u'详情')
 			return (ths, tds)
-		if what == 'ind_comm_pub_reg_shareholder':  # 分析 投资人信息，只返回链接。
-			tds = []
-			for td in table.find_all('td'):
-				if td.find('a'):
-					tds.append(td.find('a')['href'])
-				else:
-					tds.append(td.get_text().strip() if td.get_text() else None)
-			return (ths, tds)
-		else:
-			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
+		tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
 		print 'len(ths):', len(ths)
 		for th in ths:
 			print th
@@ -291,7 +282,16 @@ class MyParser(Parser):
 		if what == 'ind_comm_pub_arch_key_persons':
 			ths = ths[:int(len(ths)/2)]
 
-		tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
+		if what == 'ind_comm_pub_reg_shareholder':  # 分析 投资人信息，只返回链接。
+			tds = []
+			for td in table.find_all('td'):
+				if td.find('a'):
+					tds.append(td.find('a')['href'])
+				else:
+					tds.append(td.get_text().strip() if td.get_text() else None)
+			return (ths, tds)
+		else:
+			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
 		print 'len(ths):', len(ths)
 		for th in ths:
 			print th
@@ -687,7 +687,7 @@ if __name__ == '__main__':
 		unittest.main()
 	crawler = ShanghaiCrawler('./enterprise_crawler/shanghai.json')
 	ent_list = [u'310108000565783'] #, u'310000000124581']
-	# ent_list = [u'钧锋投资管理咨询（上海）有限公司']
+	# ent_list = [u'上海爱华投资管理有限公司']
 	for ent_number in ent_list:
 		crawler.run(ent_number=ent_number)
 
