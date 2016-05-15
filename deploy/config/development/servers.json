@@ -1,30 +1,30 @@
 {
   "WebServer": {
-    "hosts": ["172.16.80.5"]
+    "hosts": []
 
   },
   "GeneratorServers": {
-    "hosts": ["172.16.80.4"]
+    "hosts": ["192.168.4.201"]
   },
   "FilterServers": {
     "hosts": []
   },
   "DownloaderServers": {
-    "hosts": ["172.16.80.1", "172.16.80.2", "172.16.80.3"]
+    "hosts": []
   },
   "StructureSevers": {
-    "hosts": ["172.16.20.3"]
+    "hosts": []
   },
   "CaptchaServers": {
     "hosts": []
   },
   "MysqlServers": {
-    "hosts": [""]
+    "hosts": []
   },
   "MongoServers": {
-    "hosts": [""]
+    "hosts": []
   },
   "RedisServers": {
-    "hosts": [""]
+    "hosts": ["192.168.4.201"]
   }
 }

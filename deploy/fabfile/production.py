@@ -31,13 +31,16 @@ def deploy_web_server():
     run("yum install epel-release")
     run("yum install nginx")
     with cd("{0}/cr-clawer/deploy/".format(REMOTE_PROJECT_PATH)):
-        run("yes | cp -rf config/nginx.conf /etc/nginx/nginx.conf")
+        run("yes | cp -rf config/production/nginx.conf /etc/nginx/nginx.conf")
     run("service nginx start")
     run("chkconfig nginx on")
 
+    # Add generator and downloader's crontab
+    _add_crontab("web/crontab.txt", "w")
+
 
 @roles("GeneratorServers")
-def deploy_genertor_servers():
+def deploy_generator_servers():
     # Create folder structure
     _create_used_folders()
 
@@ -46,6 +49,9 @@ def deploy_genertor_servers():
                    remote_project_path=REMOTE_PROJECT_PATH)
 
     _install_project_deps()
+
+    # Use supervisor to monitor rq workers.
+    _supervisord("generator")
 
 
 @roles("DownloaderServers")
@@ -58,6 +64,9 @@ def deploy_downloader_servers():
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
+    # Use supervisor to monitor rq workers.
+    _supervisord("downloader")
+
 
 @roles("StructureSevers")
 def deploy_structure_servers():
@@ -68,11 +77,8 @@ def deploy_structure_servers():
     _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
 
-
-@roles("CaptchaServers")
-def deploy_captcha_servers():
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    # Use supervisor to monitor rq workers.
+    _supervisord("structure")
 
 
 def ssh_key(key_file="~/.ssh/id_rsa.pub"):
@@ -125,4 +131,11 @@ def _create_used_folders():
     run("mkdir -p {0}".format(REMOTE_PROJECT_PATH))
 
     # Create log folder
-    run("mkdir -p /home/web_log")
+    run("mkdir -p /home/logs")
+
+
+def _supervisord(server):
+    with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
+        run("yes | cp {0}/supervisord.conf /etc/supervisord.conf".format(server))
+    run("service supervisord start")
+    run("chkconfig supervisord on")
