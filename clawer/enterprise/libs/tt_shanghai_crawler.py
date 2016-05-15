@@ -27,7 +27,7 @@ DEBUG = False
 class InitInfo(object):
 	def __init__(self, *args, **kwargs):
 		# 验证码图片的存储路径
-		self.ckcode_image_path = settings.json_restore_path + '/zongju/ckcode.jpg'
+		self.ckcode_image_path = settings.json_restore_path + '/shanghai/ckcode.jpg'
 
 		self.code_cracker = CaptchaRecognition('zongju')
 
@@ -97,18 +97,6 @@ class CrackCheckcode(object):
 			print 'ckcode:', ckcode
 			if not ckcode[1]:
 				continue
-			# post_data = {'captcha': ckcode[1], 'session.token': self.info.session_token};
-			# next_url = self.info.urls['post_checkcode']
-			# resp = self.crawler.crawl_page_by_url_post(next_url, data=post_data)
-			# if resp.status_code != 200:
-			# 	print 'resp.status_code:', resp.status_code
-			# 	logging.error('failed to get crackcode image by url %s, fail count = %d' % (next_url, count))
-			# 	continue
-			# print 'resp.content:', resp.content
-			# logging.error('crack code = %s, %s, response =  %s' % (ckcode[0], ckcode[1], resp.content))
-			# if resp.content == '0':
-			# 	logging.error('crack checkcode failed!count = %d' % (count))
-			# 	continue
 			next_url = self.info.urls['post_checkcode']
 			self.info.post_data = {
 				'searchType': '1',
@@ -266,7 +254,16 @@ class MyParser(Parser):
 					tds.append(td.get_text().strip() if td.get_text() else None)
 			ths.insert(2, u'详情')
 			return (ths, tds)
-		tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
+		if what == 'ind_comm_pub_reg_shareholder':  # 分析 投资人信息，只返回链接。
+			tds = []
+			for td in table.find_all('td'):
+				if td.find('a'):
+					tds.append(td.find('a')['href'])
+				else:
+					tds.append(td.get_text().strip() if td.get_text() else None)
+			return (ths, tds)
+		else:
+			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
 		print 'len(ths):', len(ths)
 		for th in ths:
 			print th
@@ -326,6 +323,48 @@ class MyParser(Parser):
 			annual_dict[head] = self.zip_ths_tds(ths, tds)
 		return annual_dict
 
+	def parser_ind_comm_pub_reg_shareholder(self, content):
+		page = content
+		detail_dict = {}
+		list_content = []
+		m = re.search(r'investor\.invName = \"(.+)\";', page)
+		if m:
+			detail_dict[u'股东'] = unicode(m.group(1), 'utf8')
+
+		detail = {}
+		m = re.search(r'invt\.subConAm = \"([\d\.]+)\";', page)
+		if m:
+			detail[u'认缴出资额（万元）'] = m.group(1)
+
+		m = re.search(r'invt\.conDate = \'([\w\-\.]*)\';', page)
+		if m:
+			detail[u'认缴出资日期'] = m.group(1)
+
+		m = re.search(r'invt\.conForm = \"(.+)\";', page)
+		if m:
+			detail[u'认缴出资方式'] = m.group(1)
+
+		# paid_in_detail = {}
+		m = re.search(r'invtActl\.acConAm = \"([\d\.]+)\";', page)
+		if m:
+			detail[u'实缴出资额（万元）'] = m.group(1)
+
+		m = re.search(r'invtActl\.conForm = \"(.+)\";', page)
+		if m:
+			detail[u'实缴出资方式'] = m.group(1)
+
+		m = re.search(r'invtActl\.conDate = \'([\w\-\.]*)\';', page)
+		if m:
+			detail[u'实缴出资日期'] = m.group(1)
+
+		detail_dict[u'认缴额（万元）'] = detail.get(u'认缴出资额（万元）', '0')
+		detail_dict[u'实缴额（万元）'] = detail.get(u'实缴出资额（万元）', '0')
+		# detail_dict[u'认缴明细'] = subscribe_detail
+		# detail_dict[u'实缴明细'] = paid_in_detail
+		list_content.append(detail)
+		detail_dict[u"list"] = list_content
+		return [detail_dict]
+
 # 工商公示信息
 class IndustrialPubliction(object):
 	def __init__(self, info=None, crawler=None, parser=None, *args, **kwargs):
@@ -340,8 +379,13 @@ class IndustrialPubliction(object):
 			self.info.result_json['ind_comm_pub_reg_basic'] = result
 		else:
 			print u'---------在工商公示信息里登记信息中没有发现基本信息表----------------'
-		result = self.parser.parser_classic_ths_tds_data(what='ind_comm_pub_reg_shareholder', content=self.info.source_code_soup, element='table', attrs={'id':'investorTable'})
-		self.info.result_json['ind_comm_pub_reg_shareholder'] = result
+
+		ths, tds = self.parser.parser_classic_ths_tds_data(what='ind_comm_pub_reg_shareholder', content=self.info.source_code_soup, element='table', attrs={'id':'investorTable'})
+		for i, td in enumerate(tds):
+			if td.find('http:')!=-1:
+				content = self.crawler.crawl_page_by_url(td).content
+				tds[i] = self.parser.parser_ind_comm_pub_reg_shareholder(content)  #再次分析详情。
+		self.info.result_json['ind_comm_pub_reg_shareholder'] = self.parser.zip_ths_tds(ths, tds)
 
 		table = self.parser.parser_get_a_table_by_head(u'变更信息')
 		if table:
