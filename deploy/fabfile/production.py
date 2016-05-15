@@ -137,5 +137,6 @@ def _create_used_folders():
 def _supervisord(server):
     with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
         run("yes | cp {0}/supervisord.conf /etc/supervisord.conf".format(server))
+        run("yes | cp config/production/supervisord.service /etc/systemd/system/")
     run("service supervisord start")
     run("chkconfig supervisord on")
