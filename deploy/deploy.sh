@@ -45,8 +45,8 @@ deploy_filter_servers() {
   ${FABRIC_BIN} -f ${FABFILE} deploy_filter_servers
 }
 
-deploy_genertor_servers() {
-  ${FABRIC_BIN} -f ${FABFILE} deploy_genertor_servers
+deploy_generator_servers() {
+  ${FABRIC_BIN} -f ${FABFILE} deploy_generator_servers
 }
 
 deploy_mongo_servers() {
@@ -71,7 +71,7 @@ main() {
     all)
       deploy_web_server
       deploy_downloader_servers
-      deploy_genertor_servers
+      deploy_generator_servers
       deploy_structure_servers
       ;;
     web)
@@ -87,7 +87,7 @@ main() {
       deploy_filter_servers
       ;;
     genertor)
-      deploy_genertor_servers
+      deploy_generator_servers
       ;;
     mongo)
       deploy_mongo_servers

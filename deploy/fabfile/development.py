@@ -11,7 +11,7 @@ with open("config/development/servers.json") as conf:
     env.roledefs = json.load(conf)
 
 # Consts
-LOCAL_PROJECT_PATH = "/root/cr-clawer"
+LOCAL_PROJECT_PATH = "~/Projects/cr-clawer"
 REMOTE_PROJECT_PATH = "/home/webapps"
 MYSQL_ROOT_PASSWORD = "plkjplkj"
 MYSQL_PROJECT_DATABASE = "clawer"
@@ -33,9 +33,12 @@ def deploy_web_server():
     run("yum install epel-release")
     run("yum install nginx")
     with cd("{0}/cr-clawer/deploy/".format(REMOTE_PROJECT_PATH)):
-        run("yes | cp -rf config/nginx.conf /etc/nginx/nginx.conf")
-    run("service nginx start")
+        run("yes | cp -rf config/development/nginx.conf /etc/nginx/nginx.conf")
+    run("service nginx on")
     run("chkconfig nginx on")
+
+    # Add generator and downloader's crontab
+    _add_crontab("web/crontab.txt", "w")
 
 
 @roles("GeneratorServers")
@@ -43,6 +46,9 @@ def deploy_genertor_servers():
     _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
+
+    # Start rqworkers by supervisord.
+    _supervisord("generator")
 
 
 @roles("DownloaderServers")
@@ -169,7 +175,7 @@ def deploy_redis_servers():
     run("mkdir -p /var/db/redis/7004")
 
     # rsync config file.
-    _rsync_project(local_project_path="config/redis", remote_project_path="/root/")
+    _rsync_project(local_project_path="config/development/redis", remote_project_path="/root/")
     run("yes | cp -r redis/redis /etc/redis/")
     run("yes | cp -r redis/init.d/ /etc/init.d/")
     run("yes | cp -r redis/system/ /etc/systemd/system/")
@@ -241,3 +247,10 @@ def _install_project_deps():
     with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
         run("{0} --upgrade pip setuptools".format(PIP))
         run("{0} -r {1}".format(PIP, "requirements/production.txt"))
+
+
+def _supervisord(server):
+    with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
+        run("yes | cp {0}/supervisord.conf /etc/supervisord.conf".format(server))
+    run("service supervisord start")
+    run("chkconfig supervisord on")

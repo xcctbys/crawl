@@ -27,7 +27,7 @@ DEBUG = False
 class InitInfo(object):
 	def __init__(self, *args, **kwargs):
 		# 验证码图片的存储路径
-		self.ckcode_image_path = settings.json_restore_path + '/shanghai/ckcode.jpg'
+		self.ckcode_image_path = settings.json_restore_path + '/zongju/ckcode.jpg'
 
 		self.code_cracker = CaptchaRecognition('zongju')
 
@@ -36,11 +36,11 @@ class InitInfo(object):
 		self.timeout = 40
 		self.urls = {
 				'host': 'http://qyxy.baic.gov.cn',
-				'official_site': 'https://www.sgs.gov.cn/notice/home',
-				'get_checkcode': 'https://www.sgs.gov.cn/notice/captcha?preset=',
-				'post_checkcode': 'https://www.sgs.gov.cn/notice/search/ent_info_list',
+				'official_site': 'http://gsxt.saic.gov.cn/zjgs/',
+				'get_checkcode': 'http://gsxt.saic.gov.cn/zjgs/captcha?preset=',
+				'post_checkcode': 'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',
 				# 'get_info_entry': 'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',  # 获得企业入口
-				'open_info_entry': 'https://www.sgs.gov.cn/notice/notice/view?',
+				'open_info_entry': 'http://gsxt.saic.gov.cn/zjgs/notice/view?',
 				# 获得企业信息页面的url，通过指定不同的tab=1-4来选择不同的内容（工商公示，企业公示...）
 				'open_detail_info_entry': ''
 				}
@@ -254,16 +254,7 @@ class MyParser(Parser):
 					tds.append(td.get_text().strip() if td.get_text() else None)
 			ths.insert(2, u'详情')
 			return (ths, tds)
-		if what == 'ind_comm_pub_reg_shareholder':  # 分析 投资人信息，只返回链接。
-			tds = []
-			for td in table.find_all('td'):
-				if td.find('a'):
-					tds.append(td.find('a')['href'])
-				else:
-					tds.append(td.get_text().strip() if td.get_text() else None)
-			return (ths, tds)
-		else:
-			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
+		tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
 		print 'len(ths):', len(ths)
 		for th in ths:
 			print th
@@ -290,8 +281,16 @@ class MyParser(Parser):
 				break
 		if what == 'ind_comm_pub_arch_key_persons':
 			ths = ths[:int(len(ths)/2)]
-
-		tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
+		if what == 'ind_comm_pub_reg_shareholder':  # 分析 投资人信息，只返回链接。
+			tds = []
+			for td in table.find_all('td'):
+				if td.find('a'):
+					tds.append(td.find('a')['href'])
+				else:
+					tds.append(td.get_text().strip() if td.get_text() else None)
+			return (ths, tds)
+		else:
+			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
 		print 'len(ths):', len(ths)
 		for th in ths:
 			print th
@@ -301,7 +300,7 @@ class MyParser(Parser):
 
 		return self.zip_ths_tds(ths=ths, tds=tds)
 
-	def parser_get_a_table_by_head(self, table_head=None):
+	def parser_get_a_table_by_head(self, table_head=None):   #通过一个table的head 返回这个 table
 		all_tables = self.info.source_code_soup.find_all('table')
 		for table in all_tables:
 			ths = table.find_all('th')
@@ -310,7 +309,7 @@ class MyParser(Parser):
 		else:
 			return None
 
-	def parser_ent_pub_ent_annual_report(self, content):
+	def parser_ent_pub_ent_annual_report(self, content):  #单独解析企业年报详情页面。
 		annual_dict = {}
 		tables = BeautifulSoup(content, 'html.parser').find_all('table')
 		for i, table in enumerate(tables):
@@ -364,6 +363,7 @@ class MyParser(Parser):
 		list_content.append(detail)
 		detail_dict[u"list"] = list_content
 		return [detail_dict]
+
 
 # 工商公示信息
 class IndustrialPubliction(object):
@@ -457,7 +457,7 @@ class EnterprisePubliction(object):
 		if table:
 			ths, tds = self.parser.parser_classic_ths_tds_from_exists_table(what='ent_pub_ent_annual_report', content=table)
 			for i, td in enumerate(tds):
-				if td.find('https:')!=-1:
+				if td.find('http:')!=-1:
 					resp = self.crawler.crawl_page_by_url(td)
 					result = self.parser.parser_ent_pub_ent_annual_report(resp.content)
 					tds[i] = result
@@ -581,7 +581,7 @@ class JudicialAssistancePubliction(object):
 		pass
 
 # 省份的爬取类
-class ShanghaiCrawler(object):
+class ZongjuCrawler(object):
 	"""北京工商公示信息网页爬虫
 	"""
 	def __init__(self, json_restore_path= None, *args, **kwargs):
@@ -656,7 +656,7 @@ class ShanghaiCrawler(object):
 		return self.info.result_json_list
 		
 
-class TestShanghaiCrawler(unittest.TestCase):
+class TestZongjuCrawler(unittest.TestCase):
 	def __init__(self):
 		pass
 	def setUp(self):
@@ -670,12 +670,12 @@ class TestShanghaiCrawler(unittest.TestCase):
 	# 	self.assertTrue(is_valid)
 
 	def test_crawler_register_num(self):
-		crawler = ShanghaiCrawler('./enterprise_crawler/shanghai.json')
+		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
 		ent_list = []
 		for ent_number in ent_list:
 			result = crawler.run(ent_number=ent_number)
 	def test_crawler_key(self):
-		crawler = ShanghaiCrawler('./enterprise_crawler/shanghai.json')
+		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
 		ent_list = [u'创业投资中心']
 		for ent_number in ent_list:
 			crawler.run(ent_number=ent_number)
@@ -685,8 +685,8 @@ if __name__ == '__main__':
 
 	if DEBUG:
 		unittest.main()
-	crawler = ShanghaiCrawler('./enterprise_crawler/shanghai.json')
-	ent_list = [u'310108000565783'] #, u'310000000124581']
+	crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
+	ent_list = [u'100000000018983'] #, u'310000000124581']
 	# ent_list = [u'钧锋投资管理咨询（上海）有限公司']
 	for ent_number in ent_list:
 		crawler.run(ent_number=ent_number)
