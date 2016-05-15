@@ -49,6 +49,7 @@ class ExtracterGenerator(StructureGenerator):
 '''
 
 import json
+import types
 
 class JsonToSql(object):
     config_dic = {}
@@ -69,7 +70,7 @@ class JsonToSql(object):
         destination_db = self.config_dic['database']['destination_db']
 
     def get_mapping(self):
-        mapping = elf.config_dic['mapping']
+        mapping = self.config_dic['mapping']
     
     def create_commond(self):
         db_info = self.config_dic['db_info']['destination_db']
@@ -96,6 +97,24 @@ class JsonToSql(object):
     def create_data_sql(self,source_json):
         pass
 
+    def get_data(self,source,para,list_id):
+        """
+        获取表记录
+        :param source: 数据源，字典型或列表型
+        :param para: 路径结构映射
+        :param list_id: 如果元数据是列表型，记录数据在列表中的位置
+        :return: 未处理的表数据，字典型或列表型
+        """
+        if para is None:
+            return source
+        new_para = para[1]
+        if type(source) is types.ListType:
+            for i in range(len(source)):
+                self.get_data(source[i][para], new_para,i+1)
+        elif type(source) is types.DictionaryType:
+            self.get_data(source[para], new_para,-1)
+        else:
+            print "Error"
 
 config_json = open('gs_table_conf.json','r+')
 config_dic = json.loads(config_json.read())
@@ -104,11 +123,51 @@ config_json.close()
 tables_info = config_dic['table']
 
 #print config_dic['mapping']
+import types
+
+def get_data(source,para):
+    print source
+    try:
+        pass
+        #print para[0]
+    except:
+        pass
+    if para is None:
+        #print source,"\nover"
+        return source
+
+    if type(source) is types.ListType:
+        for i in range(len(source)):
+            #print para[0],para[1]
+            try:
+                source = get_data(source[i][para[0]],para[1:])
+            except:
+                source = get_data(source[i][para[0]], None)
+    elif type(source) is types.DictionaryType:
+        try:
+            source = get_data(source[para[0]],para[1:])
+        except:
+            source = get_data(source[para[0]], None)
+    else:
+        print "Error"
+        source = None
+    return source
 
 source_json = open('guangxi.json','r+')
 for line in source_json:
     source = json.loads(line)
-    print source.values()[0]['ent_pub_ent_annual_report'][0][u'详情']
+    para = [u'ent_pub_ent_annual_report',u'详情',u'企业资产状况信息']
+    result = get_data(source.values(),para)
+    print "result ",result
+   # result = source.values()[0]
+
+    for k in source.keys():
+        print k
+
+
+    for k in result[0].keys():
+        print k,result[0][k]
+    print '\n'
 #source_dic = json.loads(source_json.read())
 source_json.close()
 
