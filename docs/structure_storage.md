@@ -1,20 +1,21 @@
 # Statement of Goals 目标描述
 
-方便开发和运营人员解析源数据，从json中提取一些特定字段创建数据库并把特殊字段对应的数据存储到目标数据库。
+方便开发和运营人员解析源数据，从配置文件（json格式）中提取一些特定字段创建数据库，并根据配置文件中的映射关系从特定的源数据文件（json格式）提取数据存储到目标数据库。
 
 # Functional Description 功能说明
 
-- 根据 conf_json 生成sql语句,并创建数据库，创建表结构，创建数据映射
-- 根据 source_json 和数据映射生成sql语句，存储数据
+- 根据配置文件（config.json） 生成sql语句,并创建数据库，创建表结构，创建数据映射
+- 根据配置文件中的映射关系，从数据源中提取数据，生成sql语句，存储数据
 
-## 功能1 读取 conf_json，生成sql语句
+## 功能 读取 conf_json，生成sql语句
 
 ### 输入
-- conf_json
+- 配置文件（config.json）
 
 ### 输出
 - sql语句
-- 日志
+- 生成数据库
+- 创建错误日志
 
 ###逻辑流程（用伪代码写下）
 
@@ -24,7 +25,7 @@ class JsonToSql(object):
     """
 
     config_dic = {}
-    json_source = []
+    data_source = []
     
     def parser_json(self,config):
     """解析配置文件
@@ -33,13 +34,13 @@ class JsonToSql(object):
         config_dic = json.loads(config_json.read())
         config_json.close()
 
-    def get_json_source(self):
-        json_source = config_dic['database']['source_file']['filename']
+    def get_data_source(self):
+        data_source = config_dic['database']['source_file']['filename']
 
-    def create_source_db(self):
+    def get_source_db(self):
         source_db = self.config_dic['database']['source_db']
         
-    def create_destination_db(self):
+    def get_destination_db(self):
         destination_db = self.config_dic['database']['destination_db']
 
     def get_mapping(self):
@@ -114,22 +115,31 @@ create_table.sql
 data.sql
 创建数据库并插入数据
 - 例子
+```
+config = './gs_table_conf.json'
+json_to_sql = JsonToSql()
+json_to_sql.run(config)
+```
+输出结果：
+```
+文件：
+create_table.sql
+data.sql
 
+mysql> show tables;
++---------------------------+
+| Tables_in_test            |
++---------------------------+
+| 投资其他公司               |
+| 股东出资状况               |
+| ent_pub_ent_annual_report |
+| guaranty                  |
+| ind_comm_pub_arch_branch  |
+| invest_other_company      |
+| test                      |
++---------------------------+
 
-# Internel 内部实现
-
-## Directory 代码目录结构
-
-## Database 数据库
-
-
-# Test 测试
-
-## Testcase 1
-
-- 依赖
-- 输入
-- 期望输出
+```
 
 
 # Other
