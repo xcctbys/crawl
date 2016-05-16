@@ -144,7 +144,7 @@ class GFS:
 
 
 ##############mongoengine############
-'''
+"""
 #MongoDB的GridFS支持直接在数据库中存储文件。要在MongoEngine中使用GridFS，只要使用 FileField 对象
 #将 gtk.png 这个图片存入了数据库中
 
@@ -187,7 +187,7 @@ marmot.photo.replace(another_marmot, content_type='image/png')
 
 
 
-'''
+"""
 
 
 if __name__== '__main__':

@@ -48,15 +48,18 @@ class GuangdongClawer(object):
         #验证码图片的存储路径
         self.path_captcha = settings.json_restore_path + '/guangdong/ckcode.jpg'
         self.timeout = (10, 10)
-        self.requests.proxies = get_proxy('guangdong')
-        print self.requests.proxies
+        proxies = get_proxy('guangdong')
+        if not proxies:
+            print self.requests.proxies
+            self.requests.proxies = proxies
+
 
 
     # 破解搜索页面
     def crawl_page_search(self, url):
         r = self.request_by_method('GET', url, timeout=self.timeout)
         if not r:
-            logging.error(u"Something wrong when getting the url:%s , status_code=%d", url, r.status_code)
+            logging.error(u"Something wrong when getting the url:%s。", url)
             return None
         # r.encoding = "utf-8"
         return r.text
@@ -90,7 +93,7 @@ class GuangdongClawer(object):
             count+= 1
             r = self.request_by_method('GET', url_captcha, timeout= self.timeout)
             if not r:
-                logging.error(u"Something wrong when getting the Captcha url:%s , status_code=%d", url_captcha, r.status_code)
+                logging.error(u"Something wrong when getting the Captcha url:%s .", url_captcha)
                 continue
             if self.save_captcha(r.content):
                 result = self.crack_captcha()
@@ -189,12 +192,12 @@ class GuangdongClawer(object):
                         elif i==1:
                             logging.error(u"This %s enterprise is type 1"%(self.ent_num))
                             guangdong = Guangdong1(self.requests)
-                            sub_json_dict =  guangdong.run(ent)
+                            sub_json_dict =  guangdong.run_asyn(ent)
                         # gsxt.gdgs.gov.cn/aiccips
                         elif i==2:
                             logging.error(u"This %s enterprise is type 2"%(self.ent_num))
                             guangdong = Guangdong2(self.requests)
-                            sub_json_dict = guangdong.run(ent)
+                            sub_json_dict = guangdong.run_asyn(ent)
                         else:
                             logging.error(u"This %s enterprise is no type!"%(self.ent_num))
                         break
