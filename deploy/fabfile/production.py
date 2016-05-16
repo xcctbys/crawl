@@ -144,6 +144,7 @@ def _create_used_folders():
 
     # Create web log folder
     run("mkdir -p /home/logs/cr-clawer")
+    run("chown -R nginx:nginx /home/logs/cr-clawer")
 
 
 def _supervisord(server):
