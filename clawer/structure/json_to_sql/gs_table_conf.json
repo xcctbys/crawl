@@ -264,7 +264,12 @@
                 "option":""
             }
         ],
-        "asserts_condition": [
+        "assets_condition": [
+            {
+                "field": "publish_date",
+                "datatype": "DATE",
+                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+            },
             {
                 "field": "register_num",
                 "datatype": "INT",
@@ -313,6 +318,11 @@
         ],
         "shareholder_contrib": [
             {
+                "field": "publish_date",
+                "datatype": "DATE",
+                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+            },
+            {
                 "field": "register_num",
                 "datatype": "INT",
                 "option": "NOT NULL"
@@ -355,6 +365,11 @@
         ],
         "website_info": [
             {
+                "field": "publish_date",
+                "datatype": "DATE",
+                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+            },
+            {
                 "field": "register_num",
                 "datatype": "INT",
                 "option": "NOT NULL"
@@ -377,6 +392,11 @@
         ],
 
         "share_transfer": [
+            {
+                "field": "publish_date",
+                "datatype": "DATE",
+                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+            },
             {
                 "field": "register_num",
                 "datatype": "INT",
@@ -405,6 +425,11 @@
         ],
         "invest_other_company": [
             {
+                "field": "publish_date",
+                "datatype": "DATE",
+                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+            },
+            {
                 "field": "register_num",
                 "datatype": "INT",
                 "option": ""
@@ -421,6 +446,11 @@
             }
         ],
         "guaranty": [
+            {
+                "field": "publish_date",
+                "datatype": "DATE",
+                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+            },
             {
                 "field": "register_num",
                 "datatype": "INT",
