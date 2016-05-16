@@ -57,7 +57,12 @@ CLAWER_RESULT = "/data/clawer_result/"
 CLAWER_RESULT_URL = "http://10.0.1.2/media/clawer_result/"
 
 REDIS = "redis://10.0.1.3:6379/0"
-URL_REDIS = "redis://10.0.1.3:6379/0"
+GENERATOR_REDIS = "redis://10.0.1.3:6379/1"
+DOWNLOADER_REDIS = "redis://10.0.1.3:6379/2"
+STRUCTURE_REDIS = "redis://10.0.1.3:6379/3"
+FILTER_REDIS = "redis://10.0.1.3:6379/4"
+
+
 MONITOR_REDIS = "redis://10.0.1.3:6379/0"
 # add by wang ziyang 2016-04-14
 #MAX_QUEUE_LENGTH = 500
