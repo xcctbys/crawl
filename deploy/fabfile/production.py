@@ -142,6 +142,9 @@ def _create_used_folders():
     # Create log folder
     run("mkdir -p /home/logs")
 
+    # Create web log folder
+    run("mkdir -p /home/logs/cr-clawer")
+
 
 def _supervisord(server):
     with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
