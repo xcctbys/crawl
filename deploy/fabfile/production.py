@@ -40,7 +40,7 @@ def deploy_web_server():
     run("yum install epel-release")
     run("yum install nginx")
     with cd("{0}/cr-clawer/deploy/".format(REMOTE_PROJECT_PATH)):
-        run("yes | cp -rf config/production/nginx.conf /etc/nginx/nginx.conf")
+        run("yes | cp -rf config/production/cr-clawer.conf /etc/nginx/conf.d/cr-clawer.conf")
     run("service nginx start")
     run("chkconfig nginx on")
 
