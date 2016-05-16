@@ -20,8 +20,10 @@ from .libs.jilin_crawler import JilinCrawler
 from .libs.xizang_crawler import XizangCrawler
 from .libs.shaanxi_crawler import ShaanxiCrawler
 ##
-from .libs.shanghai_crawler import ShanghaiCrawler
-from .libs.zongju_crawler import ZongjuCrawler
+# from .libs.shanghai_crawler import ShanghaiCrawler
+from .libs.tt_shanghai_crawler import ShanghaiCrawler
+# from .libs.zongju_crawler import ZongjuCrawler
+from .libs.tt_zongju_crawler import ZongjuCrawler
 # from .libs.jiangsu_crawler import JiangsuCrawler
 from .libs.test_jiangsu_crawler import JiangsuCrawler
 from .libs.heilongjiang_crawler import HeilongjiangClawer

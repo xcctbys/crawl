@@ -141,12 +141,14 @@ class UseProxy(object):
 			item.is_use_proxy = is_use_proxy
 			item.save()
 
-	def get_province_is_use_province(self, province=None):
+	def get_province_is_use_proxy(self, province=None):
 		if province is None:
 			return False
 		else:
-			one_province = IpUser.objects.filter(province__icontains=province)[0]
-			return one_province.is_use_proxy                                                                                                                                                
+			one_province = IpUser.objects.filter(province__icontains=province)
+			# print 'len(one_province):', len(one_province)
+			# print one_province
+			return one_province[0].is_use_proxy if one_province else None                                                                                                                                               
 
 
 		

@@ -124,6 +124,7 @@ class ParserGenerator(StructureGenerator):
         return False
 
 ```
+
 ## 2. 生成导出任务（In Master）
 
 从数据库过滤需要导出的task，读取该任务的导出器配置并生成对应的导出任务，根据任务的优先级分配到不同优先级的队列。
@@ -254,13 +255,13 @@ structure
 ├── __init__.py
 ├── admin.py
 ├── migrations
-│   └── __init__.py
+│   └── __init__.py
 ├── models.py
 ├── parsers
 ├── structure.py
 ├── tests
-│   ├── __init__.py
-│   └── test_structure.py
+│   ├── __init__.py
+│   └── test_structure.py
 └── views.py
 ```
 
@@ -351,6 +352,7 @@ test_insert_job_with_parser函数是重写insert_text_without_job，添加了解
 队列中有任务，任务总数跟CrawlerTask中下载成功的总数一致,可以在MongoDB中通过以下指令验证
 	use source
 	db.crawler_task.find({status:5}).count()
+
 ##执行解析任务
 输入指令：
 	python manage.py run_parse_job

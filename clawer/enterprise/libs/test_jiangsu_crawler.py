@@ -34,6 +34,8 @@ class InitInfo(object):
 		self.html_restore_path = settings.json_restore_path + '/jiangsu/'
 		# 验证码图片的存储路径
 		self.ckcode_image_path = settings.json_restore_path + '/jiangsu/ckcode.jpg'
+		# if not os.path.exists(self.ckcode_image_path):
+		# 	os.makedirs(os.path.dirname(self.ckcode_image_path))
 		self.code_cracker = CaptchaRecognition('jiangsu')
 		#多线程爬取时往最后的json文件中写时的加锁保护
 		self.write_file_mutex = threading.Lock()
@@ -104,6 +106,7 @@ class CrackCheckcode(object):
 			data = {'name': self.info.ent_number, 'verifyCode': ckcode[1]}
 			resp = self.crawler.crawl_page_by_url_post(self.info.urls['post_checkcode'], data=data)
 
+			print resp
 			if resp.find("onclick") >= 0 : #and self.parse_post_check_page(resp):
 				self.info.after_crack_checkcode_page = resp
 				return True
@@ -212,7 +215,7 @@ class MyCrawler(Crawler):
 	def __init__(self, info=None, *args, **kwargs):
 		# 调用代理，及配置是否使用代理的接口。完成使用代理或者不使用代理。
 		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_province(province='jiangsu')
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='jiangsu')
 		if not is_use_proxy:
 			self.proxies = []
 		else:
@@ -220,6 +223,7 @@ class MyCrawler(Crawler):
 			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
 						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
 		print 'self.proxies:', self.proxies		
+		# self.proxies = []
 		self.reqst = requests.Session()
 		self.reqst.headers.update({
 				'Accept': 'text/html, application/xhtml+xml, */*',
@@ -256,7 +260,8 @@ class MyParser(Parser):
 		self.crawler = crawler
 
 	def zip_ths_tds(self, ths, tds):
-		return dict(zip(ths,tds))
+		need_dict = dict(zip(ths,tds))
+		return [need_dict] if need_dict else []
 
 	def test_print_ths_tds(self, ths, tds):
 		for th, td in zip(ths, tds):
@@ -643,6 +648,7 @@ class JiangsuCrawler(object):
 			judical.run()
 			end_time = time.time()
 			print '--------------------------crawler_spend_time:%s' % (end_time - start_time)
+			print {self.info.ent_number: self.info.result_json}
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
 		return self.info.result_json_list
@@ -675,14 +681,12 @@ class TestJiangsuCrawler(unittest.TestCase):
 			crawler.run(ent_number=ent_number)
 
 
-
-
 if __name__ == '__main__':
 
 	if DEBUG:
 		unittest.main()
 
 	crawler = JiangsuCrawler('./enterprise_crawler/jiangsu.json')
-	ent_list = [u'创业投资中心']
+	ent_list = [u'320100000149869'] #, u'320106000236597', '320125000170935']
 	for ent_number in ent_list:
 		crawler.run(ent_number=ent_number)

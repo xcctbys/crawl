@@ -198,7 +198,7 @@ class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
 		
 		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_province(province='beijing')
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='BEIJING')
 		if not is_use_proxy:
 			self.proxies = []
 		else:
@@ -207,6 +207,7 @@ class MyCrawler(Crawler):
 						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
 		print 'self.proxies:', self.proxies
 		# self.proxies = []
+
 		self.info = info
 		self.parser = MyParser(info=self.info)
 		self.write_file_mutex = threading.Lock()
@@ -308,7 +309,8 @@ class MyParser(Parser):
 				y = x + len(ths)
 			return temp_list
 		else:
-			return [dict(zip(ths, tds))]
+			need_dict = dict(zip(ths, tds))
+			return [need_dict] if need_dict else []
 
 	def parser_ent_pub_ent_annual_report(self, what=None, content=None, element=None, attrs=None): # 针对企业年报，
 		table = content.find_all(element, attrs=attrs)[0]
@@ -345,7 +347,7 @@ class MyParser(Parser):
 		tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
 		return self.zip_ths_tds(ths, tds)
 
-	def parser_ind_comm_pub_reg_modefy(self, content=None): # 得到变更信息的 td,包括详细页面的地址。
+	def parser_ind_comm_pub_reg_modify(self, content=None): # 得到变更信息的 td,包括详细页面的地址。
 		# print '---------------content-------------------'
 		# print content
 		tds = content.find_all('td')
@@ -385,11 +387,8 @@ class MyParser(Parser):
 			ths = ths[:int(len(ths)/2)]
 
 		if what == 'ind_comm_pub_reg_modify':
-			tds = self.parser_ind_comm_pub_reg_modefy(content=content)
+			tds = self.parser_ind_comm_pub_reg_modify(content=content)
 			return (ths, tds)
-			pass
-		elif what == 'wait':
-			pass
 		else:
 			# print table.find_all('tr')
 			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
@@ -409,7 +408,7 @@ class IndustrialPubliction(object):
 		self.crawler = crawler
 		self.parser = parser
 	# 登记信息
-	def get_regirster_info(self, *args, **kwargs):
+	def get_registration_info(self, *args, **kwargs):
 		param = {'entId':self.info.ent_id, 'credit_ticket':self.info.credit_ticket, 'entNo':self.info.ent_number, 'timeStamp':self.info.time_stamp}
 		resp = self.crawler.crawl_page_by_url(self.info.urls['ind_comm_pub_reg_basic'], params=param)
 		content = BeautifulSoup(resp.content, 'html.parser')
@@ -438,9 +437,9 @@ class IndustrialPubliction(object):
 				# print '---------table_one----len(tables):%s----------' % len(tables)
 				# print tables[0]
 				# print tables[1]
-				tds[i] = self.parser.parser_classic_ths_tds_data_for_ind_comm_pub(what='parser_ind_comm_pub_reg_modefy', content=tables[0], element='table')
+				tds[i] = self.parser.parser_classic_ths_tds_data_for_ind_comm_pub(what='parser_ind_comm_pub_reg_modify', content=tables[0], element='table')
 				# print tds[i]
-				tds[i+1] = self.parser.parser_classic_ths_tds_data_for_ind_comm_pub(what='parser_ind_comm_pub_reg_modefy', content=tables[1], element='table')
+				tds[i+1] = self.parser.parser_classic_ths_tds_data_for_ind_comm_pub(what='parser_ind_comm_pub_reg_modify', content=tables[1], element='table')
 				# print tds[i+1]
 			else:
 				pass
@@ -475,7 +474,7 @@ class IndustrialPubliction(object):
 		# self.crawler.get_page_json_data('ind_comm_pub_arch_branch', 1)
 		# self.crawler.get_page_json_data('ind_comm_pub_arch_liquidation', 1)
 	# 动产抵押登记信息
-	def get_movable_property_register_info(self, *args, **kwargs):
+	def get_movable_property_registration_info(self, *args, **kwargs):
 		param = {'entId':self.info.ent_id, 'clear':'true', 'timeStamp':self.info.time_stamp}
 		resp = self.crawler.crawl_page_by_url(self.info.urls['ind_comm_pub_movable_property_reg'], params=param)
 		content = BeautifulSoup(resp.content, 'html.parser')
@@ -524,9 +523,9 @@ class IndustrialPubliction(object):
 		# self.crawler.get_page_json_data('ind_comm_pub_spot_check', 1)
 	# 运行逻辑
 	def run(self, *args, **kwargs):
-		self.get_regirster_info()
+		self.get_registration_info()
 		self.get_record_info()
-		self.get_movable_property_register_info()
+		self.get_movable_property_registration_info()
 		self.get_stock_equity_pledge_info()
 		self.get_administrative_penalty_info()
 		self.get_abnormal_operation_info()
@@ -544,8 +543,8 @@ class EnterprisePubliction(object):
 		param = {'entid':self.info.ent_id, 'clear':'true', 'timeStamp':self.info.time_stamp}
 		resp = self.crawler.crawl_page_by_url(self.info.urls['ent_pub_ent_annual_report'], params=param)
 		content = BeautifulSoup(resp.content, 'html.parser')
-		print '-------------get_corporate_annual_reports_info--------------'
-		print content
+		# print '-------------get_corporate_annual_reports_info--------------'
+		# print content
 		ths, tds = self.parser.parser_ent_pub_ent_annual_report(what='parser_ent_pub_ent_annual_report', content=content, element='table', attrs={'cellspacing':"0", 'cellpadding':"0"})
 		ths.insert(2, u'详情')
 		for i,td in enumerate(tds):
@@ -578,7 +577,7 @@ class EnterprisePubliction(object):
 				param = {'clear':'true', 'cid':cid, 'year':tds[i+1][0:4]}
 				resp = self.crawler.crawl_page_by_url(self.info.urls['annual_report_detail_change'], params=param)
 				content = BeautifulSoup(resp.content, 'html.parser').find_all('table')
-				print content
+				# print content
 				temp[u'修改记录'] = self.parser.parser_ent_pub_ent_annual_report_for_detail(what='', content=content[0])
 				tds[i] = temp
 				# tds[i] = self.parser.parser_ent_pub_ent_annual_report_for_detail(tds[i])
@@ -726,11 +725,10 @@ class BeijingCrawler(object):
 			# print self.info.result_json
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
-		# return self.info.result_json_list
-		
 		for item in self.info.result_json_list:
 			self.json_dump_to_file('beijing.json',  item )
-			# self.json_dump_to_file('jiangsu.json', {self.info.ent_number: self.info.result_json})
+
+		return self.info.result_json_list
 		
 
 class TestBeijingCrawler(unittest.TestCase):
@@ -763,7 +761,7 @@ if __name__ == '__main__':
 	if DEBUG:
 		unittest.main()
 	crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-	ent_list = [u'110000410227029'] #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
+	ent_list = [u'110116015763249'] #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
 	# ent_list = [u'创业投资中心']
 	# ent_list = [u'北京仙瞳创业投资中心（有限合伙）']
 	for ent_number in ent_list:

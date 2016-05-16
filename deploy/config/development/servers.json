@@ -1,0 +1,30 @@
+{
+  "WebServer": {
+    "hosts": []
+
+  },
+  "GeneratorServers": {
+    "hosts": ["192.168.4.201"]
+  },
+  "FilterServers": {
+    "hosts": []
+  },
+  "DownloaderServers": {
+    "hosts": []
+  },
+  "StructureSevers": {
+    "hosts": []
+  },
+  "CaptchaServers": {
+    "hosts": []
+  },
+  "MysqlServers": {
+    "hosts": []
+  },
+  "MongoServers": {
+    "hosts": []
+  },
+  "RedisServers": {
+    "hosts": ["192.168.4.201"]
+  }
+}
