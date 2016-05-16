@@ -31,11 +31,11 @@ class JsonToSql(object):
     """解析配置文件
     """
         config_json = open(config,'r+')
-        config_dic = json.loads(config_json.read())
+        self.config_dic = json.loads(config_json.read())
         config_json.close()
 
     def get_data_source(self):
-        data_source = config_dic['database']['source_file']['filename']
+        self.data_source = self.config_dic['database']['source_file']['filename']
 
     def get_source_db(self):
         source_db = self.config_dic['database']['source_db']
@@ -44,7 +44,7 @@ class JsonToSql(object):
         destination_db = self.config_dic['database']['destination_db']
 
     def get_mapping(self):
-        mapping = elf.config_dic['mapping']
+        mapping = self.config_dic['mapping']
     
     def create_commond(self):
         db_info = self.config_dic['db_info']['destination_db']
