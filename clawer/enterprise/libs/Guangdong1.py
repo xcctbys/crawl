@@ -19,6 +19,7 @@ import gevent.monkey
 gevent.monkey.patch_socket()
 from common_func import exe_time
 
+
 urls = {
     'prefix_url_1':'http://gsxt.gzaic.gov.cn/search/',
 }
@@ -578,18 +579,26 @@ class Analyze(object):
         finally:
             return table_dict
 
-class Guangdong1(object):
-    def __init__(self, req= None, ent_number= None):
-        self.analysis = Analyze()
-        self.crawler = Crawler(req)
-        self.crawler.analysis = self.analysis
-        self.analysis.crawler = self.crawler
-        self.analysis.ent_num = ent_number
-        self.crawler.ent_num = ent_number
+# class Guangdong1(object):
+#     def __init__(self, req= None, ent_number= None):
+#         self.analysis = Analyze()
+#         self.crawler = Crawler(req)
+#         self.crawler.analysis = self.analysis
+#         self.analysis.crawler = self.crawler
+#         self.analysis.ent_num = ent_number
+#         self.crawler.ent_num = ent_number
 
-    def run(self, url):
-        return self.crawler.run(url)
+#     def run(self, url):
+#         return self.crawler.run(url)
 
-    def run_asyn(self, url):
-        return self.crawler.run_asyn(url)
+#     def run_asyn(self, url):
+#         return self.crawler.run_asyn(url)
+
+from Guangdong2 import Guangdong2
+
+class Guangdong1(Guangdong2):
+    urls = {
+        'host': 'http://gsxt.gzaic.gov.cn',
+    }
+
 

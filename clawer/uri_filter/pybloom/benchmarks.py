@@ -1,5 +1,5 @@
+#coding=utf-8
 #!/usr/bin/env python
-#
 
 
 """Test performance of BloomFilter at a set capacity and error rate."""

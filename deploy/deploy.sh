@@ -25,7 +25,6 @@ error() {
 
 ############################  DEPLOY FUNCTIONS
 copy_ssh_key_to_remote_servers() {
-
   ${FABRIC_BIN} -f ${FABFILE} -R WebServer,GeneratorServers,DownloaderServers,StructureSevers ssh_key
 }
 
@@ -65,7 +64,7 @@ deploy_structure_servers() {
   ${FABRIC_BIN} -f ${FABFILE} deploy_structure_servers
 }
 
-############################  CONTROL FUNCTIONS
+############################  MAIN FUNCTIONS
 main() {
   case "$1" in
     all)
@@ -86,7 +85,7 @@ main() {
     filter)
       deploy_filter_servers
       ;;
-    genertor)
+    generator)
       deploy_generator_servers
       ;;
     mongo)
@@ -114,19 +113,17 @@ main() {
 }
 
 useage() {
-  echo "Usage: ./deploy.sh {all|captcha|downloader|filter|genertor|mongo|mysql|redis|structure}"
+  echo "Usage: ./deploy.sh {all|web|generator|downloader|structure|mongo|mysql|redis}"
   echo ""
   echo "        all:            所有环境部署"
-  echo "        mongo:          MongoDB部署"
-  echo "        mysql:          MySQL部署"
-  echo "        redis:          Redis部署"
   echo "        web:            Web后台服务"
-  echo "        filter:         防重器部署"
-  echo "        captcha:        破解器部署"
-  echo "        genertor:       生成器部署"
+  echo "        generator:      生成器部署"
   echo "        downloader:     下载器部署"
   echo "        structure:      解析器部署"
   echo "        sshkey:         同步本地ssh pub key到远程服务器"
+  echo "        mongo:          MongoDB部署"
+  echo "        mysql:          MySQL部署"
+  echo "        redis:          Redis部署"
   echo ""
 }
 

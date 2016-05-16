@@ -4,7 +4,7 @@ import os
 import json
 from fabric.api import env, roles, run, cd
 from fabric.contrib.project import rsync_project
-from fabric.contrib.files import append
+from fabric.contrib.files import append, exists
 
 with open("config/production/servers.json") as conf:
     env.roledefs = json.load(conf)
@@ -25,13 +25,22 @@ def deploy_web_server():
     # Rsync local project files to remote server.
     _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
+
     _install_project_deps()
 
-    # Install nginx and start nginx server.
+    # Install memcached
+    run("yum install -y memcached")
+    run("service memcached start")
+    run("chkconfig memcached on")
+
+    # Start web server on port 4000
+    _supervisord("web")
+
+    # Install nginx and start nginx server and proxy 127.0.0.1:4000.
     run("yum install epel-release")
     run("yum install nginx")
     with cd("{0}/cr-clawer/deploy/".format(REMOTE_PROJECT_PATH)):
-        run("yes | cp -rf config/production/nginx.conf /etc/nginx/nginx.conf")
+        run("yes | cp -rf config/production/cr-clawer.conf /etc/nginx/conf.d/cr-clawer.conf")
     run("service nginx start")
     run("chkconfig nginx on")
 
@@ -133,10 +142,15 @@ def _create_used_folders():
     # Create log folder
     run("mkdir -p /home/logs")
 
+    # Create web log folder
+    run("mkdir -p /home/logs/cr-clawer")
+    run("chown -R nginx:nginx /home/logs/cr-clawer")
+
 
 def _supervisord(server):
     with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
         run("yes | cp {0}/supervisord.conf /etc/supervisord.conf".format(server))
-        run("yes | cp config/production/supervisord.service /etc/systemd/system/")
+        if not exists("/etc/systemd/system/supervisord.service"):
+            run("yes | cp config/production/supervisord.service /etc/systemd/system/")
     run("service supervisord start")
     run("chkconfig supervisord on")

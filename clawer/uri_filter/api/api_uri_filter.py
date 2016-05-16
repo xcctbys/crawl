@@ -10,17 +10,17 @@ from uri_filter.pybloom.pybloom import *
 def bloom_filter_api(filter_type, uri_list =[], uri_size=1000000, err_rate=0.01,):
 
     if filter_type == 'uri_generator':
-        redisdb = 1
+        redisdb = 11
         tablename = 'uri_generator'
     elif filter_type == 'uri_parse':
-        redisdb = 2
+        redisdb = 12
         tablename = 'uri_parse'
 
     elif filter_type == 'ip':
-        redisdb = 3
+        redisdb = 13
         tablename = 'ip'
     else :
-        redisdb = 4
+        redisdb = 14
         tablename = filter_type
 
     blmfilter = BloomFilter(uri_size, err_rate, redisdb)

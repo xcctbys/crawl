@@ -206,7 +206,7 @@ class GeneratorQueue(object):
     MEDIUM_MAX_COUNT = 3000
     LOW_MAX_COUNT = 4000
 
-    def __init__( self, redis_url= settings.REDIS, \
+    def __init__( self, redis_url= settings.GENERATOR_REDIS, \
                   super_queue_length=settings.SUPER_MAX_QUEUE_LENGTH, \
                   high_queue_length=settings.HIGH_MAX_QUEUE_LENGTH, \
                   medium_queue_length=settings.MEDIUM_MAX_QUEUE_LENGTH, \
