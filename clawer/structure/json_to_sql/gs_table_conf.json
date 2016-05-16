@@ -41,7 +41,6 @@
             "path": ["ind_comm_pub_arch_key_persons"],
             "field": {
                 "序号": "order_num",
-                "注册号/统一社会信用代码": "register_num",
                 "姓名": "person_name",
                 "职务": "position"
                 }
@@ -69,8 +68,11 @@
         "企业资产状况": {
             "name": "assets_condition",
             "path": ["ent_pub_ent_annual_report", "详情", "企业资产状况"],
+            "associated_field_path": {
+                "报送年度": ["ent_pub_ent_annual_report"]
+            },
             "field": {
-                "注册号/统一社会信用代码": "register_num",
+                "报送年度": "report_year",
                 "资产总额": "total_assets",
                 "所有者权益合计": "total_owner_equity",
                 "营业总收入": "total_operating_income",
@@ -84,6 +86,9 @@
         "股权变更信息": {
             "name": "share_transfer",
             "path": ["ent_pub_ent_annual_report", "详情", "股权变更信息"],
+            "associated_field_path": {
+                "报送年度": ["ent_pub_ent_annual_report"]
+            },
             "field": {
                 "股东": "shareholder_name",
                 "变更前股权比例": "stake_before_transfer",
@@ -94,6 +99,9 @@
         "网站或网店信息": {
             "name": "website_info",
             "path": ["ent_pub_ent_annual_report", "详情", "网站或网店信息"],
+            "associated_field_path": {
+                "报送年度": ["ent_pub_ent_annual_report"]
+            },
             "field": {
                 "注册号/统一社会信用代码": "register_num",
                 "类型": "website_type",
@@ -104,6 +112,9 @@
         "对外投资信息": {
             "name":  "invest_other_company",
             "path": ["ent_pub_ent_annual_report", "详情", "对外投资信息"],
+            "associated_field_path": {
+                "报送年度": ["ent_pub_ent_annual_report"]
+            },
             "field": {
                 "注册号/统一社会信用代码": "register_num",
                 "投资设立企业或购买股权企业名称": "other_ent_name",
@@ -113,6 +124,9 @@
         "对外提供担保信息": {
             "name": "guaranty",
             "path": ["ent_pub_ent_annual_report", "详情", "对外提供担保信息"],
+            "associated_field_path": {
+                "报送年度": ["ent_pub_ent_annual_report"]
+            },
             "field": {
                 "注册号/统一社会信用代码": "register_num", 
                 "债权人": "creditor",
@@ -127,15 +141,18 @@
         "股东及出资信息": {
             "name": "shareholder_contrib",
             "path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
+            "associated_field_path": {
+                "报送年度": ["ent_pub_ent_annual_report"]
+            },
             "field": {
                 "注册号/统一社会信用代码": "register_num",
                 "股东": "shareholder_name",
                 "认缴出资方式": "subscribed_contrib_form",
-                "认缴出资额": "subscribed_capital_contrib",
+                "认缴出资额(万元)": "subscribed_capital_contrib",
                 "认缴出资时间": "subscribed_contrib_date",
                 "出资方式": "contrib_form",
                 "出资时间": "contrib_date",
-                "实缴出资额": "actural_capital_contrib"
+                "实缴出资额(万元)": "actural_capital_contrib"
                 }
         }
     },
@@ -266,9 +283,9 @@
         ],
         "assets_condition": [
             {
-                "field": "publish_date",
+                "field": "report_year",
                 "datatype": "DATE",
-                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+                "option": ""
             },
             {
                 "field": "register_num",
@@ -318,9 +335,9 @@
         ],
         "shareholder_contrib": [
             {
-                "field": "publish_date",
+                "field": "report_year",
                 "datatype": "DATE",
-                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+                "option": ""
             },
             {
                 "field": "register_num",
@@ -365,9 +382,9 @@
         ],
         "website_info": [
             {
-                "field": "publish_date",
+                "field": "report_year",
                 "datatype": "DATE",
-                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+                "option": ""
             },
             {
                 "field": "register_num",
@@ -393,9 +410,9 @@
 
         "share_transfer": [
             {
-                "field": "publish_date",
+                "field": "report_year",
                 "datatype": "DATE",
-                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+                "option": ""
             },
             {
                 "field": "register_num",
@@ -425,9 +442,9 @@
         ],
         "invest_other_company": [
             {
-                "field": "publish_date",
+                "field": "report_year",
                 "datatype": "DATE",
-                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+                "option": ""
             },
             {
                 "field": "register_num",
@@ -447,9 +464,9 @@
         ],
         "guaranty": [
             {
-                "field": "publish_date",
+                "field": "report_year",
                 "datatype": "DATE",
-                "option": "FOREIGH KEY  REFERENCES ent_pub_ent_annual_report(publish_date)"
+                "option": ""
             },
             {
                 "field": "register_num",
