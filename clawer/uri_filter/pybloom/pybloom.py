@@ -19,7 +19,7 @@ running_python_3 = sys.version_info[0] == 3
 
 try:
 
-    redis_addr=urlparse.urlparse(settings.REDIS)
+    redis_addr=urlparse.urlparse(settings.FILTER_REDIS)
 
     redis_addr='redis://'+redis_addr[1]
 

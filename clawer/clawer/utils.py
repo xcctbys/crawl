@@ -284,7 +284,7 @@ class SafeProcess(object):
         
 class UrlCache(object):
     
-    def __init__(self, redis_url=settings.URL_REDIS):
+    def __init__(self, redis_url=settings.REDIS):
         self.redis_url = redis_url
         self.connection = None
         self.max_url_count = 10000
@@ -331,7 +331,7 @@ class DownloadQueue(object):
     FOREIGN_QUEUE_NAME = "foreign_task_downloader"
     MAX_COUNT = 10000
     
-    def __init__(self, redis_url=settings.REDIS):
+    def __init__(self, redis_url=settings.DOWNLOADER_REDIS):
         self.connection = redis.Redis.from_url(redis_url)
         self.queue = rq.Queue(self.QUEUE_NAME, connection=self.connection)
         self.urgency_queue = rq.Queue(self.URGENCY_QUEUE_NAME, connection=self.connection)
