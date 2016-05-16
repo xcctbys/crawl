@@ -33,7 +33,10 @@ def deploy_web_server():
     run("service memcached start")
     run("chkconfig memcached on")
 
-    # Install nginx and start nginx server.
+    # Start web server on port 4000
+    _supervisord("web")
+
+    # Install nginx and start nginx server and proxy 127.0.0.1:4000.
     run("yum install epel-release")
     run("yum install nginx")
     with cd("{0}/cr-clawer/deploy/".format(REMOTE_PROJECT_PATH)):
