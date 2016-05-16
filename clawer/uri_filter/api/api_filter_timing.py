@@ -13,7 +13,7 @@ from django.conf import settings
 import urlparse
 
 try:
-    redis_addr=urlparse.urlparse(settings.REDIS)
+    redis_addr=urlparse.urlparse(settings.FILTER_REDIS)
     redis_addr='redis://'+redis_addr[1]
     #print redis_addr
 except:
@@ -71,17 +71,17 @@ class TimingFilter(object):
 def timing_filter_api(filter_type, uri_list =[], duration =20):
 
     if filter_type == 'uri_generator':
-        redisdb = 1
+        redisdb = 11
         tablename = 'uri_generator'
     elif filter_type == 'uri_parse':
-        redisdb = 2
+        redisdb = 12
         tablename = 'uri_parse'
 
     elif filter_type == 'ip':
-        redisdb = 3
+        redisdb = 13
         tablename = 'ip'
     else :
-        redisdb = 4
+        redisdb = 14
         tablename = filter_type
 
     #expire = duration*60*60
