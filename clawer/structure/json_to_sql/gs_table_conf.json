@@ -23,119 +23,119 @@
             "name": "ind_comm_pub_reg_basic", 
             "path": ["ind_comm_pub_reg_basic"],
             "field": {
-                u"注册号/统一社会信用代码": "register_num", 
-                u"企业名称": "ent_name",
-                u"类型": "ent_type",
-                u"注册资本": "registered_assets",
-                u"成立日期": "found_date",
-                u"住所": "address",
-                u"营业期限": "operating_term",
-                u"登记机关": "registration_authority",
-                u"核准日期": "approved_date",
-                u"经营状态": "operating_state",
-                u"经营范围": "operating_scope"
+                "注册号/统一社会信用代码": "register_num", 
+                "企业名称": "ent_name",
+                "类型": "ent_type",
+                "注册资本": "registered_assets",
+                "成立日期": "found_date",
+                "住所": "address",
+                "营业期限": "operating_term",
+                "登记机关": "registration_authority",
+                "核准日期": "approved_date",
+                "经营状态": "operating_state",
+                "经营范围": "operating_scope"
             }
         },
         "ind_comm_pub_arch_key_persons": {
             "name": "ind_comm_pub_arch_key_persons",
             "path": ["ind_comm_pub_arch_key_persons"],
             "field": {
-                u"序号": "order_num",
-                u"注册号/统一社会信用代码": "register_num",
-                u"姓名": "person_name",
-                u"职务": "position"
+                "序号": "order_num",
+                "注册号/统一社会信用代码": "register_num",
+                "姓名": "person_name",
+                "职务": "position"
                 }
         },
         "ind_comm_pub_arch_branch": {
             "name": "ind_comm_pub_arch_branch",
             "path": ["ind_comm_pub_arch_branch"],
             "field": {
-                u"序号": "order_num",
-                u"注册号/统一社会信用代码": "register_num",
-                u"名称": "ent_name",
-                u"登记机关": "registration_authority"
+                "序号": "order_num",
+                "注册号/统一社会信用代码": "register_num",
+                "名称": "ent_name",
+                "登记机关": "registration_authority"
             }
         },
         "ent_pub_ent_annual_report": {
             "name": "ent_pub_ent_annual_report",
             "path": ["ent_pub_ent_annual_report"],
             "field": {
-                u"序号": "order_num",
-                u"注册号/统一社会信用代码": "register_num",
-                u"报送年度": "report_year",
-                u"发布日期": "publish_date"
+                "序号": "order_num",
+                "注册号/统一社会信用代码": "register_num",
+                "报送年度": "report_year",
+                "发布日期": "publish_date"
             }
         },
-        u"企业资产状况": {
+        "企业资产状况": {
             "name": "assets_condition",
-            "path": ["ent_pub_ent_annual_report", u"详情", u"企业资产状况"],
+            "path": ["ent_pub_ent_annual_report", "详情", "企业资产状况"],
             "field": {
-                u"注册号/统一社会信用代码": "register_num",
-                u"资产总额": "total_assets",
-                u"所有者权益合计": "total_owner_equity",
-                u"营业总收入": "total_operating_income",
-                u"营业总收入中主营业务收入": "main_bussiness_income",
-                u"利润总额": "total_profit",
-                u"纳税总额": "total_tax",
-                u"负债总额": "total_liability",
-                u"净利润": "retained_profit"
+                "注册号/统一社会信用代码": "register_num",
+                "资产总额": "total_assets",
+                "所有者权益合计": "total_owner_equity",
+                "营业总收入": "total_operating_income",
+                "营业总收入中主营业务收入": "main_bussiness_income",
+                "利润总额": "total_profit",
+                "纳税总额": "total_tax",
+                "负债总额": "total_liability",
+                "净利润": "retained_profit"
             }
         },
-        u"股权变更信息": {
+        "股权变更信息": {
             "name": "share_transfer",
-            "path": ["ent_pub_ent_annual_report", u"详情", u"股权变更信息"],
+            "path": ["ent_pub_ent_annual_report", "详情", "股权变更信息"],
             "field": {
-                u"股东": "shareholder_name",
-                u"变更前股权比例": "stake_before_transfer",
-                u"变更后股权比例": "stake_after_transfer",
-                u"股权变更日期": "stake_transfer_date"
+                "股东": "shareholder_name",
+                "变更前股权比例": "stake_before_transfer",
+                "变更后股权比例": "stake_after_transfer",
+                "股权变更日期": "stake_transfer_date"
                 }
         },
-        u"网站或网店信息": {
+        "网站或网店信息": {
             "name": "website_info",
-            "path": ["ent_pub_ent_annual_report", u"详情", u"网站或网店信息"],
+            "path": ["ent_pub_ent_annual_report", "详情", "网站或网店信息"],
             "field": {
-                u"注册号/统一社会信用代码": "register_num",
-                u"类型": "website_type",
-                u"名称": "website_name",
-                u"网址": "url"
+                "注册号/统一社会信用代码": "register_num",
+                "类型": "website_type",
+                "名称": "website_name",
+                "网址": "url"
             }
         },
-        u"对外投资信息": {
+        "对外投资信息": {
             "name":  "invest_other_company",
-            "path": ["ent_pub_ent_annual_report", u"详情", u"对外投资信息"],
+            "path": ["ent_pub_ent_annual_report", "详情", "对外投资信息"],
             "field": {
-                u"注册号/统一社会信用代码": "register_num",
-                u"投资设立企业或购买股权企业名称": "other_ent_name",
-                u"注册号/统一社会信用代码": "other_register_num"
+                "注册号/统一社会信用代码": "register_num",
+                "投资设立企业或购买股权企业名称": "other_ent_name",
+                "注册号/统一社会信用代码": "other_register_num"
             }
         },
-        u"对外提供担保信息": {
+        "对外提供担保信息": {
             "name": "guaranty",
-            "path": ["ent_pub_ent_annual_report", u"详情", u"对外提供担保信息"],
+            "path": ["ent_pub_ent_annual_report", "详情", "对外提供担保信息"],
             "field": {
-                u"注册号/统一社会信用代码": "register_num", 
-                u"债权人": "creditor",
-                u"债务人": "debtor",
-                u"主债权种类": "main_credit_type",
-                u"主债权数额": "main_credit_amount",
-                u"履行债务的期限": "guratee_period",
-                u"保证的方式": "guratee_form",
-                u"保证的期间": "guratee_scope"
+                "注册号/统一社会信用代码": "register_num", 
+                "债权人": "creditor",
+                "债务人": "debtor",
+                "主债权种类": "main_credit_type",
+                "主债权数额": "main_credit_amount",
+                "履行债务的期限": "guratee_period",
+                "保证的方式": "guratee_form",
+                "保证的期间": "guratee_scope"
             }
         },
-        u"股东及出资信息": {
+        "股东及出资信息": {
             "name": "shareholder_contrib",
-            "path": ["ent_pub_ent_annual_report", u"详情", u"股东及出资信息"],
+            "path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
             "field": {
-                u"注册号/统一社会信用代码": "register_num",
-                u"股东": "shareholder_name",
-                u"认缴出资方式": "subscribed_contrib_form",
-                u"认缴出资额": "subscribed_capital_contrib",
-                u"认缴出资时间": "subscribed_contrib_date",
-                u"出资方式": "contrib_form",
-                u"出资时间": "contrib_date",
-                u"实缴出资额": "actural_capital_contrib"
+                "注册号/统一社会信用代码": "register_num",
+                "股东": "shareholder_name",
+                "认缴出资方式": "subscribed_contrib_form",
+                "认缴出资额": "subscribed_capital_contrib",
+                "认缴出资时间": "subscribed_contrib_date",
+                "出资方式": "contrib_form",
+                "出资时间": "contrib_date",
+                "实缴出资额": "actural_capital_contrib"
                 }
         }
     },
