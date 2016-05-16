@@ -51,8 +51,8 @@ class Download(object):
 				# print result
 				requests_headers = result.get('requests_headers', 'None')
 				response_headers = result.get('response_headers', 'None')
-				requests_body = result
-				response_body = result.get('response_body', 'None')
+				requests_body = result.get('requests_body', 'None')
+				response_body = str(result)
 				remote_ip = result.get('remote_ip', 'None')
 				hostname = str(socket.gethostname())
 
@@ -153,7 +153,8 @@ class Download(object):
 				requests_headers = result.get('requests_headers', 'None')
 				response_headers = result.get('response_headers', 'None')
 				requests_body = result.get('requests_body', 'None')
-				response_body = result.get('response_body', 'None')
+				# response_body = result.get('response_body', 'None')
+				response_body = str(result)
 				remote_ip = result.get('remote_ip', 'None')
 				hostname = str(socket.gethostname())
 
