@@ -5,18 +5,17 @@ from settings import *
 import os
 
 
-
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'clawer',                      # Or path to database file if using sqlite3.
-        'USER': 'cacti',                      # Not used with sqlite3.
-        'PASSWORD': 'cacti',                  # Not used with sqlite3.
-        'HOST': '10.0.1.3',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'clawer',
+        'USER': 'cacti',
+        'PASSWORD': 'cacti',
+        'HOST': '10.0.1.3',
+        'PORT': '',
         'OPTIONS': {
             'sql_mode': 'TRADITIONAL',
             'charset': 'utf8',
@@ -24,7 +23,7 @@ DATABASES = {
                 'storage_engine=INNODB,'
                 'character_set_connection=utf8,'
                 'collation_connection=utf8_bin'
-        }  # Note that later we find out that this is still not enough. Read on.
+        }
 
     }
 }
@@ -47,7 +46,7 @@ MEDIA_URL = "http://10.0.1.2/media/"
 
 PYTHON = "/usr/local/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
-CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
+CRON_FILE = os.path.join(os.path.dirname(__file__), "cron.f")
 URI_TTL = 60*60*24
 
 CRONTAB_USER = "nginx"
@@ -59,8 +58,6 @@ CLAWER_RESULT_URL = "http://10.0.1.2/media/clawer_result/"
 REDIS = "redis://10.0.1.3:6379/0"
 URL_REDIS = "redis://10.0.1.3:6379/0"
 MONITOR_REDIS = "redis://10.0.1.3:6379/0"
-# add by wang ziyang 2016-04-14
-#MAX_QUEUE_LENGTH = 500
 
 # add my zhangyongming 2016.5.3
 SUPER_MAX_QUEUE_LENGTH = 1000
@@ -70,7 +67,6 @@ LOW_MAX_QUEUE_LENGTH = 4000
 
 
 # for storage
-
 MongoDBS = {
     'default': {
         'host': 'mongodb://10.0.1.3/default',
@@ -89,10 +85,10 @@ MongoDBS = {
 from mongoengine import connect
 
 for name, db in MongoDBS.iteritems():
-    connect(host=db['host'], alias= name)
+    connect(host=db['host'], alias=name)
 
 
-#captcha
+# captcha
 CAPTCHA_STORE = "/data/media/captcha"
 
 
@@ -118,12 +114,12 @@ LOGGING = {
     },
     'handlers': {
         'null': {
-            'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
         },
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
         'mail_admins': {
@@ -142,14 +138,14 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers':['file'],
+            'handlers': ['file'],
             'propagate': True,
-            'level':'ERROR',
+            'level': 'ERROR',
         },
         'django': {
-            'handlers':['null'],
+            'handlers': ['null'],
             'propagate': True,
-            'level':'ERROR',
+            'level': 'ERROR',
         },
         'django.request': {
             'handlers': ['file'],
