@@ -29,7 +29,7 @@ def deploy_web_server():
     _install_project_deps()
 
     # Install memcached
-    run("yum install memcached")
+    run("yum install -y memcached")
     run("service memcached start")
     run("chkconfig memcached on")
 
