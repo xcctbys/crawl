@@ -70,7 +70,7 @@ reqst.headers.update({'Accept': 'text/html, application/xhtml+xml, */*',
 def check_is_valid(ip_port):
     try:
         proxy = {'http':'http://'+ ip_port}
-        resp = reqst.get('http://baidu.com', timeout=8, proxies=proxy)
+        resp = reqst.get('http://baidu.com', timeout=12, proxies=proxy)
         if resp.status_code == 200:
             return True
         return False
@@ -82,7 +82,7 @@ def change_valid(one_ip):
     proxy = {'http':'http://'+ one_ip.ip_port}
     # print one_ip.id, proxy
     try:
-        resp = reqst.get('http://baidu.com', timeout=8, proxies=proxy)
+        resp = reqst.get('http://baidu.com', timeout=12, proxies=proxy)
     except Exception as e:
         # update_data(id, flag=False) #更新，置为不可用。
         if one_ip.is_valid is False:
