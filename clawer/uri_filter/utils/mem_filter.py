@@ -116,7 +116,7 @@ class FilterAPI():
             return self.filter_list_unique
 
 
-        '''
+
         elif  self.filter_name == 'ip':
             print  ##########1
             if isinstance(ipfilter, BloomFilter):
@@ -192,7 +192,7 @@ class FilterAPI():
                     pass
                 else:
                     filter_list_unique.append(uri)
-        '''
+
 
 
     '''
