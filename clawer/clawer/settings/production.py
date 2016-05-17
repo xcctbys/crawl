@@ -55,9 +55,12 @@ CLAWER_SOURCE = "/data/clawer/"
 CLAWER_RESULT = "/data/clawer_result/"
 CLAWER_RESULT_URL = "http://10.0.1.2/media/clawer_result/"
 
-REDIS = "redis://10.0.1.3:6379/0"
-URL_REDIS = "redis://10.0.1.3:6379/0"
-MONITOR_REDIS = "redis://10.0.1.3:6379/0"
+REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/0"
+GENERATOR_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/1"
+DOWNLOADER_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/2"
+STRUCTURE_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/3"
+FILTER_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/4"
+MONITOR_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/0"
 
 # add my zhangyongming 2016.5.3
 SUPER_MAX_QUEUE_LENGTH = 1000
@@ -67,25 +70,26 @@ LOW_MAX_QUEUE_LENGTH = 4000
 
 
 # for storage
+
 MongoDBS = {
     'default': {
-        'host': 'mongodb://10.0.1.3/default',
+        'host': 'mongodb://dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com/default',
     },
     'log': {
-        'host': 'mongodb://10.0.1.3/log',
+        'host': 'mongodb://dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com/log',
     },
     'source': {
-        'host': 'mongodb://10.0.1.3/source',
+        'host': 'mongodb://dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com/source',
     },
     'structure': {
-        'host': 'mongodb://10.0.1.3/structure',
+        'host': 'mongodb://dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com/structure',
     }
 }
 
 from mongoengine import connect
 
 for name, db in MongoDBS.iteritems():
-    connect(host=db['host'], alias=name)
+    connect(host=db['host'], alias=name, port=37173, password="Password123")
 
 
 # captcha

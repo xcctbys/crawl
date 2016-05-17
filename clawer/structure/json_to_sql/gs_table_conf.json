@@ -1,6 +1,6 @@
 {
     "database": {
-        "source_file": ["beijing.json", "shanghai.json", "jiangsu.json", "shandong.json"],
+        "source_file": ["guangxi.json"],
         "source_db": {
             "dbtype": "mongodb",
             "host": "127.0.0.1",
@@ -24,15 +24,14 @@
             "path": ["ind_comm_pub_reg_basic"],
             "field": {
                 "注册号/统一社会信用代码": "register_num", 
-                "企业名称": "ent_name",
+                "名称": "ent_name",
                 "类型": "ent_type",
                 "注册资本": "registered_assets",
                 "成立日期": "found_date",
                 "住所": "address",
-                "营业期限": "operating_term",
+                "营业期限至": "operating_term",
                 "登记机关": "registration_authority",
                 "核准日期": "approved_date",
-                "经营状态": "operating_state",
                 "经营范围": "operating_scope"
             }
         },
@@ -65,12 +64,10 @@
                 "发布日期": "publish_date"
             }
         },
-        "企业资产状况": {
+        "企业资产状况信息": {
             "name": "assets_condition",
-            "path": ["ent_pub_ent_annual_report", "详情", "企业资产状况"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "path": ["ent_pub_ent_annual_report", "详情", "企业资产状况信息"],
+            "associated_field_path": ["ent_pub_ent_annual_report", "报送年度"],
             "field": {
                 "报送年度": "report_year",
                 "资产总额": "total_assets",
@@ -86,10 +83,9 @@
         "股权变更信息": {
             "name": "share_transfer",
             "path": ["ent_pub_ent_annual_report", "详情", "股权变更信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "associated_field_path": ["ent_pub_ent_annual_report", "报送年度"],
             "field": {
+                "报送年度": "report_year",
                 "股东": "shareholder_name",
                 "变更前股权比例": "stake_before_transfer",
                 "变更后股权比例": "stake_after_transfer",
@@ -99,10 +95,9 @@
         "网站或网店信息": {
             "name": "website_info",
             "path": ["ent_pub_ent_annual_report", "详情", "网站或网店信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "associated_field_path": ["ent_pub_ent_annual_report", "报送年度"],
             "field": {
+                "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
                 "类型": "website_type",
                 "名称": "website_name",
@@ -112,22 +107,20 @@
         "对外投资信息": {
             "name":  "invest_other_company",
             "path": ["ent_pub_ent_annual_report", "详情", "对外投资信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "associated_field_path": ["ent_pub_ent_annual_report", "报送年度"],
             "field": {
+                "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
                 "投资设立企业或购买股权企业名称": "other_ent_name",
                 "注册号/统一社会信用代码": "other_register_num"
             }
         },
-        "对外提供担保信息": {
+        "对外提供担保保证信息": {
             "name": "guaranty",
-            "path": ["ent_pub_ent_annual_report", "详情", "对外提供担保信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "path": ["ent_pub_ent_annual_report", "详情", "对外提供担保保证信息"],
+            "associated_field_path": ["ent_pub_ent_annual_report", "报送年度"],
             "field": {
+                "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num", 
                 "债权人": "creditor",
                 "债务人": "debtor",
@@ -141,10 +134,9 @@
         "股东及出资信息": {
             "name": "shareholder_contrib",
             "path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "associated_field_path": ["ent_pub_ent_annual_report", "报送年度"],
             "field": {
+                "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
                 "股东": "shareholder_name",
                 "认缴出资方式": "subscribed_contrib_form",
@@ -201,11 +193,6 @@
                 {
                     "field": "approved_date",
                     "datatype": "DATE",
-                    "option": ""
-                },
-                {
-                    "field": "operating_state",
-                    "datatype": "CHAR(50)",
                     "option": ""
                 },
                 {
