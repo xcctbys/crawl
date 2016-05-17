@@ -1,6 +1,6 @@
 {
     "database": {
-        "source_file": ["beijing.json", "shanghai.json", "jiangsu.json", "shandong.json"],
+        "source_file": ["guangxi.json"],
         "source_db": {
             "dbtype": "mongodb",
             "host": "127.0.0.1",
@@ -65,9 +65,9 @@
                 "发布日期": "publish_date"
             }
         },
-        "企业资产状况": {
+        "企业资产状况信息": {
             "name": "assets_condition",
-            "path": ["ent_pub_ent_annual_report", "详情", "企业资产状况"],
+            "path": ["ent_pub_ent_annual_report", "详情", "企业资产状况信息"],
             "associated_field_path": {
                 "报送年度": ["ent_pub_ent_annual_report"]
             },
@@ -124,9 +124,9 @@
                 "注册号/统一社会信用代码": "other_register_num"
             }
         },
-        "对外提供担保信息": {
+        "对外提供担保保证信息": {
             "name": "guaranty",
-            "path": ["ent_pub_ent_annual_report", "详情", "对外提供担保信息"],
+            "path": ["ent_pub_ent_annual_report", "详情", "对外提供担保保证信息"],
             "associated_field_path": {
                 "报送年度": ["ent_pub_ent_annual_report"]
             },
