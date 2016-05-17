@@ -22,6 +22,7 @@
         "ind_comm_pub_reg_basic": {
             "name": "ind_comm_pub_reg_basic", 
             "path": ["ind_comm_pub_reg_basic"],
+            "associated_field_path": ["ind_comm_pub_reg_basic"],
             "field": {
                 "注册号/统一社会信用代码": "register_num", 
                 "企业名称": "ent_name",
@@ -39,6 +40,7 @@
         "ind_comm_pub_arch_key_persons": {
             "name": "ind_comm_pub_arch_key_persons",
             "path": ["ind_comm_pub_arch_key_persons"],
+            "associated_field_path": ["ind_comm_pub_arch_key_persons"],
             "field": {
                 "序号": "order_num",
                 "姓名": "person_name",
@@ -48,6 +50,7 @@
         "ind_comm_pub_arch_branch": {
             "name": "ind_comm_pub_arch_branch",
             "path": ["ind_comm_pub_arch_branch"],
+            "associated_field_path": ["ind_comm_pub_arch_branch"],
             "field": {
                 "序号": "order_num",
                 "注册号/统一社会信用代码": "register_num",
@@ -58,6 +61,7 @@
         "ent_pub_ent_annual_report": {
             "name": "ent_pub_ent_annual_report",
             "path": ["ent_pub_ent_annual_report"],
+            "associated_field_path": ["ent_pub_ent_annual_report"],
             "field": {
                 "序号": "order_num",
                 "注册号/统一社会信用代码": "register_num",
@@ -65,12 +69,10 @@
                 "发布日期": "publish_date"
             }
         },
-        "企业资产状况": {
+        "企业资产状况信息": {
             "name": "assets_condition",
-            "path": ["ent_pub_ent_annual_report", "详情", "企业资产状况"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "path": ["ent_pub_ent_annual_report", "详情", "企业资产状况信息"],
+            "associated_field_path": ["ent_pub_ent_annual_report","",""],
             "field": {
                 "报送年度": "report_year",
                 "资产总额": "total_assets",
@@ -86,9 +88,7 @@
         "股权变更信息": {
             "name": "share_transfer",
             "path": ["ent_pub_ent_annual_report", "详情", "股权变更信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "associated_field_path": ["ent_pub_ent_annual_report","",""],
             "field": {
                 "报送年度": "report_year",
                 "股东": "shareholder_name",
@@ -100,9 +100,7 @@
         "网站或网店信息": {
             "name": "website_info",
             "path": ["ent_pub_ent_annual_report", "详情", "网站或网店信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "associated_field_path": ["ent_pub_ent_annual_report","",""],
             "field": {
                 "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
@@ -114,9 +112,7 @@
         "对外投资信息": {
             "name":  "invest_other_company",
             "path": ["ent_pub_ent_annual_report", "详情", "对外投资信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "associated_field_path": ["","序号",""],
             "field": {
                 "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
@@ -124,12 +120,10 @@
                 "注册号/统一社会信用代码": "other_register_num"
             }
         },
-        "对外提供担保信息": {
+        "对外提供保证担保信息": {
             "name": "guaranty",
-            "path": ["ent_pub_ent_annual_report", "详情", "对外提供担保信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "path": ["ent_pub_ent_annual_report", "详情", "对外提供保证担保信息"],
+            "associated_field_path": ["","序号",""],
             "field": {
                 "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num", 
@@ -145,9 +139,7 @@
         "股东及出资信息": {
             "name": "shareholder_contrib",
             "path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
-            "associated_field_path": {
-                "报送年度": ["ent_pub_ent_annual_report"]
-            },
+            "associated_field_path":["","序号",""],
             "field": {
                 "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
