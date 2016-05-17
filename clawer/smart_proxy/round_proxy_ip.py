@@ -5,7 +5,8 @@ sys.path.append(os.getcwd())
 # print os.getcwd()
 from smart_proxy.models import ProxyIp
 import requests
-from clawer import settings
+#from clawer import settings
+from django.conf import settings
 from multiprocessing.dummy import Pool
 # import settings
 
