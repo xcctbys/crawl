@@ -330,67 +330,56 @@ class TestExecutionTasks(TestCase):
 
 ##测试环境
 CentOS 7
+开启以下服务：
 service mariadb start
 service memcached start
 ./redis-server
 ./mongod
 
-##添加与清空测试数据
-from structure.structure import insert_test_data, empty_test_data
-insert_test_data()
-
-MongoDB中存入Job(Collector.Models), Parser(Structure.Models), StructureConfig(Structure.Models), CrawlerTask(Collector.Models), CrawlerDownloadData(Collector.Models), CrawlerDownload(Collector.Models)等六类结构化数据
-
-查看：
-打开MongoDB:./mongo
-查看数据库: show dbs
-使用数据库: use default
-查看列表: show collections
-输出: parser, structure
-查看/筛选列表数据: 例如db.parser.find({field_name:field_value})#直接.find()可以查看该该列表所有数据
-use source
-show collections可以看到其他的四类结构化数据
-
-可以在structure.structure.py文件中的insert_test_data()函数中修改，改变测试数据的个数、内容等
-使用empty_test_data()将清空MongoDB中本程序用到的所有结构化数据
+##添加一个Job并为之配置下载器、生成器和解析器
+使用Django Shell:
+	python manage.py shell
+输入指令：
+	from structure.tests.test_structure import test_insert_job_with_parser
+	test_insert_job_with_parser(text, settings)
+test_insert_job_with_parser函数是重写insert_text_without_job，添加了解析器与Job一起绑定生成的功能
 
 ##分发解析任务
-cd ./cr-clawer/clawer
-python manage.py task_parser_dispatch
-
-rq-dashboard
-根据提供的IP从浏览器打开RQ的Web UI可以查看有structure:higher, structure:high, structure:normal, structure:low四个队列产生
-
-进入MongoDB，输入:
-use default
-show collections
-可以看到有新的ParseJobInfo类数据产生，输入
-db.parse_job_info.find().count()
-可以看到其数量和RQ队列中任务的总数相同
-use source
-show collections
-db.crawler_task.find({status:5}).count()
-也可以看到数据库中状态为5（下载成功）的任务总数和RQ队列中的任务总数是一致的
+输入指令：
+	python manage.py task_parser_dispatch
+输入：无
+输出：生成四个RQ队列：structure：higher, structure:high, structure:normal, structure:low
+队列中有任务，任务总数跟CrawlerTask中下载成功的总数一致,可以在MongoDB中通过以下指令验证
+	use source
+	db.crawler_task.find({status:5}).count()
 
 ##执行解析任务
-cd ./clawer/clawer/management/commands
-vi task_parser_dispatck
+输入指令：
+	python manage.py run_parse_job
+	structure:higher          #以上指定队列名之一
+输入：队列名
+输出：开启worker执行指定队列名中的任务，成功则向MongoDB中写入解析结果，通过以下指令查看：
+	use default
+	db.crawler_analyzed_data.find()
+成功解析的CrawlerTask任务状态变为解析成功，通过以下指令查看：
+	use source
+	db.crawler_task.find({status:7})
+解析失败的CrawlerTask任务状态变为解析失败，通过以下指令查看：
+	use source
+	db.crawler_task.find({status:6})
 
-可以看到：
-def run():
-    parsergenerator = ParserGenerator()
-    parser_task_queues = parsergenerator.assign_parse_tasks()
-    #executiontasks = ExecutionTasks()
-    #executiontasks.exec_task(parsergenerator.queues[0])
-    return parser_task_queues
+##重新分发失败任务
+输入指令：
+	python manage.py requeue_failed_parse_jobs
+输入：无
+输出：数据库中状态为解析失败且解析失败次数小于3的任务被重新分发到相应的RQ队列中，状态改为下载成功，通过以下指令查看：
+	use source
+	db.crawler_task.find({status:6})   #状态为解析失败的任务数量
+	use default
+	db.crawler_analyzed_data.find({retry_times:3})   #失败次数为3的任务数量
+两数之差就应该时执行完本脚本后RQ队列中新增的任务数
 
-将第二行及第四行注释掉，并取消第三和第四行的注释，保存退出，执行
-python manage.py task_parser_dispatch
-提示对应队列中的Job已经被完成，回到RQ Web UI中可以看到指定队列的任务已经被完成
-进入MongoDB,输入
-use default
-db.crawler_analyzed_data.find()
-可以看到worker成功执行的任务后的解析文本已经被存在了数据库中的这个结构中
-
-其中，queues[0]指队列structure:higher;queues[1]指structure:high;queues[2]指structure:normal;queues[3]指structure:low,表示给worker指定执行任务的队列
-日志在./clawer/clawer/clawer.debug.log目录下，任务分发和解析的信息在其中可以看到
+##监控RQ队列
+安装rq-dashboard:
+	sudo pip install rq-dashboard
+根据其提供的URL登陆浏览器即可通过图形化界面监控RQ队列及其任务
