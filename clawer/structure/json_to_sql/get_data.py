@@ -64,10 +64,10 @@ def create_data_sql(source_file, table_path, associated_field_path):
 
 def parser_data(source):
     try:
-        print tmp_dic
+        print tmp_dic, '\n'
         for k in source.keys():
             #print table_name, '\n'
-            #print k, source[k]
+            print k, source[k]
             pass
     except AttributeError:
         for i in range(len(source)):
