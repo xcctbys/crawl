@@ -44,13 +44,13 @@ ALLOWED_HOSTS = ["*"]
 MEDIA_ROOT = "/data/media/"
 MEDIA_URL = "http://172.16.80.5/media/"
 
-PYTHON = "/usr/local/bin/python"
+PYTHON = "/usr/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE = os.path.join(os.path.dirname(__file__), "cron.f")
 URI_TTL = 60*60*24
 
 CRONTAB_USER = "nginx"
-CRONTAB_HOME = "/home/clawer/cr-clawer/confs/cr"
+CRONTAB_HOME = "/home/webapps/cr-clawer/confs/cr"
 CLAWER_SOURCE = "/data/clawer/"
 CLAWER_RESULT = "/data/clawer_result/"
 CLAWER_RESULT_URL = "http://172.16.80.5/media/clawer_result/"
