@@ -43,7 +43,11 @@
         "表2": {
             "name": "表2英文名",
             "path": ["表2的表名在JSON源数据中的搜索路径"]
+            "associated_field_path": {
+                "关联字段": ["关联字段在JSON源数据中的搜索路径"]
+            },
             "fields": {
+                "关联字段": "关联字段英文名",
                 "字段1": "字段1英文名",
                 "字段2": "字段2英文名",
             },
@@ -75,6 +79,11 @@
 			}
 		],
 		"表2英文名": [
+            {
+                "field": "关联字段英文名",
+                "datatype": "数据类型",
+                "option": "字段选项"
+            },
 			{
 				"field": "字段1英文名,
 				"datatype": "数据类型",
@@ -105,6 +114,7 @@
 指定JSON源数据和关系数据库字段的映射关系和中英文表名的对应关系
 - name 自定义表的英文名称
 - path 一个列表, 用于指明如何在 JSON 源数据中找到表名, 根据源数据的嵌套层次, 依次写入列表
+- associated_field_path 有的表数据在JSON的嵌套内层, 需关联一个外部的键, 此处指明外部键的路径. 如果关联子段是JSON最顶层的键可不指明路径
 - fields 关系数据库表中字段的定义 
 
 以工商为例, 某家企业信息的源始数据是这样的:
@@ -166,7 +176,11 @@
 		"股东及出资信息": {
 			"name": "shareholder_contrib",
 			"path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
+            "associated_field_path": {
+                "报送年度": ["ent_pub_ent_annual_report"]
+            },
 			"fields": {
+                "报送年度": "report_year",
 				"注册号/统一社会信用代码": "register_num",
 				"股东": "shareholder_name",
 				"认缴出资方式": "subscribed_contrib_form",
@@ -202,6 +216,11 @@
 			}
 		],
 		"shareholder_contrib": [
+			{
+				"field": "report_year",
+				"datatype": "DATE",
+				"option": ""
+			},
 			{
 				"field": "register_num",
 				"datatype": "INT",
@@ -247,6 +266,9 @@
 }
 
 ```
+其中"注册号/统一社会信用代码"为JSON最顶层的键"450100400000389", 不用在associated_field_path中写出;
+"报送年度"在内部, 需在 associated_field_path 中写明路径
+
 
 ## 注意事项
 
