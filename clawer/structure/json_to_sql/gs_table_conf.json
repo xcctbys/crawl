@@ -90,6 +90,7 @@
                 "报送年度": ["ent_pub_ent_annual_report"]
             },
             "field": {
+                "报送年度": "report_year",
                 "股东": "shareholder_name",
                 "变更前股权比例": "stake_before_transfer",
                 "变更后股权比例": "stake_after_transfer",
@@ -103,6 +104,7 @@
                 "报送年度": ["ent_pub_ent_annual_report"]
             },
             "field": {
+                "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
                 "类型": "website_type",
                 "名称": "website_name",
@@ -116,6 +118,7 @@
                 "报送年度": ["ent_pub_ent_annual_report"]
             },
             "field": {
+                "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
                 "投资设立企业或购买股权企业名称": "other_ent_name",
                 "注册号/统一社会信用代码": "other_register_num"
@@ -128,6 +131,7 @@
                 "报送年度": ["ent_pub_ent_annual_report"]
             },
             "field": {
+                "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num", 
                 "债权人": "creditor",
                 "债务人": "debtor",
@@ -145,6 +149,7 @@
                 "报送年度": ["ent_pub_ent_annual_report"]
             },
             "field": {
+                "报送年度": "report_year",
                 "注册号/统一社会信用代码": "register_num",
                 "股东": "shareholder_name",
                 "认缴出资方式": "subscribed_contrib_form",
