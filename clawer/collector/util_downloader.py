@@ -26,9 +26,10 @@ class Download(object):
 			'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
 			'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
 
-	def exec_command(self, commandstr):
-		print commandstr
-		sys.path.append( '/Users/princetechs3/my_code' )
+	def exec_command(self, commandstr, path=None):
+		# print commandstr
+		if path:
+			sys.path.append( path )
 		# sys.path.append('/Users/princetechs3/my_code')
 		c = compile(commandstr, "", 'exec')
 		exec c
@@ -144,7 +145,7 @@ class Download(object):
 					with open(filename, 'w') as f:
 						f.write(self.crawler_download.code)
 
-				result = self.exec_command('import pythoncode%s; result = pythoncode%s.run("%s")' % (str(self.crawler_download.id), str(self.crawler_download.id), self.task.uri))
+				result = self.exec_command('import pythoncode%s; result = pythoncode%s.run("%s")' % (str(self.crawler_download.id), str(self.crawler_download.id), self.task.uri), path=os.path.dirname(filename))
 				# exec 'import pythoncode%s; result = pythoncode%s.run("%s")' % (str(self.crawler_download.id), str(self.crawler_download.id), self.task.uri)
 				# print result
 				end_time = time.time()
@@ -233,7 +234,8 @@ class Download(object):
 				requests_headers = result.get('requests_headers', 'None')
 				response_headers = result.get('response_headers', 'None')
 				requests_body = result.get('requests_body', 'None')
-				response_body = result.get('response_body', 'None')
+				# response_body = result.get('response_body', 'None')
+				response_body = str(result)
 				remote_ip = result.get('remote_ip', 'None')
 				hostname = str(socket.gethostname())
 
@@ -441,7 +443,7 @@ def force_exit(download_timeout, task):
 								spend_time = download_timeout)
 	cdl.save()
 
-	# os.killpg(pgid, 9)
+	os.killpg(pgid, 9)  #这行代码不能够删除
 	os._exit(1)
 
 def download_clawer_task(task):

@@ -9,8 +9,15 @@ import os
 # from django.core.urlresolvers import reverse
 # from django.contrib.auth.models import User as DjangoUser, Group
 # from django.conf import settings
-from structure.models import ParseJobInfo, CrawlerAnalyzedData
-from collector.models import CrawlerTask, CrawlerDownloadData
+from structure.models import Parser, CrawlerAnalyzedData
+from collector.utils_generator import DataPreprocess
+from collector.models import (Job,
+                                 CrawlerTask,
+                                 CrawlerDownloadData,
+                                 CrawlerDownloadType,
+                                 CrawlerDownload,
+                                 CrawlerDownloadSetting,
+                                 CrawlerTaskGenerator)
 from structure.structure import (StructureGenerator,
                                  ParserGenerator,
                                  QueueGenerator,
@@ -21,6 +28,36 @@ from structure.structure import (StructureGenerator,
                                  parser_func,
                                  Consts)
 
+def test_insert_job_with_parser(text, settings):
+    prior = random.randint(-1, 5)
+
+    onetype = CrawlerDownloadType(language='other', is_support=True)
+    onetype.save()
+    job = Job(name = name, info="", priority= prior)
+    job.save()
+    script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
+    cron = "* * * * *"
+    code_type = CrawlerTaskGenerator.TYPE_PYTHON
+    schemes=['http', 'https']
+    generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+    generator.save()
+    cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+    cds1.save()
+    cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+    cd1.save()
+    dp = DataPreprocess(job.id)
+    dp.save(text =text, settings =  settings)
+
+    parser_script = """class RawParser(object):
+    def parser(self, crawlerdownloaddata):
+        data = "JSON Format Data After Parsing"
+        return data"""
+
+    parser_id = 0
+    parser = Parser(parser_id, parser_script)
+    parser.save()
+    structureconfig = StructureConfig(job = job, parser = parser, db_xml = None)
+    structureconfig.save()
 
 class TestStructureGenerator(TestCase):
     def setUp(self):

@@ -1,7 +1,7 @@
 # coding=utf-8
 from django.core.management.base import BaseCommand
 from html5helper.utils import wrapper_raven
-from structure.structure import ParserGenerator, insert_test_data, ExecutionTasks
+from structure.structure import ParserGenerator, ExecutionTasks
 
 def run():
     	parsergenerator = ParserGenerator()
