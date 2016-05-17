@@ -11,11 +11,11 @@ TEMPLATE_DEBUG = DEBUG
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'clawer',
-        'USER': 'cacti',
-        'PASSWORD': 'cacti',
-        'HOST': '10.0.1.3',
-        'PORT': '',
+        'NAME': 'csciwlpc',
+        'USER': 'plkj',
+        'PASSWORD': 'Password2016',
+        'HOST': 'csciwlpc.mysql.rds.aliyuncs.com',
+        'PORT': '3306',
         'OPTIONS': {
             'sql_mode': 'TRADITIONAL',
             'charset': 'utf8',
@@ -42,7 +42,7 @@ CACHES = {
 ALLOWED_HOSTS = ["*"]
 
 MEDIA_ROOT = "/data/media/"
-MEDIA_URL = "http://10.0.1.2/media/"
+MEDIA_URL = "http://172.16.80.5/media/"
 
 PYTHON = "/usr/local/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
@@ -53,7 +53,7 @@ CRONTAB_USER = "nginx"
 CRONTAB_HOME = "/home/clawer/cr-clawer/confs/cr"
 CLAWER_SOURCE = "/data/clawer/"
 CLAWER_RESULT = "/data/clawer_result/"
-CLAWER_RESULT_URL = "http://10.0.1.2/media/clawer_result/"
+CLAWER_RESULT_URL = "http://172.16.80.5/media/clawer_result/"
 
 REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/0"
 GENERATOR_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/1"
@@ -62,7 +62,7 @@ STRUCTURE_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyunc
 FILTER_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/4"
 MONITOR_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/0"
 
-# add my zhangyongming 2016.5.3
+# add generator rq 2016.5.3
 SUPER_MAX_QUEUE_LENGTH = 1000
 HIGH_MAX_QUEUE_LENGTH = 2000
 MEDIUM_MAX_QUEUE_LENGTH = 3000
