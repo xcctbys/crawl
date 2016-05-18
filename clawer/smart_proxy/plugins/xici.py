@@ -5,6 +5,7 @@ sys.setdefaultencoding('utf-8')
 import requests
 import logging
 import unittest
+import re
 from bs4 import BeautifulSoup
 
 DEBUG = True
@@ -231,6 +232,11 @@ class NovaProxy(BaseProxy):
             try:
                 p = proxy.find_all('td')
                 ip = p[0].get_text().strip()
+                
+                pattern =re.compile("(\d*\.\d*\.\d*\.\d*)")
+                ipre = pattern.search(ip)
+                ip = ipre.group   
+                
                 port = p[1].get_text().strip()
                 province = 'OTHER' #p[5].get_text().strip()
                 # anony = p[6].get_text().strip()
@@ -329,6 +335,10 @@ class ProxyTest(unittest.TestCase):
         logging.debug('ip84_proxy_list: %s ' % ip84_proxy_list)
 
 if __name__ == '__main__':
+    
     if DEBUG:
         unittest.main()
-
+    """
+    test =ProxyTest()
+    test.test_obtain_nova_proxy_list()
+    """

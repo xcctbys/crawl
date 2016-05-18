@@ -20,14 +20,14 @@ function rq()
 {
     shift
     queues=$@
-    DJANGO_SETTINGS_MODULE="clawer.settings_local" ${RQWORKER} --url redis://127.0.0.1/0  -v -P ${WORKDIR} uri_super uri_high uri_medium uri_low
+    DJANGO_SETTINGS_MODULE="clawer.settings.local" ${RQWORKER} --url redis://127.0.0.1/0  -v -P ${WORKDIR} uri_super uri_high uri_medium uri_low
 }
 
 function rq_down()
 {
     shift
     queues=$@
-    DJANGO_SETTINGS_MODULE="clawer.settings_local" ${RQWORKER_DOWN} --url redis://127.0.0.1/0  -v -P ${WORKDIR_DOWN} down_super down_high down_mid down_low
+    DJANGO_SETTINGS_MODULE="clawer.settings.local" ${RQWORKER_DOWN} --url redis://127.0.0.1/0  -v -P ${WORKDIR_DOWN} down_super down_high down_mid down_low
 }
 
 case $1 in
