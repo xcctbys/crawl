@@ -121,8 +121,7 @@ class ParserGenerator(StructureGenerator):
         pass
 
     def is_duplicates(self, data):
-        return False
-
+        return False 
 ```
 
 ## 2. 生成导出任务（In Master）
@@ -131,9 +130,19 @@ class ParserGenerator(StructureGenerator):
 
 导出任务主要包含如下内容：
 
-1. 动态生成数据库表结构
-2. 从解析器结果（JSON数据）中提取字段并做中英文映射，最终存入目标数据库。
-3：如何找到对应的导出器的配置文件
+1. 如何动态生成数据库表结构并插入数据 
+读取配置文件, 从解析器结果（JSON数据）中提取字段, 动态生成SQL建表语句和插入语句, 并做中英文映射，最终存入目标数据库。
+2. 如何查找已经解析完成的任务？
+ 筛选`collector.models.CrawlerTask`中`status`为`解析成功`的解析器任务
+3. 如何找到对应的导出器的配置文件
+在筛选出的解析器任务中可以找到其对应的`Job`，通过`Job`在结构化层配置数据库`StructureConfig`中找到对应`Job`的配置，在`StructureConfig`中可以在导出器数据库`Extracter`中找到对应的 JSON 配置文件，将该文件存储到本地`structure/extracter/`目录中, 以配置文件id命名
+4. 如何防止重复导出
+5. 导出任务的触发
+手动执行;  
+crontab定时执行
+6. 容灾及错误处理
+用户编写了错误的配置文件;   
+导出失败的情况
 
 ### 输入
 解析器解析后的JSON数据
@@ -213,8 +222,7 @@ class ExecutionTasks(object):
 # 配置
 结构化层需要自定义的内容比较多，统一存到Mongo数据库中。需要为每个任务需要配置解析器、目标数据库、数据库表和字段、要提取的字段中英文映射。
 解析器是自定义的Python脚本，其中必须包含parse方法，参数为要解析的内容，返回解析后的JSON数据。最终解析器插件会同步到服务器本地文件目录`structure/parsers/`。
-导出器是固定的模块, 每个网站使用1个配置文件, 保存在 structure/extracter/,
- 每个配置文件, 根据源数据的结构, 按模板格式修改需自定义的部分, 包括"数据库设置", "映射设置", "数据表设置"三个部分
+导出器是固定的模块, 每个网站使用1个配置文件, 保存在 structure/extracter/, 每个配置文件, 根据源数据的结构, 按模板格式修改需自定义的部分, 包括"数据库设置", "映射设置", "数据表设置"三个部分
 ```
 class Parser(Document):
     parser_id = IntField()
