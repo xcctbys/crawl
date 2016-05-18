@@ -19,6 +19,14 @@ import datetime
 import MySQLdb
 
 
+HOST = 'localhost'                                                                 # 全局变量设置MySQL的HOST USER等
+USER = 'cacti'
+PASSWD = 'cacti'
+PORT = 3306
+MYSQL_DB = 'clawer'
+STEP = 1                                                                           # 每个step取10个
+ROWS = 10
+
 DEBUG = False
 if DEBUG:
     level = logging.DEBUG
@@ -26,14 +34,6 @@ else:
     level = logging.ERROR
 
 logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
-
-HOST = '10.0.1.3'
-#HOST = 'localhost'
-USER = 'cacti'
-PASSWD = 'cacti'
-PORT = 3306
-STEP = 10
-ROWS = 100
 
 
 class History(object):
@@ -108,14 +108,7 @@ class Generator(object):
 
 
         for _ in range(0, self.step):
-            # query = urllib.urlencode({'page':self.history.current_page, 'rows': ROWS, 'sort': 'id', 'order': 'asc'})
-            # r = requests.get(self.source_url, query)
-            # if r.status_code != 200:
-                # continue
             r = self.paginate(self.history.current_page)
-            #print self.history.current_page
-            #print r
-
             self.history.current_page += 1
             self.history.save()
             for item in r['rows']:
@@ -128,17 +121,12 @@ class Generator(object):
         self.history.save()
 
     def _load_total_page(self,rows=ROWS):
-        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='clawer', port=PORT, charset='utf8')
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='', port=PORT, charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
-        #print sql
         cur = conn.cursor()
-        #print cur
         count = cur.execute(sql)
-        #print count
         total_rows = cur.fetchone()[0]
-        #print total_rows
         total_page = total_rows / rows
-        #print total_page
         self.history.current_page = 0
         self.history.total_page = total_page
         self.history.save()
@@ -148,13 +136,12 @@ class Generator(object):
         return u"enterprise://localhost/%s/%s/%s/" % (choices[row['province']-1], row['name'], row['register_no'])
 
     def paginate(self, current_page, rows=ROWS):
-        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='clawer', port=PORT,charset='utf8')
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db=MYSQL_DB, port=PORT,charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
         cur = conn.cursor()
         count = cur.execute(sql)
         total_rows =cur.fetchone()[0]
         total_page = total_rows/rows
-        # print total_page
         if current_page  > total_page:
             current_page = 0
         sql = "select * from enterprise_enterprise limit %d, %d"%(current_page*rows, rows)
@@ -193,4 +180,3 @@ if __name__ == "__main__":
     generator.obtain_enterprises()
     for uri in generator.enterprise_urls:
         print json.dumps({"uri":uri})
-    #print len(generator.enterprise_urls)
