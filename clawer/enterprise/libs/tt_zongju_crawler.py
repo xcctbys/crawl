@@ -4,7 +4,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 # sys.path.append('/home/clawer/cr-clawer/clawer')
-# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import re
 import codecs
 import json
@@ -18,10 +18,10 @@ import logging
 from crawler import Crawler, Parser
 from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
-from smart_proxy.api import Proxy, UseProxy
+# from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
-DEBUG = False
+DEBUG = True
 
 # 初始化信息
 class InitInfo(object):
@@ -159,17 +159,17 @@ class CrackCheckcode(object):
 # 自己的爬取类，继承爬取类
 class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
-		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_proxy(province='shanghai')
-		if not is_use_proxy:
-			self.proxies = []
-		else:
-			proxy = Proxy()
-			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='shanghai')),
-						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='shanghai'))}
-		print 'self.proxies:', self.proxies
+		# useproxy = UseProxy()
+		# is_use_proxy = useproxy.get_province_is_use_proxy(province='shanghai')
+		# if not is_use_proxy:
+		# 	self.proxies = []
+		# else:
+		# 	proxy = Proxy()
+		# 	self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='shanghai')),
+		# 				'https':'https://'+random.choice(proxy.get_proxy(num=5, province='shanghai'))}
+		# print 'self.proxies:', self.proxies
 
-		# self.proxies = []
+		self.proxies = []
 
 		self.info = info
 		self.parser = MyParser(info=self.info)
@@ -657,28 +657,32 @@ class ZongjuCrawler(object):
 		
 
 class TestZongjuCrawler(unittest.TestCase):
-	def __init__(self):
-		pass
+
 	def setUp(self):
 		self.info = InitInfo()
 		self.crawler = MyCrawler(info=self.info)
 		self.parser = MyParser(info=self.info, crawler=self.crawler)
 
-	# def test_checkcode(self):
-	# 	self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
-	# 	is_valid = self.crack.run(ent_number)
-	# 	self.assertTrue(is_valid)
+	def test_checkcode(self):
+		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
+		ent_number = '100000000018983'
+		is_valid = self.crack.run(ent_number)
+		self.assertTrue(is_valid)
 
 	def test_crawler_register_num(self):
 		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
-		ent_list = []
+		ent_list = ['100000000018983']
 		for ent_number in ent_list:
 			result = crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 	def test_crawler_key(self):
 		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
 		ent_list = [u'创业投资中心']
 		for ent_number in ent_list:
 			crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 
 
 if __name__ == '__main__':
