@@ -92,7 +92,7 @@ class ParserGenerator(StructureGenerator):
         return self.queues
     
 class QueueGenerator(object):
-    def __init__(self, redis_url = settings.REDIS, queue_length = Consts.QUEUE_MAX_LENGTH):
+    def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = Consts.QUEUE_MAX_LENGTH):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.too_high_queue = rq.Queue(Consts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
         self.high_queue = rq.Queue(Consts.QUEUE_PRIORITY_HIGH, connection=self.connection)
@@ -126,13 +126,14 @@ class QueueGenerator(object):
             return  parser_job.id
 
 def parser_func(data):
-    #print "This is the start of parse_func"
+    #print "This is the start of parser_func"
     if data is not None:
         structureconfig = StructureConfig.objects(job = data.crawlertask.job).first()
         crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
         if structureconfig is not None:
             current_dir = os.getcwd()
-            parsers_dir = current_dir + "/structure/parsers"
+            #parsers_dir = "/home/webapps/cr-clawer/clawer/structure/parsers"
+            parsers_dir = "/home/max/Documents/gitroom/cr-clawer/clawer/structure/parsers"
             if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
                 os.mkdir(parsers_dir)
             os.chdir(parsers_dir)
