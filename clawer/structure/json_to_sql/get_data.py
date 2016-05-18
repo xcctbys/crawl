@@ -9,7 +9,16 @@ config_json.close()
 
 tables_info = config_dic['table']
 
-
+def record_associated(source, associated_field_path):
+    try:
+        tmp_dic[associated_field_path[0]] = source[associated_field_path[0]]
+        #print tmp_dic
+    except KeyError:
+        #print "there isn't associated field"
+        pass
+    except IndexError:
+        #print "config error"
+        pass
 
 def get_data(source, path, associated_field_path):
     #print path
@@ -25,26 +34,23 @@ def get_data(source, path, associated_field_path):
     try:
         #print source
         get_data(source[path[0]], path[1:], associated_field_path[1:])
-        if associated_field_path[0]:
-            tmp_dic[associated_field_path[0]] = source[associated_field_path[0]]
+        record_associated(source, associated_field_path)
+
     except TypeError:
         for i in range(len(source)):
             try:
                 #print source
                 get_data(source[i][path[0]], path[1:], associated_field_path[1:])
-                if associated_field_path[0]:
-                    tmp_dic[associated_field_path[0]] = source[i][associated_field_path[0]]
+                record_associated(source[i], associated_field_path)
             except IndexError:
                 get_data(source[i][path[0]], [], associated_field_path[1:])
-                if associated_field_path[0]:
-                    tmp_dic[associated_field_path[0]] = source[i][associated_field_path[0]]
+                record_associated(source[i], associated_field_path)
             except KeyError:
-               print "There are not these info."
+               #print "There are not these info."
                pass
     except IndexError:
             get_data(source[path[0]], [], associated_field_path)
-            if associated_field_path[0]:
-                tmp_dic[associated_field_path[0]] = source[associated_field_path[0]]
+            record_associated(source, associated_field_path)
 
 def create_data_sql(source_file, table_path, associated_field_path):
     source_json = open('guangxi.json', 'r+')
@@ -54,30 +60,38 @@ def create_data_sql(source_file, table_path, associated_field_path):
         #print source.values()[0]
 
          #get_data(source.values(), table_path)
-        print "result over",
+        #print "result over",
         # result = source.values()[0]
         for k in source.keys():
-            print k
-        print '\n'
+            #print k
+            pass
+        #print '\n'
     # source_dic = json.loads(source_json.read())
     source_json.close()
 
 def parser_data(source):
     try:
-        print tmp_dic, '\n'
+
         for k in source.keys():
             #print table_name, '\n'
             print k, source[k]
             pass
+        print tmp_dic
+        print table_name
+        print id
+        print '\n'
     except AttributeError:
         for i in range(len(source)):
             parser_data(source[i])
 #create_data_sql('guangxi.json')
 
 tmp_dic = {}
+table_name = ''
+
 mapping = config_dic['mapping']
 for k in mapping.keys():
     table_name = mapping[k]['name']
     path = mapping[k]['path']
     associated_field_path = mapping[k]['associated_field_path']
     create_data_sql('guangxi.json', path, associated_field_path)
+    tmp_dic.clear()

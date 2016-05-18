@@ -22,7 +22,7 @@
         "ind_comm_pub_reg_basic": {
             "name": "ind_comm_pub_reg_basic", 
             "path": ["ind_comm_pub_reg_basic"],
-            "associated_field_path": [""],
+            "associated_field_path": [],
             "field": {
                 "注册号/统一社会信用代码": "register_num", 
                 "名称": "ent_name",
