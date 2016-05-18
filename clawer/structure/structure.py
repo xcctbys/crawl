@@ -203,12 +203,18 @@ class ExtracterGenerator(StructureGenerator):
         return extracter
 
     def if_not_exist_create_db_schema(self, conf):
+        print 'check database exist'
+        print '★' * 30
         pass
 
     def extract_fields(self, mappings):
+        print 'starting extract fields!'
+        print '♫' * 30
         pass
 
     def get_extracter_db_config(self):
+        print 'get extracter database config'
+        print '♠' * 30
         pass
 
 
