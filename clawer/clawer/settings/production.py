@@ -89,8 +89,7 @@ MongoDBS = {
 from mongoengine import connect
 
 for name, db in MongoDBS.iteritems():
-    connect(host=db['host'], alias=name, port=3717, username='root', password="Password123")
-
+    connect(host=db['host'], alias=name, port=3717, authenticationDatabase="admin", username='root', password="Password123")
 
 # captcha
 CAPTCHA_STORE = "/data/media/captcha"
