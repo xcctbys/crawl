@@ -4,7 +4,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 # sys.path.append('/home/clawer/cr-clawer/clawer')
-sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import re
 import codecs
 import json
@@ -18,7 +18,7 @@ import logging
 from crawler import Crawler, Parser
 from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
-# from smart_proxy.api import Proxy, UseProxy
+from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -197,16 +197,16 @@ class CrackCheckcode(object):
 class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
 		
-		# useproxy = UseProxy()
-		# is_use_proxy = useproxy.get_province_is_use_proxy(province='BEIJING')
-		# if not is_use_proxy:
-		# 	self.proxies = []
-		# else:
-		# 	proxy = Proxy()
-		# 	self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
-		# 				'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
-		# print 'self.proxies:', self.proxies
-		self.proxies = []
+		useproxy = UseProxy()
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='BEIJING')
+		if not is_use_proxy:
+			self.proxies = []
+		else:
+			proxy = Proxy()
+			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
+						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
+		print 'self.proxies:', self.proxies
+		# self.proxies = []
 
 		self.info = info
 		self.parser = MyParser(info=self.info)
