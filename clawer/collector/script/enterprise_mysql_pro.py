@@ -121,7 +121,7 @@ class Generator(object):
         self.history.save()
 
     def _load_total_page(self,rows=ROWS):
-        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='', port=PORT, charset='utf8')
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db=MYSQL_DB, port=PORT, charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
         cur = conn.cursor()
         count = cur.execute(sql)
