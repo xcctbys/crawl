@@ -9,6 +9,7 @@ class JsonToSql(object):
     mapping = {}
     tmp_dic = {}
     table_name = ''
+    table_key = ''
     id = ''
 
     def parser_json(self, config):
@@ -33,6 +34,11 @@ class JsonToSql(object):
         comm = '%s -u %s -p%s -h %s -P %s -f' % (db_info['dbtype'],db_info['username'],db_info['password'],db_info['host'],db_info['port'])
 
     def create_table_sql(self):
+        """
+        根据配置文件中，table的信息，创建数据库，创建表
+        生成table.sql
+        :return:
+        """
         tables_info = self.config_dic['table']
         sql = ''
         # 文件名需要动态
@@ -51,60 +57,85 @@ class JsonToSql(object):
         table_sql.close()
 
     def create_data_sql(self, source_file, table_path, associated_field_path):
+        """
+        生成需要插入的数据源（insert.sql）
+        :param source_file: 公司信息记录的json
+        :param table_path: 查询数据的路径
+        :param associated_field_path: 外键的路径
+        :return: 无
+        """
         source_json = open('guangxi.json', 'r+')  #guangxi.json数据源需要改成动态获取
         for line in source_json:
             source = json.loads(line)
+            # 获取许可证号，待改进
             for k in source.keys():
                 self.id = k
+            #查询数据
             self.get_data(source.values()[0], table_path, associated_field_path)
             #print "result over",
-
-            #获取许可证号，待改进
-            #for k in source.keys():
-                #print k
-            #print '\n'
         source_json.close()
 
     def get_data(self, source, path, associated_field_path):
+        """
+        由create_data_sql调用，遍历数据源，获取所需数据，及其各个层次外键
+        :param source:公司信息记录的json
+        :param path:查询数据的路径
+        :param associated_field_path:外键的路径
+        :return: 无
+        """
         if len(path) == 0:
             self.parser_data(source)
             return
         try:
-            self.get_data(source[path[0]], path[1:], associated_field_path)
+            self.get_data(source[path[0]], path[1:], associated_field_path[1:])
             self.record_associated(source, associated_field_path)
         except TypeError:
             for i in range(len(source)):
                 try:
-                    self.get_data(source[i][path[0]], path[1:], associated_field_path)
+                    self.get_data(source[i][path[0]], path[1:], associated_field_path[1:])
                     self.record_associated(source[i], associated_field_path)
                 except IndexError:
-                    self.get_data(source[i][path[0]], [], associated_field_path)
+                    self.get_data(source[i][path[0]], [], associated_field_path[1:])
                     self.record_associated(source[i], associated_field_path)
                 except KeyError:
                     #需要写日志
                     #print "There are not these info."
                     pass
         except IndexError:
-            self.get_data(source[path[0]], [], associated_field_path)
+            self.get_data(source[path[0]], [], associated_field_path[1:])
             self.record_associated(source, associated_field_path)
 
     def parser_data(self, source):
+        """
+        由 create_data_sql->get_data->parser_data 调用
+        对找到的数据进行解析（从字典到数据）
+        :param source: 通过查询，找到的用户所需数据
+        :return: 无
+        """
+        data_sql = open('./insert_data.sql', 'w')
         try:
-            data_sql = open('./insert_data.sql', 'w')
-            #print self.mapping[self.table_name]['field']
-            for k in self.mapping[self.table_name]['field'].keys():
-                print k, source[k],self.mapping[self.table_name]['field'][k]
+            for k in source.keys():
+                print k, source[k]
                 #data_sql.write("%s %s \n" % (k.encode('utf8'), source[k].encode('utf8')))
-            print self.tmp_dic
-            print self.table_name
-            print self.id
-            print '\n'
-            data_sql.close()
         except AttributeError:
             for i in range(len(source)):
                 self.parser_data(source[i])
+            return
+
+        #print self.tmp_dic
+        #print self.table_name
+        #print self.id
+        #print self.mapping[self.table_key]['field']
+        data_sql.close()
 
     def record_associated(self, source, associated_field_path):
+        """
+        由 create_data_sql->get_data->record_associated 调用
+        获取某一层中的外键
+        :param source: 查找数据中某一层的数据
+        :param associated_field_path: 外键路径
+        :return: 空
+        """
         try:
             self.tmp_dic[associated_field_path[0]] = source[associated_field_path[0]]
             # print tmp_dic
@@ -123,9 +154,12 @@ class JsonToSql(object):
 
         for k in self.mapping.keys():
             self.table_name = self.mapping[k]['name']
+            self.table_key = k
+            print self.table_key
             path = self.mapping[k]['path']
             associated_field_path = self.mapping[k]['associated_field_path']
             self.create_data_sql('guangxi.json', path, associated_field_path)
+            self.tmp_dic.clear()
         pass
 '''
 config_json = open('gs_table_conf.json', 'r+')
