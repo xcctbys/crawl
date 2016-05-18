@@ -5,6 +5,8 @@ sys.setdefaultencoding('utf-8')
 import requests
 import logging
 import unittest
+import re
+import time
 from bs4 import BeautifulSoup
 
 DEBUG = True
@@ -72,6 +74,7 @@ class XiciProxy(BaseProxy):
         resp = self.reqst.get(self.url, timeout=self.timeout)
         # trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr')[:60]
         trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr', class_='odd')
+    
         a_list = []
         for tr in trs:
             tds = [td.get_text().strip() for td in tr.find_all('td')]
@@ -144,8 +147,19 @@ class YouProxy(BaseProxy):
 
     def run(self):
         resp = self.reqst.get(self.url, timeout=self.timeout)
-        ul = BeautifulSoup(resp.content, 'html.parser').find_all('ul', attrs={'class':'newslist_line'})[0]
+     
+      
+       
+    
+        
+        ul1 = BeautifulSoup(resp.content, 'html.parser').find_all('ul', attrs={'class':'newslist_line'})
+        print ul1
+        if ul1 ==[]:
+            print '-----ul--'
+            return None
+        ul = ul1[0]
         try:
+          
             a_href = ul.find('li').a['href']
             resp = self.reqst.get(a_href, timeout=self.timeout)
             content = BeautifulSoup(resp.content, 'html.parser').find_all('p')[0]
@@ -231,13 +245,20 @@ class NovaProxy(BaseProxy):
             try:
                 p = proxy.find_all('td')
                 ip = p[0].get_text().strip()
+                #print ip
+                
+                pattern =re.compile("(\d*\.\d*\.\d*\.\d*)")
+                ipre = pattern.search(ip)
+                ip = ipre.group()   
+                
                 port = p[1].get_text().strip()
                 province = 'OTHER' #p[5].get_text().strip()
                 # anony = p[6].get_text().strip()
                 proxy_list.append((ip+ ':' +port, province))
             except Exception:
                 pass
-        # print proxy_list
+        #print '－－－－－－－－－－－－－'
+        #print proxy_list
         return proxy_list
 
 class Ip84Proxy(BaseProxy):
@@ -329,6 +350,10 @@ class ProxyTest(unittest.TestCase):
         logging.debug('ip84_proxy_list: %s ' % ip84_proxy_list)
 
 if __name__ == '__main__':
+    
     if DEBUG:
         unittest.main()
-
+    """
+    test =ProxyTest()
+    test.test_obtain_nova_proxy_list()
+    """

@@ -33,6 +33,10 @@ def deploy_web_server():
     run("service memcached start")
     run("chkconfig memcached on")
 
+    # Create web log folder
+    run("mkdir -p /home/logs/cr-clawer")
+    run("chown -R nginx:nginx /home/logs/cr-clawer")
+
     # Start web server on port 4000
     _supervisord("web")
 
@@ -85,6 +89,8 @@ def deploy_structure_servers():
     # Rsync local project files to remote server.
     _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
+
+    _install_project_deps()
 
     # Use supervisor to monitor rq workers.
     _supervisord("structure")
@@ -141,10 +147,6 @@ def _create_used_folders():
 
     # Create log folder
     run("mkdir -p /home/logs")
-
-    # Create web log folder
-    run("mkdir -p /home/logs/cr-clawer")
-    run("chown -R nginx:nginx /home/logs/cr-clawer")
 
 
 def _supervisord(server):

@@ -41,7 +41,8 @@
 		if valid_uri(uri+uri.args): #如果能够直接访问，则进入爬取，跳过验证码
 			download_data()
 		else:
-			download_data_start_with_Captcha()
+			Captcha()
+			download_data()
 ```
 
 - 使用代理ip
@@ -190,10 +191,92 @@ class JudicialAssistancePubliction(object):
 	# 运行逻辑
 	def run(self, *args, **kwargs):
 		pass
+		
+class ${province}Crawler(object):
+	"""江苏工商公示信息网页爬虫
+	"""
+	def __init__(self, json_restore_path= None, *args, **kwargs):
+		self.info = InitInfo()
+		self.crawler = MyCrawler(info=self.info)
+		self.parser = MyParser(info=self.info, crawler=self.crawler)
+	
+	def run(self, ent_number=None, *args, **kwargs):
+		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
+		is_valid = self.crack.run(ent_number)
+		if not is_valid:
+			print 'error,the register is not valid...........'
+			return
+		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('a'):
+			# print item_page
+			print self.info.ent_number
+			self.info.result_json = {}
+			start_time = time.time()
+			self.crack.parse_post_check_page(item_page)
+			industrial = IndustrialPubliction(self.info, self.crawler, self.parser)
+			industrial.run()
+			enterprise = EnterprisePubliction(self.info, self.crawler, self.parser)
+			enterprise.run()
+			other = OtherDepartmentsPubliction(self.info, self.crawler, self.parser)
+			other.run()
+			judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
+			judical.run()
+		return self.info.result_json_list
+		
+class Test${province}Crawler(unittest.TestCase):
+	def setUp(self):
+		self.info = InitInfo()
+		self.crawler = MyCrawler(info=self.info)
+		self.parser = MyParser(info=self.info, crawler=self.crawler)
+
+	def test_checkcode(self):
+		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
+		ent_number = '100000000018983'
+		is_valid = self.crack.run(ent_number)
+		self.assertTrue(is_valid)
+
+	def test_crawler_register_num(self):
+		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
+		ent_list = ['100000000018983']
+		for ent_number in ent_list:
+			result = crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
+	def test_crawler_key(self):
+		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
+		ent_list = [u'创业投资中心']
+		for ent_number in ent_list:
+			crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
+			
+if __name__ == '__main__':
+	if DEBUG:
+		unittest.main()
 				
 </pre>
 
 # 数据库设计
+## mysql里数据库
+### table-Ipuser
+- 生产者：客户
+- 消费者：各爬虫
+	
+		class IpUser(models.Model):
+			province = models.CharField(max_length=20)
+			is_use_proxy = models.BooleanField(default=False)
+			update_datetime = models.DateTimeField(auto_now=True)
+			
+
+## mongo里数据库
+### collections- CrawlerDownloadArgs
+- 生产者：各爬虫
+- 消费者：各爬虫
+
+		class CrawlerDownloadArgs(Document):
+			province = StringField(maxlength=20)
+			register_number  = StringField(maxlength=25)
+			enterprise_name = StringField(maxlength=100)
+			download_args = DictField() #该企业号需要的信息如'id':'','ent_id':''等
 
 # 测试计划
 ## Testcase	非常重要                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        

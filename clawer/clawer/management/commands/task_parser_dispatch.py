@@ -6,8 +6,6 @@ from structure.structure import ParserGenerator, ExecutionTasks
 def run():
     	parsergenerator = ParserGenerator()
     	parser_task_queues = parsergenerator.assign_parse_tasks()
-    	#executiontasks = ExecutionTasks()
-    	#executiontasks.exec_task(parsergenerator.queues[0])
     	return parser_task_queues
     
 class Command(BaseCommand):
