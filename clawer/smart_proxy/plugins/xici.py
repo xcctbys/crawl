@@ -232,10 +232,11 @@ class NovaProxy(BaseProxy):
             try:
                 p = proxy.find_all('td')
                 ip = p[0].get_text().strip()
+                #print ip
                 
                 pattern =re.compile("(\d*\.\d*\.\d*\.\d*)")
                 ipre = pattern.search(ip)
-                ip = ipre.group   
+                ip = ipre.group()   
                 
                 port = p[1].get_text().strip()
                 province = 'OTHER' #p[5].get_text().strip()
@@ -243,7 +244,8 @@ class NovaProxy(BaseProxy):
                 proxy_list.append((ip+ ':' +port, province))
             except Exception:
                 pass
-        # print proxy_list
+        print '－－－－－－－－－－－－－'
+        print proxy_list
         return proxy_list
 
 class Ip84Proxy(BaseProxy):
