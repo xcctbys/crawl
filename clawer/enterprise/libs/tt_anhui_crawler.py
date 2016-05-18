@@ -573,7 +573,7 @@ class JudicialAssistancePubliction(object):
 		self.parser = parser
 	# 股权冻结信息
 	def get_equity_freeze_info(self, *args, **kwargs):
-		table, next_table, is_next_page = self.parser.parser_get_a_table_by_head([u'股权冻结信息'])
+		table, next_table, is_next_page = self.parser.parser_get_a_table_by_head([u'股权冻结信息', u'司法股权冻结信息'])
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='judical_assist_pub_equity_freeze', content=table)
 		else:
@@ -586,7 +586,7 @@ class JudicialAssistancePubliction(object):
 		pass
 	# 股东变更信息
 	def get_shareholders_change_info(self, *args, **kwargs):
-		table, next_table, is_next_page = self.parser.parser_get_a_table_by_head([u'股东变更信息'])
+		table, next_table, is_next_page = self.parser.parser_get_a_table_by_head([u'股东变更信息', u'司法股东变更登记信息'])
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='judical_assist_pub_shareholder_modify', content=table)
 		else:
@@ -643,8 +643,14 @@ class AnhuiCrawler(object):
 			self.info.page_soup_tables = self.info.source_code_soup.find_all('table')
 			enterprise = EnterprisePubliction(self.info, self.crawler, self.parser)
 			enterprise.run()
+			self.info.source_code_soup = BeautifulSoup(self.crawler.crawl_page_by_url(self.info.urls['otherDepartment'] + 'id=' +self.info.mainId).content, 'html.parser')
+			print 'table_page:', self.info.source_code_soup
+			self.info.page_soup_tables = self.info.source_code_soup.find_all('table')
 			other = OtherDepartmentsPubliction(self.info, self.crawler, self.parser)
 			other.run()
+			self.info.source_code_soup = BeautifulSoup(self.crawler.crawl_page_by_url(self.info.urls['justiceAssistance'] + 'id=' +self.info.mainId).content, 'html.parser')
+			print 'table_page:', self.info.source_code_soup
+			self.info.page_soup_tables = self.info.source_code_soup.find_all('table')
 			judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
 			judical.run()
 
