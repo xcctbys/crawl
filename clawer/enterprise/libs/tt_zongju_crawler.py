@@ -657,28 +657,32 @@ class ZongjuCrawler(object):
 		
 
 class TestZongjuCrawler(unittest.TestCase):
-	def __init__(self):
-		pass
+
 	def setUp(self):
 		self.info = InitInfo()
 		self.crawler = MyCrawler(info=self.info)
 		self.parser = MyParser(info=self.info, crawler=self.crawler)
 
-	# def test_checkcode(self):
-	# 	self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
-	# 	is_valid = self.crack.run(ent_number)
-	# 	self.assertTrue(is_valid)
+	def test_checkcode(self):
+		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
+		ent_number = '100000000018983'
+		is_valid = self.crack.run(ent_number)
+		self.assertTrue(is_valid)
 
 	def test_crawler_register_num(self):
 		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
-		ent_list = []
+		ent_list = ['100000000018983']
 		for ent_number in ent_list:
 			result = crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 	def test_crawler_key(self):
 		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
 		ent_list = [u'创业投资中心']
 		for ent_number in ent_list:
 			crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 
 
 if __name__ == '__main__':

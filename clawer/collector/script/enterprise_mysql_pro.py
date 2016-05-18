@@ -1,4 +1,4 @@
-#encoding=utf-8
+# encoding=utf-8
 """ example is http://gsxt.saic.gov.cn/
 """
 
@@ -19,11 +19,11 @@ import datetime
 import MySQLdb
 
 
-HOST = 'localhost'                                                                 # 全局变量设置MySQL的HOST USER等
-USER = 'cacti'
-PASSWD = 'cacti'
+HOST = 'csciwlpc.mysql.rds.aliyuncs.com'                                           # 全局变量设置MySQL的HOST USER等
+USER = 'plkj'
+PASSWD = 'Password2016'
 PORT = 3306
-MYSQL_DB = 'clawer'
+MYSQL_DB = 'csciwlpc'
 STEP = 1                                                                           # 每个step取10个
 ROWS = 10
 
@@ -121,7 +121,7 @@ class Generator(object):
         self.history.save()
 
     def _load_total_page(self,rows=ROWS):
-        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='', port=PORT, charset='utf8')
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db=MYSQL_DB, port=PORT, charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
         cur = conn.cursor()
         count = cur.execute(sql)

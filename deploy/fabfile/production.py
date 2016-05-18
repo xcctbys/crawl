@@ -33,6 +33,10 @@ def deploy_web_server():
     run("service memcached start")
     run("chkconfig memcached on")
 
+    # Create web log folder
+    run("mkdir -p /home/logs/cr-clawer")
+    run("chown -R nginx:nginx /home/logs/cr-clawer")
+
     # Start web server on port 4000
     _supervisord("web")
 
@@ -143,10 +147,6 @@ def _create_used_folders():
 
     # Create log folder
     run("mkdir -p /home/logs")
-
-    # Create web log folder
-    run("mkdir -p /home/logs/cr-clawer")
-    run("chown -R nginx:nginx /home/logs/cr-clawer")
 
 
 def _supervisord(server):
