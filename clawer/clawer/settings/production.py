@@ -89,7 +89,7 @@ MongoDBS = {
 from mongoengine import connect
 
 for name, db in MongoDBS.iteritems():
-    connect(host=db['host'], alias=name, port=37173, password="Password123")
+    connect(host=db['host'], alias=name, port=3717, password="Password123")
 
 
 # captcha
