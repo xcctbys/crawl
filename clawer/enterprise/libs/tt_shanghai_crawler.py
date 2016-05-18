@@ -186,7 +186,7 @@ class MyCrawler(Crawler):
 	def crawl_page_by_url(self, url):
 		"""通过url直接获取页面
 		"""
-		resp = self.reqst.get(url, proxies=self.proxies, timeout=self.info.timeout)#, verify=False)
+		resp = self.reqst.get(url, proxies=self.proxies, timeout=self.info.timeout, verify=False)
 		if resp.status_code != 200:
 			logging.error('failed to crawl page by url' % url)
 			return
@@ -196,7 +196,7 @@ class MyCrawler(Crawler):
 		return resp
 
 	def crawl_page_by_url_post(self, url, data):
-		resp = self.reqst.post(url, data=data, proxies=self.proxies, timeout=self.info.timeout)#, verify=False)
+		resp = self.reqst.post(url, data=data, proxies=self.proxies, timeout=self.info.timeout, verify=False)
 		if resp.status_code != 200:
 			logging.error('failed to crawl page by url' % url)
 			return
@@ -660,29 +660,31 @@ class ShanghaiCrawler(object):
 		
 
 class TestShanghaiCrawler(unittest.TestCase):
-	def __init__(self):
-		pass
 	def setUp(self):
 		self.info = InitInfo()
 		self.crawler = MyCrawler(info=self.info)
 		self.parser = MyParser(info=self.info, crawler=self.crawler)
 
-	# def test_checkcode(self):
-	# 	self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
-	# 	is_valid = self.crack.run(ent_number)
-	# 	self.assertTrue(is_valid)
+	def test_checkcode(self):
+		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
+		ent_number = '100000000018983'
+		is_valid = self.crack.run(ent_number)
+		self.assertTrue(is_valid)
 
 	def test_crawler_register_num(self):
 		crawler = ShanghaiCrawler('./enterprise_crawler/shanghai.json')
-		ent_list = []
+		ent_list = [u'310108000565783']
 		for ent_number in ent_list:
 			result = crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 	def test_crawler_key(self):
 		crawler = ShanghaiCrawler('./enterprise_crawler/shanghai.json')
 		ent_list = [u'创业投资中心']
 		for ent_number in ent_list:
 			crawler.run(ent_number=ent_number)
-
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 
 if __name__ == '__main__':
 

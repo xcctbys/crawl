@@ -1,0 +1,501 @@
+{
+    "database": {
+        "source_db":{
+            "dbtype": "mongodb",
+            "host": "127.0.0.1",
+            "port": "27017",
+            "username": "",
+            "password": "",
+            "dbname": "GongShang"
+        },
+        "destination_db": {
+            "dbtype": "mysql",
+            "host": "127.0.0.1",
+            "port": "3306",
+            "username": "cacti",
+            "password": "cacti",
+            "dbname": "GongShang"
+        }
+    },
+    "mapping": {
+        "ind_comm_pub_reg_basic": {
+            "dest_table": "Basic", 
+            "source_path": ["ind_comm_pub_reg_basic"],
+            "associated_field_path": [""],
+            "dest_field": {
+                "注册号/统一社会信用代码": "register_num", 
+                "名称": "enter_name",
+                "类型": "enter_type",
+                "注册资本": "register_capital",
+                "成立日期": "establish_date",
+                "住所": "place",
+                "营业期限自": "time_start",
+                "营业期限至": "time_end",
+                "经营范围": "business_scope",
+                "登记机关": "register_gov",
+                "核准日期": "check_date",
+                "注册状态": "register_status"
+            }
+        },
+        "ind_comm_pub_arch_key_persons": {
+            "dest_table": "IndustryCommerceMainperson",
+            "source_path": ["ind_comm_pub_arch_key_persons"],
+            "associated_field_path": [""],
+            "dest_field": {
+                "序号": "id",
+                "注册号/统一社会信用代码": "register_num", 
+                "姓名": "name",
+                "职务": "position"
+                }
+        },
+        "ind_comm_pub_arch_branch": {
+            "dest_table": "IndustryCommerceBranch",
+            "source_path": ["ind_comm_pub_arch_branch"],
+            "associated_field_path": [""],
+            "dest_field": {
+                "序号": "id",
+                "注册号/统一社会信用代码": "register_num",
+                "名称": "branch_name",
+                "登记机关": "register_gov"
+            }
+        },
+        "ent_pub_ent_annual_report": {
+            "dest_table": "EnterAnnualReport",
+            "source_path": ["ent_pub_ent_annual_report"],
+            "associated_field_path": [""],
+            "dest_field": {
+                "序号": "id",
+                "注册号/统一社会信用代码": "register_num",
+                "报送年度": "report_year",
+                "发布日期": "publicity_date"
+            }
+        },
+        "企业资产状况信息": {
+            "dest_table": "YearReportAssets",
+            "source_path": ["ent_pub_ent_annual_report", "详情", "企业资产状况信息"],
+            "associated_field_path": ["", "序号", ""],
+            "dest_field": {
+                "序号": "year_report_id",
+                "注册号/统一社会信用代码": "register_num",
+                "资产总额": "asset_all",
+                "所有者权益合计": "owner_asset",
+                "营业总收入": "business_income",
+                "营业总收入中主营业务收入": "main_business_income",
+                "利润总额": "profit",
+                "纳税总额": "tax",
+                "负债总额": "debts"
+            
+        },
+        "股权变更信息": {
+            "dest_table": "YearReportSharechange",
+            "source_path": ["ent_pub_ent_annual_report", "详情", "股权变更信息"],
+            "associated_field_path": ["", "序号", ""],
+            "dest_field": {
+                "序号": "year_report_id",
+                "注册号/统一社会信用代码": "register_num",
+                "股东": "shareholder",
+                "变更前股权比例": "shares_before",
+                "变更后股权比例": "shares_after"
+                }
+        },
+        "网站或网店信息": {
+            "dest_table": "YearReportOnline",
+            "source_path": ["ent_pub_ent_annual_report", "详情", "网站或网店信息"],
+            "associated_field_path": ["", "序号", ""],
+            "dest_field": {
+                "序号": "year_report_id",
+                "注册号/统一社会信用代码": "register_num",
+                "类型": "online_type",
+                "名称": "ent_name",
+                "网址": "url"
+            }
+        },
+        "对外投资信息": {
+            "dest_table":  "YearReportInvestment",
+            "source_path": ["ent_pub_ent_annual_report", "详情", "对外投资信息"],
+            "associated_field_path": ["", "序号", ""],
+            "dest_field": {
+                "序号": "year_report_id",
+                "注册号/统一社会信用代码": "register_num",
+                "投资设立企业或购买股权企业名称": "invest_enter_name",
+                "注册号/统一社会信用代码": "ent_code"
+            }
+        },
+        "对外提供担保保证信息": {
+            "dest_table": "guaranty",
+            "source_path": ["ent_pub_ent_annual_report", "详情", "对外提供担保保证信息"],
+            "associated_field_path": ["", "序号", ""],
+            "dest_field": {
+                "序号": "year_report_id",
+                "注册号/统一社会信用代码": "register_num", 
+                "债权人": "creditor",
+                "债务人": "debtor",
+                "主债权种类": "main_creditor_right",
+                "主债权数额": "main_creditor_right_amount",
+                "履行债务的期限": "fullfill_debt_duration",
+                "保证的方式": "guarantee_type",
+                "保证的期间": "warrandice_scope"
+            }
+        },
+        "股东及出资信息": {
+            "dest_table": "YearReportShareholder",
+            "source_path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
+            "associated_field_path": ["", "序号", ""],
+            "dest_field": {
+                "序号": "year_report_id",
+                "注册号/统一社会信用代码": "register_num",
+                "股东": "shareholder",
+                "认缴出资方式": "subscription_type",
+                "认缴出资额(万元)": "subscription_amount",
+                "认缴出资时间": "subscription_time",
+                "出资方式": "paid_type",
+                "出资时间": "paid_time",
+                "实缴出资额(万元)": "paid_money_amount"
+                }
+        }
+    },
+    "table": {
+        "Basic": [
+                {
+                    "field": "register_num",
+                    "datatype": "CHAR(50)",
+                    "option": ""
+                },
+                {
+                    "field": "ent_name",
+                    "datatype": "CHAR(50)",
+                    "option": ""
+                },
+                {
+                    "field": "ent_type",
+                    "datatype": "CHAR(100)",
+                    "option": ""
+                },
+                {
+                    "field": "register_capital",
+                    "datatype": "FLOAT",
+                    "option": ""
+                },
+                {
+                    "field": "establish_date",
+                    "datatype": "DATE",
+                    "option": ""
+                },
+                {
+                    "field": "place",
+                    "datatype": "CHAR(100)",
+                    "option": ""
+                },
+                {
+                    "field": "time_start",
+                    "datatype": "DATA",
+                    "option": ""
+                },
+                {
+                    "field": "time_end",
+                    "datatype": "DATA",
+                    "option": ""
+                },
+                {
+                    "field": "register_gov",
+                    "datatype": "CHAR(50)",
+                    "option": ""
+                },
+                {
+                    "field": "register_status",
+                    "datatype": "CHAR(50)",
+                    "option": ""
+                },
+                {
+                    "field": "check_date",
+                    "datatype": "DATE",
+                    "option": ""
+                },
+                {
+                    "field": "business_scope",
+                    "datatype": "TEXT",
+                    "option": ""
+                }
+            ],
+        "IndustryCommerceMainperson": [
+            {
+                "field": "id",
+                "datatype": "INT",
+                "option": "NOT NULL PRIMARY KEY"
+            },
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "name",
+                "datatype": "CHAR(30)",
+                "option": ""
+            },
+            {
+                "field": "position",
+                "datatype": "CHAR(20)",
+                "option": ""
+            }
+
+        ],
+        "IndustryCommerceBranch": [
+            {
+                "field": "id",
+                "datatype": "CHAR(20)",
+                "option": ""
+            },
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "branch_name",
+                "datatype": "CHAR(100)",
+                "option": ""
+            },
+            {
+                "field": "register_gov",
+                "datatype": "CHAR(50)",
+                "option": ""
+            }
+        ],
+        "EnterAnnualReport": [
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "report_year",
+                "datatype": "INT",
+                "option": ""
+            },
+            {
+                "field": "publicity_date",
+                "datatype": "DATE",
+                "option":""
+            }
+        ],
+        "YearReportAssets": [
+            {
+                "field": "year_report_id",
+                "datatype": "INT",
+                "option": ""
+            },
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "asset_all",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "owner_asset",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "business_income",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "main_business_income",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "profit",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "tax",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "debts",
+                "datatype": "FLOAT",
+                "option": ""
+            }
+        ],
+        "YearReportShareholder": [
+            {
+                "field": "year_report_id",
+                "datatype": "CHAR(20)",
+                "option": ""
+            },
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "shareholder",
+                "datatype": "CHAR(100)",
+                "option": ""
+            },
+            {
+                "field": "subscription_type",
+                "datatype": "CHAR(100)",
+                "option": ""
+            },
+            {
+                "field": "subscription_time",
+                "datatype": "DATE",
+                "option": ""
+            },
+            {
+                "field": "subscription_money_amount",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "paid_money_amount",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "paid_date",
+                "datatype": "DATE",
+                "option": ""
+            },
+            {
+                "field": "paid_type",
+                "datatype": "CHAR(100)",
+                "option": ""
+            }
+        ],
+        "YearReportOnline": [
+            {
+                "field": "year_report_id",
+                "datatype": "CHAR(20)",
+                "option": ""
+            },
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "online_type",
+                "datatype": "CHAR(100)",
+                "option": ""
+            },
+            {
+                "field": "ent_name",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "url",
+                "datatype": "TEXT",
+                "option": ""
+            }
+        ],
+
+        "YearReportSharechange": [
+            {
+                "field": "year_report_id",
+                "datatype": "CHAR(20)",
+                "option": ""
+            },
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "shareholder",
+                "datatype": "CHAR(100)",
+                "option": ""
+            },
+            {
+                "field": "shares_before",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "shares_after",
+                "datatype": "FLOAT",
+                "option": ""
+            }
+        ],
+        "YearReportInvestment": [
+            {
+                "field": "year_report_id",
+                "datatype": "CHAR(20)",
+                "option": ""
+            },
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "invest_enter_name",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "ent_code",
+                "datatype": "CHAR(50)",
+                "option": ""
+            }
+        ],
+        "YearReportWarrandice": [
+            {
+                "field": "year_report_id",
+                "datatype": "CHAR(20)",
+                "option": ""
+            },
+            {
+                "field": "register_num",
+                "datatype": "CHAR(50)",
+                "option": ""
+            },
+            {
+                "field": "creditor",
+                "datatype": "CHAR(100)",
+                "option": ""
+            },
+            {
+                "field": "debtor",
+                "datatype": "CHAR(30)",
+                "option": ""
+            },
+            {
+                "field": "main_creditor_right",
+                "datatype": "CHAR(30)",
+                "option": ""
+            },
+            {
+                "field": "main_creditor_right_amount",
+                "datatype": "FLOAT",
+                "option": ""
+            },
+            {
+                "field": "guarantee_duration",
+                "datatype": "CHAR(30)",
+                "option": ""
+            },
+            {
+                "field": "guarantee_type",
+                "datatype": "CHAR(30)",
+                "option": ""
+            },
+            {
+                "field": "warrandice_scope",
+                "datatype": "CHAR(100)",
+                "option": ""
+            }
+        ]
+    }
+}

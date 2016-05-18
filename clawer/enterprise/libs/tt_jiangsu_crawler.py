@@ -657,8 +657,7 @@ class JiangsuCrawler(object):
 		
 
 class TestJiangsuCrawler(unittest.TestCase):
-	def __init__(self):
-		pass
+	
 	def setUp(self):
 		self.info = InitInfo()
 		self.crawler = MyCrawler(info=self.info)
@@ -666,19 +665,24 @@ class TestJiangsuCrawler(unittest.TestCase):
 
 	def test_checkcode(self):
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
+		ent_number = '100000000018983'
 		is_valid = self.crack.run(ent_number)
 		self.assertTrue(is_valid)
+
 	def test_crawler_register_num(self):
 		crawler = JiangsuCrawler('./enterprise_crawler/jiangsu.json')
 		ent_list = [u'320100000149869']
 		for ent_number in ent_list:
 			result = crawler.run(ent_number=ent_number)
-			self.assertType
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 	def test_crawler_key(self):
 		crawler = JiangsuCrawler('./enterprise_crawler/jiangsu.json')
 		ent_list = [u'创业投资中心']
 		for ent_number in ent_list:
 			crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 
 
 if __name__ == '__main__':
