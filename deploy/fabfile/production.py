@@ -86,6 +86,8 @@ def deploy_structure_servers():
     _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
 
+    _install_project_deps()
+
     # Use supervisor to monitor rq workers.
     _supervisord("structure")
 
