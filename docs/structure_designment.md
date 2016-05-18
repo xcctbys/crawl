@@ -355,9 +355,9 @@ test_insert_job_with_parser函数是重写insert_text_without_job，添加了解
 
 ##执行解析任务
 输入指令：
-	python manage.py run_parse_job
-	structure:higher          #以上指定队列名之一
-输入：队列名
+	cd ~/cr-clawer/confs/dev
+	./run_structure_local   #开启rq worker执行
+输入：无
 输出：开启worker执行指定队列名中的任务，成功则向MongoDB中写入解析结果，通过以下指令查看：
 	use default
 	db.crawler_analyzed_data.find()
