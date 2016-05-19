@@ -30,7 +30,7 @@ class JsonToSql(object):
         self.mapping = self.config_dic['mapping']
     
     def create_commond(self):
-        db_info = self.config_dic['db_info']['destination_db']
+        db_info = self.config_dic['database']['destination_db']
         comm = '%s -u %s -p%s -h %s -P %s -f' % (db_info['dbtype'],db_info['username'],db_info['password'],db_info['host'],db_info['port'])
 
     def create_table_sql(self):
@@ -114,14 +114,17 @@ class JsonToSql(object):
         """
         data_sql = open('./insert_data.sql', 'w')
         try:
-            for k in source.keys():
-                print k, source[k]
-                #data_sql.write("%s %s \n" % (k.encode('utf8'), source[k].encode('utf8')))
+            merged_dict = source.copy()
+            merged_dict.update(self.tmp_dic)
         except AttributeError:
             for i in range(len(source)):
                 self.parser_data(source[i])
             return
-
+        print self.table_name
+        print self.id
+        for k in merged_dict.keys():
+            print k, source[k], 'asdfdsafasf'
+            # data_sql.write("%s %s \n" % (k.encode('utf8'), source[k].encode('utf8')))
         #print self.tmp_dic
         #print self.table_name
         #print self.id
@@ -146,17 +149,32 @@ class JsonToSql(object):
             # print "config error"
             pass
 
+    def test_table(self):
+        print 'hi, spider!'
+        self.parser_json('gs_table_conf.json')
+        self.get_mapping()
+        self.create_table_sql()
+        '''
+        for k in self.mapping.keys():
+            self.table_name = self.mapping[k]['dest_table']
+            self.table_key = k
+            print self.table_key
+            path = self.mapping[k]['source_path']
+            associated_field_path = self.mapping[k]['associated_field_path']
+            self.create_data_sql('guangxi.json', path, associated_field_path)
+            self.tmp_dic.clear()
+        '''
+        pass
+
     def run(self):
         print 'hi, spider!'
         self.parser_json('gs_table_conf.json')
         self.get_mapping()
-        #self.create_table_sql()
-
         for k in self.mapping.keys():
-            self.table_name = self.mapping[k]['name']
+            self.table_name = self.mapping[k]['dest_table']
             self.table_key = k
             print self.table_key
-            path = self.mapping[k]['path']
+            path = self.mapping[k]['source_path']
             associated_field_path = self.mapping[k]['associated_field_path']
             self.create_data_sql('guangxi.json', path, associated_field_path)
             self.tmp_dic.clear()
@@ -172,4 +190,5 @@ tables_info = config_dic['table']
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
     json_to_sql.run()
+    #json_to_sql.test_table()
 

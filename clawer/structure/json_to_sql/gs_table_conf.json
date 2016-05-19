@@ -74,17 +74,17 @@
             "dest_table": "YearReportAssets",
             "source_path": ["ent_pub_ent_annual_report", "详情", "企业资产状况信息"],
             "associated_field_path": ["", "序号", ""],
-            "dest_field": {
-                "序号": "year_report_id",
-                "注册号/统一社会信用代码": "register_num",
-                "资产总额": "asset_all",
-                "所有者权益合计": "owner_asset",
-                "营业总收入": "business_income",
-                "营业总收入中主营业务收入": "main_business_income",
-                "利润总额": "profit",
-                "纳税总额": "tax",
-                "负债总额": "debts"
-            
+          "dest_field": {
+            "序号": "year_report_id",
+            "注册号/统一社会信用代码": "register_num",
+            "资产总额": "asset_all",
+            "所有者权益合计": "owner_asset",
+            "营业总收入": "business_income",
+            "营业总收入中主营业务收入": "main_business_income",
+            "利润总额": "profit",
+            "纳税总额": "tax",
+            "负债总额": "debts"
+          }
         },
         "股权变更信息": {
             "dest_table": "YearReportSharechange",
@@ -121,9 +121,9 @@
                 "注册号/统一社会信用代码": "ent_code"
             }
         },
-        "对外提供担保保证信息": {
+        "对外提供保证担保信息": {
             "dest_table": "guaranty",
-            "source_path": ["ent_pub_ent_annual_report", "详情", "对外提供担保保证信息"],
+            "source_path": ["ent_pub_ent_annual_report", "详情", "对外提供保证担保信息"],
             "associated_field_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
