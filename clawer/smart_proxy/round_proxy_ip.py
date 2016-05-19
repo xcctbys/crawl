@@ -134,7 +134,7 @@ def run():
         num = total_count - settings.MAX_PROXY_NUM
         need_delete = ProxyIp.objects.filter(is_valid=False).order_by('-create_datetime')[:num]
         pool = Pool()
-        pool.map(delete_item(), total_ip)
+        pool.map(delete_item(), need_delete)
         pool.close()
         pool.join()
         """
