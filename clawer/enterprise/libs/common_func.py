@@ -5,6 +5,7 @@ import codecs
 import random
 import time
 import datetime
+import json
 from smart_proxy.api import UseProxy, Proxy
 
 PATH = '/data/clawer/html/'
@@ -31,6 +32,13 @@ def json_dump_to_file(path, json_dict):
         write_type = 'a'
     with codecs.open(path, write_type, 'utf-8') as f:
         f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
+
+def save_to_file(path, json_dict):
+    write_type = 'w'
+    if os.path.exists(path):
+        write_type = 'a'
+    with codecs.open(path, write_type, 'utf-8') as f:
+        f.write(json_dict)
 
 def read_ent_from_file(path):
     read_type = 'r'
@@ -69,6 +77,6 @@ def get_proxy(province = '' ):
         proxies = {}
     else:
         proxy = Proxy()
-        proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='beijing')),
-                    'https':'https://'+random.choice(proxy.get_proxy(num=5, province='beijing'))}
+        proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5)),
+                    'https':'https://'+random.choice(proxy.get_proxy(num=5))}
     return proxies

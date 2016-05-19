@@ -18,7 +18,7 @@ import gevent
 from gevent import Greenlet
 
 import gevent.monkey
-gevent.monkey.patch_socket()
+
 
 from common_func import exe_time
 
@@ -26,17 +26,18 @@ urls = {
     'prefix_url':'http://www.szcredit.com.cn/web/GSZJGSPT/',
 }
 
-headers = { 'Connetion': 'Keep-Alive',
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
-
 
 
 
 class Crawler(object):
     analysis = None
     def __init__(self, req= None):
+        headers = { 'Connetion': 'Keep-Alive',
+                    'Accept': 'text/html, application/xhtml+xml, */*',
+                    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
+                    }
+
         # self.analysis = analysis
         if req:
             self.requests = req
@@ -46,12 +47,12 @@ class Crawler(object):
         self.ents = []
         self.json_dict={}
         self.timeout = 20
-        print self.requests.proxies
-        # self.proxies = get_proxy('guangdong')
+        # print self.requests.proxies
+
 
     def crawl_xingzhengchufa_page(self, url, text):
         data = self.analysis.analyze_xingzhengchufa(text)
-        r = self.requests.post( url = url, data = data, timeout =self.timeout) # , proxies = self.proxies
+        r = self.requests.post( url = url, data = data, timeout =self.timeout)
         if r.status_code != 200:
             return False
         return r.text
@@ -175,7 +176,7 @@ class Crawler(object):
         return self.json_dict
 
     def run_asyn(self, ent_str):
-
+        gevent.monkey.patch_socket()
         threads = []
         rid = ent_str[ent_str.index("rid")+4: len(ent_str)]
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=" + rid
@@ -661,10 +662,6 @@ class Analyze(object):
             pass
         return page_data
 
-
-
-
-
 class Guangdong0(object):
     def __init__(self, req= None, ent_number= None):
         self.analysis = Analyze()
@@ -679,3 +676,4 @@ class Guangdong0(object):
 
     def run_asyn(self, url):
         return self.crawler.run_asyn(url)
+

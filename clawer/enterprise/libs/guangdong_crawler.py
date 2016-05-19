@@ -15,7 +15,7 @@ from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from .Guangdong0 import Guangdong0
 from .Guangdong1 import Guangdong1
 from .Guangdong2 import Guangdong2
-from common_func import get_proxy
+from common_func import get_proxy,json_dump_to_file
 
 urls = {
     'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
@@ -42,15 +42,18 @@ class GuangdongClawer(object):
         self.CR = CaptchaRecognition("guangdong")
         self.requests = requests.Session()
         self.requests.headers.update(headers)
-        self.ents = []
+        adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
+        self.requests.mount('http://', adapter)
+
+        self.ents = {}
         self.json_restore_path = json_restore_path
         self.dir_restore_path = settings.json_restore_path + '/guangdong/'
         #验证码图片的存储路径
         self.path_captcha = settings.json_restore_path + '/guangdong/ckcode.jpg'
         self.timeout = (10, 10)
         proxies = get_proxy('guangdong')
-        if not proxies:
-            print self.requests.proxies
+        if proxies:
+            print proxies
             self.requests.proxies = proxies
 
 
@@ -65,7 +68,7 @@ class GuangdongClawer(object):
         return r.text
     #获得搜索结果展示页面
     def get_page_showInfo(self, url, datas):
-        r = self.request_by_method('POST', url, data = datas)
+        r = self.request_by_method('POST', url, data = datas, timeout= self.timeout)
         if not r:
             logging.error(u"Something wrong when posting the url:%s , status_code=%d", url, r.status_code)
             return False
@@ -76,20 +79,27 @@ class GuangdongClawer(object):
         if self.html_showInfo is None:
             logging.error(u"Getting Page ShowInfo failed\n")
             return
-        Ent = []
+        Ent = {}
         soup = BeautifulSoup(self.html_showInfo, "html5lib")
         divs = soup.find_all("div", {"class":"list"})
         if divs:
             for div in divs:
-                logging.error(u"div.ul.li.a['href'] = %s\n", div.ul.li.a['href'])
-                Ent.append(div.ul.li.a['href'])
+                link = div.find('li')
+                url =""
+                ent = ""
+                if link and link.find('a').has_attr('href'):
+                    url = link.find('a')['href']
+                profile = link.find_next_sibling()
+                if profile and profile.span:
+                    ent = profile.span.get_text().strip()
+                Ent[ent] = url
         self.ents = Ent
 
     # 破解验证码页面
     def crawl_page_captcha(self, url_page_search ,url_captcha, url_CheckCode,url_showInfo,  textfield= '440301102739085'):
         html = self.crawl_page_search(url_page_search)
         count = 0
-        while count < 15:
+        while count < 20:
             count+= 1
             r = self.request_by_method('GET', url_captcha, timeout= self.timeout)
             if not r:
@@ -102,7 +112,12 @@ class GuangdongClawer(object):
                         'textfield': textfield,
                         'code': result,
                 }
-                response = self.request_by_method('POST', url_CheckCode, data = datas).json()
+                response = self.request_by_method('POST', url_CheckCode, data = datas, timeout= self.timeout)
+                if not response:
+                    logging.error(u"crack ID: %s Captcha failed, the %d time(s)"%(self.ent_num ,count))
+                    continue
+                response = response.json()
+                print  response
                 # response返回的json结果: {u'flag': u'1', u'textfield': u'H+kiIP4DWBtMJPckUI3U3Q=='}
                 if response['flag'] == '1':
                     datas_showInfo = {'textfield': response['textfield'], 'code': result}
@@ -155,49 +170,53 @@ class GuangdongClawer(object):
             logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
             return False
         return r
-    """
-    The following functions are for main page
-    """
-
-    """ 1. iterate enterprises in ents
-        2. for each ent: decide host so that choose functions by pattern
-        3. for each pattern, iterate urls
-        4. for each url, iterate item in tabs
-    """
     def crawl_page_main(self ):
-        sub_json_dict= {}
+        """
+            The following functions are for main page
+
+            1. iterate enterprises in ents
+            2. for each ent: decide host so that choose functions by pattern
+            3. for each pattern, iterate urls
+            4. for each url, iterate item in tabs
+        """
+        sub_json_list= []
         if not self.ents:
             logging.error(u"Get no search result\n")
         try:
 
-            for ent in self.ents:
+            for ent, url in self.ents.items():
                 #http://www.szcredit.com.cn/web/GSZJGSPT/ QyxyDetail.aspx?rid=acc04ef9ac0145ecb8c87dd5710c2f86
                 # http://gsxt.gzaic.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_cPlFMHz7UORGuPsot6Ab+gyFHBRDGmiqdLAvpr4C7UU=-7PUW92vxF0RgKhiSE63aCw==
                 #http://gsxt.gdgs.gov.cn/aiccips /GSpublicity/GSpublicityList.html?service=entInfo_+8/Z3ukM3JcWEfZvXVt+QiLPiIqemiEqqq4l7n9oAh/FI+v6zW/DL40+AV4Hja1y-dA+Hj5oOjXjQTgAhKSP1lA==
 
-                m = re.match('http', ent)
+                m = re.match('http', url)
                 if m is None:
-                    ent = urls['host']+ ent[3:]
-                logging.error(u"ent url:%s\n"% ent)
+                    url = urls['host']+ url[3:]
+                logging.error(u"main url:%s\n"% url)
+
                 for i, item in enumerate(HOSTS):
-                    if ent.find(item) != -1:
+                    if url.find(item) != -1:
 
                         #"www.szcredit.com.cn"
                         if i==0:
                             logging.error(u"This %s enterprise is type 0"%(self.ent_num))
                             guangdong = Guangdong0(self.requests, self.ent_num)
-                            # sub_json_dict =  guangdong.run(ent)
-                            sub_json_dict = guangdong.run_asyn(ent)
+                            # sub_json_dict =  guangdong.run(url)
+                            data = guangdong.run_asyn(url)
+                            sub_json_list.append({ent: data})
                         # gsxt.gzaic.gov.cn
                         elif i==1:
                             logging.error(u"This %s enterprise is type 1"%(self.ent_num))
-                            guangdong = Guangdong1(self.requests)
-                            sub_json_dict =  guangdong.run_asyn(ent)
+                            # guangdong = Guangdong1(self.requests)
+                            print url
+                            # data =guangdong.run_asyn(url)
+                            # sub_json_list.append({ent: data})
                         # gsxt.gdgs.gov.cn/aiccips
                         elif i==2:
                             logging.error(u"This %s enterprise is type 2"%(self.ent_num))
                             guangdong = Guangdong2(self.requests)
-                            sub_json_dict = guangdong.run_asyn(ent)
+                            data = guangdong.run_asyn(url)
+                            sub_json_list.append({ent: data})
                         else:
                             logging.error(u"This %s enterprise is no type!"%(self.ent_num))
                         break
@@ -207,16 +226,17 @@ class GuangdongClawer(object):
             logging.error(u"An error ocurred when getting the main page, error: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            return sub_json_list
 
     def run(self, ent_num):
         if not os.path.exists( self.dir_restore_path ):
             os.makedirs(self.dir_restore_path)
-        json_dict = {}
+
         self.ent_num = str(ent_num)
         logging.error('crawl ID: %s\n'% ent_num)
         self.crawl_page_captcha(urls['page_search'], urls['page_captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
         self.analyze_showInfo()
         data = self.crawl_page_main()
-        json_dict[ent_num] = data
-        return json.dumps(json_dict)
+        path = os.path.join(os.getcwd(), 'guangdong.json')
+        json_dump_to_file(path, data)
+        return json.dumps(data)

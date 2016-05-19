@@ -1,12 +1,12 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
+"""
 import requests
 import logging
 import os
 import sys
 import time
 import re
-from . import settings
 import json
 import urlparse
 import codecs
@@ -17,7 +17,17 @@ from gevent import Greenlet
 
 import gevent.monkey
 gevent.monkey.patch_socket()
-from common_func import exe_time
+# from common_func import exe_time
+
+def exe_time(func):
+    def fnc(*args, **kwargs):
+        start = datetime.datetime.now()
+        print "call "+ func.__name__ + "()..."
+        print func.__name__ +" start :"+ str(start)
+        func(*args, **kwargs)
+        end = datetime.datetime.now()
+        print func.__name__ +" end :"+ str(end)
+    return fnc
 
 
 urls = {
@@ -594,11 +604,27 @@ class Analyze(object):
 #     def run_asyn(self, url):
 #         return self.crawler.run_asyn(url)
 
-from Guangdong2 import Guangdong2
 
-class Guangdong1(Guangdong2):
+"""
+
+from Guangdong2 import Crawler, Analyze
+
+class Guangdong1(object):
     urls = {
         'host': 'http://gsxt.gzaic.gov.cn',
     }
+    def __init__(self, req= None, ent_number= None):
+        self.analysis = Analyze()
+        self.crawler = Crawler(req)
+        self.crawler.analysis = self.analysis
+        self.analysis.crawler = self.crawler
+        self.analysis.ent_num = ent_number
+        self.crawler.ent_num = ent_number
+        self.crawler.urls = self.urls
+        self.analysis.urls = self.urls
 
+    def run(self, url):
+        return self.crawler.run(url)
 
+    def run_asyn(self, url):
+        return self.crawler.run_asyn(url)

@@ -21,6 +21,36 @@ import urllib
 import gevent.monkey
 gevent.monkey.patch_socket()
 
+import ghost
+
+
+def get_cookie( url):
+    g = ghost.Ghost()
+    cookiestr = ""
+    with g.start() as se:
+        mycookielist=[]
+        page, extra_resources = se.open(url,method='get',wait=True,encode_url=True, user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0")
+        for element in se.cookies:
+            mycookielist.append(element.toRawForm().split(";"))
+
+        cookiestr = reduce(lambda x, y: x[0]+ ";" + y[0], mycookielist)
+    return cookiestr
+
+class TestGhost(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_get_cookie(self):
+        url = "http://gsxt.gzaic.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_cPlFMHz7UORGuPsot6Ab+gyFHBRDGmiqdLAvpr4C7UU=-7PUW92vxF0RgKhiSE63aCw=="
+        cookiestr = get_cookie(url)
+        print cookiestr
+        self.assertGreater(cookiestr.indexOf('__jsluid'), -1)
+        self.assertGreater(cookiestr.indexOf('__jsl_clearance'), -1)
+
+
 class TestGevent(TestCase):
     def setUp(self):
         TestCase.setUp(self)
@@ -162,6 +192,18 @@ class TestGuangdong1(TestCase):
         self.assertTrue(result['ind_comm_pub_reg_basic'])
         self.assertEqual(result['ind_comm_pub_reg_basic'][u'名称'], u'万联证券有限责任公司')
 
+    def test_run(self):
+        ent_str = '440101000017862'
+        guangdong = GuangdongClawer()
+        result = guangdong.run(ent_str)
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertTrue(result[ent_str])
+        self.assertTrue(result[ent_str]['ind_comm_pub_reg_basic'])
+        self.assertEqual(result[ent_str]['ind_comm_pub_reg_basic'][u'名称'], u'万联证券有限责任公司')
+
 class TestGuangdong2(TestCase):
     def setUp(self):
         TestCase.setUp(self)
@@ -214,6 +256,9 @@ class TestGuangdong(TestCase):
 
     def setUp(self):
         TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Guangdong')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
 
     @pytest.mark.timeout(15)
     def test_guangdong1(self):
@@ -247,16 +292,35 @@ class TestGuangdong(TestCase):
             logging.info("%s"%ent[0])
             guangdong.run(ent[2])
 
-    def test_run_with_proxies(self):
+    def test_run_guangdong0(self):
         ent_str = '440301102739085'
-        guangdong = GuangdongClawer()
+        guangdong = GuangdongClawer(self.path)
         result = guangdong.run(ent_str)
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
         result = json.loads(result)
-        self.assertTrue(result[ent_str])
-        self.assertTrue(result[ent_str]['ind_comm_pub_reg_basic'])
-        self.assertEqual(result[ent_str]['ind_comm_pub_reg_basic'][u'名称'], u'世纪证券有限责任公司')
 
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91440300158263740T')
+                self.assertTrue(v.has_key('ind_comm_pub_reg_basic'))
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'世纪证券有限责任公司')
+
+    def test_run_guangdong2(self):
+        ent_str = '222400000001337'
+        guangdong = GuangdongClawer(self.path)
+        result = guangdong.run(ent_str)
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91440000126335439C')
+                self.assertTrue(v.has_key('ind_comm_pub_reg_basic'))
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'广发证券股份有限公司')
 
