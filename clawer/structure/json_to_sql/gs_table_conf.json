@@ -21,7 +21,7 @@
         "ind_comm_pub_reg_basic": {
             "dest_table": "Basic", 
             "source_path": ["ind_comm_pub_reg_basic"],
-            "associated_field_path": [""],
+            "associated_field_source_path": [""],
             "dest_field": {
                 "注册号/统一社会信用代码": "register_num", 
                 "名称": "enter_name",
@@ -40,7 +40,7 @@
         "ind_comm_pub_arch_key_persons": {
             "dest_table": "IndustryCommerceMainperson",
             "source_path": ["ind_comm_pub_arch_key_persons"],
-            "associated_field_path": [""],
+            "associated_field_source_path": [""],
             "dest_field": {
                 "序号": "id",
                 "注册号/统一社会信用代码": "register_num", 
@@ -51,7 +51,7 @@
         "ind_comm_pub_arch_branch": {
             "dest_table": "IndustryCommerceBranch",
             "source_path": ["ind_comm_pub_arch_branch"],
-            "associated_field_path": [""],
+            "associated_field_source_path": [""],
             "dest_field": {
                 "序号": "id",
                 "注册号/统一社会信用代码": "register_num",
@@ -62,7 +62,7 @@
         "ent_pub_ent_annual_report": {
             "dest_table": "EnterAnnualReport",
             "source_path": ["ent_pub_ent_annual_report"],
-            "associated_field_path": [""],
+            "associated_field_source_path": [""],
             "dest_field": {
                 "序号": "id",
                 "注册号/统一社会信用代码": "register_num",
@@ -73,6 +73,7 @@
         "企业资产状况信息": {
             "dest_table": "YearReportAssets",
             "source_path": ["ent_pub_ent_annual_report", "详情", "企业资产状况信息"],
+<<<<<<< HEAD
             "associated_field_path": ["", "序号", ""],
           "dest_field": {
             "序号": "year_report_id",
@@ -85,11 +86,25 @@
             "纳税总额": "tax",
             "负债总额": "debts"
           }
+=======
+            "associated_field_source_path": ["", "序号", ""],
+            "dest_field": {
+                "序号": "year_report_id",
+                "注册号/统一社会信用代码": "register_num",
+                "资产总额": "asset_all",
+                "所有者权益合计": "owner_asset",
+                "营业总收入": "business_income",
+                "营业总收入中主营业务收入": "main_business_income",
+                "利润总额": "profit",
+                "纳税总额": "tax",
+                "负债总额": "debts"
+            }
+>>>>>>> 5ae212d7c0b6ce4195fb520e5680a36e40bd2481
         },
         "股权变更信息": {
             "dest_table": "YearReportSharechange",
             "source_path": ["ent_pub_ent_annual_report", "详情", "股权变更信息"],
-            "associated_field_path": ["", "序号", ""],
+            "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
                 "注册号/统一社会信用代码": "register_num",
@@ -101,7 +116,7 @@
         "网站或网店信息": {
             "dest_table": "YearReportOnline",
             "source_path": ["ent_pub_ent_annual_report", "详情", "网站或网店信息"],
-            "associated_field_path": ["", "序号", ""],
+            "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
                 "注册号/统一社会信用代码": "register_num",
@@ -113,7 +128,7 @@
         "对外投资信息": {
             "dest_table":  "YearReportInvestment",
             "source_path": ["ent_pub_ent_annual_report", "详情", "对外投资信息"],
-            "associated_field_path": ["", "序号", ""],
+            "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
                 "注册号/统一社会信用代码": "register_num",
@@ -123,8 +138,13 @@
         },
         "对外提供保证担保信息": {
             "dest_table": "guaranty",
+<<<<<<< HEAD
             "source_path": ["ent_pub_ent_annual_report", "详情", "对外提供保证担保信息"],
             "associated_field_path": ["", "序号", ""],
+=======
+            "source_path": ["ent_pub_ent_annual_report", "详情", "对外提供担保保证信息"],
+            "associated_field_source_path": ["", "序号", ""],
+>>>>>>> 5ae212d7c0b6ce4195fb520e5680a36e40bd2481
             "dest_field": {
                 "序号": "year_report_id",
                 "注册号/统一社会信用代码": "register_num", 
@@ -140,7 +160,7 @@
         "股东及出资信息": {
             "dest_table": "YearReportShareholder",
             "source_path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
-            "associated_field_path": ["", "序号", ""],
+            "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
                 "注册号/统一社会信用代码": "register_num",
@@ -157,84 +177,84 @@
     "table": {
         "Basic": [
                 {
-                    "field": "register_num",
+                    "dest_field": "register_num",
                     "datatype": "CHAR(50)",
                     "option": ""
                 },
                 {
-                    "field": "ent_name",
+                    "dest_field": "ent_name",
                     "datatype": "CHAR(50)",
                     "option": ""
                 },
                 {
-                    "field": "ent_type",
+                    "dest_field": "ent_type",
                     "datatype": "CHAR(100)",
                     "option": ""
                 },
                 {
-                    "field": "register_capital",
+                    "dest_field": "register_capital",
                     "datatype": "FLOAT",
                     "option": ""
                 },
                 {
-                    "field": "establish_date",
+                    "dest_field": "establish_date",
                     "datatype": "DATE",
                     "option": ""
                 },
                 {
-                    "field": "place",
+                    "dest_field": "place",
                     "datatype": "CHAR(100)",
                     "option": ""
                 },
                 {
-                    "field": "time_start",
+                    "dest_field": "time_start",
                     "datatype": "DATA",
                     "option": ""
                 },
                 {
-                    "field": "time_end",
+                    "dest_field": "time_end",
                     "datatype": "DATA",
                     "option": ""
                 },
                 {
-                    "field": "register_gov",
+                    "dest_field": "register_gov",
                     "datatype": "CHAR(50)",
                     "option": ""
                 },
                 {
-                    "field": "register_status",
+                    "dest_field": "register_status",
                     "datatype": "CHAR(50)",
                     "option": ""
                 },
                 {
-                    "field": "check_date",
+                    "dest_field": "check_date",
                     "datatype": "DATE",
                     "option": ""
                 },
                 {
-                    "field": "business_scope",
+                    "dest_field": "business_scope",
                     "datatype": "TEXT",
                     "option": ""
                 }
             ],
         "IndustryCommerceMainperson": [
             {
-                "field": "id",
+                "dest_field": "id",
                 "datatype": "INT",
                 "option": "NOT NULL PRIMARY KEY"
             },
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "name",
+                "dest_field": "name",
                 "datatype": "CHAR(30)",
                 "option": ""
             },
             {
-                "field": "position",
+                "dest_field": "position",
                 "datatype": "CHAR(20)",
                 "option": ""
             }
@@ -242,160 +262,160 @@
         ],
         "IndustryCommerceBranch": [
             {
-                "field": "id",
+                "dest_field": "id",
                 "datatype": "CHAR(20)",
                 "option": ""
             },
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "branch_name",
+                "dest_field": "branch_name",
                 "datatype": "CHAR(100)",
                 "option": ""
             },
             {
-                "field": "register_gov",
+                "dest_field": "register_gov",
                 "datatype": "CHAR(50)",
                 "option": ""
             }
         ],
         "EnterAnnualReport": [
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "report_year",
+                "dest_field": "report_year",
                 "datatype": "INT",
                 "option": ""
             },
             {
-                "field": "publicity_date",
+                "dest_field": "publicity_date",
                 "datatype": "DATE",
                 "option":""
             }
         ],
         "YearReportAssets": [
             {
-                "field": "year_report_id",
+                "dest_field": "year_report_id",
                 "datatype": "INT",
                 "option": ""
             },
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "asset_all",
+                "dest_field": "asset_all",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "owner_asset",
+                "dest_field": "owner_asset",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "business_income",
+                "dest_field": "business_income",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "main_business_income",
+                "dest_field": "main_business_income",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "profit",
+                "dest_field": "profit",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "tax",
+                "dest_field": "tax",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "debts",
+                "dest_field": "debts",
                 "datatype": "FLOAT",
                 "option": ""
             }
         ],
         "YearReportShareholder": [
             {
-                "field": "year_report_id",
+                "dest_field": "year_report_id",
                 "datatype": "CHAR(20)",
                 "option": ""
             },
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "shareholder",
+                "dest_field": "shareholder",
                 "datatype": "CHAR(100)",
                 "option": ""
             },
             {
-                "field": "subscription_type",
+                "dest_field": "subscription_type",
                 "datatype": "CHAR(100)",
                 "option": ""
             },
             {
-                "field": "subscription_time",
+                "dest_field": "subscription_time",
                 "datatype": "DATE",
                 "option": ""
             },
             {
-                "field": "subscription_money_amount",
+                "dest_field": "subscription_money_amount",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "paid_money_amount",
+                "dest_field": "paid_money_amount",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "paid_date",
+                "dest_field": "paid_date",
                 "datatype": "DATE",
                 "option": ""
             },
             {
-                "field": "paid_type",
+                "dest_field": "paid_type",
                 "datatype": "CHAR(100)",
                 "option": ""
             }
         ],
         "YearReportOnline": [
             {
-                "field": "year_report_id",
+                "dest_field": "year_report_id",
                 "datatype": "CHAR(20)",
                 "option": ""
             },
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "online_type",
+                "dest_field": "online_type",
                 "datatype": "CHAR(100)",
                 "option": ""
             },
             {
-                "field": "ent_name",
+                "dest_field": "ent_name",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "url",
+                "dest_field": "url",
                 "datatype": "TEXT",
                 "option": ""
             }
@@ -403,96 +423,96 @@
 
         "YearReportSharechange": [
             {
-                "field": "year_report_id",
+                "dest_field": "year_report_id",
                 "datatype": "CHAR(20)",
                 "option": ""
             },
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "shareholder",
+                "dest_field": "shareholder",
                 "datatype": "CHAR(100)",
                 "option": ""
             },
             {
-                "field": "shares_before",
+                "dest_field": "shares_before",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "shares_after",
+                "dest_field": "shares_after",
                 "datatype": "FLOAT",
                 "option": ""
             }
         ],
         "YearReportInvestment": [
             {
-                "field": "year_report_id",
+                "dest_field": "year_report_id",
                 "datatype": "CHAR(20)",
                 "option": ""
             },
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "invest_enter_name",
+                "dest_field": "invest_enter_name",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "ent_code",
+                "dest_field": "ent_code",
                 "datatype": "CHAR(50)",
                 "option": ""
             }
         ],
         "YearReportWarrandice": [
             {
-                "field": "year_report_id",
+                "dest_field": "year_report_id",
                 "datatype": "CHAR(20)",
                 "option": ""
             },
             {
-                "field": "register_num",
+                "dest_field": "register_num",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
-                "field": "creditor",
+                "dest_field": "creditor",
                 "datatype": "CHAR(100)",
                 "option": ""
             },
             {
-                "field": "debtor",
+                "dest_field": "debtor",
                 "datatype": "CHAR(30)",
                 "option": ""
             },
             {
-                "field": "main_creditor_right",
+                "dest_field": "main_creditor_right",
                 "datatype": "CHAR(30)",
                 "option": ""
             },
             {
-                "field": "main_creditor_right_amount",
+                "dest_field": "main_creditor_right_amount",
                 "datatype": "FLOAT",
                 "option": ""
             },
             {
-                "field": "guarantee_duration",
+                "dest_field": "guarantee_duration",
                 "datatype": "CHAR(30)",
                 "option": ""
             },
             {
-                "field": "guarantee_type",
+                "dest_field": "guarantee_type",
                 "datatype": "CHAR(30)",
                 "option": ""
             },
             {
-                "field": "warrandice_scope",
+                "dest_field": "warrandice_scope",
                 "datatype": "CHAR(100)",
                 "option": ""
             }
