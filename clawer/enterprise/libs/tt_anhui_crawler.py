@@ -26,6 +26,8 @@ class InitInfo(object):
 	def __init__(self, *args, **kwargs):
 		self.ckcode_image_path = settings.json_restore_path + '/anhui/ckcode.jpg'
 		self.code_cracker = CaptchaRecognition('qinghai')
+		if not os.path.exists(self.ckcode_image_path):
+			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		self.urls = {'eareName':'http://www.ahcredit.gov.cn',
 				'search':'http://www.ahcredit.gov.cn/search.jspx',
 				'checkCheckNo':'http://www.ahcredit.gov.cn/checkCheckNo.jspx',

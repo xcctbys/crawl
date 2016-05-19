@@ -30,7 +30,8 @@ class InitInfo(object):
 		self.ckcode_image_path = settings.json_restore_path + '/zongju/ckcode.jpg'
 
 		self.code_cracker = CaptchaRecognition('zongju')
-
+		if not os.path.exists(self.ckcode_image_path):
+			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		# 多线程爬取时往最后的json文件中写时的加锁保护
 		self.write_file_mutex = threading.Lock()
 		self.timeout = 40
@@ -210,7 +211,7 @@ class MyParser(Parser):
 	def parse_post_check_page(self, page):
 		"""解析提交验证码之后的页面，获取必要的信息
 		"""
-		soup = BeautifulSoup(page)
+		soup = BeautifulSoup(page, 'html.parser')
 		div_tag = soup.find('div', attrs={'class': 'link'})
 		if not div_tag:
 			return False
