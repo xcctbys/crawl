@@ -25,13 +25,14 @@ from .libs.tt_shanghai_crawler import ShanghaiCrawler
 # from .libs.zongju_crawler import ZongjuCrawler
 from .libs.tt_zongju_crawler import ZongjuCrawler
 # from .libs.jiangsu_crawler import JiangsuCrawler
-from .libs.test_jiangsu_crawler import JiangsuCrawler
+from .libs.tt_jiangsu_crawler import JiangsuCrawler
 from .libs.heilongjiang_crawler import HeilongjiangClawer
 from .libs.shanxi_crawler import ShanxiCrawler
 ##
 from .libs.gansu_crawler import GansuClawer
 from .libs.guangdong_crawler import GuangdongClawer
-from .libs.guangxi_crawler import GuangxiCrawler
+# from .libs.guangxi_crawler import GuangxiCrawler
+from .libs.tt_guangxi_crawler import GuangxiCrawler
 # from .libs.anhui_crawler import AnhuiCrawler
 from .libs.tt_anhui_crawler import AnhuiCrawler
 from .libs.fujian_crawler import FujianCrawler

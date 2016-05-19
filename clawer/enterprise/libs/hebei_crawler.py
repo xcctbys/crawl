@@ -6,14 +6,20 @@ import os
 import sys
 import time
 import re
-from . import settings
-
 import json
 import codecs
 import threading
+import random
 from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
-import random
+from . import settings
+
+from common_func import get_proxy, exe_time, json_dump_to_file
+import gevent
+from gevent import Greenlet
+import gevent.monkey
+import unittest
+
 
 urls = {
     'host': 'http://www.hebscztxyxx.gov.cn/notice/',
@@ -24,50 +30,58 @@ urls = {
     'checkcode':'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
 }
 
-headers = { #'Connetion': 'Keep-Alive',
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
-            }
 
 class HebeiCrawler(object):
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    def __init__(self, json_restore_path):
+    def __init__(self, json_restore_path=None):
+        headers = { #'Connetion': 'Keep-Alive',
+                    'Accept': 'text/html, application/xhtml+xml, */*',
+                    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
+                    }
         self.CR = CaptchaRecognition("hebei")
         self.requests = requests.Session()
         self.requests.headers.update(headers)
-        self.ents = []
+        adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
+        self.requests.mount('http://', adapter)
+
+        self.ents = {}
+        self.json_dict={}
         self.json_restore_path = json_restore_path
         self.csrf = ""
         #验证码图片的存储路径
-        self.path_captcha = settings.json_restore_path + '/hebei/ckcode.jpeg'
+        self.path_captcha = self.json_restore_path + '/hebei/ckcode.jpeg'
         #html数据的存储路径
-        self.html_restore_path = settings.json_restore_path + '/hebei/'
+        self.html_restore_path = self.json_restore_path + '/hebei/'
 
-    # 破解搜索页面
-    def crawl_page_search(self, url):
-        r = self.requests.get( url)
-        if r.status_code != 200:
-            logging.error(u"Something wrong when getting the url:%s , status_code=%d", url, r.status_code)
-            return
-        r.encoding = "utf-8"
-        #logging.debug("searchpage html :\n  %s", r.text)
-        return r.text
+        proxies = get_proxy('hebei')
+        if proxies:
+            print proxies
+            self.requests.proxies = proxies
+        self.timeout = (30,20)
 
     #分析 展示页面， 获得搜索到的企业列表
     def analyze_showInfo(self, page):
-        Ent = []
+        Ent = {}
         soup = BeautifulSoup(page, "html5lib")
         divs = soup.find_all("div", {"class":"list-item"})
         for div in divs:
-            Ent.append(div.find('a')['href'])
+            link = div.find('div', {'class':'link'})
+            profile = div.find('div', {'class': 'profile'})
+            url = ""
+            ent = ""
+            if link and link.find('a').has_attr('href'):
+                url = link.find('a')['href']
+            if profile and profile.span:
+                ent = self.get_raw_text_by_tag(profile.span)
+            Ent[ent] = url
         self.ents = Ent
 
     def crawl_page_captcha(self, url_search, url_Captcha, url_CheckCode,url_showInfo,  textfield= '130000000021709'):
         """破解验证码页面"""
-        html_search = self.crawl_page_search(url_search)
+        html_search = self.request_by_method('GET', url_search, timeout=self.timeout)
         if not html_search:
             logging.error(u"There is no search page")
             return
@@ -80,30 +94,31 @@ class HebeiCrawler(object):
                 #'condition.keyword': textfield,
         }
         count = 0
-        while True:
+        while count < 40:
             count+= 1
-            r = self.requests.get( url_Captcha+ str(random.random()))
-            if r.status_code != 200:
-                logging.error(u"Something wrong when getting the Captcha url:%s , status_code=%d", url_Captcha+ str(random.random()), r.status_code)
+            content = self.request_by_method('get', url_Captcha+ str(random.random()), timeout=self.timeout)
+            if not content:
+                logging.error(u"Something wrong when getting the Captcha url:%s .", url_Captcha+ str(random.random()) )
                 return
-            #logging.debug("Captcha page html :\n  %s", self.Captcha)
-            if self.save_captcha(r.content):
-                logging.info("Captcha is saved successfully \n" )
+            if self.save_captcha(content):
                 datas['captcha'] = self.crack_captcha()
-                logging.info("cracked captcha is %d"%(datas['captcha']) )
-                res=  self.crawl_page_by_url_post(url_CheckCode, datas)['page']
+                print datas['captcha']
+                res=  self.request_by_method('POST', url_CheckCode, data= datas, timeout=self.timeout)
+                print res
                 # 如果验证码正确，就返回一种页面，否则返回主页面
                 if str(res) is not '0' :
+                    print " total count = %d !"%count
                     datas['searchType'] = 1
                     datas['condition.keyword'] = textfield
-                    page =  self.crawl_page_by_url_post(url_showInfo, datas)['page']
+                    page =  self.request_by_method('POST', url_showInfo, data=datas, timeout=self.timeout)
                     self.analyze_showInfo(page)
                     break
                 else:
-                    logging.debug(u"crack Captcha failed, the %d time(s)", count)
+                    logging.error(u"crack Captcha failed, the %d time(s)", count)
                     if count > 15:
                         break
-        return
+            time.sleep(random.uniform(1, 4))
+
     def crack_captcha(self):
         """调用函数，破解验证码图片并返回结果"""
         if os.path.exists(self.path_captcha) is False:
@@ -111,7 +126,7 @@ class HebeiCrawler(object):
             return
         result = self.CR.predict_result(self.path_captcha)
         return result[1]
-        #print result
+
     def save_captcha(self, Captcha):
         """保存验证码图片"""
         url_Captcha = self.path_captcha
@@ -128,46 +143,47 @@ class HebeiCrawler(object):
             f.close
         self.write_file_mutex.release()
         return True
-    """
-        The following enterprises in ents
-        1. for each ent: decide host so that choose e urls
-        2. for eah url, iterate item in tabs
-    """
+
     def crawl_page_main(self ):
         """  爬取页面信息总函数        """
-        sub_json_dict= {}
+        gevent.monkey.patch_socket()
+        sub_json_list= []
         if not self.ents:
             logging.error(u"Get no search result\n")
         try:
-            for ent in self.ents:
-                m = re.match('http', ent)
+            for ent, url in self.ents.items():
+                m = re.match('http', url)
                 if m is None:
-                    ent = urls['host']+ ent
-                logging.info(u"crawl main url:%s"% ent)
+                    url = urls['host']+ url
+                logging.info(u"crawl main url:%s"% url)
                 #工商公示信息
-                url = ent
-                sub_json_dict.update(self.crawl_ind_comm_pub_pages(url))
+                self.json_dict={}
+                threads = []
+                threads.append(gevent.spawn( self.crawl_ind_comm_pub_pages, url))
                 url = url[:-2]+"02"
-                sub_json_dict.update(self.crawl_ent_pub_pages(url))
+                threads.append(gevent.spawn( self.crawl_ent_pub_pages, url))
                 url = url[:-2] + "03"
-                sub_json_dict.update(self.crawl_other_dept_pub_pages(url))
+                threads.append(gevent.spawn( self.crawl_other_dept_pub_pages, url))
                 url = url[:-2] + "06"
-                sub_json_dict.update(self.crawl_judical_assist_pub_pages(url))
+                threads.append(gevent.spawn( self.crawl_judical_assist_pub_pages, url))
+                gevent.joinall(threads)
 
+                sub_json_list.append({ent:self.json_dict})
         except Exception as e:
             logging.error(u"An error ocurred when getting the main page, error: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            return sub_json_list
     #工商公式信息页面
+    @exe_time
     def crawl_ind_comm_pub_pages(self, url):
         """  爬取 工商公式 信息页面        """
         sub_json_dict={}
         try:
-            #page = html_from_file('next.html')
-            logging.info( u"crawl the crawl_ind_comm_pub_pages page %s."%(url))
-            page = self.crawl_page_by_url(url)['page']
-            #html_to_file('next.html', page)
+            page = self.request_by_method('GET',url, timeout=self.timeout)
+            if not page:
+                logging.error(u"crawl page error!")
+                return
             dj = self.parse_page(page ) # class= result-table
             sub_json_dict['ind_comm_pub_reg_basic'] = dj[u'基本信息'] if dj.has_key(u'基本信息') else []        # 登记信息-基本信息
             sub_json_dict['ind_comm_pub_reg_shareholder'] =dj[u'股东信息'] if dj.has_key(u'股东信息') else []   # 股东信息
@@ -185,16 +201,17 @@ class HebeiCrawler(object):
             logging.debug(u"An error ocurred in crawl_ind_comm_pub_pages: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
     #爬取 企业公示信息 页面
+    @exe_time
     def crawl_ent_pub_pages(self, url):
         """  爬取 企业公示信息 信息页面        """
         sub_json_dict = {}
         try:
-            logging.info( u"crawl the crawl_ent_pub_pages page %s"%(url))
-            page = self.crawl_page_by_url(url)['page']
-            #html_to_file('next.html', page)
-            #page = html_from_file('next.html')
+            page = self.request_by_method('GET',url, timeout=self.timeout)
+            if not page:
+                logging.error(u"crawl page error!")
+                return
             p = self.parse_page(page)
             sub_json_dict['ent_pub_ent_annual_report'] = p[u'企业年报'] if p.has_key(u'企业年报') else []
             sub_json_dict['ent_pub_administration_license'] = p[u'行政许可信息'] if p.has_key(u'行政许可信息') else []
@@ -207,16 +224,17 @@ class HebeiCrawler(object):
             logging.debug(u"An error ocurred in crawl_ent_pub_pages: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
     #爬取 其他部门公示 页面
+    @exe_time
     def crawl_other_dept_pub_pages(self, url):
         """  爬取其他部门信息页面        """
         sub_json_dict = {}
         try:
-            logging.info( u"crawl the crawl_other_dept_pub_pages page %s."%(url))
-            page = self.crawl_page_by_url(url)['page']
-            #html_to_file('next.html', page)
-            #page = html_from_file('next.html')
+            page = self.request_by_method('GET',url, timeout=self.timeout)
+            if not page:
+                logging.error(u"crawl page error!")
+                return
             xk = self.parse_page(page)#行政许可信息
             sub_json_dict["other_dept_pub_administration_license"] =  xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
             sub_json_dict["other_dept_pub_administration_sanction"] = xk[u'行政处罚信息'] if xk.has_key(u'行政处罚信息') else []  # 行政处罚信息
@@ -224,16 +242,17 @@ class HebeiCrawler(object):
             logging.debug(u"An error ocurred in crawl_other_dept_pub_pages: %s"% (type(e)))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
 
+    @exe_time
     def crawl_judical_assist_pub_pages(self, url):
         """爬取司法协助信息页面 """
         sub_json_dict = {}
         try:
-            logging.info( u"crawl the crawl_judical_assist_pub_pages page %s."%(url))
-            page = self.crawl_page_by_url(url)['page']
-            #page = html_from_file('next.html')
-            #html_to_file('next.html', page)
+            page = self.request_by_method('GET',url, timeout=self.timeout)
+            if not page:
+                logging.error(u"crawl page error!")
+                return
             xz = self.parse_page(page)
             sub_json_dict['judical_assist_pub_equity_freeze'] = xz[u'司法股权冻结信息'] if xz.has_key(u'司法股权冻结信息') else []
             sub_json_dict['judical_assist_pub_shareholder_modify'] = xz[u'司法股东变更登记信息'] if xz.has_key(u'司法股东变更登记信息') else []
@@ -241,7 +260,7 @@ class HebeiCrawler(object):
             logging.debug(u"An error ocurred in crawl_judical_assist_pub_pages: %s"% (type(e)))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
 
     # 出资方式字典
     def dicInvtType(self, types):
@@ -567,16 +586,14 @@ class HebeiCrawler(object):
                                 next_url = self.get_detail_link(td.find('a'))
                                 logging.info(u'crawl detail url: %s'% next_url)
                                 if next_url:
-                                    detail_page = self.crawl_page_by_url(next_url)
-                                    #html_to_file("test.html", detail_page['page'])
+                                    detail_page = self.request_by_method('GET',next_url, timeout=self.timeout)
                                     #print "table_name : "+ table_name
                                     if table_name == u'企业年报':
-                                        #logging.debug(u"next_url = %s, table_name= %s\n", detail_page['url'], table_name)
-                                        page_data = self.parse_ent_pub_annual_report_page(detail_page['page'])
+                                        page_data = self.parse_ent_pub_annual_report_page(detail_page)
 
                                         item[columns[col_count][0]] = page_data #this may be a detail page data
                                     else:
-                                        page_data = self.parse_page(detail_page['page'])
+                                        page_data = self.parse_page(detail_page)
                                         item[columns[col_count][0]] = page_data #this may be a detail page data
                                 else:
                                     #item[columns[col_count]] = CrawlerUtils.get_raw_text_in_bstag(td)
@@ -631,115 +648,30 @@ class HebeiCrawler(object):
         finally:
             return table_dict
 
-
-    def crawl_page_by_url(self, url):
+    def request_by_method(self, method, url, *args, **kwargs):
+        r = None
         try:
-            r = self.requests.get( url)
-            if r.status_code != 200:
-                logging.error(u"Getting page by url:%s, return status %s\n"% (url, r.status_code))
-            text = r.text
-            urls = r.url
-            # 为了防止页面间接跳转，获取最终目标url
-        except Exception as e:
-            logging.error(u"Cann't get page by url:%s, exception is %s"%(url, type(e)))
-        finally:
-            return {'page' : text, 'url': urls}
-
-    def crawl_page_by_url_post(self, url, data, headers={}):
-        try:
-            if headers:
-                self.requests.headers.update(headers)
-                r = self.requests.post(url, data)
-            else :
-                r = self.requests.post(url, data)
-            if r.status_code != 200:
-                logging.error(u"Getting page by url with post:%s, return status %s\n"% (url, r.status_code))
-            text = r.text
-            urls = r.url
-        except Exception as e:
-            logging.error(u"Cann't post page by url:%s, exception is %s"%(url, type(e)))
-        finally:
-            return {'page': text, 'url': urls}
+            r = self.requests.request(method, url, *args, **kwargs)
+        except requests.exceptions.Timeout as err:
+            logging.error(u'Getting url: %s timeout. %s .'%(url, err.message))
+            return False
+        except requests.exceptions.ConnectionError :
+            logging.error(u"Getting url:%s connection error ."%(url))
+            return False
+        except Exception as err:
+            logging.error(u'Getting url: %s exception:%s . %s .'%(url, type(err), err.message))
+            return False
+        if r.status_code != 200:
+            logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
+            return False
+        return r.content
 
     def run(self, ent_num):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        json_dict = {}
         self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
         data = self.crawl_page_main()
-        json_dict[ent_num] = data
-        #json_dump_to_file(self.json_restore_path , json_dict)
-        #2016-2-16
-        return json.dumps(json_dict)
+        path = os.path.join(os.getcwd(), 'hebei.json')
+        json_dump_to_file(path, data)
+        return json.dumps(data)
 
-    def work(self, ent_num= ""):
-
-        # if not os.path.exists(self.html_restore_path):
-        #     os.makedirs(self.html_restore_path)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
-        data = self.crawl_page_main()
-        json_dump_to_file('hebei_json.json', data)
-        # 测试
-        # url = "http://www.hebscztxyxx.gov.cn/notice/notice/view?uuid=u9Abs75MdJjl94Li4fXsN.dDmlDUrpmY&tab=06"
-        # data = self.crawl_judical_assist_pub_pages(url)
-        # json_dump_to_file('hebei_json.json', data)
-
-def html_to_file(path, html):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(html)
-
-def json_dump_to_file(path, json_dict):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-
-def html_from_file(path):
-    if not os.path.exists(path):
-        return
-    a = ""
-    with codecs.open(path, 'r') as f:
-        a = f.read()
-    return a
-
-def read_ent_from_file(path):
-    read_type = 'r'
-    if not os.path.exists(path):
-        logging.error(u"There is no path : %s"% path )
-    lines = []
-    with codecs.open(path, read_type, 'utf-8') as f:
-        lines = f.readlines()
-    lines = [ line.split(',') for line in lines ]
-    return lines
-"""
-if __name__ == "__main__":
-    reload (sys)
-    sys.setdefaultencoding('utf8')
-    import run
-    run.config_logging()
-    if not os.path.exists("./enterprise_crawler"):
-        os.makedirs("./enterprise_crawler")
-    hebei = HebeiCrawler('./enterprise_crawler/hebei.json')
-    hebei.work('130000000021709')
-
-
-if __name__ == "__main__":
-    reload (sys)
-    sys.setdefaultencoding('utf-8')
-    import run
-    run.config_logging()
-    if not os.path.exists("./enterprise_crawler"):
-        os.makedirs("./enterprise_crawler")
-    hebei = HebeiCrawler('./enterprise_crawler/hebei.json')
-    ents = read_ent_from_file("./enterprise_list/hebei.txt")
-    hebei = HebeiCrawler('./enterprise_crawler/hebei.json')
-    for ent_str in ents:
-        logging.info(u'###################   Start to crawl enterprise with id %s   ###################\n' % ent_str[2])
-        hebei.run(ent_num = ent_str[2])
-        logging.info(u'###################   Enterprise with id  %s Finished!  ###################\n' % ent_str[2])
-
-"""

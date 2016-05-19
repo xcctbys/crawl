@@ -73,23 +73,23 @@ LOW_MAX_QUEUE_LENGTH = 4000
 
 MongoDBS = {
     'default': {
-        'host': 'mongodb://dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com/default',
+        'host': "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/default?replicaSet=mgset-1160325",
     },
     'log': {
-        'host': 'mongodb://dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com/log',
+       'host': "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/log?replicaSet=mgset-1160325",
     },
     'source': {
-        'host': 'mongodb://dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com/source',
+        'host': "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/source?replicaSet=mgset-1160325",
     },
     'structure': {
-        'host': 'mongodb://dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com/structure',
+       'host': "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/structure?replicaSet=mgset-1160325",
     }
 }
 
 from mongoengine import connect
 
 for name, db in MongoDBS.iteritems():
-    connect(host=db['host'], alias=name, port=3717, authenticationDatabase="admin", username='root', password="Password123")
+    connect(host=db['host'], alias=name)
 
 # captcha
 CAPTCHA_STORE = "/data/media/captcha"
