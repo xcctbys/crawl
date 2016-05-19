@@ -310,7 +310,6 @@ class YunnanCrawler(object):
 		self.get_json_three(self.three_dict, tablethree)
 		tablefour = self.get_tables(self.uuid + '&tab=06')
 		self.get_json_four(self.four_dict, tablefour)
-		# should
 		# CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.result_json_dict})
 		return json.dumps({self.ent_number:self.result_json_dict})
 """
