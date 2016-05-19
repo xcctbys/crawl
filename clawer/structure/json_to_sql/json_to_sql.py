@@ -1,7 +1,8 @@
-#coding:utf-8
+#coding:utf8
 
 import json
 import types
+import sys
 
 class JsonToSql(object):
     config_dic = {}
@@ -86,24 +87,30 @@ class JsonToSql(object):
         if len(path) == 0:
             self.parser_data(source)
             return
+
         try:
             self.get_data(source[path[0]], path[1:], associated_field_path[1:])
-            self.record_associated(source, associated_field_path)
+            #self.record_associated(source, associated_field_path)
         except TypeError:
             for i in range(len(source)):
                 try:
-                    self.get_data(source[i][path[0]], path[1:], associated_field_path[1:])
-                    self.record_associated(source[i], associated_field_path)
+                    self.get_data(source[i], path, associated_field_path)
+                    #self.record_associated(source[i], associated_field_path)
                 except IndexError:
-                    self.get_data(source[i][path[0]], [], associated_field_path[1:])
-                    self.record_associated(source[i], associated_field_path)
+                    self.get_data(source[i], [], associated_field_path[1:])
+                    #self.record_associated(source[i], associated_field_path)
                 except KeyError:
                     #需要写日志
+                    #print 'source-eeeee:', source[i]
+                    #print "source[i]", source[i]
+                    #print "path[0]:", path[0]
+                    #print  "associated_field_path:", associated_field_path
+                    #print sys.exc_info()[0], sys.exc_info()[1]
                     #print "There are not these info."
                     pass
         except IndexError:
             self.get_data(source[path[0]], [], associated_field_path[1:])
-            self.record_associated(source, associated_field_path)
+            #self.record_associated(source, associated_field_path)
 
     def parser_data(self, source):
         """
@@ -112,7 +119,7 @@ class JsonToSql(object):
         :param source: 通过查询，找到的用户所需数据
         :return: 无
         """
-        data_sql = open('./insert_data.sql', 'w')
+        #data_sql = open('./insert_data.sql', 'w')
         try:
             merged_dict = source.copy()
             merged_dict.update(self.tmp_dic)
@@ -123,31 +130,35 @@ class JsonToSql(object):
         print self.table_name
         print self.id
         for k in merged_dict.keys():
-            print k, source[k], 'asdfdsafasf'
+            print k, source[k]
             # data_sql.write("%s %s \n" % (k.encode('utf8'), source[k].encode('utf8')))
         #print self.tmp_dic
         #print self.table_name
         #print self.id
         #print self.mapping[self.table_key]['field']
-        data_sql.close()
+        #data_sql.close()
 
     def record_associated(self, source, associated_field_path):
         """
         由 create_data_sql->get_data->record_associated 调用
-        获取某一层中的外键
-        :param source: 查找数据中某一层的数据
+        获取当前层中的外键
+        :param source: 查找数据中当前层的数据
         :param associated_field_path: 外键路径
         :return: 空
         """
-        try:
-            self.tmp_dic[associated_field_path[0]] = source[associated_field_path[0]]
-            # print tmp_dic
-        except KeyError:
-            # print "there isn't associated field"
-            pass
-        except IndexError:
-            # print "config error"
-            pass
+        if associated_field_path[0]:
+            try:
+                self.tmp_dic[associated_field_path[0]] = source[associated_field_path[0]]
+                print self.tmp_dic
+            except KeyError:
+                #print "source: ", source
+                print "associated_field_path: ", associated_field_path
+                # print "there isn't associated field"
+                pass
+            except IndexError:
+                #print "config error"
+                pass
+        return
 
     def test_table(self):
         print 'hi, spider!'
@@ -175,7 +186,7 @@ class JsonToSql(object):
             self.table_key = k
             print self.table_key
             path = self.mapping[k]['source_path']
-            associated_field_path = self.mapping[k]['associated_field_path']
+            associated_field_path = self.mapping[k]['associated_field_source_path']
             self.create_data_sql('guangxi.json', path, associated_field_path)
             self.tmp_dic.clear()
         pass
