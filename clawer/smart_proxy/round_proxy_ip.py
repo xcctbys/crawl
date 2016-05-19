@@ -118,7 +118,7 @@ def change_valid(one_ip):
     return False
 
 def run():
-    #t1 = time.time()
+    t1 = time.time()
     total_ip = ProxyIp.objects.all() #获得数据库里数量
     total_count = len(total_ip)
     #print total_count
@@ -145,6 +145,6 @@ def run():
         """
 
         pass
-    #t2=time.time()
+    t2=time.time()
 
-    #print t2-t1
+    print t2-t1
