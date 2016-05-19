@@ -19,7 +19,7 @@ running_python_3 = sys.version_info[0] == 3
 
 try:
 
-    redis_addr=urlparse.urlparse(settings.REDIS)
+    redis_addr=urlparse.urlparse(settings.FILTER_REDIS)
 
     redis_addr='redis://'+redis_addr[1]
 
@@ -108,17 +108,7 @@ class BloomFilter(object):
     FILE_FMT = b'<dQQQQ'
 
     def __init__(self, capacity, error_rate, redisdb):
-        """Implements a space-efficient probabilistic data structure
-        capacity
-            this BloomFilter must be able to store at least *capacity* elements
-            while maintaining no more than *error_rate* chance of false
-            positives
-        error_rate
-            the error_rate of the filter returning false positives. This
-            determines the filters capacity. Inserting more than capacity
-            elements greatly increases the chance of false positives.
 
-        """
         #print redisdb
 
         if not (0 < error_rate < 1):
@@ -195,12 +185,11 @@ class BloomFilter(object):
         return True
 
     def __len__(self):
-        """Return the number of keys stored by this bloom filter."""
+
         return self.count
 
     def add(self, key, skip_check=False):
-        """ Adds a key to this bloom filter. If the key already exists in this
-        filter it will return True. Otherwise False.
+        """
         >>> b = BloomFilter(capacity=100)
         >>> b.add("hello")
         False
@@ -240,15 +229,13 @@ class BloomFilter(object):
             return True
 
     def copy(self):
-        """Return a copy of this bloom filter.
-        """
+
         new_filter = BloomFilter(self.capacity, self.error_rate)
         new_filter.bitarray = self.bitarray.copy()
         return new_filter
 
     def union(self, other):
-        """ Calculates the union of the two underlying bitarrays and returns
-        a new bloom filter object."""
+
         if self.capacity != other.capacity or \
                         self.error_rate != other.error_rate:
             raise ValueError("Unioning filters requires both filters to have \
@@ -261,8 +248,7 @@ both the same capacity and error rate")
         return self.union(other)
 
     def intersection(self, other):
-        """ Calculates the intersection of the two underlying bitarrays and returns
-        a new bloom filter object."""
+
         if self.capacity != other.capacity or \
                         self.error_rate != other.error_rate:
             raise ValueError("Intersecting filters requires both filters to \
@@ -275,9 +261,7 @@ have equal capacity and error rate")
         return self.intersection(other)
 
     def tofile(self, f):
-        """Write the bloom filter to file object `f'. Underlying bits
-        are written as machine values. This is much more space
-        efficient than pickling the object."""
+
         f.write(pack(self.FILE_FMT, self.error_rate, self.num_slices,
                      self.bits_per_slice, self.capacity, self.count))
         (f.write(self.bitarray.tobytes()) if is_string_io(f)
@@ -285,8 +269,7 @@ have equal capacity and error rate")
 
     @classmethod
     def fromfile(cls, f, n=-1):
-        """Read a bloom filter from file-object `f' serialized with
-        ``BloomFilter.tofile''. If `n' > 0 read only so many bytes."""
+
         headerlen = calcsize(cls.FILE_FMT)
 
         if 0 < n < headerlen:
@@ -328,17 +311,7 @@ class ScalableBloomFilter(object):
         """Implements a space-efficient probabilistic data structure that
         grows as more items are added while maintaining a steady false
         positive rate
-        initial_capacity
-            the initial capacity of the filter
-        error_rate
-            the error_rate of the filter returning false positives. This
-            determines the filters capacity. Going over capacity greatly
-            increases the chance of false positives.
-        mode
-            can be either ScalableBloomFilter.SMALL_SET_GROWTH or
-            ScalableBloomFilter.LARGE_SET_GROWTH. SMALL_SET_GROWTH is slower
-            but uses less memory. LARGE_SET_GROWTH is faster but consumes
-            memory faster.
+
         >>> b = ScalableBloomFilter(initial_capacity=512, error_rate=0.001, \
                                     mode=ScalableBloomFilter.SMALL_SET_GROWTH)
         >>> b.add("test")
@@ -363,7 +336,7 @@ class ScalableBloomFilter(object):
         self.error_rate = error_rate
 
     def __contains__(self, key):
-        """Tests a key's membership in this bloom filter.
+        """
         >>> b = ScalableBloomFilter(initial_capacity=100, error_rate=0.001, \
                                     mode=ScalableBloomFilter.SMALL_SET_GROWTH)
         >>> b.add("hello")
@@ -406,7 +379,7 @@ class ScalableBloomFilter(object):
 
     @property
     def capacity(self):
-        """Returns the total capacity for all filters in this SBF"""
+
         return sum(f.capacity for f in self.filters)
 
     @property
@@ -414,8 +387,7 @@ class ScalableBloomFilter(object):
         return len(self)
 
     def tofile(self, f):
-        """Serialize this ScalableBloomFilter into the file-object
-        `f'."""
+
         f.write(pack(self.FILE_FMT, self.scale, self.ratio,
                      self.initial_capacity, self.error_rate))
 
@@ -439,7 +411,7 @@ class ScalableBloomFilter(object):
 
     @classmethod
     def fromfile(cls, f):
-        """Deserialize the ScalableBloomFilter in file object `f'."""
+
         filter = cls()
         filter._setup(*unpack(cls.FILE_FMT, f.read(calcsize(cls.FILE_FMT))))
         nfilters, = unpack(b'<l', f.read(calcsize(b'<l')))

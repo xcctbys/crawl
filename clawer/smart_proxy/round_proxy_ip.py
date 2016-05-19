@@ -1,11 +1,13 @@
 #coding:utf8
 import os
 import sys
+import time
+
 sys.path.append(os.getcwd())
 # print os.getcwd()
 from smart_proxy.models import ProxyIp
 import requests
-from clawer import settings
+from django.conf import settings
 from multiprocessing.dummy import Pool
 # import settings
 
@@ -76,6 +78,14 @@ def check_is_valid(ip_port):
         return False
     except Exception as e:
         return False
+def delete_item(item):
+    try:
+        item.delete()
+        return True
+    except Exception as e:
+        return False
+
+
 
 def change_valid(one_ip):
         # one_ip = ProxyIp.objects.get(id=id) #得到对应id的代理。
@@ -108,9 +118,10 @@ def change_valid(one_ip):
     return False
 
 def run():
+    t1 = time.time()
     total_ip = ProxyIp.objects.all() #获得数据库里数量
     total_count = len(total_ip)
-    print total_count
+    #print total_count
 
     pool = Pool()
     # for i in range(1, total_count):
@@ -122,7 +133,18 @@ def run():
     if total_count > settings.MAX_PROXY_NUM: #settings.MAX_PROXY_NUM:
         num = total_count - settings.MAX_PROXY_NUM
         need_delete = ProxyIp.objects.filter(is_valid=False).order_by('-create_datetime')[:num]
-        for item in need_delete:
+        pool = Pool()
+        pool.map(delete_item(), need_delete)
+        pool.close()
+        pool.join()
+        """
+         for item in need_delete:
             print item.is_valid
             item.delete()
+
+        """
+
         pass
+    t2=time.time()
+
+    print t2-t1

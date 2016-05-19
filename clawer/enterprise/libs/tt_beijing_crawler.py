@@ -31,6 +31,8 @@ class InitInfo(object):
 		#验证码图片的存储路径
 		self.ckcode_image_path = settings.json_restore_path + '/beijing/ckcode.jpg'
 		self.code_cracker = CaptchaRecognition('beijing')
+		if not os.path.exists(self.ckcode_image_path):
+			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		#多线程爬取时往最后的json文件中写时的加锁保护
 		self.write_file_mutex = threading.Lock()
 		# self.json_restore_path = settings.json_restore_path
@@ -732,8 +734,6 @@ class BeijingCrawler(object):
 		
 
 class TestBeijingCrawler(unittest.TestCase):
-	def __init__(self):
-		pass
 	def setUp(self):
 		self.info = InitInfo()
 		self.crawler = MyCrawler(info=self.info)
@@ -749,11 +749,15 @@ class TestBeijingCrawler(unittest.TestCase):
 		ent_list = [u'110113014453083']
 		for ent_number in ent_list:
 			result = crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 	def test_crawler_key(self):
 		crawler = JiangsuCrawler('./enterprise_crawler/beijing.json')
 		ent_list = [u'创业投资中心']
 		for ent_number in ent_list:
 			crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 
 
 if __name__ == '__main__':

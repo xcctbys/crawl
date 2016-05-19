@@ -16,7 +16,7 @@ import sys
 from multiprocessing import Pool
 
 try:
-    redis_url = settings.URL_REDIS
+    redis_url = settings.DOWNLOADER_REDIS
 except:
     redis_url = None
 
@@ -185,13 +185,26 @@ def run():
         total = 0
         pool = Pool()
         jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
+        print "count:",jobs.count()
         for job in jobs:
-            # print 'priority:', job.priority
-            total += CrawlerTask.objects(job=job).count()
-            # print 'total:', total
+            print '------1111--'
+            #print '---rawlerTask.objects(job=job).count()
+            print 'total:', total
             if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
                 break
             tasks = CrawlerTask.objects(job=job)
+            """
+            print 0000
+            print type(tasks)
+            print 1111
+            print tasks.count()
+            print tasks
+            print '-----------33----------'
+            """
+
+
+
+
             for task in tasks:
                 dispatch_use_pool(task)
             # pool.map(dispatch_use_pool, tasks)

@@ -54,6 +54,14 @@ REDIS = "redis://localhost:6379/0"
 URL_REDIS = "redis://localhost:6379/0"
 MONITOR_REDIS = "redis://localhost:6379/0"
 
+#本地调试统一使用本地0号数据库--2016-05-17
+REDIS = "redis://127.0.0.1/0"
+GENERATOR_REDIS = "redis://127.0.0.1/0"
+DOWNLOADER_REDIS = "redis://127.0.0.1/0"
+STRUCTURE_REDIS = "redis://127.0.0.1/0"
+FILTER_REDIS = "redis://127.0.0.1/0"
+
+
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtp.exmail.qq.com'
 EMAIL_PORT = 465

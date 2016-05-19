@@ -9,7 +9,7 @@ import rq
 from mongoengine import *
 
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
-from models import StructureConfig, Parser, CrawlerAnalyzedData, ParseJobInfo
+from models import StructureConfig, Parser, CrawlerAnalyzedData
 from django.conf import settings
 #from django.models import model_to_dict
 import django
@@ -56,7 +56,7 @@ class ParserGenerator(StructureGenerator):
         self.queuegenerator = QueueGenerator()
         self.queues = self.queuegenerator.rq_queues
 
-    def get_parser(self):                          #返回解析脚本中的RawParser类的实例
+    def get_parser(self):                                #返回解析脚本中的RawParser类的实例
         return parser_func
 
     def is_duplicates(self, data):
@@ -68,7 +68,8 @@ class ParserGenerator(StructureGenerator):
             if parse_job_id == None:
                 return None
             else:
-                ParseJobInfo(parse_job_id, data).save()
+                CrawlerAnalyzedData(crawler_task = data.crawlertask,
+                    update_date = datetime.datetime.now()).save()
                 logging.info("Parse task successfully added")
                 return parse_job_id
         except:
@@ -91,7 +92,7 @@ class ParserGenerator(StructureGenerator):
         return self.queues
     
 class QueueGenerator(object):
-    def __init__(self, redis_url = settings.REDIS, queue_length = Consts.QUEUE_MAX_LENGTH):
+    def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = Consts.QUEUE_MAX_LENGTH):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.too_high_queue = rq.Queue(Consts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
         self.high_queue = rq.Queue(Consts.QUEUE_PRIORITY_HIGH, connection=self.connection)
@@ -115,7 +116,9 @@ class QueueGenerator(object):
             q = self.low_queue
         else:
             q = self.low_queue
-        if q.count > Consts.QUEUE_MAX_LENGTH:
+        if (q.count + 1) > Consts.QUEUE_MAX_LENGTH:
+            logging.error("Cannot enqueue now because the queue: %s is full" % q.name)
+            print "Cannot enqueue now because the queue: %s is full" % q.name
             return None
         else:
             parser_job = q.enqueue_call(func, *args, **kwargs)
@@ -123,12 +126,14 @@ class QueueGenerator(object):
             return  parser_job.id
 
 def parser_func(data):
-    #print "This is the start of parse_func"
+    #print "This is the start of parser_func"
     if data is not None:
-        structureconfig = StructureConfig.objects(crawlertask = data.crawlertask).first()
+        structureconfig = StructureConfig.objects(job = data.crawlertask.job).first()
+        crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
         if structureconfig is not None:
             current_dir = os.getcwd()
-            parsers_dir = current_dir + "/structure/parsers"
+            #parsers_dir = "/home/webapps/cr-clawer/clawer/structure/parsers"
+            parsers_dir = "/home/max/Documents/gitroom/cr-clawer/clawer/structure/parsers"
             if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
                 os.mkdir(parsers_dir)
             os.chdir(parsers_dir)
@@ -142,25 +147,24 @@ def parser_func(data):
                 parser_module = __import__(str(structureconfig.parser.parser_id))
                 rawparser = parser_module.RawParser()
                 analyzed_data = str(rawparser.parser(data))
+
+                if analyzed_data is not None:
+                    data.crawlertask.update(status = 7)       #如果解析函数执行完且结果为不为空的字符串，则认为解析成功，写回标志位
+                    #print "Status updated!"
+                    crawler_analyzed_data.update(update_date = datetime.datetime.now(),
+                        analyzed_data = analyzed_data)
+                    logging.info("% s (uri) is successfully parsed -- Results saved" % data.crawlertask.uri)
+                    return analyzed_data
+                else:
+                    logging.error("Something wrong while parsing % s (uri) -- NULL result" % data.crawlertask.uri)
             except Exception as e:
+                data.crawlertask.update(status = 6)
                 logging.error("Error parsing with % d.py" % structureconfig.parser.parser_id)
-            os.chdir(current_dir)                    #切换回之前的工作目录
+                os.chdir(current_dir)                    #切换回之前的工作目录
         else:
             logging.error("Error finding Configuration file (StructureConfig) for task: % s (uri)" % data.crawlertask.uri)             
     else:
         logging.error("Error finding parser from % s (uri) -- Null data" % data.crawlertask.uri)
-
-    if analyzed_data is not None:
-        data.crawlertask.update(status = 7)          #如果解析函数执行完且结果为不为空的字符串，则认为解析成功，写回标志位
-        #print "Status updated!"
-        CrawlerAnalyzedData(uri = data.crawlertask.uri,
-            job = data.job,
-            update_date = datetime.datetime.now(),
-            analyzed_data = analyzed_data).save()
-        logging.info("% s (uri) is successfully parsed -- Results saved" % data.crawlertask.uri)
-        return analyzed_data
-    else:
-        logging.error("Something wrong while parsing % s (uri) -- NULL result" % data.crawlertask.uri)
 
 class ExtracterGenerator(StructureGenerator):
     def assign_tasks(self):
@@ -199,12 +203,18 @@ class ExtracterGenerator(StructureGenerator):
         return extracter
 
     def if_not_exist_create_db_schema(self, conf):
+        print 'check database exist'
+        print '★' * 30
         pass
 
     def extract_fields(self, mappings):
+        print 'starting extract fields!'
+        print '♫' * 30
         pass
 
     def get_extracter_db_config(self):
+        print 'get extracter database config'
+        print '♠' * 30
         pass
 
 
@@ -212,23 +222,23 @@ class ExecutionTasks(object):
     def exec_task(self, queue=Consts.QUEUE_PRIORITY_NORMAL):
         with rq.Connection():
             w = rq.Worker([queue])
-            w.push_exc_handler(self.retry_handler)
+            #w.push_exc_handler(self.retry_handler)
             w.work()
 
-    def retry_handler(self, job, exc_type, exc_value, traceback):
-        print "This is the start of RQ Exception Handler!"
-        job.meta["failures"] += 1
-        if job.meta["failures"] > 3:
-            parsejobinfo = ParseJobInfo.objects(rq_parse_job_id= job.id).first()
-            parsejobinfo.crawlerdownloaddata.crawlertask.update(status = 6)
-            logging.info("Job: %s fails for couple of times and the status of its CrawlerTask will be modified as '6'" % job.id)
-            return True                                #失败次数超过三次就将Job送到失败队列中
-        else:
-            job.set_status(rq.JobStatus.QUEUED)
-            job.exc_info = None
-            requeue_queue = rq.Queue(job.origin, connection=self.connection)
-            requeue_queue.enqueue_job(job)
-            return False 
+    # def retry_handler(self, job, exc_type, exc_value, traceback):
+    #     print "This is the start of RQ Exception Handler!"
+    #     job.meta["failures"] += 1
+    #     if job.meta["failures"] > 3:
+    #         parsejobinfo = ParseJobInfo.objects(rq_parse_job_id= job.id).first()
+    #         parsejobinfo.crawlerdownloaddata.crawlertask.update(status = 6)
+    #         logging.info("Job: %s fails for couple of times and the status of its CrawlerTask will be modified as '6'" % job.id)
+    #         return True                                #失败次数超过三次就将Job送到失败队列中
+    #     else:
+    #         job.set_status(rq.JobStatus.QUEUED)
+    #         job.exc_info = None
+    #         requeue_queue = rq.Queue(job.origin, connection=self.connection)
+    #         requeue_queue.enqueue_job(job)
+    #         return False 
 
 def insert_test_data():
     
@@ -251,17 +261,18 @@ def insert_test_data():
             datetime.datetime.now())
         test_job.save()
 
-        test_parser = Parser(count, right_script)
-        #test_parser = Parser(count, random.choice([right_script, wrong_script]))
+        #test_parser = Parser(count, right_script)
+        test_parser = Parser(count, random.choice([right_script, wrong_script]))
         test_parser.save()
 
-        test_crawlertask = CrawlerTask(test_job, uri = "test_uri_%d" % count, status = random.choice(range(1,8)))
+        #test_crawlertask = CrawlerTask(test_job, uri = "test_uri_%d" % count, status = random.choice(range(1,8)))
+        test_crawlertask = CrawlerTask(test_job, uri = "test_uri_%d" % count, status = 5)
         test_crawlertask.save()
 
         test_downloader = CrawlerDownload(test_job)
         test_downloader.save()
 
-        StructureConfig(test_job, test_crawlertask, test_parser).save()
+        StructureConfig(test_job, test_parser).save()
 
         CrawlerDownloadData(test_job, test_downloader, test_crawlertask).save()
 
@@ -277,6 +288,6 @@ def empty_test_data():
     CrawlerDownloadData.drop_collection()
 
     CrawlerAnalyzedData.drop_collection()
-    ParseJobInfo.drop_collection()
+    #ParseJobInfo.drop_collection()
 
     print "Data Cleaned!"

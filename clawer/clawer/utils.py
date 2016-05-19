@@ -284,7 +284,7 @@ class SafeProcess(object):
         
 class UrlCache(object):
     
-    def __init__(self, redis_url=settings.URL_REDIS):
+    def __init__(self, redis_url=settings.REDIS):
         self.redis_url = redis_url
         self.connection = None
         self.max_url_count = 10000

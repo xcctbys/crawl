@@ -121,8 +121,7 @@ class ParserGenerator(StructureGenerator):
         pass
 
     def is_duplicates(self, data):
-        return False
-
+        return False 
 ```
 
 ## 2. 生成导出任务（In Master）
@@ -131,32 +130,32 @@ class ParserGenerator(StructureGenerator):
 
 导出任务主要包含如下内容：
 
-1. 动态生成数据库表结构
-2. 从解析器结果（JSON数据）中提取字段并做中英文映射，最终存入目标数据库。
+问题1. 如何动态生成数据库表结构并插入数据?    
+问题2. 如何查找已经解析完成的任务？  
+问题3. 如何找到对应的导出器的配置文件  
+问题4. 导出任务的触发  
+问题5. 容灾及错误处理  
 
+1. 读取配置文件, 从解析器结果（JSON数据）中提取字段, 动态生成SQL建表语句和插入语句, 并做中英文映射，最终存入目标数据库。
+2. 筛选`collector.models.CrawlerTask`中`status`为`解析成功`的解析器任务
+3. 在筛选出的解析器任务中可以找到其对应的`Job`，通过`Job`在结构化层配置数据库`StructureConfig`中找到对应`Job`的配置，在`StructureConfig`中可以在导出器数据库`Extracter`中找到对应的 JSON 配置文件
+4. 手动执行;  crontab定时执行
+5. 用户编写了错误的配置文件;   导出失败的情况
 ### 输入
-无
+解析器解析后的JSON数据
+导出器配置文件(数据表设置, mapping)
 
 ### 输出
+- 关系数据库
 - 日志
-- 数据库
 
 ### 逻辑流程
 
 ```
 class ExtracterGenerator(StructureGenerator):
     def assign_tasks(self):
-        tasks = self.filter_parsed_tasks()
-        for task in tasks:
-            priority = self.get_priority(task)
-            db_conf = self.get_extracter_db_config(task)
-            mappings = self.get_extracter_mappings(task)
-            extracter = self.get_extracter(db_conf, mappings)
-            try:
-                self.assign_task(priority, extracter)
-                logging.info("add task succeed")
-            except:
-                logging.error("assign task runtime error.")
+        """分配所有任务"""
+        pass
 
     def assign_task(self,
                     priority=Consts.QUEUE_PRIORITY_NORMAL,
@@ -165,6 +164,7 @@ class ExtracterGenerator(StructureGenerator):
         pass
 
     def get_extracter(self, db_conf, mappings):
+        """根据配置获得导出器"
 
         def extracter():
             try:
@@ -184,9 +184,11 @@ class ExtracterGenerator(StructureGenerator):
         pass
 
     def extract_fields(self, mappings):
+        """导出相应字段"""
         pass
 
     def get_extracter_db_config(self):
+        """获得数据库配置"""
         pass
 
 ```
@@ -215,20 +217,143 @@ class ExecutionTasks(object):
 ```
 
 # 配置
-结构化层需要自定义的内容比较多，统一存到Mongo数据库中。需要为每个任务需要配置解析器、目标数据库、数据库表和字段、要提取的字段中英文映射。解析器是自定义的Python脚步，其中必须包含parse方法，参数为要解析的内容，返回解析后的JSON数据。最终解析器插件会同步到服务器本地文件目录`structure/parsers/`。
-
+结构化层需要自定义的内容比较多，统一存到Mongo数据库中。需要为每个任务需要配置解析器、目标数据库、数据库表和字段、要提取的字段中英文映射。
+解析器是自定义的Python脚本，其中必须包含parse方法，参数为要解析的内容，返回解析后的JSON数据。最终解析器插件会同步到服务器本地文件目录`structure/parsers/`。  
+导出器是固定的模块, 每个网站使用1个配置文件, 保存在MySQL, 每个配置文件, 根据源数据的结构, 按模板格式修改需自定义的部分, 包括"数据库设置", "映射设置", "数据表设置"三个部分
 ```
 class Parser(Document):
     parser_id = IntField()
     python_script = TextField()
 
+class Extracter(Document):
+    extracter_id = IntField()
+    extracter_conf = TextField()
+
 
 class StructureConfig(Document):
     task = ReferenceField(Job)
     parser = ReferenceField(Parser)
-    db_xml = TextField()
-    mappings = TextField()
+    extracter = ReferenceField(Extracter)
+    <!--db_xml = TextField()-->
+    <!--mappings = TextField()-->
+
 ```
+
+
+## 配置文件格式
+
+```
+{
+    "database": {
+        "source_db": {
+            "dbtype": "原始数据库类型",
+            "host": "源数据库地址",
+            "port": "源数据库端口",
+            "username": "源数据库用户名",
+            "password":, "源数据库密码",
+            "dbname": "源数据库名"
+        },
+        "destination_db": {
+            "dbtype": "目标数据库类型",
+            "host": "目标数据库地址",
+            "port": "目标数据库端口",
+            "username": "目标数据库用户",
+            "password": "目标数据库密码",
+            "dbname": "目标数据库库名"
+        }
+    },
+
+    "mapping": {
+        "表1": {
+            "dest_table": "表1的英文名",
+            "source_path": ["表1的表名在JSON源数据中的搜索路径"]
+            "associated_field_source_path": ["关联字段在JSON源数据中的搜索路径"],
+            "dest_field": {
+                "关联字段": "关联字段英文名",
+                "字段1": "字段1英文名",
+                "字段2": "字段2英文名",
+                "字段n": "字段n英文名"
+            },
+        "表2": {
+            "dest_table": "表2英文名",
+            "source_path": ["表2的表名在JSON源数据中的搜索路径"]
+            "associated_field_source_path": ["关联字段在JSON源数据中的搜索路径"],
+            "dest_field": {
+                "关联字段": "关联字段英文名",
+                "字段1": "字段1英文名",
+                "字段2": "字段2英文名",
+            },
+        "表n": {
+            "dest_table": "表n英文名",
+            "source_path": ["表n的表名在JSON源数据中的搜索路径"]
+            "associated_field_source_path": ["关联字段在JSON源数据中的搜索路径"],
+            "dest_field": {
+                "字段1": "字段1英文名",
+                "字段2": "字段2英文名",
+            }
+    },
+
+    "table": {
+        "表1英文名": [
+            {
+                "dest_field": "关联字段英文名",
+                "datatype": "数据类型",
+                "option": "字段选项",
+            },
+			{
+				"dest_field": "字段1英文名",
+				"datatype": "数据类型",
+				"option": "字段选项",
+			},
+			{
+				"dest_field": "字段2英文名,
+				"datatype": "数据类型",
+				"option": "字段选项",
+			},
+			{
+				"dest_field": "字段n英文名,
+				"datatype": "数据类型",
+				"option": "字段选项",
+			}
+		],
+		"表2英文名": [
+            {
+                "dest_field": "关联字段英文名",
+                "datatype": "数据类型",
+                "option": "字段选项",
+            },
+			{
+				"dest_field": "字段1英文名,
+				"datatype": "数据类型",
+				"option": "字段选项",
+			},
+			{
+				"dest_field": "字段2英文名,
+				"datatype": "数据类型",
+				"option": "字段选项",
+			}
+		]
+	}
+}
+```
+### 关于database 部分
+源数据库现只支持 MongoDB
+目标数据库现只支持 MySQL
+### 关于 mapping 部分: 
+指定JSON源数据和关系数据库字段的映射关系和中英文表名的对应关系
+- dest_table 自定义目标数据库表的英文名称
+- source_path 表名在 JSON 源数据中的路径. 以列表形式呈现, 根据源数据的嵌套层次, 依次写入列表
+- associated_field_source_path 关联字段的在 JSON 源数据中的路径. 
+- dest_field 关系数据库表中字段的定义 
+### 关于 table 部分:
+- dest_field 为 mapping 中相应的目的数据库表的字段
+- option 为字段的选项, 如设置主键, 默认值等
+## 配置文件使用限制
+1. 仅能用于建立基本表
+2. associated_field_source_path 必须是 source_path 的子集
+3. 每个表必须设置 associated_field_source_path, 如不必要则填为空串(如 [""])
+
+
 
 # 部署
 - crontab，在master服务器上定时更新解析生成器和导出生成器队列，最终会给出一个`python manage.py command`形式的命令
@@ -330,67 +455,56 @@ class TestExecutionTasks(TestCase):
 
 ##测试环境
 CentOS 7
+开启以下服务：
 service mariadb start
 service memcached start
 ./redis-server
 ./mongod
 
-##添加与清空测试数据
-from structure.structure import insert_test_data, empty_test_data
-insert_test_data()
-
-MongoDB中存入Job(Collector.Models), Parser(Structure.Models), StructureConfig(Structure.Models), CrawlerTask(Collector.Models), CrawlerDownloadData(Collector.Models), CrawlerDownload(Collector.Models)等六类结构化数据
-
-查看：
-打开MongoDB:./mongo
-查看数据库: show dbs
-使用数据库: use default
-查看列表: show collections
-输出: parser, structure
-查看/筛选列表数据: 例如db.parser.find({field_name:field_value})#直接.find()可以查看该该列表所有数据
-use source
-show collections可以看到其他的四类结构化数据
-
-可以在structure.structure.py文件中的insert_test_data()函数中修改，改变测试数据的个数、内容等
-使用empty_test_data()将清空MongoDB中本程序用到的所有结构化数据
+##添加一个Job并为之配置下载器、生成器和解析器
+使用Django Shell:
+	python manage.py shell
+输入指令：
+	from structure.tests.test_structure import test_insert_job_with_parser
+	test_insert_job_with_parser(text, settings)
+test_insert_job_with_parser函数是重写insert_text_without_job，添加了解析器与Job一起绑定生成的功能
 
 ##分发解析任务
-cd ./cr-clawer/clawer
-python manage.py task_parser_dispatch
-
-rq-dashboard
-根据提供的IP从浏览器打开RQ的Web UI可以查看有structure:higher, structure:high, structure:normal, structure:low四个队列产生
-
-进入MongoDB，输入:
-use default
-show collections
-可以看到有新的ParseJobInfo类数据产生，输入
-db.parse_job_info.find().count()
-可以看到其数量和RQ队列中任务的总数相同
-use source
-show collections
-db.crawler_task.find({status:5}).count()
-也可以看到数据库中状态为5（下载成功）的任务总数和RQ队列中的任务总数是一致的
+输入指令：
+	python manage.py task_parser_dispatch
+输入：无
+输出：生成四个RQ队列：structure：higher, structure:high, structure:normal, structure:low
+队列中有任务，任务总数跟CrawlerTask中下载成功的总数一致,可以在MongoDB中通过以下指令验证
+	use source
+	db.crawler_task.find({status:5}).count()
 
 ##执行解析任务
-cd ./clawer/clawer/management/commands
-vi task_parser_dispatck
+输入指令：
+	cd ~/cr-clawer/confs/dev
+	./run_structure_local   #开启rq worker执行
+输入：无
+输出：开启worker执行指定队列名中的任务，成功则向MongoDB中写入解析结果，通过以下指令查看：
+	use default
+	db.crawler_analyzed_data.find()
+成功解析的CrawlerTask任务状态变为解析成功，通过以下指令查看：
+	use source
+	db.crawler_task.find({status:7})
+解析失败的CrawlerTask任务状态变为解析失败，通过以下指令查看：
+	use source
+	db.crawler_task.find({status:6})
 
-可以看到：
-def run():
-    parsergenerator = ParserGenerator()
-    parser_task_queues = parsergenerator.assign_parse_tasks()
-    #executiontasks = ExecutionTasks()
-    #executiontasks.exec_task(parsergenerator.queues[0])
-    return parser_task_queues
+##重新分发失败任务
+输入指令：
+	python manage.py requeue_failed_parse_jobs
+输入：无
+输出：数据库中状态为解析失败且解析失败次数小于3的任务被重新分发到相应的RQ队列中，状态改为下载成功，通过以下指令查看：
+	use source
+	db.crawler_task.find({status:6})   #状态为解析失败的任务数量
+	use default
+	db.crawler_analyzed_data.find({retry_times:3})   #失败次数为3的任务数量
+两数之差就应该时执行完本脚本后RQ队列中新增的任务数
 
-将第二行及第四行注释掉，并取消第三和第四行的注释，保存退出，执行
-python manage.py task_parser_dispatch
-提示对应队列中的Job已经被完成，回到RQ Web UI中可以看到指定队列的任务已经被完成
-进入MongoDB,输入
-use default
-db.crawler_analyzed_data.find()
-可以看到worker成功执行的任务后的解析文本已经被存在了数据库中的这个结构中
-
-其中，queues[0]指队列structure:higher;queues[1]指structure:high;queues[2]指structure:normal;queues[3]指structure:low,表示给worker指定执行任务的队列
-日志在./clawer/clawer/clawer.debug.log目录下，任务分发和解析的信息在其中可以看到
+##监控RQ队列
+安装rq-dashboard:
+	sudo pip install rq-dashboard
+根据其提供的URL登陆浏览器即可通过图形化界面监控RQ队列及其任务

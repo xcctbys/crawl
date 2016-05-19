@@ -32,7 +32,8 @@ from .libs.shanxi_crawler import ShanxiCrawler
 from .libs.gansu_crawler import GansuClawer
 from .libs.guangdong_crawler import GuangdongClawer
 from .libs.guangxi_crawler import GuangxiCrawler
-from .libs.anhui_crawler import AnhuiCrawler
+# from .libs.anhui_crawler import AnhuiCrawler
+from .libs.tt_anhui_crawler import AnhuiCrawler
 from .libs.fujian_crawler import FujianCrawler
 ##
 from .libs.guizhou_crawler import GuizhouCrawler
