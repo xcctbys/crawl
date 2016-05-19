@@ -49,7 +49,7 @@ class HeilongjiangClawer(Crawler):
             'annual_report': 'http://gsxt.hljaic.gov.cn/QueryYearExamineDetail.jspx?id=',  # 企业年报详情
             }
 
-    def __init__(self, json_restore_path):
+    def __init__(self, json_restore_path=None):
         self.json_restore_path = json_restore_path
         self.parser = HeilongjiangParser(self)
         self.img_count = 1
@@ -60,7 +60,32 @@ class HeilongjiangClawer(Crawler):
         """爬取的主函数
         """
         return Crawler.run(self, ent_number)
-        # return super(HeilongjiangClawer, self).run(ent_number)
+
+    def analyze_showInfo(self, page):
+        """ 判断是否成功搜索页面
+            分析 展示页面， 获得搜索到的企业列表
+        """
+        soup = BeautifulSoup(page, "html5lib")
+        divs = soup.find_all("div", {"class": "list"})
+        if divs:
+            Ent={}
+            for div in divs:
+                url=""
+                ent=""
+                link = div.find('li')
+                if link and link.find('a') and link.find('a').has_attr('href'):
+                    url = link.find('a')['href']
+                profile = link.find_next_sibling()
+                if profile and profile.span:
+                    ent  =profile.span.get_text().strip()
+                # company_id = a["href"].split('?')[1]
+                # self.company_id = company_id.split("=")[1]
+                Ent[ent] = url
+            self.ents = Ent
+            return True
+        else:
+            return False
+
 
     def crawl_check_page(self):
         """爬取验证码页面，包括下载验证码图片以及破解验证码
@@ -80,15 +105,8 @@ class HeilongjiangClawer(Crawler):
             if resp.content[10] == 't':
                 data = {'checkNo': ck_code, 'entName': self.ent_number}
                 resp = self.reqst.post(self.urls['get_info_entry'], data=data)
-                soup = BeautifulSoup(resp.text, "html5lib")
-                div = soup.find("div", {"style": "height:500px;"})
-                a = div.find("a")
-                if a:
-                    company_id = a["href"].split('?')[1]
-                    self.company_id = company_id.split("=")[1]
+                if self.analyze_showInfo(resp.text):
                     return True
-                else:
-                    return False
             else:
                 logging.error("crawl post check page failed!")
                 count += 1
@@ -120,36 +138,52 @@ class HeilongjiangClawer(Crawler):
 
         return ckcode[1]
 
-    def crawl_ind_comm_pub_pages(self):
+    def crawl_ind_comm_pub_pages(self, *args, **kwargs):
         """爬取工商公示信息
         """
+        if not len(args):   return
+        url = args[0]
+        company_id = url.split('?')[1]
+        self.company_id = company_id.split("=")[1]
         url = "%s%s" % (self.urls['ind_comm_pub_skeleton'], self.company_id)
         resp = self.reqst.get(url)
         if resp.status_code != 200:
             logging.error('failed to get ind_comm_pub_skeleton')
         self.parser.parse_ind_comm_pub_pages(resp.content)
 
-    def crawl_ent_pub_pages(self):
+    def crawl_ent_pub_pages(self, *args, **kwargs):
         """爬取企业公示信息
         """
+        if not len(args):   return
+        url = args[0]
+        company_id = url.split('?')[1]
+        self.company_id = company_id.split("=")[1]
         url ="%s%s" % (self.urls['ent_pub_skeleton'], self.company_id)
         resp = self.reqst.get(url)
         if resp.status_code != 200:
             logging.error('failed to get ent_pub_skeleton')
         self.parser.parse_ent_pub_pages(resp.content)
 
-    def crawl_other_dept_pub_pages(self):
+    def crawl_other_dept_pub_pages(self, *args, **kwargs):
         """爬取其他部门公示信息
         """
+        if not len(args):   return
+        url = args[0]
+        company_id = url.split('?')[1]
+        self.company_id = company_id.split("=")[1]
         url = "%s%s" % (self.urls['other_dept_pub_skeleton'], self.company_id)
         resp = self.reqst.get(url)
         if resp.status_code != 200:
             logging.error('failed to get other_dept_pub_skeleton')
         self.parser.crawl_other_dept_pub_pages(resp.content)
 
-    def crawl_judical_assist_pub_pages(self):
+    def crawl_judical_assist_pub_pages(self, *args, **kwargs):
         """爬取司法协助信息
         """
+        if not len(args):   return
+        url = args[0]
+        company_id = url.split('?')[1]
+        self.company_id = company_id.split("=")[1]
         url = "%s%s" % (self.urls['judical_assist_skeleton'], self.company_id)
         resp = self.reqst.get(url)
         if resp.status_code != 200:
@@ -658,47 +692,3 @@ class HeilongjiangParser(Parser):
                 list_second_row_title_th.append(title_wrap.text)
 
         return total
-
-
-class TestParser(unittest.TestCase):
-
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        self.crawler = HeilongjiangClawer('./enterprise_crawler/heilongjiang.json')
-        self.parser = self.crawler.parser
-        self.crawler.json_dict = {}
-        self.crawler.ent_number = '00000'
-
-    def test_parse_ind_comm_pub_page(self):
-        with open('./enterprise_crawler/heilongjiang/ind_comm_pub.html') as f:
-            page = f.read()
-            self.parser.parse_ind_comm_pub_pages(page)
-
-    def test_parse_ent_pub_skeleton(self):
-        with open('./enterprise_crawler/heilongjiang/ent_pub.html') as f:
-            page = f.read()
-            self.parser.parse_ent_pub_pages(page)
-
-    def test_parse_other_dept_pub_skeleton(self):
-        with open('./enterprise_crawler/heilongjiang/other_dept_pub.html') as f:
-            page = f.read()
-            self.parser.crawl_other_dept_pub_pages(page)
-
-    def test_parse_judical_assist_pub_skeleton(self):
-        with open('./enterprise_crawler/heilongjiang/judical_assist_pub.html') as f:
-            page = f.read()
-            self.parser.parse_judical_assist_pub_pages(page)
-"""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-    run.config_logging()
-    HeilongjiangClawer.code_cracker = CaptchaRecognition('heilongjiang')
-    crawler = HeilongjiangClawer('./enterprise_crawler/heilongjiang.json')
-    enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/heilongjiang.txt')
-    # enterprise_list = ['230199100002865']
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        logging.info('############   Start to crawl enterprise with id %s   ################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""

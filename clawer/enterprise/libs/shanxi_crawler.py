@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 #encoding=utf-8
 from . import settings
 import threading
@@ -54,18 +54,3 @@ class ShanxiParser(HeilongjiangParser):
     def __init__(self, crawler):
         self.crawler = crawler
 
-"""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-    run.config_logging()
-    ShanxiCrawler.code_cracker = CaptchaRecognition('shanxi')
-
-    crawler = ShanxiCrawler('./enterprise_crawler/shanxi.json')
-    enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/shanxi.txt')
-    # enterprise_list = ['310000000007622']
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        settings.logger.info('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""

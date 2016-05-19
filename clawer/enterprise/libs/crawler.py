@@ -15,6 +15,11 @@ import codecs
 import bs4
 from bs4 import BeautifulSoup
 
+import gevent
+from gevent import Greenlet
+import gevent.monkey
+
+
 
 class CrawlerUtils(object):
     """爬虫工具类，封装了一些常用函数
@@ -143,11 +148,8 @@ class Crawler(object):
 
     def run(self, ent_number=0):
         self.ent_number = str(ent_number)
-        # self.html_restore_path = self.json_restore_path + self.ent_number + '/'
 
-        # if self.save_html and os.path.exists(self.html_restore_path):
-        #     CrawlerUtils.make_dir(self.html_restore_path)
-        self.json_dict = {}
+
         self.reqst = requests.Session()
         self.reqst.headers.update({
                 'Accept': 'text/html, application/xhtml+xml, */*',
@@ -158,34 +160,36 @@ class Crawler(object):
         if not self.crawl_check_page():
             logging.error('crack check code failed, stop to crawl enterprise %s' % self.ent_number)
             return
-        time.sleep(random.uniform(5, 10))
+        time.sleep(random.uniform(1, 3))
+        sub_json_list = []
+        gevent.monkey.patch_socket()
+        for ent, url in self.ents.items():
+            self.json_dict = {}
+            threads = []
+            threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url ))
+            threads.append(gevent.spawn(self.crawl_ent_pub_pages, url))
+            threads.append(gevent.spawn(self.crawl_other_dept_pub_pages, url))
+            threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url))
+            gevent.joinall(threads)
+            sub_json_list.append({ent: self.json_dict})
+        return json.dumps(sub_json_list)
 
-        self.crawl_ind_comm_pub_pages()
-        self.crawl_ent_pub_pages()
-        self.crawl_other_dept_pub_pages()
-        self.crawl_judical_assist_pub_pages()
-        # print 'ent nt_number'
-        # print self.ent_number
-        # print self.json_dict
-
-        return json.dumps({self.ent_number: self.json_dict})
-
-    def crack_checkcode(self):
+    def crack_checkcode(self, *args, **kwargs):
         pass
 
-    def crawl_check_page(self):
+    def crawl_check_page(self, *args, **kwargs):
         pass
 
-    def crawl_ind_comm_pub_pages(self):
+    def crawl_ind_comm_pub_pages(self, *args, **kwargs):
         pass
 
-    def crawl_ent_pub_pages(self):
+    def crawl_ent_pub_pages(self, *args, **kwargs):
         pass
 
-    def crawl_other_dept_pub_pages(self):
+    def crawl_other_dept_pub_pages(self, *args, **kwargs):
         pass
 
-    def crawl_judical_assist_pub_pages(self):
+    def crawl_judical_assist_pub_pages(self, *args, **kwargs):
         pass
 
 
@@ -454,7 +458,7 @@ class Parser(object):
         # print '--------------\n---------------\n-------------'
         try:
             columns = self.get_columns_of_record_table(bs_table, page)
-        
+
             if columns:
                 table_dict = self.parse_list_table(bs_table, table_name, page, columns)
             else:

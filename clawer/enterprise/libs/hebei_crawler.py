@@ -18,7 +18,6 @@ from common_func import get_proxy, exe_time, json_dump_to_file
 import gevent
 from gevent import Greenlet
 import gevent.monkey
-import unittest
 
 
 urls = {
@@ -671,7 +670,7 @@ class HebeiCrawler(object):
             os.makedirs(self.html_restore_path)
         self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
         data = self.crawl_page_main()
-        path = os.path.join(os.getcwd(), 'hebei.json')
-        json_dump_to_file(path, data)
+        # path = os.path.join(os.getcwd(), 'hebei.json')
+        # json_dump_to_file(path, data)
         return json.dumps(data)
 
