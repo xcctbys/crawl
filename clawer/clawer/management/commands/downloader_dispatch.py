@@ -185,7 +185,7 @@ def run():
         total = 0
         pool = Pool()
         jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
-        print "count:" jobs.count()
+        print "count:",jobs.count()
         for job in jobs:
             print '------1111--'
             #print '---rawlerTask.objects(job=job).count()
