@@ -59,7 +59,6 @@ class HeilongjiangClawer(Crawler):
     def run(self, ent_number=0):
         """爬取的主函数
         """
-        # for ent, url in self.ents.items():
         return Crawler.run(self, ent_number)
 
     def analyze_showInfo(self, page):
@@ -67,8 +66,8 @@ class HeilongjiangClawer(Crawler):
             分析 展示页面， 获得搜索到的企业列表
         """
         soup = BeautifulSoup(page, "html5lib")
-        divs = soup.find("div", {"class": "list"})
-        if div:
+        divs = soup.find_all("div", {"class": "list"})
+        if divs:
             Ent={}
             for div in divs:
                 url=""
