@@ -32,7 +32,7 @@ class CrawlerAnalyzedData(Document):
     analyzed_data = StringField()
     retry_times = IntField(default = 0)
 
-class CrawlerExtracterInfo(CrawlerTask):
+class CrawlerExtracterInfo(Document):
     extract_task = ReferenceField(CrawlerTask)
     update_date = DateTimeField(default=datetime.datetime.now())
     retry_times = IntField(default = 0)
