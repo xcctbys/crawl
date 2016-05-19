@@ -138,7 +138,7 @@ class ParserGenerator(StructureGenerator):
 
 1. 读取配置文件, 从解析器结果（JSON数据）中提取字段, 动态生成SQL建表语句和插入语句, 并做中英文映射，最终存入目标数据库。
 2. 筛选`collector.models.CrawlerTask`中`status`为`解析成功`的解析器任务
-3. 在筛选出的解析器任务中可以找到其对应的`Job`，通过`Job`在结构化层配置数据库`StructureConfig`中找到对应`Job`的配置，在`StructureConfig`中可以在导出器数据库`Extracter`中找到对应的 JSON 配置文件，将该文件存储到本地`structure/extracter/`目录中, 以配置文件id命名
+3. 在筛选出的解析器任务中可以找到其对应的`Job`，通过`Job`在结构化层配置数据库`StructureConfig`中找到对应`Job`的配置，在`StructureConfig`中可以在导出器数据库`Extracter`中找到对应的 JSON 配置文件
 4. 手动执行;  crontab定时执行
 5. 用户编写了错误的配置文件;   导出失败的情况
 ### 输入
@@ -267,8 +267,8 @@ class StructureConfig(Document):
         "表1": {
             "dest_table": "表1的英文名",
             "source_path": ["表1的表名在JSON源数据中的搜索路径"]
-            "associated_field_path": ["关联字段在JSON源数据中的搜索路径"],
-            "dest_fields": {
+            "associated_field_source_path": ["关联字段在JSON源数据中的搜索路径"],
+            "dest_field": {
                 "关联字段": "关联字段英文名",
                 "字段1": "字段1英文名",
                 "字段2": "字段2英文名",
@@ -277,17 +277,17 @@ class StructureConfig(Document):
         "表2": {
             "dest_table": "表2英文名",
             "source_path": ["表2的表名在JSON源数据中的搜索路径"]
-            "associated_field_path": ["关联字段在JSON源数据中的搜索路径"],
-            "dest_fields": {
+            "associated_field_source_path": ["关联字段在JSON源数据中的搜索路径"],
+            "dest_field": {
                 "关联字段": "关联字段英文名",
                 "字段1": "字段1英文名",
                 "字段2": "字段2英文名",
             },
         "表n": {
-            "name": "表n英文名",
+            "dest_table": "表n英文名",
             "source_path": ["表n的表名在JSON源数据中的搜索路径"]
-            "associated_field_path": ["关联字段在JSON源数据中的搜索路径"],
-            "dest_fields": {
+            "associated_field_source_path": ["关联字段在JSON源数据中的搜索路径"],
+            "dest_field": {
                 "字段1": "字段1英文名",
                 "字段2": "字段2英文名",
             }
@@ -299,25 +299,21 @@ class StructureConfig(Document):
                 "dest_field": "关联字段英文名",
                 "datatype": "数据类型",
                 "option": "字段选项",
-                "default": "默认值"
             },
 			{
 				"dest_field": "字段1英文名",
 				"datatype": "数据类型",
 				"option": "字段选项",
-                "default": "默认值"
 			},
 			{
 				"dest_field": "字段2英文名,
 				"datatype": "数据类型",
 				"option": "字段选项",
-                "default": "默认值"
 			},
 			{
 				"dest_field": "字段n英文名,
 				"datatype": "数据类型",
 				"option": "字段选项",
-                "default": "默认值"
 			}
 		],
 		"表2英文名": [
@@ -325,30 +321,39 @@ class StructureConfig(Document):
                 "dest_field": "关联字段英文名",
                 "datatype": "数据类型",
                 "option": "字段选项",
-                "default": "默认值"
             },
 			{
 				"dest_field": "字段1英文名,
 				"datatype": "数据类型",
 				"option": "字段选项",
-                "default": "默认值"
 			},
 			{
 				"dest_field": "字段2英文名,
 				"datatype": "数据类型",
 				"option": "字段选项",
-                "default": "默认值"
 			}
 		]
 	}
 }
 ```
-关于 mapping 部分: 
+### 关于database 部分
+源数据库现只支持 MongoDB
+目标数据库现只支持 MySQL
+### 关于 mapping 部分: 
 指定JSON源数据和关系数据库字段的映射关系和中英文表名的对应关系
-- dest_table 自定义表的英文名称
+- dest_table 自定义目标数据库表的英文名称
 - source_path 表名在 JSON 源数据中的路径. 以列表形式呈现, 根据源数据的嵌套层次, 依次写入列表
-- associated_field_path 关联字段的在 JSON 源数据中的路径. 
-- dest_fields 关系数据库表中字段的定义 
+- associated_field_source_path 关联字段的在 JSON 源数据中的路径. 
+- dest_field 关系数据库表中字段的定义 
+### 关于 table 部分:
+- dest_field 为 mapping 中相应的目的数据库表的字段
+- option 为字段的选项, 如设置主键, 默认值等
+## 配置文件使用限制
+1. 仅能用于建立基本表
+2. associated_field_source_path 必须是 source_path 的子集
+3. 每个表必须设置 associated_field_source_path, 如不必要则填为空串(如 [""])
+
+
 
 # 部署
 - crontab，在master服务器上定时更新解析生成器和导出生成器队列，最终会给出一个`python manage.py command`形式的命令
