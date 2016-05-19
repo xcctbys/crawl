@@ -8,7 +8,7 @@ from models import ProxyIp
 import smart_proxy.round_proxy_ip as check
 
 proxy_list = [XiciProxy, SixProxy, YouProxy, NovaProxy, Ip84Proxy, IPCNProxy] # HaoProxy, KuaiProxy 目前不可用
-proxy_list2=  [IPCNProxy]
+proxy_list2=  [XiciProxy]
 
 class Crawler(object):
 	def __init__(self):
@@ -52,6 +52,10 @@ class Crawler(object):
 		#for item in proxy_list2:
                         # print 'item:----', item
 			self.do_with(item())
+	def runfast(self):
+		for item in proxy_list2:
+			self.do_with(item())
+
 if __name__ == '__main__':
 	os.environ["DJANGO_SETTINGS_MODULE"] = "crawler.settings"
 	django.setup()
