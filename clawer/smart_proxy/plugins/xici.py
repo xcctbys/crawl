@@ -8,6 +8,7 @@ import unittest
 import re
 import time
 from bs4 import BeautifulSoup
+from multiprocessing.dummy import Pool
 
 DEBUG = True
 if DEBUG:
@@ -66,16 +67,20 @@ class BaseProxy(object):
         pass
 
 class XiciProxy(BaseProxy):
+    
+    
     def __init__(self):
         BaseProxy.__init__(self)
-        self.url = 'http://www.xicidaili.com/nn'          #西刺代理
+        #self.url = 'http://www.xicidaili.com/nn'          #西刺代理
+        self.url_list = ['http://www.xicidaili.com/nn' ,'http://www.xicidaili.com/nn/2' ,'http://www.xicidaili.com/nn/3' ,'http://www.xicidaili.com/nn/4' ]
+        self.a_list=[]
 
-    def run(self):
-        resp = self.reqst.get(self.url, timeout=self.timeout)
+    def get_ipproxy(self,url):
+        resp = self.reqst.get(url, timeout=self.timeout)
         # trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr')[:60]
         trs = BeautifulSoup(resp.content, 'html.parser').find_all('tr', class_='odd')
     
-        a_list = []
+        
         for tr in trs:
             tds = [td.get_text().strip() for td in tr.find_all('td')]
             try:
@@ -85,10 +90,21 @@ class XiciProxy(BaseProxy):
             http =  "%s:%s" % (tds[1],tds[2])
             http = (http, province)
             # print http
-            a_list.append(http)
-        # print '-----------------xici_proxy_list--------------------'
-        # print a_list
-        return a_list
+            self.a_list.append(http)
+        return True
+
+
+    def run(self):
+        pool = Pool()
+        # for i in range(1, total_count):
+        #     pool.apply_async(change_valid, i)
+        pool.map(self.get_ipproxy, self.url_list)
+        pool.close()
+        pool.join()
+
+        return self.a_list
+
+
 
 class HaoProxy(BaseProxy):
     def __init__(self):
@@ -120,7 +136,7 @@ class KuaiProxy(BaseProxy):
 
     def run(self):
         pass
-        #####为什么总是 http 521的状态码？该问题还没有解决
+        # ####为什么总是 http 521的状态码？该问题还没有解决
         # kuai_proxy_list = []
         # for i in range(1,3):
         #     resp = self.reqst.get('http://www.kuaidaili.com/')
@@ -143,14 +159,11 @@ class KuaiProxy(BaseProxy):
 class YouProxy(BaseProxy):
     def __init__(self):
         BaseProxy.__init__(self)
-        self.url = 'http://www.youdaili.net/Daili/guonei/'          #有代理
-
+        self.url = 'http://www.youdaili.net/Daili/guonei/' 
+            #有代理
     def run(self):
+
         resp = self.reqst.get(self.url, timeout=self.timeout)
-     
-      
-       
-    
         
         ul1 = BeautifulSoup(resp.content, 'html.parser').find_all('ul', attrs={'class':'newslist_line'})
         print ul1
@@ -224,6 +237,7 @@ class IPCNProxy(BaseProxy):
         table = BeautifulSoup(resp.content, 'html.parser').find_all('table', attrs={'border':'1', 'size':'85%'})[-1]
         # print [td.get_text().strip() for td in table.find_all('td')[:40]]
         proxy_list1 = [(td.get_text().strip(), 'OTHER') for td in table.find_all('td')[:50] if td and td.get_text().strip()]
+
         resp = self.reqst.get(self.url2, timeout=self.timeout)
         table = BeautifulSoup(resp.content, 'html.parser').find_all('pre')[-1]
         proxy_list2 = [(item.strip(), 'OTHER') for item in table.get_text().split('\n')[6:-2]]
@@ -291,14 +305,14 @@ class ProxyTest(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
 
-    def test_obtain_xici_proxy_list(self):
-        self.xici = XiciProxy()
-        xici_proxy_list = self.xici.run()
-        self.assertTrue(xici_proxy_list)
-        # print '-----------xici_proxy_list------------------'
-        # for item in xici_proxy_list:
-            # print item
-        logging.debug('xici_proxy_list: %s ' % xici_proxy_list)
+    # def test_obtain_xici_proxy_list(self):
+    #     self.xici = XiciProxy()
+    #     xici_proxy_list = self.xici.run()
+    #     self.assertTrue(xici_proxy_list)
+    #     # print '-----------xici_proxy_list------------------'
+    #     # for item in xici_proxy_list:
+    #         # print item
+    #     logging.debug('xici_proxy_list: %s ' % xici_proxy_list)
 
     def test_obtain_six_proxy_list(self):
         self.six = SixProxy()
@@ -318,36 +332,36 @@ class ProxyTest(unittest.TestCase):
             # print item
         logging.debug('ipcn_proxy_list: %s' % ipcn_proxy_list)
 
-    def test_obtain_hao_proxy_list(self):
-        self.hao = HaoProxy()
-        hao_proxy_list = self.hao.run()
-        self.assertTrue(hao_proxy_list)
-        # print '-----------hao_proxy_list------------------'
-        logging.debug('hao_proxy_list: %s ' % hao_proxy_list)
+    # def test_obtain_hao_proxy_list(self):
+    #     self.hao = HaoProxy()
+    #     hao_proxy_list = self.hao.run()
+    #     self.assertTrue(hao_proxy_list)
+    #     # print '-----------hao_proxy_list------------------'
+    #     logging.debug('hao_proxy_list: %s ' % hao_proxy_list)
 
-    def test_obtain_kuai_proxy_list(self):
-        self.kuai = KuaiProxy()
-        kuai_proxy_list = self.kuai.run()
-        self.assertTrue(not kuai_proxy_list)
-        logging.debug('kuai_proxy_list: %s ' % kuai_proxy_list)
+    # def test_obtain_kuai_proxy_list(self):
+    #     self.kuai = KuaiProxy()
+    #     kuai_proxy_list = self.kuai.run()
+    #     self.assertTrue(not kuai_proxy_list)
+    #     logging.debug('kuai_proxy_list: %s ' % kuai_proxy_list)
 
-    def test_obtain_you_proxy_list(self):
-        self.you = YouProxy()
-        you_proxy_list = self.you.run()
-        self.assertTrue(you_proxy_list)
-        logging.debug('you_proxy_list: %s ' % you_proxy_list)
+    # def test_obtain_you_proxy_list(self):
+    #     self.you = YouProxy()
+    #     you_proxy_list = self.you.run()
+    #     self.assertTrue(you_proxy_list)
+    #     logging.debug('you_proxy_list: %s ' % you_proxy_list)
 
-    def test_obtain_nova_proxy_list(self):
-        self.nova = NovaProxy()
-        nova_proxy_list = self.nova.run()
-        self.assertTrue(nova_proxy_list)
-        logging.debug('nova_proxy_list: %s ' % nova_proxy_list)
+    # def test_obtain_nova_proxy_list(self):
+    #     self.nova = NovaProxy()
+    #     nova_proxy_list = self.nova.run()
+    #     self.assertTrue(nova_proxy_list)
+    #     logging.debug('nova_proxy_list: %s ' % nova_proxy_list)
     
-    def test_obtain_ip84_proxy_list(self):
-        self.ip84 = Ip84Proxy()
-        ip84_proxy_list = self.ip84.run()
-        self.assertTrue(ip84_proxy_list)
-        logging.debug('ip84_proxy_list: %s ' % ip84_proxy_list)
+    # def test_obtain_ip84_proxy_list(self):
+    #     self.ip84 = Ip84Proxy()
+    #     ip84_proxy_list = self.ip84.run()
+    #     self.assertTrue(ip84_proxy_list)
+    #     logging.debug('ip84_proxy_list: %s ' % ip84_proxy_list)
 
 if __name__ == '__main__':
     
