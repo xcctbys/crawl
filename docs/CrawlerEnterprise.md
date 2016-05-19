@@ -275,6 +275,7 @@ if __name__ == '__main__':
 		class CrawlerDownloadArgs(Document):
 			province = StringField(maxlength=20)
 			register_number  = StringField(maxlength=25)
+			unifield_number = StringField(maxlength=25)
 			enterprise_name = StringField(maxlength=100)
 			download_args = DictField() #该企业号需要的信息如'id':'','ent_id':''等
 
