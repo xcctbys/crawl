@@ -9,7 +9,7 @@ import rq
 from mongoengine import *
 
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
-from models import StructureConfig, Parser, CrawlerAnalyzedData
+from models import StructureConfig, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
 from django.conf import settings
 #from django.models import model_to_dict
 import django
@@ -50,6 +50,10 @@ class StructureGenerator(object):
     def get_task_source_data(self, task):
         task_source_data = CrawlerDownloadData.objects(crawlertask = task).first()
         return task_source_data                        #根据uri返回爬虫的下载数据（类型）
+
+    def get_task_analyzed_data(self, task):
+        task_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = task).first()
+        return task_analyzed_data
 
 class ParserGenerator(StructureGenerator):
     def __init__(self):
@@ -167,54 +171,105 @@ def parser_func(data):
         logging.error("Error finding parser from % s (uri) -- Null data" % data.crawlertask.uri)
 
 class ExtracterGenerator(StructureGenerator):
-    def assign_tasks(self):
+
+    def __init__(self):
+        self.queuegenerator = QueueGenerator()
+        self.queues = self.queuegenerator.rq_queues
+
+    def assign_extract_tasks(self):
         tasks = self.filter_parsed_tasks()
         for task in tasks:
             priority = self.get_priority(task)
-            db_conf = self.get_extracter_db_config(task)
-            mappings = self.get_extracter_mappings(task)
-            extracter = self.get_extracter(db_conf, mappings)
+            # db_conf = self.get_extracter_db_config(task)
+            # mappings = self.get_extracter_mappings(task)
+            # extracter = self.get_extracter(db_conf, mappings)
+            ectracter = self.get_extracter()
             try:
                 self.assign_task(priority, extracter)
-                logging.info("add task succeed")
+                logging.info("Add extract task succeed")
             except:
-                logging.error("assign task runtime error.")
+                logging.error("Assign extract task runtime error.")
 
-    def assign_task(self,
-                    priority=Consts.QUEUE_PRIORITY_NORMAL,
-                    parser=lambda: None,
-                    data=""):
-        pass
+    # def assign_extract_task(self, priority=Consts.QUEUE_PRIORITY_NORMAL, parser=lambda: None, data=""):
+    def assign_extract_task(self, priority, extract_function, data):
+        try:
+            extract_job_id = self.queuegenerator.enqueue(priority, extract_function, args=[data])
+            if not extract_job_id:
+                return None
+            else:
+                CrawlerExtracterInfo(extract_task=data.crawler_task, update_date=datetime.datetime.now()).save()
+                logging.info("Extract task successfully added")
+                return extract_job_id
+        except:
+            logging.error("Error assigning extract task when enqueuing")
 
-    def get_extracter(self, db_conf, mappings):
+    def get_extracter_conf():
+        structureconfig = StructureConfig.objects(job=data.crawlertask.job).first()
+        crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
+        if structureconfig:
+            try:
+                extracter_conf = structureconfig.extracter.extracter_config
+            except Exception as e:
+                logging.error('Get extracter config error')
+                raise e
+            return extracter_conf
 
+    def get_extracter(self, data):
+        """获得导出器"""
         def extracter():
+            if not data:
+                logging.error("Error: there is not data to extract")
+                return None
             try:
-                self.if_not_exist_create_db_schema(db_conf)
-                logging.info("create db schema succeed")
-            except:
-                logging.error("create db schema error")
-            try:
-                self.extract_fields(mappings)
-                logging.info("extract fields succeed")
-            except:
-                logging.error("extract fields error")
+                structureconfig = StructureConfig.objects(job=data.crawlertask.job).first()
+                crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
+                if not structureconfig:
+                    logging.error("Error: can not find structure configure")
+                    return None
+                data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
+                extracter_conf = self.get_extracter_conf() # 获取配置文件
+                result = self.extract_fields(extracter_conf, data)
+                if result:
+                    data.crawler_task.update(status=9)  # status: 9导出成功, 8导出失败
+                    crawler_extract_info.update(update_date=datetime.datetime.now())
+                    logging.info('Extract fields succeed')
+            except Exception as e:
+                data.crawler_task.update(status=8) 
+                logging.error('Extract fields error')
+                raise e
 
-        return extracter
+            return extracter
 
-    def if_not_exist_create_db_schema(self, conf):
-        print 'check database exist'
-        print '★' * 30
-        pass
 
-    def extract_fields(self, mappings):
+
+    # def get_extracter_db_config():
+        # pass
+
+    # def get_extracter_mappings():
+        # pass
+
+    # def get_extracter(self, db_conf, mappings):
+
+        # def extracter():
+            # try:
+                # self.if_not_exist_create_db_schema(db_conf)
+                # logging.info("create db schema succeed")
+            # except:
+                # logging.error("create db schema error")
+            # try:
+                # self.extract_fields(mappings)
+                # logging.info("extract fields succeed")
+            # except:
+                # logging.error("extract fields error")
+
+        # return extracter
+
+    # def if_not_exist_create_db_schema(self, conf):
+        # pass
+
+    def extract_fields(self, extracter_conf, data):
         print 'starting extract fields!'
         print '♫' * 30
-        pass
-
-    def get_extracter_db_config(self):
-        print 'get extracter database config'
-        print '♠' * 30
         pass
 
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 import json
 from fabric.api import env, roles, run, cd
 from fabric.contrib.project import rsync_project
@@ -102,9 +103,25 @@ def ssh_key(key_file="~/.ssh/id_rsa.pub"):
     append('~/.ssh/authorized_keys', key_text)
 
 
-#####################
-# Internal Function #
-#####################
+def start():
+    _start()
+
+
+def stop():
+    _stop()
+
+
+def upgrade():
+    # Rsync local project files to remote server.
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
+                   remote_project_path=REMOTE_PROJECT_PATH)
+
+    # Restart Services.
+    _restart()
+
+
+###################
+# Internal Function
 def _read_ssh_pub_key(key_file):
     key_file = os.path.expanduser(key_file)
     # Check is it a pub key.
@@ -156,3 +173,26 @@ def _supervisord(server):
             run("yes | cp config/production/supervisord.service /etc/systemd/system/")
     run("service supervisord start")
     run("chkconfig supervisord on")
+
+
+def _start():
+    run("service supervisord start")
+    if exists("/etc/nginx/conf.d/cr-clawer.conf"):
+        run("service nginx start")
+
+
+def _stop():
+    run("service supervisord stop")
+    if exists("/etc/nginx/conf.d/cr-clawer.conf"):
+        run("service nginx stop")
+
+
+def _restart():
+    run("service supervisord stop")
+    time.sleep(2)
+    run("service supervisord start")
+
+    if exists("/etc/nginx/conf.d/cr-clawer.conf"):
+        run("service nginx stop")
+        time.sleep(2)
+        run("service nginx start")
