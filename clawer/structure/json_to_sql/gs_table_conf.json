@@ -23,6 +23,7 @@
             "source_path": ["ind_comm_pub_reg_basic"],
             "associated_field_source_path": [""],
             "dest_field": {
+                "主键": "primary_key",
                 "注册号/统一社会信用代码": "register_num", 
                 "名称": "enter_name",
                 "类型": "enter_type",
@@ -42,8 +43,8 @@
             "source_path": ["ind_comm_pub_arch_key_persons"],
             "associated_field_source_path": [""],
             "dest_field": {
+                "主键": "primary_key",
                 "序号": "id",
-                "注册号/统一社会信用代码": "register_num", 
                 "姓名": "name",
                 "职务": "position"
                 }
@@ -54,7 +55,7 @@
             "associated_field_source_path": [""],
             "dest_field": {
                 "序号": "id",
-                "注册号/统一社会信用代码": "register_num",
+                "主键": "primary_key",
                 "名称": "branch_name",
                 "登记机关": "register_gov"
             }
@@ -64,8 +65,7 @@
             "source_path": ["ent_pub_ent_annual_report"],
             "associated_field_source_path": [""],
             "dest_field": {
-                "序号": "id",
-                "注册号/统一社会信用代码": "register_num",
+                "主键": "primary_key",
                 "报送年度": "report_year",
                 "发布日期": "publicity_date"
             }
@@ -76,7 +76,7 @@
             "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
-                "注册号/统一社会信用代码": "register_num",
+                "主键": "primary_key",
                 "资产总额": "asset_all",
                 "所有者权益合计": "owner_asset",
                 "营业总收入": "business_income",
@@ -92,7 +92,7 @@
             "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
-                "注册号/统一社会信用代码": "register_num",
+                "主键": "primary_key",
                 "股东": "shareholder",
                 "变更前股权比例": "shares_before",
                 "变更后股权比例": "shares_after"
@@ -104,7 +104,7 @@
             "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
-                "注册号/统一社会信用代码": "register_num",
+                "主键": "primary_key",
                 "类型": "online_type",
                 "名称": "ent_name",
                 "网址": "url"
@@ -116,18 +116,18 @@
             "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
-                "注册号/统一社会信用代码": "register_num",
+                "主键": "primary_key",
                 "投资设立企业或购买股权企业名称": "invest_enter_name",
                 "注册号/统一社会信用代码": "ent_code"
             }
         },
-        "guaranty": {
-            "dest_table": "guaranty",
+        "YearReportWarrandice": {
+            "dest_table": "YearReportWarrandice",
             "source_path": ["ent_pub_ent_annual_report", "详情", "对外提供保证担保信息"],
             "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
-                "注册号/统一社会信用代码": "register_num", 
+                "主键": "primary_key", 
                 "债权人": "creditor",
                 "债务人": "debtor",
                 "主债权种类": "main_creditor_right",
@@ -143,37 +143,42 @@
             "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
-                "注册号/统一社会信用代码": "register_num",
+                "主键": "primary_key",
                 "股东": "shareholder",
                 "认缴出资方式": "subscription_type",
-                "认缴出资额(万元)": "subscription_amount",
+                "认缴出资额（万元）": "subscription_amount",
                 "认缴出资时间": "subscription_time",
                 "出资方式": "paid_type",
                 "出资时间": "paid_time",
-                "实缴出资额(万元)": "paid_money_amount"
+                "实缴出资额（万元）": "paid_money_amount"
                 }
         }
     },
     "table": {
         "Basic": [
                 {
+                    "dest_field": "primary_key",
+                    "datatype": "CHAR(50)",
+                    "option": ""
+                },
+                {
                     "dest_field": "register_num",
                     "datatype": "CHAR(50)",
                     "option": ""
                 },
                 {
-                    "dest_field": "ent_name",
+                    "dest_field": "enter_name",
                     "datatype": "CHAR(50)",
                     "option": ""
                 },
                 {
-                    "dest_field": "ent_type",
+                    "dest_field": "enter_type",
                     "datatype": "CHAR(100)",
                     "option": ""
                 },
                 {
                     "dest_field": "register_capital",
-                    "datatype": "FLOAT",
+                    "datatype": "CHAR(20)",
                     "option": ""
                 },
                 {
@@ -188,12 +193,12 @@
                 },
                 {
                     "dest_field": "time_start",
-                    "datatype": "DATA",
+                    "datatype": "DATE",
                     "option": ""
                 },
                 {
                     "dest_field": "time_end",
-                    "datatype": "DATA",
+                    "datatype": "DATE",
                     "option": ""
                 },
                 {
@@ -221,10 +226,10 @@
             {
                 "dest_field": "id",
                 "datatype": "INT",
-                "option": "NOT NULL PRIMARY KEY"
+                "option": ""
             },
             {
-                "dest_field": "register_num",
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
@@ -247,7 +252,7 @@
                 "option": ""
             },
             {
-                "dest_field": "register_num",
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
@@ -264,7 +269,7 @@
         ],
         "EnterAnnualReport": [
             {
-                "dest_field": "register_num",
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
@@ -286,43 +291,43 @@
                 "option": ""
             },
             {
-                "dest_field": "register_num",
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
             {
                 "dest_field": "asset_all",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
                 "dest_field": "owner_asset",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
                 "dest_field": "business_income",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
                 "dest_field": "main_business_income",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
                 "dest_field": "profit",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
                 "dest_field": "tax",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
                 "dest_field": "debts",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             }
         ],
@@ -333,7 +338,12 @@
                 "option": ""
             },
             {
-                "dest_field": "register_num",
+                "dest_field": "paid_time",
+                "datatype": "DATE",
+                "option": ""
+            },
+            {
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
@@ -354,12 +364,12 @@
             },
             {
                 "dest_field": "subscription_money_amount",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
                 "dest_field": "paid_money_amount",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
@@ -371,6 +381,11 @@
                 "dest_field": "paid_type",
                 "datatype": "CHAR(100)",
                 "option": ""
+            },
+            {
+                "dest_field": "subscription_amount",
+                "datatype": "CHAR(20)",
+                "option": ""
             }
         ],
         "YearReportOnline": [
@@ -380,7 +395,7 @@
                 "option": ""
             },
             {
-                "dest_field": "register_num",
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
@@ -408,7 +423,7 @@
                 "option": ""
             },
             {
-                "dest_field": "register_num",
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
@@ -419,12 +434,12 @@
             },
             {
                 "dest_field": "shares_before",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
                 "dest_field": "shares_after",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             }
         ],
@@ -435,7 +450,7 @@
                 "option": ""
             },
             {
-                "dest_field": "register_num",
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
@@ -457,7 +472,7 @@
                 "option": ""
             },
             {
-                "dest_field": "register_num",
+                "dest_field": "primary_key",
                 "datatype": "CHAR(50)",
                 "option": ""
             },
@@ -478,7 +493,7 @@
             },
             {
                 "dest_field": "main_creditor_right_amount",
-                "datatype": "FLOAT",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
@@ -488,6 +503,11 @@
             },
             {
                 "dest_field": "guarantee_type",
+                "datatype": "CHAR(30)",
+                "option": ""
+            },
+            {
+                "dest_field": "fullfill_debt_duration",
                 "datatype": "CHAR(30)",
                 "option": ""
             },

@@ -12,6 +12,7 @@ class JsonToSql(object):
         self.tmp_dic = {}
         self.table_name = ''
         self.id = ''
+        self.data_sql = open('./insert_data.sql', 'w')
 
     def parser_json(self, config):
         config_json = open(config,'r+')
@@ -48,12 +49,12 @@ class JsonToSql(object):
             table = tables_info[t_name]
             sql = 'CREATE TABLE %s ( ' % (t_name)
             for field in table:
-                sql += field['field'] + ' ' + field['datatype']
+                sql += field['dest_field'] + ' ' + field['datatype']
                 if field['option']:
                     sql += ' ' + (field['option'])
                 sql += ','
             sql = sql[0:len(sql)-1]
-            sql += ')\n\n'
+            sql += ');\n\n'
             table_sql.write(sql.encode('utf8'))
         table_sql.close()
 
@@ -134,23 +135,42 @@ class JsonToSql(object):
         :param source: 通过查询，找到的用户所需数据
         :return: 无
         """
-        #data_sql = open('./insert_data.sql', 'w')
         #print "start ******"
         #print source
         #print self.tmp_dic
         if len(source) == 0:
             return
 
-        self.tmp_dic['register_num'] = self.id
+        self.tmp_dic[u'主键'] = self.id
         merged_dict = source.copy()
         merged_dict.update(self.tmp_dic)
-        print "id ", self.id
-        print "table name: ", self.table_name
+        #print "id ", self.id
+        #print "table name: ", self.table_name
+        #insert into user_info (name, gender, age, email) values(‘XiaoHei’, ‘男’，28，‘xhei@sohu.com’);
+        field = []
+        values = []
+        for k in merged_dict.keys():
+            print k
+
         for k in self.mapping[self.table_name]['dest_field'].keys():
+            field.append(self.mapping[self.table_name]['dest_field'][k])
+            #print k
             try:
-                print k, self.mapping[self.table_name]['dest_field'][k], merged_dict[k]
+                #print k
+                values.append(merged_dict[k])
+                #print merged_dict[''], 'asdfs'
             except KeyError:
-                print '\n字段设置错误，请检查配置文件'
+                #print k
+                values.append('')
+                #print '\n表%s字段%s设置错误，请检查配置文件', self.table_name, k
+        values = ["'%s'" % i for i in values]
+        sql = 'INSERT INTO %s (%s) VALUES(%s); \n' % (self.table_name, ', '.join(field), ', '.join(values))
+        #print sql
+
+        self.data_sql.write(sql.encode('utf8'))
+        #self.data_sql.close()
+        #print field
+        #print values
         #print merged_dict
         #print "end ******"
         pass
@@ -219,6 +239,8 @@ class JsonToSql(object):
             associated_field_path = self.mapping[k]['associated_field_source_path']
             self.create_data_sql('guangxi.json', path, associated_field_path)
             self.tmp_dic.clear()
+        self.data_sql.close()
+        print 'over'
         pass
 '''
 config_json = open('gs_table_conf.json', 'r+')
@@ -231,5 +253,5 @@ tables_info = config_dic['table']
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
     json_to_sql.run()
-    #json_to_sql.test_table()
+    json_to_sql.test_table()
 
