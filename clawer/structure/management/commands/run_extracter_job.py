@@ -37,7 +37,7 @@ def run():
 
 class Command(BaseCommand):
     args = ""
-    help = "Dispatch Parser Task"
+    help = "Dispatch Extracter Task"
 
     #@wrapper_raven
     def handle(self, *args, **options):

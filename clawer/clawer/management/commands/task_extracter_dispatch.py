@@ -6,13 +6,13 @@ from structure.structure import ExtracterGenerator, ExecutionTasks
 
 def run():
     extractergenerator = ExtracterGenerator()
-    extracter_task_queues = extractergenerator.assign_tasks()
+    extracter_task_queues = extractergenerator.assign_extract_tasks()
     return extracter_task_queues
 
 
 class Command(BaseCommand):
     args = ""
-    help = "Dispatch Extracter Task"
+    help = "Dispatch Extract Task"
 
     #@wrapper_raven
     def handle(self, *args, **options):
