@@ -3,7 +3,7 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import requests
 import re
 import os,os.path
