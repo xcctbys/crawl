@@ -18,7 +18,7 @@
         }
     },
     "mapping": {
-        "ind_comm_pub_reg_basic": {
+        "Basic": {
             "dest_table": "Basic", 
             "source_path": ["ind_comm_pub_reg_basic"],
             "associated_field_source_path": [""],
@@ -34,10 +34,10 @@
                 "经营范围": "business_scope",
                 "登记机关": "register_gov",
                 "核准日期": "check_date",
-                "注册状态": "register_status"
+                "登记状态": "check_status"
             }
         },
-        "ind_comm_pub_arch_key_persons": {
+        "IndustryCommerceMainperson": {
             "dest_table": "IndustryCommerceMainperson",
             "source_path": ["ind_comm_pub_arch_key_persons"],
             "associated_field_source_path": [""],
@@ -48,7 +48,7 @@
                 "职务": "position"
                 }
         },
-        "ind_comm_pub_arch_branch": {
+        "IndustryCommerceBranch": {
             "dest_table": "IndustryCommerceBranch",
             "source_path": ["ind_comm_pub_arch_branch"],
             "associated_field_source_path": [""],
@@ -59,7 +59,7 @@
                 "登记机关": "register_gov"
             }
         },
-        "ent_pub_ent_annual_report": {
+        "EnterAnnualReport": {
             "dest_table": "EnterAnnualReport",
             "source_path": ["ent_pub_ent_annual_report"],
             "associated_field_source_path": [""],
@@ -70,23 +70,9 @@
                 "发布日期": "publicity_date"
             }
         },
-        "企业资产状况信息": {
+        "YearReportAssets": {
             "dest_table": "YearReportAssets",
             "source_path": ["ent_pub_ent_annual_report", "详情", "企业资产状况信息"],
-<<<<<<< HEAD
-            "associated_field_path": ["", "序号", ""],
-          "dest_field": {
-            "序号": "year_report_id",
-            "注册号/统一社会信用代码": "register_num",
-            "资产总额": "asset_all",
-            "所有者权益合计": "owner_asset",
-            "营业总收入": "business_income",
-            "营业总收入中主营业务收入": "main_business_income",
-            "利润总额": "profit",
-            "纳税总额": "tax",
-            "负债总额": "debts"
-          }
-=======
             "associated_field_source_path": ["", "序号", ""],
             "dest_field": {
                 "序号": "year_report_id",
@@ -99,9 +85,8 @@
                 "纳税总额": "tax",
                 "负债总额": "debts"
             }
->>>>>>> 5ae212d7c0b6ce4195fb520e5680a36e40bd2481
         },
-        "股权变更信息": {
+        "YearReportSharechange": {
             "dest_table": "YearReportSharechange",
             "source_path": ["ent_pub_ent_annual_report", "详情", "股权变更信息"],
             "associated_field_source_path": ["", "序号", ""],
@@ -113,7 +98,7 @@
                 "变更后股权比例": "shares_after"
                 }
         },
-        "网站或网店信息": {
+        "YearReportOnline": {
             "dest_table": "YearReportOnline",
             "source_path": ["ent_pub_ent_annual_report", "详情", "网站或网店信息"],
             "associated_field_source_path": ["", "序号", ""],
@@ -125,7 +110,7 @@
                 "网址": "url"
             }
         },
-        "对外投资信息": {
+        "YearReportInvestment": {
             "dest_table":  "YearReportInvestment",
             "source_path": ["ent_pub_ent_annual_report", "详情", "对外投资信息"],
             "associated_field_source_path": ["", "序号", ""],
@@ -136,15 +121,10 @@
                 "注册号/统一社会信用代码": "ent_code"
             }
         },
-        "对外提供保证担保信息": {
+        "guaranty": {
             "dest_table": "guaranty",
-<<<<<<< HEAD
             "source_path": ["ent_pub_ent_annual_report", "详情", "对外提供保证担保信息"],
-            "associated_field_path": ["", "序号", ""],
-=======
-            "source_path": ["ent_pub_ent_annual_report", "详情", "对外提供担保保证信息"],
             "associated_field_source_path": ["", "序号", ""],
->>>>>>> 5ae212d7c0b6ce4195fb520e5680a36e40bd2481
             "dest_field": {
                 "序号": "year_report_id",
                 "注册号/统一社会信用代码": "register_num", 
@@ -157,7 +137,7 @@
                 "保证的期间": "warrandice_scope"
             }
         },
-        "股东及出资信息": {
+        "YearReportShareholder": {
             "dest_table": "YearReportShareholder",
             "source_path": ["ent_pub_ent_annual_report", "详情", "股东及出资信息"],
             "associated_field_source_path": ["", "序号", ""],
@@ -222,7 +202,7 @@
                     "option": ""
                 },
                 {
-                    "dest_field": "register_status",
+                    "dest_field": "check_status",
                     "datatype": "CHAR(50)",
                     "option": ""
                 },

@@ -5,13 +5,13 @@ import types
 import sys
 
 class JsonToSql(object):
-    config_dic = {}
-    data_source = []
-    mapping = {}
-    tmp_dic = {}
-    table_name = ''
-    table_key = ''
-    id = ''
+    def __init__(self):
+        self.config_dic = {}
+        self.data_source = []
+        self.mapping = {}
+        self.tmp_dic = {}
+        self.table_name = ''
+        self.id = ''
 
     def parser_json(self, config):
         config_json = open(config,'r+')
@@ -85,8 +85,23 @@ class JsonToSql(object):
         :return: 无
         """
         if len(path) == 0:
-            self.parser_data(source)
+            if type(source) == types.ListType and len(source) > 0:
+                for i in range(len(source)):
+                    self.parser_data(source[i])
+            elif type(source) == types.DictionaryType:
+                self.parser_data(source)
+            else:
+                #print 'error',source, 'endinnnnnnnnnnnnnnnnnnnnnnnng'
+                pass
             return
+
+        if associated_field_path[0]:
+            if type(source) == types.ListType:
+                self.tmp_dic[associated_field_path[0]] = source[0][associated_field_path[0]]
+                #print source[0][associated_field_path[0]]
+            else:
+                self.tmp_dic[associated_field_path[0]] = source[associated_field_path[0]]
+                #print source[associated_field_path[0]]
 
         try:
             self.get_data(source[path[0]], path[1:], associated_field_path[1:])
@@ -120,6 +135,26 @@ class JsonToSql(object):
         :return: 无
         """
         #data_sql = open('./insert_data.sql', 'w')
+        #print "start ******"
+        #print source
+        #print self.tmp_dic
+        if len(source) == 0:
+            return
+
+        self.tmp_dic['register_num'] = self.id
+        merged_dict = source.copy()
+        merged_dict.update(self.tmp_dic)
+        print "id ", self.id
+        print "table name: ", self.table_name
+        for k in self.mapping[self.table_name]['dest_field'].keys():
+            try:
+                print k, self.mapping[self.table_name]['dest_field'][k], merged_dict[k]
+            except KeyError:
+                print '\n字段设置错误，请检查配置文件'
+        #print merged_dict
+        #print "end ******"
+        pass
+        '''
         try:
             merged_dict = source.copy()
             merged_dict.update(self.tmp_dic)
@@ -130,14 +165,13 @@ class JsonToSql(object):
         print self.table_name
         print self.id
         for k in merged_dict.keys():
-            print k, source[k]
+            print k, source[k], 'asdfdsafasf'
             # data_sql.write("%s %s \n" % (k.encode('utf8'), source[k].encode('utf8')))
         #print self.tmp_dic
         #print self.table_name
         #print self.id
-        #print self.mapping[self.table_key]['field']
         #data_sql.close()
-
+        '''
     def record_associated(self, source, associated_field_path):
         """
         由 create_data_sql->get_data->record_associated 调用
@@ -168,8 +202,6 @@ class JsonToSql(object):
         '''
         for k in self.mapping.keys():
             self.table_name = self.mapping[k]['dest_table']
-            self.table_key = k
-            print self.table_key
             path = self.mapping[k]['source_path']
             associated_field_path = self.mapping[k]['associated_field_path']
             self.create_data_sql('guangxi.json', path, associated_field_path)
@@ -183,8 +215,6 @@ class JsonToSql(object):
         self.get_mapping()
         for k in self.mapping.keys():
             self.table_name = self.mapping[k]['dest_table']
-            self.table_key = k
-            print self.table_key
             path = self.mapping[k]['source_path']
             associated_field_path = self.mapping[k]['associated_field_source_path']
             self.create_data_sql('guangxi.json', path, associated_field_path)
