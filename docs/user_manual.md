@@ -75,4 +75,4 @@
 1. 更新
 
         # 通常在发布新版本时使用，该操作会自动同步所有服务器代码且重启服务
-        cd /root/cr-clawer/deploy && ./deploy update
+        cd /root/cr-clawer/deploy && ./deploy upgrade
