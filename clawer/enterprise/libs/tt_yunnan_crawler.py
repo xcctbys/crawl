@@ -3,6 +3,7 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import requests
 import re
 import os,os.path
@@ -10,8 +11,11 @@ from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
 import json
 
-from . import settings
+# from . import settings
+import settings
+from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
+from collector.models import CrawlerDownloadArgs
 
 class YunnanCrawler(object):
 	ckcode_image_path = settings.json_restore_path + '/yunnan/ckcode.jpg'
@@ -20,6 +24,8 @@ class YunnanCrawler(object):
 		self.reqst = requests.Session()
 		self.json_restore_path = json_restore_path
 		self.ckcode_image_path = settings.json_restore_path + '/yunnan/ckcode.jpg'
+		if not os.path.exists(self.ckcode_image_path):
+			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		self.result_json_dict = {}
 		self.code_cracker = CaptchaRecognition('yunnan')
 		self.reqst.headers.update(
@@ -27,6 +33,18 @@ class YunnanCrawler(object):
 			'Accept-Encoding': 'gzip, deflate',
 			'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
 			'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+
+		useproxy = UseProxy()
+		is_use_proxy = useproxy.get_province_is_use_proxy(province='guangxi')
+		if not is_use_proxy:
+			self.proxies = []
+		else:
+			proxy = Proxy()
+			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='guangxi')),
+						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='guangxi'))}
+		print 'self.proxies:', self.proxies		
+		# self.proxies = []
+
 		self.mydict = {'eareName':'http://www.ahcredit.gov.cn',
 				'search':'http://gsxt.ynaic.gov.cn/notice/',
 				'searchList':'http://gsxt.ynaic.gov.cn/notice/search/ent_info_list',
@@ -68,13 +86,13 @@ class YunnanCrawler(object):
 		self.result_json_dict = {}
 
 	def get_check_num(self):
-		resp = self.reqst.get(self.mydict['search'], timeout = 120)
+		resp = self.reqst.get(self.mydict['search'], proxies=self.proxies, timeout = 120)
 		if resp.status_code != 200:
 			return None
 		first = resp.content.find('session.token":')
 		session_token = resp.content[first+17:first+53]
 
-		resp = self.reqst.get(self.mydict['validateCode'], timeout = 120)
+		resp = self.reqst.get(self.mydict['validateCode'], proxies=self.proxies, timeout = 120)
 		if resp.status_code != 200:
 			# print 'no validateCode'
 			return None
@@ -96,7 +114,7 @@ class YunnanCrawler(object):
 				count += 1
 				continue
 			data = {'searchType':'1','captcha':check_num, "session.token": session_token, 'condition.keyword':findCode}
-			resp = self.reqst.post(self.mydict['searchList'],data=data, timeout = 120)
+			resp = self.reqst.post(self.mydict['searchList'], data=data, proxies=self.proxies, timeout = 120)
 			if resp.status_code != 200:
 				# print resp.status_code
 				# print 'error...(get_id_num)'
@@ -104,10 +122,12 @@ class YunnanCrawler(object):
 				continue
 			else:
 				try:
-					soup = BeautifulSoup(resp.content).find_all('div', attrs={'class':'link'})[0]
+					soup = BeautifulSoup(resp.content, 'html.parser').find_all('div', attrs={'class':'link'})[0]
 					hrefa = soup.find('a', attrs={'target':'_blank'})
 					if hrefa:
-						return hrefa['href'].split('&')[0]
+						self.after_crack_checkcode_page = resp.content
+						return True
+						# return hrefa['href'].split('&')[0]
 					else:
 						count += 1
 						continue
@@ -133,9 +153,9 @@ class YunnanCrawler(object):
 		pass
 
 	def get_tables(self, url):
-		resp = self.reqst.get(url, timeout = 120)
+		resp = self.reqst.get(url, proxies=self.proxies, timeout = 120)
 		if resp.status_code == 200:
-			return BeautifulSoup(resp.content).find_all('table')
+			return BeautifulSoup(resp.content, 'html.parser').find_all('table')
 			#return [table for table in tables] #if (table.find_all('th') or table.find_all('a')) ]
 	def get_head_ths_tds(self, table):
 		head = table.find_all('th')[0].get_text().strip().split('\n')[0].strip()
@@ -147,7 +167,7 @@ class YunnanCrawler(object):
 					tddict = {}
 					detail_head, detail_allths, detail_alltds = self.get_head_ths_tds(self.get_tables(td.a['href'])[0])
 					if detail_head == u'股东及出资信息':
-						detail_content = self.reqst.get(td.a['href'], timeout = 120).content
+						detail_content = self.reqst.get(td.a['href'], proxies=self.proxies, timeout = 120).content
 						detail_alltds = self.get_re_list_from_content(detail_content)
 					# print '---------------------------', len(detail_allths[:3]+detail_allths[5:]), len(detail_alltds)
 						# tddict = self.get_one_to_one_dict(detail_allths[:3]+detail_allths[5:], detail_alltds)
@@ -260,7 +280,7 @@ class YunnanCrawler(object):
 				self.result_json_dict[mydict[head]] = self.get_one_to_one_dict(allths, alltds)[0]
 			if head == u'清算信息':
 				if allths:
-					self.result_json_dict[mydict[head]] = self.get_one_to_one_dict(allths, alltds)[0]
+					self.result_json_dict[mydict[head]] = self.get_one_to_one_dict(allths, alltds)
 				else:
 					self.result_json_dict[mydict[head]] = []
 			#self.test_print_all_ths_tds(head, allths, alltds)
@@ -290,35 +310,84 @@ class YunnanCrawler(object):
 
 	def run(self, findCode):
 
-		self.ent_number = str(findCode)
+		self.ent_number = findCode
+
+		id_args =	CrawlerDownloadArgs.objects.filter(register_number=self.ent_number).first() \
+					or CrawlerDownloadArgs.objects.filter(unifield_number=self.ent_number).first() \
+					or CrawlerDownloadArgs.objects.filter(enterprise_name=self.ent_number).first()
+		print id_args
+		if id_args and id_args.download_args.get('uuid'):
+			self.result_json_dict = {}
+			self.uuid = id_args.download_args['uuid']
+
+			tableone = self.get_tables(self.uuid + '&tab=01')
+			self.get_json_one(self.one_dict, tableone)
+			tabletwo = self.get_tables(self.uuid + '&tab=02')
+			self.get_json_two(self.two_dict, tabletwo)
+			tablethree = self.get_tables(self.uuid + '&tab=03')
+			self.get_json_three(self.three_dict, tablethree)
+			tablefour = self.get_tables(self.uuid + '&tab=06')
+			self.get_json_four(self.four_dict, tablefour)
+
+			CrawlerUtils.json_dump_to_file('yunnan.json', {self.ent_number: self.result_json_dict})
+			print json.dumps({self.ent_number:self.result_json_dict})
+			return [{self.ent_number:self.result_json_dict}]
+		else:
 		#创建目录
-		html_restore_path = self.json_restore_path + '/yunnan/'
-		if not os.path.exists(html_restore_path):
-			os.makedirs(html_restore_path)
+			html_restore_path = self.json_restore_path + '/yunnan/'
+			if not os.path.exists(html_restore_path):
+				os.makedirs(html_restore_path)
 
-		self.uuid = self.get_id_num(findCode)
-		if self.uuid is None:
-			return json.dumps({self.ent_number:{}})
-		# print self.uuid
-		self.result_json_dict = {}
+			self.uuid = self.get_id_num(findCode)
+			if self.uuid is None:
+				return json.dumps({self.ent_number:{}})
+			self.result_json_dict_list = []
+			for div in BeautifulSoup(self.after_crack_checkcode_page, 'html.parser').find_all('div', attrs={'class':'list-item'}):
+				hrefa = div.find_all('a', attrs={'target':'_blank'})[0]
+				if hrefa:
+					self.uuid = hrefa['href'].split('&')[0]
+					self.enterprise_name = div.find_all('div', attrs={'class':'link'})[0].get_text().strip()
+					self.ent_number = div.find_all('span')[0].get_text().strip()
 
-		tableone = self.get_tables(self.uuid + '&tab=01')
-		self.get_json_one(self.one_dict, tableone)
-		tabletwo = self.get_tables(self.uuid + '&tab=02')
-		self.get_json_two(self.two_dict, tabletwo)
-		tablethree = self.get_tables(self.uuid + '&tab=03')
-		self.get_json_three(self.three_dict, tablethree)
-		tablefour = self.get_tables(self.uuid + '&tab=06')
-		self.get_json_four(self.four_dict, tablefour)
-		# CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.result_json_dict})
-		return json.dumps({self.ent_number:self.result_json_dict})
-"""
+					args = 	CrawlerDownloadArgs.objects.filter(register_number=self.ent_number)\
+								or CrawlerDownloadArgs.objects.filter(unifield_number=self.ent_number).first() \
+								or CrawlerDownloadArgs.objects.filter(enterprise_name=self.ent_number).first()
+					if args:
+						args.delete()
+					args = CrawlerDownloadArgs(
+						province='yunnan',
+						register_number=self.ent_number,
+						unifield_number=self.ent_number,
+						enterprise_name=self.enterprise_name,
+						download_args={'uuid':self.uuid}
+						)
+					args.save()
+				else:
+					continue
+				print self.uuid
+				self.result_json_dict = {}
+
+				tableone = self.get_tables(self.uuid + '&tab=01')
+				self.get_json_one(self.one_dict, tableone)
+				tabletwo = self.get_tables(self.uuid + '&tab=02')
+				self.get_json_two(self.two_dict, tabletwo)
+				tablethree = self.get_tables(self.uuid + '&tab=03')
+				self.get_json_three(self.three_dict, tablethree)
+				tablefour = self.get_tables(self.uuid + '&tab=06')
+				self.get_json_four(self.four_dict, tablefour)
+
+				CrawlerUtils.json_dump_to_file('yunnan.json', {self.ent_number: self.result_json_dict})
+				print json.dumps({self.ent_number:self.result_json_dict})
+				self.result_json_dict_list.append({self.ent_number:self.result_json_dict})
+			return self.result_json_dict_list
+
 if __name__ == '__main__':
 	yunnan = YunnanCrawler('./enterprise_crawler/yunnan.json')
 	# yunnan.run('530000000006503')
-	f = open('enterprise_list/yunnan.txt', 'r')
-	for line in f.readlines():
-		print line.split(',')[2].strip()
-		yunnan.run(str(line.split(',')[2]).strip())
-	f.close()
-"""
+	yunnan.run(u'美好置业集团股份有限公司')
+	# f = open('enterprise_list/yunnan.txt', 'r')
+	# for line in f.readlines():
+	# 	print line.split(',')[2].strip()
+	# 	yunnan.run(str(line.split(',')[2]).strip())
+	# f.close()
+
