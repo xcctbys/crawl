@@ -3,7 +3,7 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import re
 import codecs
 import json
@@ -16,7 +16,7 @@ import requests
 import logging
 from crawler import Crawler, Parser
 from bs4 import BeautifulSoup
-from smart_proxy.api import Proxy, UseProxy
+# from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 DEBUG = False
@@ -59,7 +59,7 @@ class CrackCheckcode(object):
 			return None
 		with open(self.info.ckcode_image_path, 'wb') as f:
 			f.write(resp.content)
-
+		print 'self.info.ckcode_image_path:', self.info.ckcode_image_path
 		ck_code = self.info.code_cracker.predict_result(self.info.ckcode_image_path)
 		print ck_code
 		if not ck_code is None:
@@ -115,17 +115,17 @@ class CrackCheckcode(object):
 # 自己的爬取类，继承爬取类
 class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
-		useproxy = UseProxy()
-		is_use_proxy = useproxy.get_province_is_use_proxy(province='anhui')
-		if not is_use_proxy:
-			self.proxies = []
-		else:
-			proxy = Proxy()
-			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='anhui')),
-						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='anhui'))}
-		print 'self.proxies:', self.proxies
+		# useproxy = UseProxy()
+		# is_use_proxy = useproxy.get_province_is_use_proxy(province='anhui')
+		# if not is_use_proxy:
+		# 	self.proxies = []
+		# else:
+		# 	proxy = Proxy()
+		# 	self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='anhui')),
+		# 				'https':'https://'+random.choice(proxy.get_proxy(num=5, province='anhui'))}
+		# print 'self.proxies:', self.proxies
 
-		# self.proxies = []
+		self.proxies = []
 
 		self.info = info
 		self.parser = MyParser(info=self.info)
@@ -209,7 +209,10 @@ class MyParser(Parser):
 					tds.append(td.get_text().strip() if td.get_text() else None)
 			
 		else:
-			tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
+			try:
+				tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
+			except Exception as e:
+				tds = []
 		
 		print 'len(tds):', len(tds)
 		for td in tds:
@@ -243,6 +246,7 @@ class MyParser(Parser):
 						#print i,'no next'
 						return (tables[i], tables[i+1], False)
 			except AttributeError:
+				return ([], [], False)
 				pass
 
 	def parser_ent_pub_ent_annual_report(self, content):  #单独解析企业年报详情页面。
@@ -283,6 +287,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_reg_shareholder', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 股东信息表----------------'
 		if is_next_page:
 			pass
@@ -300,6 +305,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_reg_modify', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现变更信息表----------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_reg_modify', content=next_table)
@@ -313,6 +319,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_arch_key_persons', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现变 主要人员信息----------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_arch_key_persons', content=next_table)
@@ -324,6 +331,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_arch_branch', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 分支机构信息----------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_arch_branch', content=next_table)
@@ -335,6 +343,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_arch_liquidation', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 清算信息---------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_arch_liquidation', content=next_table)
@@ -348,6 +357,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_movable_property_reg', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 动产抵押登记信息---------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_movable_property_reg', content=next_table)
@@ -361,6 +371,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_equity_ownership_reg', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 股权出质登记信息---------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_equity_ownership_reg', content=next_table)
@@ -374,6 +385,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_administration_sanction', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 行政处罚信息---------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_administration_sanction', content=next_table)
@@ -387,6 +399,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_business_exception', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 经营异常信息---------------'
 		if is_next_page:
 			pass
@@ -400,6 +413,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_serious_violate_law', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 严重违法信息---------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_serious_violate_law', content=next_table)
@@ -413,6 +427,7 @@ class IndustrialPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ind_comm_pub_spot_check', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 抽查检查信息---------------'
 		if is_next_page:
 			tds = self.parser.parser_classic_tds_from_exists_table(what='ind_comm_pub_spot_check', content=next_table)
@@ -443,6 +458,7 @@ class EnterprisePubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ent_pub_ent_annual_report', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 企业年报---------------'
 		if is_next_page:
 			pass
@@ -456,10 +472,16 @@ class EnterprisePubliction(object):
 		pass
 	# 股东及出资信息
 	def get_shareholder_contribution_info(self, *args, **kwargs):
-		table, next_table, is_next_page = self.parser.parser_get_a_table_by_head([u'股东及出资信息'])
+		try:
+			table, next_table, is_next_page = self.parser.parser_get_a_table_by_head([u'股东及出资信息'])
+		except Exception as e:
+			print e
+			self.info.result_json['ent_pub_shareholder_capital_contribution'] = []
+			return 
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ent_pub_shareholder_capital_contribution', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 股东及出资信息---------------'
 		if is_next_page:
 			pass
@@ -473,6 +495,7 @@ class EnterprisePubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ent_pub_equity_change', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 股权变更信息---------------'
 		if is_next_page:
 			pass
@@ -486,6 +509,7 @@ class EnterprisePubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ent_pub_administration_license', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 行政许可信息---------------'
 		if is_next_page:
 			pass
@@ -499,6 +523,7 @@ class EnterprisePubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ent_pub_knowledge_property', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 知识产权出质登记信息---------------'
 		if is_next_page:
 			pass
@@ -512,6 +537,7 @@ class EnterprisePubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ent_pub_administration_sanction', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 行政处罚信息---------------'
 		if is_next_page:
 			pass
@@ -541,6 +567,7 @@ class OtherDepartmentsPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='other_dept_pub_administration_license', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 行政许可信息---------------'
 		if is_next_page:
 			pass
@@ -554,6 +581,7 @@ class OtherDepartmentsPubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='other_dept_pub_administration_sanction', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 行政处罚信息---------------'
 		if is_next_page:
 			pass
@@ -579,6 +607,7 @@ class JudicialAssistancePubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='judical_assist_pub_equity_freeze', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 股权冻结信息---------------'
 		if is_next_page:
 			pass
@@ -592,6 +621,7 @@ class JudicialAssistancePubliction(object):
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='judical_assist_pub_shareholder_modify', content=table)
 		else:
+			ths = []
 			print u'---------在工商公示信息里登记信息中没有发现 股东变更信息---------------'
 		if is_next_page:
 			pass
@@ -626,6 +656,7 @@ class AnhuiCrawler(object):
 			print 'error,the register is not valid...........'
 			return
 		# print 'self.info.mainId:', self.info.mainId
+		self.info.result_json_list = []
 		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs={'class':'list'}):
 			# print item_page
 			print self.info.ent_number
@@ -657,6 +688,7 @@ class AnhuiCrawler(object):
 			judical.run()
 
 			self.json_dump_to_file('anhui.json', {self.info.ent_number: self.info.result_json})
+			self.info.result_json_list.append({self.info.ent_number: self.info.result_json})
 		return self.info.result_json_list
 		
 class TestAnhuiCrawler(unittest.TestCase):
@@ -692,6 +724,6 @@ if __name__ == '__main__':
 	else:
 		crawler = AnhuiCrawler('./enterprise_crawler/anhui.json')
 		ent_list = [u'340100001355674']
-		# ent_list = [u'信用']
+		ent_list = [u'安徽省徽商集团化轻股份有限公司']
 		for ent_number in ent_list:
 			crawler.run(ent_number=ent_number)
