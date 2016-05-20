@@ -34,7 +34,7 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'KEY_PREFIX': "crawler",
         'LOCATION': [
-            '127.0.0.1:11211',
+            '172.16.80.5:11211',
         ],
     }
 }
