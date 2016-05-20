@@ -34,7 +34,7 @@ class InitInfo(object):
 		self.html_restore_path = settings.json_restore_path + '/jiangsu/'
 		# 验证码图片的存储路径
 		self.ckcode_image_path = settings.json_restore_path + '/jiangsu/ckcode.jpg'
-		if not os.path.exists(self.ckcode_image_path):
+		if not os.path.exists(os.path.dirname(self.ckcode_image_path)):
 			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		self.code_cracker = CaptchaRecognition('jiangsu')
 		#多线程爬取时往最后的json文件中写时的加锁保护

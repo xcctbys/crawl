@@ -3,7 +3,7 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
+# sys.path.append('/Users/princetechs3/Documents/pyenv/cr-clawer/clawer')
 import requests
 import re
 import os,os.path
@@ -24,7 +24,7 @@ class YunnanCrawler(object):
 		self.reqst = requests.Session()
 		self.json_restore_path = json_restore_path
 		self.ckcode_image_path = settings.json_restore_path + '/yunnan/ckcode.jpg'
-		if not os.path.exists(self.ckcode_image_path):
+		if not os.path.exists(os.path.dirname(self.ckcode_image_path)):
 			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		self.result_json_dict = {}
 		self.code_cracker = CaptchaRecognition('yunnan')
