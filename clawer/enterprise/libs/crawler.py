@@ -144,22 +144,24 @@ class Crawler(object):
     code_cracker = None
 
     def __init__(self):
-        pass
-
-    def run(self, ent_number=0):
-        self.ent_number = str(ent_number)
-
-
         self.reqst = requests.Session()
         self.reqst.headers.update({
-                'Accept': 'text/html, application/xhtml+xml, */*',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+                'Content-Type' : 'application/x-www-form-urlencoded',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+        adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
+        self.reqst.mount('http://', adapter)
+        self.json_dict = {}
 
+        print "In Crawler"
+
+    def run(self, _ent):
+        self._ent = str(_ent)
         if not self.crawl_check_page():
-            logging.error('crack check code failed, stop to crawl enterprise %s' % self.ent_number)
-            return
+            logging.error('crack check code failed, stop to crawl enterprise %s' % self._ent)
+            return json.dumps([{self._ent: None}])
         time.sleep(random.uniform(1, 3))
         sub_json_list = []
         gevent.monkey.patch_socket()

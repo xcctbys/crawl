@@ -295,22 +295,22 @@ class Crawler(object):
         self.crawl_judical_assist_pub_pages(url, 2, post_data)
         return self.json_dict
 
-    def run_asyn(self, ent):
+    def run_asyn(self, url):
         gevent.monkey.patch_socket()
         threads=[]
-        url = ent
         # cookies = get_cookie(url)
         # print cookies
         # cookies = {"__jsluid":"0310175ec8b141ee15613e2c0ad95dfe" , "__jsl_clearance":"1463469056.082|0|I2ZEEWsFDuyXH0KYg1GV1Xe9JkE%3D"}
         # for key, value in cookies.items():
         #     self.request.cookies[str(key)] = str(value)
         # heads={}
-        cookies="__jsluid=0310175ec8b141ee15613e2c0ad95dfe;__jsl_clearance=1463469056.082|0|I2ZEEWsFDuyXH0KYg1GV1Xe9JkE%3D"
-        self.request.headers["Cookie"] = str(cookies)
+        # cookies="__jsluid=0310175ec8b141ee15613e2c0ad95dfe;__jsl_clearance=1463469056.082|0|I2ZEEWsFDuyXH0KYg1GV1Xe9JkE%3D"
+        # self.request.headers["Cookie"] = str(cookies)
+
         # heads['Cookie'] = str(cookies)
         page_entInfo = self.request_by_method('GET', url)
-        print page_entInfo
-        print self.request.cookies.keys()
+        # print page_entInfo
+        # print self.request.cookies.keys()
         if not page_entInfo:
             logging.error("Can't get page %s ."%(url))
             return {}
