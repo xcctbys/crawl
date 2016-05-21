@@ -26,7 +26,7 @@ class StructureConfig(Document):
     job = ReferenceField(Job)
     parser = ReferenceField(Parser)
 
-class StructrueConfigExtracter(Document):
+class ExtracterStructureConfig(Document):
     job = ReferenceField(Job)
     extracter = ReferenceField(Extracter)
 

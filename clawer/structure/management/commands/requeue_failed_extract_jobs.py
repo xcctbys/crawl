@@ -1,9 +1,9 @@
 import rq
 from django.conf import settings
-from structure.structure import ExtracterConsts, ExtracterGenerator, StructureConfigExtracter, ExtracterGenerator
+from structure.structure import ExtracterConsts, ExtracterGenerator, ExtracterStructureConfig, ExtracterGenerator
 from html5helper.utils import wrapper_raven
 from django.core.management.base import BaseCommand
-from structure.models import CrawlerAnalyzedData CrawlerExtracterInfo
+from structure.models import CrawlerAnalyzedData, CrawlerExtracterInfo
 from collector.models import CrawlerTask
 from mongoengine import *
 import logging
@@ -15,10 +15,10 @@ except:
     redis_url = None
 
 connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
-too_high_queue = rq.Queue(Consts.QUEUE_PRIORITY_TOO_HIGH, connection = connection)
-high_queue = rq.Queue(Consts.QUEUE_PRIORITY_HIGH, connection = connection)
-normal_queue = rq.Queue(Consts.QUEUE_PRIORITY_NORMAL, connection = connection)
-low_queue = rq.Queue(Consts.QUEUE_PRIORITY_LOW, connection = connection)
+too_high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection = connection)
+high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_HIGH, connection = connection)
+normal_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_NORMAL, connection = connection)
+low_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_LOW, connection = connection)
 
 def requeue_failed_jobs():
 	extracter_generator = ExtracterGenerator()
@@ -37,21 +37,21 @@ def requeue_failed_jobs():
 			pass
 		else:
 			failed_job_data = extracter_generator.get_task_analyzed_data(failed_task)
-                        structureconfigextracter = StructureConfigExtracter.objects(job=data.crawler_task.job).first()
-                        failed_job_conf = structureconfigextracter.extracter.extracter_config
+                        extracterstructureconfig= ExtracterStructureConfig.objects(job=data.crawler_task.job).first()
+                        failed_job_conf = extracterstructureconfig.extracter.extracter_config
 			failed_job_priority = extracter_generator.get_task_priority(failed_task)
 			q = None
-			if failed_job_priority == Consts.QUEUE_PRIORITY_TOO_HIGH:
+			if failed_job_priority == ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH:
 				q = too_high_queue
-			elif failed_job_priority == Consts.QUEUE_PRIORITY_HIGH:
+			elif failed_job_priority == ExtracterConsts.QUEUE_PRIORITY_HIGH:
 				q = high_queue
-			elif failed_job_priority == Consts.QUEUE_PRIORITY_NORMAL:
+			elif failed_job_priority == ExtracterConsts.QUEUE_PRIORITY_NORMAL:
 				q = normal_queue
-			elif failed_job_priority == Consts.QUEUE_PRIORITY_LOW:
+			elif failed_job_priority == ExtracterConsts.QUEUE_PRIORITY_LOW:
 				q = low_queue
 			else:
 				q = low_queue
-			if (q.count + 1) > Consts.QUEUE_MAX_LENGTH:
+			if (q.count + 1) > ExtracterConsts.QUEUE_MAX_LENGTH:
 				logging.error("Cannot requeue extract job because the queue: %s is full" % q.name)
 				print "Cannot requeue extract job because the queue: %s is full" % q.name
 				return None
