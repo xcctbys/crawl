@@ -443,14 +443,41 @@ service memcached start
 ./redis-server
 ./mongod
 
+##单模块测试添加数据
+使用Django Shell:
+	python manage.py shell
+运行函数添加数据：
+	from structure.structure import insert_test_data
+	from structure.structure import empty_test_data
+	empty_test_data()
+	insert_test_data()
+查看数据，打开mongodb：
+	use source
+	show tables #看到生成job，crawler_task, crawler_download和crawler_download_data
+进入MySQL中查看生成的数据：
+	mysql -u cacti -p
+	#输入密码cacti
+	show databases；
+	use clawer;
+	show tables;#其中可以看到生成的parser和structure_config两张表
+	show columns from parser #或structure_config
+	select parser_id from parser #选择某一列进行查看
+单模块测试的数据就插入完成了。
+
 ##添加一个Job并为之配置下载器、生成器和解析器
 使用Django Shell:
 	python manage.py shell
 输入指令：
-	from structure.tests.test_structure import test_insert_job_with_parser
-	test_insert_job_with_parser(text, settings)
-test_insert_job_with_parser函数是重写insert_text_without_job，添加了解析器与Job一起绑定生成的功能
-
+	from structure.tests.test_structure import insert_job
+	#该函数的参数表已经改成了（name, text, parser_text, settings）
+	#test_insert_job_with_parser函数是重写insert_text_without_job函数，请参照子阳的文档先获取好text和settings参数
+接下来获取其他参数：
+	import os
+	parser_file = open("~/Projects/cr-clawer/clawer/structure/parsers/template.py")#你的项目目录
+	parser_text = parser_file.read()
+	name = "test" #可随意取名字
+运行函数生成job和生成下载解析器：
+	insert_job(name, text, parser_text, settings)
 ##分发解析任务
 输入指令：
 	python manage.py task_parser_dispatch
@@ -466,7 +493,7 @@ test_insert_job_with_parser函数是重写insert_text_without_job，添加了解
 	./run_structure_local   #开启rq worker执行
 输入：无
 输出：开启worker执行指定队列名中的任务，成功则向MongoDB中写入解析结果，通过以下指令查看：
-	use default
+	use structure
 	db.crawler_analyzed_data.find()
 成功解析的CrawlerTask任务状态变为解析成功，通过以下指令查看：
 	use source

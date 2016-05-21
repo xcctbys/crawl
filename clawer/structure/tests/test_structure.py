@@ -4,15 +4,17 @@ from django.test import TestCase
 from mongoengine import *
 import random
 import os
+import django.utils
 #import commands
 # from django.test.client import Client
 # from django.core.urlresolvers import reverse
 # from django.contrib.auth.models import User as DjangoUser, Group
-# from django.conf import settings
-from structure.models import Parser, CrawlerAnalyzedData
+from django.conf import settings
+from structure.models import Parser, StructureConfig, CrawlerAnalyzedData
 from collector.utils_generator import DataPreprocess
-from collector.models import (Job,
-                                 CrawlerTask,
+from collector.models import Job as JobMongoDB
+from storage.models import Job as JobMySQL
+from collector.models import (CrawlerTask,
                                  CrawlerDownloadData,
                                  CrawlerDownloadType,
                                  CrawlerDownload,
@@ -27,38 +29,47 @@ from structure.structure import (StructureGenerator,
                                  empty_test_data,
                                  parser_func,
                                  Consts)
-
-def test_insert_job_with_parser(text, settings):
+#Vertical Test
+def insert_job(name, text, parser_text, settings):
+    # name = "enterprise"
     prior = random.randint(-1, 5)
-
-    onetype = CrawlerDownloadType(language='other', is_support=True)
+    #Downloader
+    onetype = CrawlerDownloadType(language = 'other', is_support= True)
     onetype.save()
-    job = Job(name = name, info="", priority= prior)
-    job.save()
+    #Job
+    job_mongodb = JobMongoDB(name = name, info = "", priority = prior)
+    job_mongodb.save()
+    job_mysql = JobMySQL(name = name, info = "", priority = prior)
+    job_mysql.save()
+    #Generator
     script = """import json\nprint json.dumps({'uri':"http://www.baidu.com"})"""
     cron = "* * * * *"
     code_type = CrawlerTaskGenerator.TYPE_PYTHON
-    schemes=['http', 'https']
-    generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+    schemes = ['http', 'https']
+    generator = CrawlerTaskGenerator(job = job_mongodb, code = script, code_type = code_type, schemes = schemes, cron = cron)
     generator.save()
-    cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+    #Downloader
+    cds1 = CrawlerDownloadSetting(job = job_mongodb, proxy = '122', cookie = '22', dispatch_num = 50)
     cds1.save()
-    cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+    cd1 = CrawlerDownload(job = job_mongodb, code = 'codestr2', types = onetype)
     cd1.save()
-    dp = DataPreprocess(job.id)
-    dp.save(text =text, settings =  settings)
-
-    parser_script = """class RawParser(object):
-    def parser(self, crawlerdownloaddata):
-        data = "JSON Format Data After Parsing"
-        return data"""
-
-    parser_id = 0
-    parser = Parser(parser_id, parser_script)
+    #Generator
+    dp = DataPreprocess(job_mongodb.id)
+    dp.save(text = text, settings = settings)
+    #Structure
+    parser = Parser(
+        parser_id = name,
+        python_script = parser_text,
+        update_date = django.utils.timezone.now())
     parser.save()
-    structureconfig = StructureConfig(job = job, parser = parser, db_xml = None)
+    structureconfig = StructureConfig(
+        job_copy_id = job_mongodb.id,
+        job = job_mysql,
+        parser = parser,
+        update_date = django.utils.timezone.now())
     structureconfig.save()
 
+#Unittest
 class TestStructureGenerator(TestCase):
     def setUp(self):
         TestCase.setUp(self)
@@ -205,7 +216,6 @@ class TestExtracterGenerator(TestCase):
 
     def test_get_extracter_db_config(self):
         pass
-
 
 class TestExecutionTasks(TestCase):
     def test_exec_task(self):
