@@ -17,6 +17,7 @@ import pwd
 import traceback
 import datetime
 import MySQLdb
+import redis
 
 
 HOST = 'csciwlpc.mysql.rds.aliyuncs.com'                                           # 全局变量设置MySQL的HOST USER等
@@ -27,6 +28,13 @@ MYSQL_DB = 'csciwlpc'
 STEP = 1                                                                           # 每个step取10个
 ROWS = 10
 
+REDIS_HOST = '13153c2b13894978.m.cnsza.kvstore.aliyuncs.com'                       # 全局变量，设置Redis的HOST，USER,TABLE
+REDIS_PORT = 6379
+REDIS_DB = 1
+REDIS_USER = ""
+REDIS_PWD = "Password123"
+REDIS_TABLE = 'history_enterprise'
+
 DEBUG = False
 if DEBUG:
     level = logging.DEBUG
@@ -36,25 +44,26 @@ else:
 logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
 
-class History(object):
+class History(object):                                                             # 实现程序的可持续性，每次运行时读取上次
 
     def __init__(self):
+        # self.company_num = 0                                                     # 初始化pickle中用作公司名称位置索引值
         self.total_page = 0
         self.current_page = 0
-        self.path = "/tmp/qyxy"
 
-    def load(self):
-        if os.path.exists(self.path) is False:
+    def load(self):                                                                # redis记录的载入
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER+':'+REDIS_PWD)
+        if not r.hgetall(REDIS_TABLE):
             return
-
-        with open(self.path, "r") as f:
-            old = pickle.load(f)
-            self.total_page = old.total_page
-            self.current_page = old.current_page
+        r_dict = r.hgetall(REDIS_TABLE)
+        self.total_page = int(r_dict.get("total_page"))
+        self.current_page = int(r_dict.get("current_page"))
 
     def save(self):
-        with open(self.path, "w") as f:
-            pickle.dump(self, f)
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER+':'+REDIS_PWD)
+        r.hset(REDIS_TABLE, 'total_page', self.total_page)
+        r.hset(REDIS_TABLE, 'current_page', self.current_page)
+        #print r.hgetall(REDIS_TABLE)
 
 choices = (
         u"安徽",

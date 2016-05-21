@@ -9,7 +9,7 @@ import rq
 from mongoengine import *
 
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
-from models import StructureConfig, StructureConfigExtracter, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
+from models import StructureConfig, ExtracterStructureConfig, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
 from django.conf import settings
 #from django.models import model_to_dict
 import django
@@ -235,7 +235,6 @@ class ExtracterGenerator(StructureGenerator):
         """分配所有导出任务"""
         tasks = self.filter_parsed_tasks()
         for task in tasks:
-            print 'assing 1 task............'
             priority = self.get_task_priority(task)
             # db_conf = self.get_extracter_db_config(task)
             # mappings = self.get_extracter_mappings(task)
@@ -245,7 +244,6 @@ class ExtracterGenerator(StructureGenerator):
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
-                print 'add extract task succeed'
                 logging.info("Add extract task succeed")
             except:
                 logging.error("Assign extract task runtime error.")
@@ -255,31 +253,37 @@ class ExtracterGenerator(StructureGenerator):
     def assign_extract_task(self, priority, extract_function, conf, data):
         """分配一项导出任务"""
         try:
-            print 'assign one task into queue'
             extract_job_id = self.queuegenerator.enqueue(priority, extract_function, args=[conf, data])
             if not extract_job_id:
                 return None
             else:
                 CrawlerExtracterInfo(extract_task=data.crawler_task, update_date=datetime.datetime.now()).save()
+                print 'assing task %s succeed !' % extract_job_id
                 logging.info("Extract task successfully added")
                 return extract_job_id
         except:
-            print 'ERROR occur when assign one task into queue'
             logging.error("Error assigning extract task when enqueuing")
 
     def get_extracter_conf(self, data):
-        """获取导出器配置"""
-        structureconfig = StructureConfigExtracter.objects(job=data.crawler_task.job).first()
+        """获取导出器配置
+            参数data为一条JSON格式源数据, str类型"""
+        extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first() # 获取导出器配置 
         
-        if structureconfig:
+        if extracterstructureconfig:
             try:
-                extracter_conf = structureconfig.extracter.extracter_config
-                print 'get extracter_conf success'
+                extracter_conf = extracterstructureconfig.extracter.extracter_config  # extracter_conf 为字符串格式的配置
+                # extracter_conf_dict = STR_TO_DICT(extracter_conf)  # 需实现 STR_TO_DICT
             except Exception as e:
                 logging.error('Get extracter config error')
                 raise e
-            return extracter_conf
+            return extracter_conf_dict
 
+    @classmethod
+    def extract_fields(self, extracter_conf, data):
+        """生成sql语句并导出字段"""
+        print 'starting extract fields!'
+        print '♫' * 30
+        return True
 
     @classmethod
     def extracter(self, conf, data):
@@ -328,12 +332,6 @@ class ExtracterGenerator(StructureGenerator):
 
     # def if_not_exist_create_db_schema(self, conf):
         # pass
-    @classmethod
-    def extract_fields(self, extracter_conf, data):
-        print 'starting extract fields!'
-        print '♫' * 30
-        return True
-        pass
 
 
 class ExecutionTasks(object):
@@ -425,8 +423,8 @@ class TestExtracter(object):
 
     def insert_extracter_test_data(self):
 
-        config = open('structure/json_to_sql/gs_table_conf.json').read()
-        analyzeddata=open('structure/json_to_sql/a.json').read()
+        config = open('structure/extracters/gs_table_conf.json').read()
+        analyzeddata=open('structure/extracters/a.json').read()
 
 
         for count in range(50):
@@ -446,7 +444,7 @@ class TestExtracter(object):
             test_crawlertask = CrawlerTask(test_job, uri="test_uri_%d" % count, status=7)
             test_crawlertask.save()
             
-            StructureConfigExtracter(job=test_job, extracter=test_extracter).save()
+            ExtracterStructureConfig(job=test_job, extracter=test_extracter).save()
 
             CrawlerAnalyzedData(crawler_task=test_crawlertask, analyzed_data=analyzeddata).save()
         print "Extracter Test Data Inserted"
@@ -456,7 +454,7 @@ class TestExtracter(object):
         Job.drop_collection()
         Extracter.drop_collection()
         CrawlerTask.drop_collection()
-        StructureConfigExtracter.drop_collection()
+        ExtracterStructureConfig.drop_collection()
         CrawlerAnalyzedData.drop_collection()
         CrawlerExtracterInfo.drop_collection()
         print "Extracter Test Data Cleaned!"
