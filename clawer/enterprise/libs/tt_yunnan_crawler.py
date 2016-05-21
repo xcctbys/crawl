@@ -24,7 +24,7 @@ class YunnanCrawler(object):
 		self.reqst = requests.Session()
 		self.json_restore_path = json_restore_path
 		self.ckcode_image_path = settings.json_restore_path + '/yunnan/ckcode.jpg'
-		if not os.path.exists(self.ckcode_image_path):
+		if not os.path.exists(os.path.dirname(self.ckcode_image_path)):
 			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		self.result_json_dict = {}
 		self.code_cracker = CaptchaRecognition('yunnan')

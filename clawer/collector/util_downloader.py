@@ -8,6 +8,7 @@ import time
 import socket
 import json
 import threading
+import random
 from collector.models import CrawlerDownloadType, CrawlerTask, Job, CrawlerTaskGenerator, CrawlerDownloadSetting, CrawlerDownload, CrawlerDownloadData, CrawlerDownloadLog
 from django.conf import settings
 from enterprise.utils import EnterpriseDownload
@@ -384,9 +385,23 @@ class Download(object):
 
 
 				if resp.headers.get('Content-Type', 'None') == 'application/pdf':
-					cdd.files_down.put(resp.text, content_type = 'pdf')
+						code = random.randrange(0, 100)
+						code =str(code)
+						path ='/tmp/'+code+'.pdf'
+						r = requests.get(self.task.uri, stream=True)
+						with open(path , 'wb') as fd:
+							for chunk in r.iter_content(8 * 1024):
+								fd.write(chunk)
+						cdd.files_down.put(resp.text, content_type = 'pdf')
 				if resp.headers.get('Content-Type', 'None') in ['image/jpeg','image/png','image/gif']:
-					cdd.files_down.put(resp.text, content_type = 'image/png')
+						code = random.randrange(0, 100)
+						code =str(code)
+						path ='/tmp/'+code+'.jpg'
+						r = requests.get(self.task.uri, stream=True)
+						with open(path , 'wb') as fd:
+							for chunk in r.iter_content(8 * 1024):
+								fd.write(chunk)
+						cdd.files_down.put(resp.text, content_type = 'image/png')
 
 				cdd.save()
 				# write_downloaddata_success_log_to_mongo
