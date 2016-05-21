@@ -9,7 +9,7 @@ import os
 # from django.core.urlresolvers import reverse
 # from django.contrib.auth.models import User as DjangoUser, Group
 # from django.conf import settings
-from structure.models import Parser, CrawlerAnalyzedData
+from structure.models import Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
 from collector.utils_generator import DataPreprocess
 from collector.models import (Job,
                                  CrawlerTask,
@@ -188,14 +188,42 @@ class TestQueueGenerator(TestCase):
                 pass
 
 class TestExtracterGenerator(TestCase):
-    def test_assign_tasks(self):
-        pass
+    def setUp(self):
+        TestCase.setUp(self)
+        self.test_extractergenerator = ExtracterGenerator()
+        self.test_count = CrawlerTask.objects.count()
 
-    def test_assign_task(self):
-        pass
+    def tearDown(self):
+        TestCase.tearDown(self)
 
-    def test_get_extracter(self):
-        pass
+    def test_assign_extract_task(self):
+        test_crawleranalyzeddata = CrawlerAnalyzedData.objects().first()
+        test_priority = test_crawleranalyzeddata.crawler_task.job.priority
+        test_extracter = self.test_extractergenerator.extracter
+        test_extract_job_id = self.test_extractergenerator.assign_extract_task(test_priority, test.extracter, test_crawleranalyzeddata)
+        test_assertIsNotNone(test_extract_job_id)
+
+    def test_assign_extract_tasks(self):
+        test_rq_queues = self.test_extractergenerator.assign_extract_tasks()
+        self.assertEqual(len(test_rq_queues), 4)
+        for test_rq_queue in test_rq_queues:
+            self.assertGreater(test_rq_queue.count, 0)
+            test_rq_queue.empty()
+    
+    def test_extract_function(self):
+        test_crawlertask = CrawlerTask.objects().first()
+        test_crawleranalyzeddata = CrawlerAnalyzedData.objects(crawler_task = test_crawlertask).first()
+        test_extracter = self.test_extractergenerator.extracter(test_crawlertask)
+        test_extracted_result = extracter(test_rawparser, test_crawlerdownloaddata)
+        test_extractedinfo = CrawlerExtracterInfo.objects(job=test_crawlertask.job)
+        self.assertTrue(test_extracted_result)
+        
+        if self.assertEqual(test_crawlertask.status, 9):
+            #Clean data
+            test_crawlertask.update(status=random.choice(range(1,10)))
+        else:
+            pass
+        test_crawlerextracteddata.delete()
 
     def test_if_not_exist_create_db_schema(self):
         pass
@@ -203,8 +231,6 @@ class TestExtracterGenerator(TestCase):
     def test_extract_fields(self):
         pass
 
-    def test_get_extracter_db_config(self):
-        pass
 
 
 class TestExecutionTasks(TestCase):

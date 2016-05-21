@@ -10,6 +10,7 @@ from mongoengine import (Document,
                               IntField,
                               StringField,
                               ReferenceField,
+                              BooleanField,
                               DateTimeField)
 
 
@@ -24,7 +25,11 @@ class Extracter(Document):
 class StructureConfig(Document):
     job = ReferenceField(Job)
     parser = ReferenceField(Parser)
+
+class StructrueConfigExtracter(Document):
+    job = ReferenceField(Job)
     extracter = ReferenceField(Extracter)
+
      
 class CrawlerAnalyzedData(Document):
     crawler_task = ReferenceField(CrawlerTask)
@@ -35,4 +40,5 @@ class CrawlerAnalyzedData(Document):
 class CrawlerExtracterInfo(Document):
     extract_task = ReferenceField(CrawlerTask)
     update_date = DateTimeField(default=datetime.datetime.now())
+    extracted_status = BooleanField(default=False)
     retry_times = IntField(default = 0)
