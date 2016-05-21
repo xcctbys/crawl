@@ -19,12 +19,18 @@ class JsonToSql(object):
         :param config: json文件源
         :return:解析后生成的字典
         """
-        config_json = open(config,'r+')
+        # config_json = open(config,'r+')
+        print '*******************************hhh'
+        # config = config.encode('utf8')
+        print type(config)
+        print '******************************zzz'
+        dict_json = None
         try:
-            dict_json = json.loads(config_json.read())
-        except:
+            dict_json = json.loads(config)
+        except Exception as e:
+            print e
             print 'json error'
-        config_json.close()
+        # config_json.close()
         return  dict_json
 
 
@@ -78,16 +84,14 @@ class JsonToSql(object):
         :param associated_field_path: 外键的路径
         :return: 无
         """
-        source_json = open(data, 'r+')  #guangxi.json数据源需要改成动态获取
-        for line in source_json:
-            source = json.loads(line)
-            # 获取许可证号，待改进
-            #for k in source.keys():
-            self.id = source.keys()[0]
-            #查询数据
-            self.get_data(source.values()[0], table_path, associated_field_path)
-            #print "result over",
-        source_json.close()
+        source = json.loads(data)
+        # 获取许可证号，待改进
+        #for k in source.keys():
+        self.id = source.keys()[0]
+        #查询数据
+        self.get_data(source.values()[0], table_path, associated_field_path)
+        #print "result over",
+        # source_json.close()
 
     def get_data(self, source, path, associated_field_path):
         """
@@ -171,10 +175,13 @@ class JsonToSql(object):
         :param export_file: 输出的sql文件
         :return: 无
         """
-        print 'hi, spider!'
+        print 'hi, test tables!'
         self.config_dic = self.parser_json(extracter_conf)
+        print 'json parser over'
         self.get_mapping()
+        print 'mapping  over'
         self.create_table_sql(export_file)
+        print 'table table over'
         pass
 
     def test_get_data(self, extracter_conf, data, export_file):
@@ -185,21 +192,27 @@ class JsonToSql(object):
         :param export_file: 输入的sql文件
         :return: 无
         """
-        print 'hi, spider!'
+        print 'hi, get data!'
         self.config_dic = self.parser_json(extracter_conf)
+        print 'json parser over'
         self.get_mapping()
+        print 'mapping  over'
         self.data_sql = open(export_file, 'w')
+        print 'open export file over'
         for k in self.mapping.keys():
             self.table_name = self.mapping[k]['dest_table']
             path = self.mapping[k]['source_path']
             associated_field_path = self.mapping[k]['associated_field_source_path']
+            print 'create data start'
+            type(data)
             self.create_data_sql(data, path, associated_field_path)
+            print 'data  over'
             self.tmp_dic.clear()
         self.data_sql.close()
         print 'over'
 
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
-    json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', './my_insert.sql')
-    json_to_sql.test_table('gs_table_conf.json', './my_table.sql')
+    json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', '/tmp/my_insert.sql')
+    json_to_sql.test_table('gs_table_conf.json', '/tmp/my_table.sql')
 

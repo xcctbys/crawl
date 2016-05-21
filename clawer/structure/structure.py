@@ -14,7 +14,7 @@ from django.conf import settings
 #from django.models import model_to_dict
 import django
 
-from json_to_sql import JsonToSql as SqlGenerator
+from extracters.sql_generator import JsonToSql as SqlGenerator
 
 class Consts(object):
     QUEUE_PRIORITY_TOO_HIGH = u"structure:higher"
@@ -216,10 +216,10 @@ def parser_func(data):
 
 class ExtracterGenerator(StructureGenerator):
 
+    sqlgenerator = SqlGenerator()        # 用于处理源数据生成sql，并导入关系数据库
     def __init__(self):
         self.queuegenerator = ExtracterQueueGenerator()
         self.queues = self.queuegenerator.rq_queues
-        self.sqlgenerator = SqlGenerator()        # 用于处理源数据生成sql，并导入关系数据库
         
     def get_task_priority(self, task):
         if task.job.priority == -1:
@@ -275,18 +275,30 @@ class ExtracterGenerator(StructureGenerator):
         if extracterstructureconfig:
             try:
                 extracter_conf = extracterstructureconfig.extracter.extracter_config  # extracter_conf 为字符串格式的配置
+                # print extracter_conf
+                print "*" * 100
                 # extracter_conf_dict = STR_TO_DICT(extracter_conf)  # 需实现 STR_TO_DICT
             except Exception as e:
                 logging.error('Get extracter config error')
-                raise e
-            return extracter_conf_dict
+            return extracter_conf
 
     @classmethod
     def extract_fields(self, extracter_conf, data):
         """生成sql语句并导出字段"""
         print 'starting extract fields!'
         print '♫' * 30
-        self.sqlgenerator.test_get_data(extracter_conf, data, './insert_data.sql')
+        print type(data)
+        print type(data)
+        print type(data.to_json())
+        # print dir(data)
+        # extracter_conf = str(extracter_conf)
+        # print type(extracter_conf.decode())
+        # print type(extracter_conf.decode())
+        print 'strat'
+        try:
+            self.sqlgenerator.test_get_data(extracter_conf.encode('utf8'), data.to_json(), '/tmp/insert_data.sql')
+        except Exception as e:
+            print e
         return True
 
     @classmethod
@@ -297,7 +309,9 @@ class ExtracterGenerator(StructureGenerator):
             return None
         try:
             # extracter_conf = self.get_extracter_conf()  # 获取一条与任务相关的导出器配置
+            print "#" * 100
             result = self.extract_fields(conf, data)
+            print "+" * 100
             if result:
                 data.crawler_task.update(status=9)  # status: 9导出成功, 8导出失败
                 crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
@@ -306,7 +320,7 @@ class ExtracterGenerator(StructureGenerator):
         except Exception as e:
             data.crawler_task.update(status=8) 
             logging.error('Extract fields error')
-            raise e
+            print e
         return True
 
 
@@ -335,7 +349,7 @@ class ExtracterGenerator(StructureGenerator):
         # return extracter
 
     def if_not_exist_create_db_schema(self, conf):
-        self.sqlgenerator.test_table(conf, './my_table.sql')
+        self.sqlgenerator.test_table(conf, '/tmp/my_table.sql')
         # pass
 
 
