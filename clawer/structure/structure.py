@@ -14,6 +14,8 @@ from django.conf import settings
 #from django.models import model_to_dict
 import django
 
+from json_to_sql import JsonToSql as SqlGenerator
+
 class Consts(object):
     QUEUE_PRIORITY_TOO_HIGH = u"structure:higher"
     QUEUE_PRIORITY_HIGH = u"structure:high"
@@ -217,6 +219,7 @@ class ExtracterGenerator(StructureGenerator):
     def __init__(self):
         self.queuegenerator = ExtracterQueueGenerator()
         self.queues = self.queuegenerator.rq_queues
+        self.sqlgenerator = SqlGenerator()        # 用于处理源数据生成sql，并导入关系数据库
         
     def get_task_priority(self, task):
         if task.job.priority == -1:
@@ -283,6 +286,7 @@ class ExtracterGenerator(StructureGenerator):
         """生成sql语句并导出字段"""
         print 'starting extract fields!'
         print '♫' * 30
+        self.sqlgenerator.test_get_data(extracter_conf, data, './insert_data.sql')
         return True
 
     @classmethod
@@ -330,7 +334,8 @@ class ExtracterGenerator(StructureGenerator):
 
         # return extracter
 
-    # def if_not_exist_create_db_schema(self, conf):
+    def if_not_exist_create_db_schema(self, conf):
+        self.sqlgenerator.test_table(conf, './my_table.sql')
         # pass
 
 
