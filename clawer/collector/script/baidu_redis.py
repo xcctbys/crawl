@@ -36,9 +36,11 @@ MYSQL_DB = 'csciwlpc'
 STEP = 1                                                                           # 每个step取10个
 ROWS = 10
 
-REDIS_HOST = 'Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com'                                                           # 全局变量，设置Redis的HOST，USER,TABLE
+REDIS_HOST = '13153c2b13894978.m.cnsza.kvstore.aliyuncs.com'                       # 全局变量，设置Redis的HOST，USER,TABLE
 REDIS_PORT = 6379
 REDIS_DB = 1
+REDIS_USER = ""
+REDIS_PWD = "Password123"
 REDIS_TABLE = 'baidu'
 
 DEBUG = True  # 是否开启DEBUG
@@ -82,7 +84,7 @@ class History(object):                                                          
         self.current_page = 0
 
     def load(self):                                                                # redis记录的载入
-        r = redis.StrictRedis(host=REDIS_HOST,port=REDIS_PORT,db=REDIS_DB)
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER+':'+REDIS_PWD)
         if not r.hgetall(REDIS_TABLE):
             return
         r_dict = r.hgetall(REDIS_TABLE)
@@ -90,7 +92,7 @@ class History(object):                                                          
         self.current_page = int(r_dict.get("current_page"))
 
     def save(self):
-        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER+':'+REDIS_PWD)
         r.hset(REDIS_TABLE, 'total_page', self.total_page)
         r.hset(REDIS_TABLE, 'current_page', self.current_page)
         #print r.hgetall(REDIS_TABLE)
