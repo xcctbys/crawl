@@ -265,17 +265,25 @@ class ExtracterGenerator(StructureGenerator):
             logging.error("Error assigning extract task when enqueuing")
 
     def get_extracter_conf(self, data):
-        """获取导出器配置"""
-        extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first()
+        """获取导出器配置
+            参数data为一条JSON格式源数据, str类型"""
+        extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first() # 获取导出器配置 
         
         if extracterstructureconfig:
             try:
-                extracter_conf = extracterstructureconfig.extracter.extracter_config
+                extracter_conf = extracterstructureconfig.extracter.extracter_config  # extracter_conf 为字符串格式的配置
+                # extracter_conf_dict = STR_TO_DICT(extracter_conf)  # 需实现 STR_TO_DICT
             except Exception as e:
                 logging.error('Get extracter config error')
                 raise e
-            return extracter_conf
+            return extracter_conf_dict
 
+    @classmethod
+    def extract_fields(self, extracter_conf, data):
+        """生成sql语句并导出字段"""
+        print 'starting extract fields!'
+        print '♫' * 30
+        return True
 
     @classmethod
     def extracter(self, conf, data):
@@ -324,12 +332,6 @@ class ExtracterGenerator(StructureGenerator):
 
     # def if_not_exist_create_db_schema(self, conf):
         # pass
-    @classmethod
-    def extract_fields(self, extracter_conf, data):
-        print 'starting extract fields!'
-        print '♫' * 30
-        return True
-        pass
 
 
 class ExecutionTasks(object):
