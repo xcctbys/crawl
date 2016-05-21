@@ -72,13 +72,18 @@ class TestJilin(TestCase):
 
     def test_run_with_multi_results(self):
         # 东北证券股份有限公司,吉林,220000000005183
-        ent_str = u'证券股份有限公司'
+        ent_str = u'东北证券股份有限公司'
         Jilin = JilinCrawler(self.path)
         result = Jilin.run(ent_str)
 
         self.assertTrue(result)
         result = json.loads(result)
-        self.assertEqual(len(result), 5)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'220000000005183')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'东北证券股份有限公司')
 
 
     def test_crawl_ent_pub_pages(self):
@@ -120,6 +125,21 @@ class TestHainan(TestCase):
         self.assertEqual(type(result), str)
         result = json.loads(result)
         self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91460000742550597A')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'金元证券股份有限公司')
+    def test_run_with_multi_results(self):
+        # 金元证券股份有限公司,海南省,91460000742550597A
+        ent_str = '金元证券股份有限公司'
+        Hainan = HainanCrawler(self.path)
+        result = Hainan.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
         for item in result:
             for k, v in item.items():
                 self.assertEqual(k, u'91460000742550597A')
@@ -179,13 +199,19 @@ class TestShanxi(TestCase):
                 self.assertFalse(v)
     def test_run_with_multi_results(self):
         #
-        ent_str = u'煤碳'
+        ent_str = u'临汾市热力供应有限公司'
         shanxi = ShanxiCrawler(self.path)
         result = shanxi.run(ent_str)
 
         self.assertTrue(result)
         result = json.loads(result)
-        self.assertEqual(len(result), 5)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'141000000031826')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'临汾市热力供应有限公司')
+                self.assertTrue(v['ent_pub_administration_license'])
 
 
     def test_crawl_ent_pub_pages(self):
@@ -245,6 +271,22 @@ class TestXizang(TestCase):
             for k, v in item.items():
                 self.assertFalse(v)
 
+    def test_run_with_multi_results(self):
+        ent_str = u'西藏东方财富证券股份有限公司'
+        Xizang = XizangCrawler(self.path)
+        result = Xizang.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91540000710910420Y')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'西藏东方财富证券股份有限公司')
+
+
 
     def test_run_with_proxy(self):
         """
@@ -265,6 +307,23 @@ class TestHeilongjiang(TestCase):
             os.makedirs(self.path)
     def tearDown(self):
         TestCase.tearDown(self)
+
+    def test_run_with_multi_results(self):
+        # 江海证券有限公司,黑龙江, 230100100019556
+        ent_str = '江海证券有限公司'
+        heilongjiang = HeilongjiangClawer(self.path)
+        result = heilongjiang.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'9123010075630766XX')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'江海证券有限公司')
 
     def test_run(self):
         # 江海证券有限公司,黑龙江, 230100100019556
@@ -295,15 +354,16 @@ class TestHeilongjiang(TestCase):
         for item in result:
             for k, v in item.items():
                 self.assertFalse(v)
+
     def test_run_with_multi_results(self):
-        # 江海,黑龙江, 230100100019556
-        ent_str = u'证券有限公司'
+        # 江海证券有限公司,黑龙江, 230100100019556
+        ent_str = u'江海证券有限公司'
         heilongjiang = HeilongjiangClawer(self.path)
         result = heilongjiang.run(ent_str)
 
         self.assertTrue(result)
         result = json.loads(result)
-        self.assertEqual(len(result), 5)
+        self.assertEqual(len(result), 1)
 
     def test_crawl_ent_pub_pages(self):
         url = 'http://gsxt.hljaic.gov.cn/enterprisePublicity.jspx?id=D2F788D2201B4BA04DAF76DCA49473B3'
@@ -396,6 +456,19 @@ class TestShaanxi(TestCase):
             self.assertTrue(details.has_key(u'企业基本信息'))
             self.assertEqual(details[u'企业基本信息'][u'企业名称'], u'陕西省天然气股份有限公司')
 
+    def test_run_with_multi_results(self):
+        # 陕西省天然气股份有限公司,陕西省,610000400000319
+        ent_str = '陕西省天然气股份有限公司'
+        Shaanxi = ShaanxiCrawler(self.path)
+        result = Shaanxi.run(ent_str)
+        print result
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'610000400000319')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'陕西省天然气股份有限公司')
 
     def test_run(self):
         # 陕西省天然气股份有限公司,陕西省,610000400000319
@@ -488,6 +561,18 @@ class TestHebei(TestCase):
             self.assertTrue(details.has_key(u'企业基本信息'))
             self.assertEqual(details[u'企业基本信息'][u'企业名称'], u'万向钱潮股份有限公司')
 
+    def test_run_with_multi_results(self):
+        # 财达证券有限责任公司,河北,130000000021709
+        ent_str = '财达证券有限责任公司'
+        Hebei = HebeiCrawler(self.path)
+        result = Hebei.run(ent_str)
+
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        # 这个好多搜索结果，没有一个匹配。。。
+        self.assertEqual(len(result), 1)
 
     def test_run(self):
         # 财达证券有限责任公司,河北,130000000021709
@@ -602,6 +687,20 @@ class TestTianjin(TestCase):
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'渤海证券股份有限公司')
 
+    def test_run_with_multi_results(self):
+        # 渤海证券股份有限公司,天津,120000000000165
+        ent_str = '渤海证券股份有限公司'
+        Tianjin = TianjinCrawler(self.path)
+        result = Tianjin.run(ent_str)
+
+        # print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        # 天津情况比较特殊，在搜索结果后面会有 （内资公司法人）或 （外资公司法人），所以此单元测试不会通过
+        self.assertEqual(len(result), 1)
+
 
     def test_run_with_proxy():
         """
@@ -698,6 +797,19 @@ class TestZhejiang(TestCase):
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'万向钱潮股份有限公司')
 
+    def test_run_with_multi_results(self):
+        # 万向钱潮股份有限公司,浙江省,330000000050426
+        ent_str = '万向钱潮股份有限公司'
+        Zhejiang = ZhejiangCrawler(self.path)
+        result = Zhejiang.run(ent_str)
+        #
+        # save_to_file(path ,result)
+        # print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        self.assertEqual(len(result), 1)
 
     def test_run_with_proxy():
         """
@@ -757,6 +869,19 @@ class TestShandong(TestCase):
             for k, v in item.items():
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中泰证券股份有限公司')
+
+    def test_run_with_multi_results(self):
+        # 中泰证券股份有限公司,山东,370000018067809
+        # 中信证券（山东）有限责任公司,山东,370200018021238
+        ent_str = '中泰证券股份有限公司'
+        shandong = ShandongCrawler('/tmp/')
+        result = shandong.run(ent_str)
+        # print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        self.assertEqual(len(result), 1)
 
     def test_run_with_proxy(self):
         """
