@@ -783,6 +783,8 @@ class TianjinCrawler(object):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
         self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        if not self.ents:
+            return json.dumps([{ent_num: None}])
         data = self.crawl_page_main()
         # path = os.path.join(os.getcwd(), 'tianjin.json')
         # json_dump_to_file(path, data)
