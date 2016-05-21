@@ -1,6 +1,6 @@
 import rq
 from django.conf import settings
-from structure.structure import Consts, StructureGenerator, StructureConfig, ExtracterGenerator
+from structure.structure import ExtracterConsts, ExtracterGenerator, StructureConfigExtracter, ExtracterGenerator
 from html5helper.utils import wrapper_raven
 from django.core.management.base import BaseCommand
 from structure.models import CrawlerAnalyzedData CrawlerExtracterInfo
@@ -21,7 +21,7 @@ normal_queue = rq.Queue(Consts.QUEUE_PRIORITY_NORMAL, connection = connection)
 low_queue = rq.Queue(Consts.QUEUE_PRIORITY_LOW, connection = connection)
 
 def requeue_failed_jobs():
-	structure_generator = StructureGenerator()
+	extracter_generator = ExtracterGenerator()
 	failed_tasks = CrawlerTask.objects(status = 8)
 	
 	if failed_tasks == None:
@@ -36,10 +36,10 @@ def requeue_failed_jobs():
 		if failed_data.retry_times >= 3:
 			pass
 		else:
-			failed_job_data = structure_generator.get_task_analyzed_data(failed_task)
-                        structureconfig = StructureConfig.objects(job=data.crawler_task.job).first()
-                        failed_job_conf = structureconfig.extracter.extracter_config
-			failed_job_priority = structure_generator.get_task_priority(failed_task)
+			failed_job_data = extracter_generator.get_task_analyzed_data(failed_task)
+                        structureconfigextracter = StructureConfigExtracter.objects(job=data.crawler_task.job).first()
+                        failed_job_conf = structureconfigextracter.extracter.extracter_config
+			failed_job_priority = extracter_generator.get_task_priority(failed_task)
 			q = None
 			if failed_job_priority == Consts.QUEUE_PRIORITY_TOO_HIGH:
 				q = too_high_queue

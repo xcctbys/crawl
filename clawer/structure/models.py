@@ -25,7 +25,11 @@ class Extracter(Document):
 class StructureConfig(Document):
     job = ReferenceField(Job)
     parser = ReferenceField(Parser)
+
+class StructrueConfigExtracter(Document):
+    job = ReferenceField(Job)
     extracter = ReferenceField(Extracter)
+
      
 class CrawlerAnalyzedData(Document):
     crawler_task = ReferenceField(CrawlerTask)

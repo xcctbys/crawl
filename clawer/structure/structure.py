@@ -9,7 +9,7 @@ import rq
 from mongoengine import *
 
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
-from models import StructureConfig, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
+from models import StructureConfig, StructureConfigExtracter, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
 from django.conf import settings
 #from django.models import model_to_dict
 import django
@@ -19,6 +19,13 @@ class Consts(object):
     QUEUE_PRIORITY_HIGH = u"structure:high"
     QUEUE_PRIORITY_NORMAL = u"structure:normal"
     QUEUE_PRIORITY_LOW = u"structure:low"
+    QUEUE_MAX_LENGTH = 10000
+
+class ExtracterConsts(object):
+    QUEUE_PRIORITY_TOO_HIGH = u"extracter:higher"
+    QUEUE_PRIORITY_HIGH = u"extracter:high"
+    QUEUE_PRIORITY_NORMAL = u"extracter:normal"
+    QUEUE_PRIORITY_LOW = u"extracter:low"
     QUEUE_MAX_LENGTH = 10000
 
 class StructureGenerator(object):
@@ -54,6 +61,7 @@ class StructureGenerator(object):
     def get_task_analyzed_data(self, task):
         task_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = task).first()
         return task_analyzed_data
+
 
 class ParserGenerator(StructureGenerator):
     def __init__(self):
@@ -129,6 +137,39 @@ class QueueGenerator(object):
             #parser_job.meta.setdefault("failures", 0)
             return  structure_job.id
 
+class ExtracterQueueGenerator(object):
+    def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
+        self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
+        self.too_high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
+        self.high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_HIGH, connection=self.connection)
+        self.normal_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_NORMAL, connection=self.connection)
+        self.low_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_LOW, connection=self.connection)
+        self.max_queue_length = queue_length if queue_length is not None else settings.MAX_QUEUE_LENGTH
+        self.rq_queues = (self.too_high_queue,
+            self.high_queue,
+            self.normal_queue,
+            self.low_queue)
+        
+    def enqueue(self, priority, func, *args, **kwargs):
+        q = None
+        if priority == ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH:
+            q = self.too_high_queue
+        elif priority == ExtracterConsts.QUEUE_PRIORITY_HIGH:
+            q = self.high_queue
+        elif priority == ExtracterConsts.QUEUE_PRIORITY_NORMAL:
+            q = self.normal_queue
+        elif priority == ExtracterConsts.QUEUE_PRIORITY_LOW:
+            q = self.low_queue
+        else:
+            q = self.low_queue
+        if (q.count + 1) > ExtracterConsts.QUEUE_MAX_LENGTH:
+            logging.error("Cannot enqueue now because the queue: %s is full" % q.name)
+            print "Cannot enqueue now because the queue: %s is full" % q.name
+            return None
+        else:
+            extracter_job = q.enqueue_call(func, *args, **kwargs)
+            return  extracter_job.id
+    
 
 def parser_func(data):
     #print "This is the start of parser_func"
@@ -174,8 +215,21 @@ def parser_func(data):
 class ExtracterGenerator(StructureGenerator):
 
     def __init__(self):
-        self.queuegenerator = QueueGenerator()
+        self.queuegenerator = ExtracterQueueGenerator()
         self.queues = self.queuegenerator.rq_queues
+        
+    def get_task_priority(self, task):
+        if task.job.priority == -1:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH
+        elif task.job.priority == 0 or task.job.priority == 1:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_HIGH
+        elif task.job.priority == 2 or task.job.priority == 3:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_NORMAL            
+        elif task.job.priority == 4 or task.job.priority == 5:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_LOW
+        else:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_LOW
+        return task_priority
 
     def assign_extract_tasks(self):
         """分配所有导出任务"""
@@ -215,7 +269,7 @@ class ExtracterGenerator(StructureGenerator):
 
     def get_extracter_conf(self, data):
         """获取导出器配置"""
-        structureconfig = StructureConfig.objects(job=data.crawler_task.job).first()
+        structureconfig = StructureConfigExtracter.objects(job=data.crawler_task.job).first()
         
         if structureconfig:
             try:
@@ -288,6 +342,14 @@ class ExecutionTasks(object):
             w = rq.Worker([queue])
             #w.push_exc_handler(self.retry_handler)
             w.work()
+
+class ExecutionExtracterTasks(object):
+    def exec_task(self, queue=ExtracterConsts.QUEUE_PRIORITY_NORMAL):
+        with rq.Connection():
+            w = rq.Worker([queue])
+            #w.push_exc_handler(self.retry_handler)
+            w.work()
+
 
     # def retry_handler(self, job, exc_type, exc_value, traceback):
     #     print "This is the start of RQ Exception Handler!"
@@ -384,7 +446,7 @@ class TestExtracter(object):
             test_crawlertask = CrawlerTask(test_job, uri="test_uri_%d" % count, status=7)
             test_crawlertask.save()
             
-            StructureConfig(job=test_job, extracter=test_extracter).save()
+            StructureConfigExtracter(job=test_job, extracter=test_extracter).save()
 
             CrawlerAnalyzedData(crawler_task=test_crawlertask, analyzed_data=analyzeddata).save()
         print "Extracter Test Data Inserted"
@@ -394,7 +456,7 @@ class TestExtracter(object):
         Job.drop_collection()
         Extracter.drop_collection()
         CrawlerTask.drop_collection()
-        StructureConfig.drop_collection()
+        StructureConfigExtracter.drop_collection()
         CrawlerAnalyzedData.drop_collection()
         CrawlerExtracterInfo.drop_collection()
         print "Extracter Test Data Cleaned!"
