@@ -9,7 +9,7 @@ import rq
 from mongoengine import *
 
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
-from models import StructureConfig, Parser, CrawlerAnalyzedData
+from models import StructureConfig, ExtracterStructureConfig, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
 from django.conf import settings
 #from django.models import model_to_dict
 import django
@@ -19,6 +19,13 @@ class Consts(object):
     QUEUE_PRIORITY_HIGH = u"structure:high"
     QUEUE_PRIORITY_NORMAL = u"structure:normal"
     QUEUE_PRIORITY_LOW = u"structure:low"
+    QUEUE_MAX_LENGTH = 10000
+
+class ExtracterConsts(object):
+    QUEUE_PRIORITY_TOO_HIGH = u"extracter:higher"
+    QUEUE_PRIORITY_HIGH = u"extracter:high"
+    QUEUE_PRIORITY_NORMAL = u"extracter:normal"
+    QUEUE_PRIORITY_LOW = u"extracter:low"
     QUEUE_MAX_LENGTH = 10000
 
 class StructureGenerator(object):
@@ -50,6 +57,11 @@ class StructureGenerator(object):
     def get_task_source_data(self, task):
         task_source_data = CrawlerDownloadData.objects(crawlertask = task).first()
         return task_source_data                        #根据uri返回爬虫的下载数据（类型）
+
+    def get_task_analyzed_data(self, task):
+        task_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = task).first()
+        return task_analyzed_data
+
 
 class ParserGenerator(StructureGenerator):
     def __init__(self):
@@ -121,9 +133,43 @@ class QueueGenerator(object):
             print "Cannot enqueue now because the queue: %s is full" % q.name
             return None
         else:
-            parser_job = q.enqueue_call(func, *args, **kwargs)
+            structure_job = q.enqueue_call(func, *args, **kwargs)
             #parser_job.meta.setdefault("failures", 0)
-            return  parser_job.id
+            return  structure_job.id
+
+class ExtracterQueueGenerator(object):
+    def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
+        self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
+        self.too_high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
+        self.high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_HIGH, connection=self.connection)
+        self.normal_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_NORMAL, connection=self.connection)
+        self.low_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_LOW, connection=self.connection)
+        self.max_queue_length = queue_length if queue_length is not None else settings.MAX_QUEUE_LENGTH
+        self.rq_queues = (self.too_high_queue,
+            self.high_queue,
+            self.normal_queue,
+            self.low_queue)
+        
+    def enqueue(self, priority, func, *args, **kwargs):
+        q = None
+        if priority == ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH:
+            q = self.too_high_queue
+        elif priority == ExtracterConsts.QUEUE_PRIORITY_HIGH:
+            q = self.high_queue
+        elif priority == ExtracterConsts.QUEUE_PRIORITY_NORMAL:
+            q = self.normal_queue
+        elif priority == ExtracterConsts.QUEUE_PRIORITY_LOW:
+            q = self.low_queue
+        else:
+            q = self.low_queue
+        if (q.count + 1) > ExtracterConsts.QUEUE_MAX_LENGTH:
+            logging.error("Cannot enqueue now because the queue: %s is full" % q.name)
+            print "Cannot enqueue now because the queue: %s is full" % q.name
+            return None
+        else:
+            extracter_job = q.enqueue_call(func, *args, **kwargs)
+            return  extracter_job.id
+    
 
 def parser_func(data):
     #print "This is the start of parser_func"
@@ -132,8 +178,8 @@ def parser_func(data):
         crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
         if structureconfig is not None:
             current_dir = os.getcwd()
-            #parsers_dir = "/home/webapps/cr-clawer/clawer/structure/parsers"
-            parsers_dir = "/home/max/Documents/gitroom/cr-clawer/clawer/structure/parsers"
+            parsers_dir = "/home/webapps/cr-clawer/clawer/structure/parsers"
+            # parsers_dir = "structure/parsers"
             if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
                 os.mkdir(parsers_dir)
             os.chdir(parsers_dir)
@@ -167,55 +213,125 @@ def parser_func(data):
         logging.error("Error finding parser from % s (uri) -- Null data" % data.crawlertask.uri)
 
 class ExtracterGenerator(StructureGenerator):
-    def assign_tasks(self):
+
+    def __init__(self):
+        self.queuegenerator = ExtracterQueueGenerator()
+        self.queues = self.queuegenerator.rq_queues
+        
+    def get_task_priority(self, task):
+        if task.job.priority == -1:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH
+        elif task.job.priority == 0 or task.job.priority == 1:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_HIGH
+        elif task.job.priority == 2 or task.job.priority == 3:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_NORMAL            
+        elif task.job.priority == 4 or task.job.priority == 5:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_LOW
+        else:
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_LOW
+        return task_priority
+
+    def assign_extract_tasks(self):
+        """分配所有导出任务"""
         tasks = self.filter_parsed_tasks()
         for task in tasks:
-            priority = self.get_priority(task)
-            db_conf = self.get_extracter_db_config(task)
-            mappings = self.get_extracter_mappings(task)
-            extracter = self.get_extracter(db_conf, mappings)
+            priority = self.get_task_priority(task)
+            # db_conf = self.get_extracter_db_config(task)
+            # mappings = self.get_extracter_mappings(task)
+            # extracter = self.get_extracter(db_conf, mappings)
+            data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
+            conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
+            extract_function = self.extracter
             try:
-                self.assign_task(priority, extracter)
-                logging.info("add task succeed")
+                self.assign_extract_task(priority, extract_function, conf, data)
+                logging.info("Add extract task succeed")
             except:
-                logging.error("assign task runtime error.")
+                logging.error("Assign extract task runtime error.")
+        return self.queues
 
-    def assign_task(self,
-                    priority=Consts.QUEUE_PRIORITY_NORMAL,
-                    parser=lambda: None,
-                    data=""):
-        pass
+    # def assign_extract_task(self, priority=Consts.QUEUE_PRIORITY_NORMAL, parser=lambda: None, data=""):
+    def assign_extract_task(self, priority, extract_function, conf, data):
+        """分配一项导出任务"""
+        try:
+            extract_job_id = self.queuegenerator.enqueue(priority, extract_function, args=[conf, data])
+            if not extract_job_id:
+                return None
+            else:
+                CrawlerExtracterInfo(extract_task=data.crawler_task, update_date=datetime.datetime.now()).save()
+                print 'assing task %s succeed !' % extract_job_id
+                logging.info("Extract task successfully added")
+                return extract_job_id
+        except:
+            logging.error("Error assigning extract task when enqueuing")
 
-    def get_extracter(self, db_conf, mappings):
-
-        def extracter():
+    def get_extracter_conf(self, data):
+        """获取导出器配置
+            参数data为一条JSON格式源数据, str类型"""
+        extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first() # 获取导出器配置 
+        
+        if extracterstructureconfig:
             try:
-                self.if_not_exist_create_db_schema(db_conf)
-                logging.info("create db schema succeed")
-            except:
-                logging.error("create db schema error")
-            try:
-                self.extract_fields(mappings)
-                logging.info("extract fields succeed")
-            except:
-                logging.error("extract fields error")
+                extracter_conf = extracterstructureconfig.extracter.extracter_config  # extracter_conf 为字符串格式的配置
+                # extracter_conf_dict = STR_TO_DICT(extracter_conf)  # 需实现 STR_TO_DICT
+            except Exception as e:
+                logging.error('Get extracter config error')
+                raise e
+            return extracter_conf_dict
 
-        return extracter
-
-    def if_not_exist_create_db_schema(self, conf):
-        print 'check database exist'
-        print '★' * 30
-        pass
-
-    def extract_fields(self, mappings):
+    @classmethod
+    def extract_fields(self, extracter_conf, data):
+        """生成sql语句并导出字段"""
         print 'starting extract fields!'
         print '♫' * 30
-        pass
+        return True
 
-    def get_extracter_db_config(self):
-        print 'get extracter database config'
-        print '♠' * 30
-        pass
+    @classmethod
+    def extracter(self, conf, data):
+        """导出器"""
+        if not data:
+            logging.error("Error: there is no data to extract")
+            return None
+        try:
+            # extracter_conf = self.get_extracter_conf()  # 获取一条与任务相关的导出器配置
+            result = self.extract_fields(conf, data)
+            if result:
+                data.crawler_task.update(status=9)  # status: 9导出成功, 8导出失败
+                crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
+                crawler_extract_info.update(extracted_status=True, update_date=datetime.datetime.now()) # 更新导出状态信息
+                logging.info('Extract fields succeed')
+        except Exception as e:
+            data.crawler_task.update(status=8) 
+            logging.error('Extract fields error')
+            raise e
+        return True
+
+
+
+
+    # def get_extracter_db_config():
+        # pass
+
+    # def get_extracter_mappings():
+        # pass
+
+    # def get_extracter(self, db_conf, mappings):
+
+        # def extracter():
+            # try:
+                # self.if_not_exist_create_db_schema(db_conf)
+                # logging.info("create db schema succeed")
+            # except:
+                # logging.error("create db schema error")
+            # try:
+                # self.extract_fields(mappings)
+                # logging.info("extract fields succeed")
+            # except:
+                # logging.error("extract fields error")
+
+        # return extracter
+
+    # def if_not_exist_create_db_schema(self, conf):
+        # pass
 
 
 class ExecutionTasks(object):
@@ -224,6 +340,14 @@ class ExecutionTasks(object):
             w = rq.Worker([queue])
             #w.push_exc_handler(self.retry_handler)
             w.work()
+
+class ExecutionExtracterTasks(object):
+    def exec_task(self, queue=ExtracterConsts.QUEUE_PRIORITY_NORMAL):
+        with rq.Connection():
+            w = rq.Worker([queue])
+            #w.push_exc_handler(self.retry_handler)
+            w.work()
+
 
     # def retry_handler(self, job, exc_type, exc_value, traceback):
     #     print "This is the start of RQ Exception Handler!"
@@ -291,3 +415,48 @@ def empty_test_data():
     #ParseJobInfo.drop_collection()
 
     print "Data Cleaned!"
+
+class TestExtracter(object):
+    """测试导出器"""
+    def __init__(self):
+        pass
+
+    def insert_extracter_test_data(self):
+
+        config = open('structure/extracters/gs_table_conf.json').read()
+        analyzeddata=open('structure/extracters/a.json').read()
+
+
+        for count in range(50):
+            test_job = Job("creator",
+                    "job_%d" % count,
+                    "info",
+                    "customer",
+                    random.choice(range(1, 3)),
+                    random.choice(range(-1, 6)),
+                    datetime.datetime.now())
+            test_job.save()
+
+            # test_extracter = ExtracterGenerator.extracter
+            test_extracter = Extracter(count, config)
+            test_extracter.save()
+
+            test_crawlertask = CrawlerTask(test_job, uri="test_uri_%d" % count, status=7)
+            test_crawlertask.save()
+            
+            ExtracterStructureConfig(job=test_job, extracter=test_extracter).save()
+
+            CrawlerAnalyzedData(crawler_task=test_crawlertask, analyzed_data=analyzeddata).save()
+        print "Extracter Test Data Inserted"
+
+    def empty_test_data(self):
+        
+        Job.drop_collection()
+        Extracter.drop_collection()
+        CrawlerTask.drop_collection()
+        ExtracterStructureConfig.drop_collection()
+        CrawlerAnalyzedData.drop_collection()
+        CrawlerExtracterInfo.drop_collection()
+        print "Extracter Test Data Cleaned!"
+        
+

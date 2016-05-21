@@ -32,7 +32,7 @@ class GuangxiCrawler(object):
 		self.json_restore_path = json_restore_path
 		self.ckcode_image_path = settings.json_restore_path + '/guangxi/ckcode.jpg'
 		self.code_cracker = CaptchaRecognition('guangxi')
-		if not os.path.exists(self.ckcode_image_path):
+		if not os.path.exists(os.path.dirname(self.ckcode_image_path)):
 			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		#write_file_mutex = threading.Lock()
 
