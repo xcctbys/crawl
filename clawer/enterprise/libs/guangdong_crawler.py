@@ -236,7 +236,9 @@ class GuangdongClawer(object):
         logging.error('crawl ID: %s\n'% ent_num)
         self.crawl_page_captcha(urls['page_search'], urls['page_captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
         self.analyze_showInfo()
+        if not self.ents:
+            return json.dumps([{ent_num: None}])
         data = self.crawl_page_main()
-        path = os.path.join(os.getcwd(), 'guangdong.json')
-        json_dump_to_file(path, data)
+        # path = os.path.join(os.getcwd(), 'guangdong.json')
+        # json_dump_to_file(path, data)
         return json.dumps(data)

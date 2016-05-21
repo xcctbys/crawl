@@ -1422,8 +1422,9 @@ class ShandongCrawler(object):
     def run(self, ent_num):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        json_dict = {}
         self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        if not self.ents:
+            return json.dumps([{ent_num: None}])
         # return a list consisted of dicts
         data = self.crawl_page_main()
         return json.dumps(data)
