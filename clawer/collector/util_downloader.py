@@ -385,7 +385,7 @@ class Download(object):
 
 
 				if resp.headers.get('Content-Type', 'None') == 'application/pdf':
-						code = random.randrange(0, 10000)
+						code = random.randrange(0, 100)
 						code =str(code)
 						path ='/tmp/'+code+'.pdf'
 						r = requests.get(self.task.uri, stream=True)
@@ -394,7 +394,7 @@ class Download(object):
 								fd.write(chunk)
 						cdd.files_down.put(resp.text, content_type = 'pdf')
 				if resp.headers.get('Content-Type', 'None') in ['image/jpeg','image/png','image/gif']:
-						code = random.randrange(0, 10000)
+						code = random.randrange(0, 100)
 						code =str(code)
 						path ='/tmp/'+code+'.jpg'
 						r = requests.get(self.task.uri, stream=True)
