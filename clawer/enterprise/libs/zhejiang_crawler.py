@@ -79,11 +79,17 @@ class ZhejiangCrawler(object):
             for dl in dls:
                 url = ""
                 ent = ""
-                if dl.dt and dl.dt.find('a') and dl.dt.find('a').has_attr('href'):
-                    url = dl.dt.find('a')['href']
-                next_dt = dl.dt.find_next_sibling()
-                if  next_dt and next_dt.span:
-                    ent = self.get_raw_text_by_tag(next_dt.span)
+                link = dl.find('dt')
+                if link and link.find('a') and link.find('a').has_attr('href'):
+                    url = link.find('a')['href']
+                profile = link.find_next_sibling()
+                if  profile and profile.span:
+                    ent = self.get_raw_text_by_tag(profile.span)
+                name = link.find('a').get_text().strip()
+                if name == self.ent_num:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
                 Ent[ent] = url
         self.ents = Ent
 
@@ -1278,9 +1284,10 @@ class ZhejiangCrawler(object):
         """ main function """
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        self.ent_num = str(ent_num)
+        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
         if not self.ents:
-            return json.dumps([{ent_num: None}])
+            return json.dumps([{self.ent_num: None}])
         data = self.crawl_page_main()
         # path = os.path.join(os.getcwd(), 'zhejiang.json')
         # json_dump_to_file(path, data)

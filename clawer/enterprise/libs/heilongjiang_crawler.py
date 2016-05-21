@@ -94,6 +94,11 @@ class HeilongjiangClawer(Crawler):
                 profile = link.find_next_sibling()
                 if profile and profile.span:
                     ent  =profile.span.get_text().strip()
+                name = link.find('a').get_text().strip()
+                if name == self._ent:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
                 Ent[ent] = url
             self.ents = Ent
             return True

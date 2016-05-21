@@ -78,6 +78,11 @@ class ShaanxiCrawler(object):
                 profile = link.find_next_sibling()
                 if profile and profile.span:
                     ent = profile.span.get_text().strip()
+                name = link.find('a').get_text().strip()
+                if name == self.ent_num:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
                 Ent[ent] = url
         if not Ent:
             return False
@@ -112,8 +117,7 @@ class ShaanxiCrawler(object):
                     break
                 else:
                     logging.debug(u"crack Captcha failed, the %d time(s)", count)
-                    if count>15:
-                        break
+            time.sleep(random.uniform(1, 4))
         return
 
 
@@ -765,9 +769,10 @@ class ShaanxiCrawler(object):
     def run(self, ent_num):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        self.ent_num = str(ent_num)
+        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
         if not self.ents:
-            return json.dumps([{ent_num:None}])
+            return json.dumps([{self.ent_num:None}])
         data = self.crawl_page_main()
         # path = os.path.join(os.getcwd(), 'shaanxi.json')
         # json_dump_to_file(path, data)

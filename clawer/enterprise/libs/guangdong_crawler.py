@@ -92,6 +92,11 @@ class GuangdongClawer(object):
                 profile = link.find_next_sibling()
                 if profile and profile.span:
                     ent = profile.span.get_text().strip()
+                name = link.find('a').get_text().strip()
+                if name == self.ent_num:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
                 Ent[ent] = url
         self.ents = Ent
 
@@ -117,7 +122,7 @@ class GuangdongClawer(object):
                     logging.error(u"crack ID: %s Captcha failed, the %d time(s)"%(self.ent_num ,count))
                     continue
                 response = response.json()
-                print  response
+                # print  response
                 # response返回的json结果: {u'flag': u'1', u'textfield': u'H+kiIP4DWBtMJPckUI3U3Q=='}
                 if response['flag'] == '1':
                     datas_showInfo = {'textfield': response['textfield'], 'code': result}
@@ -233,11 +238,11 @@ class GuangdongClawer(object):
             os.makedirs(self.dir_restore_path)
 
         self.ent_num = str(ent_num)
-        logging.error('crawl ID: %s\n'% ent_num)
-        self.crawl_page_captcha(urls['page_search'], urls['page_captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        logging.error('crawl ID: %s\n'% self.ent_num)
+        self.crawl_page_captcha(urls['page_search'], urls['page_captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
         self.analyze_showInfo()
         if not self.ents:
-            return json.dumps([{ent_num: None}])
+            return json.dumps([{self.ent_num: None}])
         data = self.crawl_page_main()
         # path = os.path.join(os.getcwd(), 'guangdong.json')
         # json_dump_to_file(path, data)

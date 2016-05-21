@@ -19,6 +19,7 @@ import gevent
 from gevent import Greenlet
 import gevent.monkey
 import unittest
+import random
 
 
 urls = {
@@ -70,15 +71,21 @@ class ShandongCrawler(object):
         divs = soup.find_all("div", {"class":"list"})
         if divs:
             for div in divs:
-                if div and div.ul:
-                    url = ""
-                    reg_id = ""
-                    if div.ul.li and div.ul.li.a and div.ul.li.a.has_attr('href'):
-                        url = (div.ul.li.a['href'])
-                    details = div.ul.li.find_next_sibling()
-                    if details and details.span:
-                        reg_id = self.get_raw_text_by_tag(details.span)
-                    Ent[reg_id] = url
+
+                url = ""
+                ent = ""
+                link = div.find('li')
+                if link and link.find('a') and link.find('a').has_attr('href'):
+                    url = (div.find('a')['href'])
+                profile = link.find_next_sibling()
+                if profile and profile.span:
+                    ent = self.get_raw_text_by_tag(profile.span)
+                name = link.find('a').get_text().strip()
+                if name == self.ent_num:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
+                Ent[ent] = url
         self.ents = Ent
 
     # 破解验证码页面
@@ -1422,9 +1429,10 @@ class ShandongCrawler(object):
     def run(self, ent_num):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        self.ent_num = str(ent_num)
+        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
         if not self.ents:
-            return json.dumps([{ent_num: None}])
+            return json.dumps([{self.ent_num: None}])
         # return a list consisted of dicts
         data = self.crawl_page_main()
         return json.dumps(data)

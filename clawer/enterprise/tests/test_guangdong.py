@@ -292,6 +292,23 @@ class TestGuangdong(TestCase):
             logging.info("%s"%ent[0])
             guangdong.run(ent[2])
 
+    def test_run_guangdong0_with_multi_results(self):
+        ent_str = '世纪证券有限责任公司'
+        guangdong = GuangdongClawer(self.path)
+        result = guangdong.run(ent_str)
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+
+        self.assertEqual(type(result), list)
+        self.assertEqual(len(result), 1)
+        # for item in result:
+        #     for k, v in item.items():
+        #         self.assertEqual(k, u'91440300158263740T')
+        #         self.assertTrue(v.has_key('ind_comm_pub_reg_basic'))
+        #         self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'世纪证券有限责任公司')
+
     def test_run_guangdong0(self):
         ent_str = '440301102739085'
         guangdong = GuangdongClawer(self.path)

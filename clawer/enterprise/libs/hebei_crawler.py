@@ -66,16 +66,22 @@ class HebeiCrawler(object):
         Ent = {}
         soup = BeautifulSoup(page, "html5lib")
         divs = soup.find_all("div", {"class":"list-item"})
-        for div in divs:
-            link = div.find('div', {'class':'link'})
-            profile = div.find('div', {'class': 'profile'})
-            url = ""
-            ent = ""
-            if link and link.find('a').has_attr('href'):
-                url = link.find('a')['href']
-            if profile and profile.span:
-                ent = self.get_raw_text_by_tag(profile.span)
-            Ent[ent] = url
+        if divs:
+            for div in divs:
+                link = div.find('div', {'class':'link'})
+                profile = div.find('div', {'class': 'profile'})
+                url = ""
+                ent = ""
+                if link and link.find('a').has_attr('href'):
+                    url = link.find('a')['href']
+                if profile and profile.span:
+                    ent = self.get_raw_text_by_tag(profile.span)
+                name = link.find('a').get_text().strip()
+                if name == self.ent_num:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
+                Ent[ent] = url
         self.ents = Ent
 
     def crawl_page_captcha(self, url_search, url_Captcha, url_CheckCode,url_showInfo,  textfield= '130000000021709'):
@@ -101,9 +107,9 @@ class HebeiCrawler(object):
                 return
             if self.save_captcha(content):
                 datas['captcha'] = self.crack_captcha()
-                print datas['captcha']
+                # print datas['captcha']
                 res=  self.request_by_method('POST', url_CheckCode, data= datas, timeout=self.timeout)
-                print res
+                # print res
                 # 如果验证码正确，就返回一种页面，否则返回主页面
                 if str(res) is not '0' :
                     print " total count = %d !"%count
@@ -114,8 +120,6 @@ class HebeiCrawler(object):
                     break
                 else:
                     logging.error(u"crack Captcha failed, the %d time(s)", count)
-                    if count > 40:
-                        break
             time.sleep(random.uniform(1, 4))
 
     def crack_captcha(self):
@@ -668,9 +672,10 @@ class HebeiCrawler(object):
     def run(self, ent_num):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        self.ent_num = str(ent_num)
+        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
         if not self.ents:
-            return json.dumps([{ent_num:None}])
+            return json.dumps([{self.ent_num:None}])
         data = self.crawl_page_main()
         # path = os.path.join(os.getcwd(), 'hebei.json')
         # json_dump_to_file(path, data)
