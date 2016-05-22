@@ -201,8 +201,7 @@ class JsonToSql(object):
         print 'over'
 
     def test_daoru(self, sql_file):
-        result = self.create_commond()
-        result = result + sql_file
+        result = self.create_commond()+sql_file
         tmp = os.popen(result).readlines()
         print tmp
         pass

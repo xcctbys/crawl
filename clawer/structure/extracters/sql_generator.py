@@ -50,6 +50,7 @@ class JsonToSql(object):
     def create_commond(self):
         db_info = self.config_dic['database']['destination_db']
         comm = '%s -u %s -p%s -h %s -P %s -f < ' % (db_info['dbtype'],db_info['username'],db_info['password'],db_info['host'],db_info['port'])
+        return comm
 
     def create_table_sql(self, table_file):
         """
@@ -213,8 +214,7 @@ class JsonToSql(object):
         print 'over'
 
     def test_daoru(self, sql_file):
-        result = self.create_commond()
-        result = result + sql_file
+        result = self.create_commond() + sql_file
         tmp = os.popen(result).readlines()
         print tmp
         #pass
