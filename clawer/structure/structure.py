@@ -246,6 +246,9 @@ class ExtracterGenerator(StructureGenerator):
             # extracter = self.get_extracter(db_conf, mappings)
             data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
             conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
+            if not os.path.exists('/tmp/my_table.sql'):
+                self.sqlgenerator.test_table(conf.encode('utf8'), '/tmp/my_table.sql')
+                self.sqlgenerator.test_daoru('/tmp/my_table.sql')
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
@@ -286,8 +289,8 @@ class ExtracterGenerator(StructureGenerator):
         """生成sql语句并导出字段"""
         print 'starting extract fields!'
         try:
-            self.sqlgenerator.test_table(extracter_conf.encode('utf8'), '/tmp/my_table.sql')
-            self.sqlgenerator.test_daoru('/tmp/my_table.sql')
+            # self.sqlgenerator.test_table(extracter_conf.encode('utf8'), '/tmp/my_table.sql')
+            # self.sqlgenerator.test_daoru('/tmp/my_table.sql')
             self.sqlgenerator.test_get_data(extracter_conf.encode('utf8'), data, '/tmp/insert_data.sql')
             self.sqlgenerator.test_daoru('/tmp/insert_data.sql')
         except Exception as e:
