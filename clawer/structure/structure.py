@@ -286,6 +286,8 @@ class ExtracterGenerator(StructureGenerator):
         """生成sql语句并导出字段"""
         print 'starting extract fields!'
         try:
+            self.sqlgenerator.test_table(extracter_conf.encode('utf8'), '/tmp/my_table.sql')
+            self.sqlgenerator.test_daoru('/tmp/my_table.sql')
             self.sqlgenerator.test_get_data(extracter_conf.encode('utf8'), data, '/tmp/insert_data.sql')
             self.sqlgenerator.test_daoru('/tmp/insert_data.sql')
         except Exception as e:
@@ -312,9 +314,6 @@ class ExtracterGenerator(StructureGenerator):
             print e
         return True
 
-    def if_not_exist_create_db_schema(self, conf):
-        self.sqlgenerator.test_table(conf, '/tmp/my_table.sql')
-        self.sqlgenerator.test_daoru('/tmp/my_table.sql')
 
 
 
