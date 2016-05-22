@@ -200,6 +200,8 @@ class JsonToSql(object):
         self.get_mapping()
         print 'mapping  over'
         self.data_sql = open(export_file, 'w')
+        use_database = 'use %s;\n' % self.config_dic['database']['destination_db']['dbname']
+        self.data_sql.write(use_database)
         print 'open export file over'
         for k in self.mapping.keys():
             self.table_name = self.mapping[k]['dest_table']

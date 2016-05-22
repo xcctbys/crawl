@@ -191,6 +191,8 @@ class JsonToSql(object):
         self.config_dic = self.parser_json(extracter_conf)
         self.get_mapping()
         self.data_sql = open(export_file, 'w')
+        use_database = 'use %s;\n' % self.config_dic['database']['destination_db']['dbname']
+        self.data_sql.write(use_database)
         for k in self.mapping.keys():
             self.table_name = self.mapping[k]['dest_table']
             path = self.mapping[k]['source_path']
