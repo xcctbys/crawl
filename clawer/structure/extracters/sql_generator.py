@@ -3,6 +3,7 @@
 import json
 import types
 import sys
+import os
 
 class JsonToSql(object):
     def __init__(self):
@@ -48,7 +49,7 @@ class JsonToSql(object):
     
     def create_commond(self):
         db_info = self.config_dic['database']['destination_db']
-        comm = '%s -u %s -p%s -h %s -P %s -f' % (db_info['dbtype'],db_info['username'],db_info['password'],db_info['host'],db_info['port'])
+        comm = '%s -u %s -p%s -h %s -P %s -f < ' % (db_info['dbtype'],db_info['username'],db_info['password'],db_info['host'],db_info['port'])
 
     def create_table_sql(self, table_file):
         """
@@ -211,8 +212,16 @@ class JsonToSql(object):
         self.data_sql.close()
         print 'over'
 
+    def test_daoru(self, sql_file):
+        result = self.create_commond()
+        result = result + sql_file
+        tmp = os.popen(result).readlines()
+        print tmp
+        #pass
+
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
     json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', '/tmp/my_insert.sql')
     json_to_sql.test_table('gs_table_conf.json', '/tmp/my_table.sql')
+    json_to_sql.test_daoru('./my_table.sql')
 
