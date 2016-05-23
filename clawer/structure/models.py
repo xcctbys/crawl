@@ -49,7 +49,7 @@ class Extracter(Document):
 
 class ExtracterStructureConfig(Document):
     job = ReferenceField(Job)
-    extracter = ReferenceField(Extracter))
+    extracter = ReferenceField(Extracter)
 
 class CrawlerExtracterInfo(Document):
     extract_task = ReferenceField(CrawlerTask)
