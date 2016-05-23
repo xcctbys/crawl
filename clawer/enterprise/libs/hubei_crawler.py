@@ -1,28 +1,20 @@
 #!/usr/bin/env python
 #encoding=utf-8
-import os
 import threading
-from . import settings
-import logging
-from crawler import CrawlerUtils
 from heilongjiang_crawler import HeilongjiangClawer
 from heilongjiang_crawler import HeilongjiangParser
-from enterprise.libs.CaptchaRecognition import CaptchaRecognition
+from common_func import get_proxy
+# from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 class HubeiCrawler(HeilongjiangClawer):
     """湖北爬虫
     """
-    #html数据的存储路径
-    html_restore_path = settings.json_restore_path + '/hubei/'
-
-    #验证码图片的存储路径
-    ckcode_image_path = settings.json_restore_path + '/hubei/ckcode.jpg'
-    code_cracker = CaptchaRecognition('hubei')
+    # code_cracker = CaptchaRecognition('hubei')
 
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    urls = {'host': 'www.hljaic.gov.cn',
+    urls = {'host': 'xyjg.egs.gov.cn',
             'get_checkcode': 'http://xyjg.egs.gov.cn/ECPS_HB/validateCode.jspx?type=0',
             'post_checkcode': 'http://xyjg.egs.gov.cn/ECPS_HB/checkCheckNo.jspx',
             'get_info_entry': 'http://xyjg.egs.gov.cn/ECPS_HB/searchList.jspx',
@@ -40,6 +32,7 @@ class HubeiCrawler(HeilongjiangClawer):
             'ind_comm_pub_business_exception': 'http://xyjg.egs.gov.cn/ECPS_HB/QueryExcList.jspx?',  # 经营异常信息
             'ind_comm_pub_equity_ownership_reg': 'http://xyjg.egs.gov.cn/ECPS_HB/QueryPledgeList.jspx?',  # 股权出质登记信息翻页
             'ind_comm_pub_arch_branch': 'http://xyjg.egs.gov.cn/ECPS_HB/QueryChildList.jspx?',  # 分支机构信息
+            'ent_pub_administration_license': 'http://xyjg.egs.gov.cn/ECPS_HB/QueryLicenseRegList.jspx?', # 行政许可信息
 
             'shareholder_detail': 'http://xyjg.egs.gov.cn/ECPS_HB/queryInvDetailAction.jspx?id=',  # 投资人详情
             'movable_property_reg_detail': 'http://xyjg.egs.gov.cn/ECPS_HB/mortInfoDetail.jspx?id=',  # 动产抵押登记详情
@@ -47,31 +40,17 @@ class HubeiCrawler(HeilongjiangClawer):
             }
 
 
-    def __init__(self, json_restore_path):
-        HeilongjiangClawer.__init__(self, json_restore_path)
+    def __init__(self, json_restore_path=None):
+        super(HubeiCrawler, self).__init__(json_restore_path)
         self.json_restore_path = json_restore_path
+        #html数据的存储路径
+        self.html_restore_path = self.json_restore_path + '/hubei/'
+        #验证码图片的存储路径
+        self.ckcode_image_path = self.json_restore_path + '/hubei/ckcode.jpg'
         self.parser = HubeiParser(self)
+        self.proxies = get_proxy('hubei')
 
 
 class HubeiParser(HeilongjiangParser):
     def __init__(self, crawler):
         self.crawler = crawler
-
-""""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-    run.config_logging()
-    HubeiCrawler.code_cracker = CaptchaRecognition('hubei')
-
-    crawler = HubeiCrawler('./enterprise_crawler/hubei.json')
-    enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/hubei.txt')
-    # enterprise_list = ['420000400000283']
-    # enterprise_list = ['420000000010087']
-    # enterprise_list = ['914201133002117823']  # 股东信息二级表格
-    # enterprise_list = ['420000000032278']
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        settings.logger.info('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""

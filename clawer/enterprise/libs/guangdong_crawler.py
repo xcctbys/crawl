@@ -234,6 +234,8 @@ class GuangdongClawer(object):
             return sub_json_list
 
     def run(self, ent_num):
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
         if not os.path.exists( self.dir_restore_path ):
             os.makedirs(self.dir_restore_path)
 
