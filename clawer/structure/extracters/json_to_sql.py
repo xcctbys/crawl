@@ -174,7 +174,7 @@ class JsonToSql(object):
         :return: 无
         """
         print 'hi, spider!'
-        self.config_dic = self.parser_json(extracter_conf)
+        self.config_dic = extracter_conf
         self.get_mapping()
         self.create_table_sql(export_file)
         pass
@@ -188,7 +188,7 @@ class JsonToSql(object):
         :return: 无
         """
         print 'hi, spider!'
-        self.config_dic = self.parser_json(extracter_conf)
+        self.config_dic = extracter_conf
         self.get_mapping()
         self.data_sql = open(export_file, 'w')
         use_database = 'use %s;\n' % self.config_dic['database']['destination_db']['dbname']

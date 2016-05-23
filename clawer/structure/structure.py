@@ -6,6 +6,7 @@ import sys
 import datetime
 import redis
 import rq
+import json
 from mongoengine import *
 
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
@@ -62,8 +63,7 @@ class StructureGenerator(object):
 
     def get_task_analyzed_data(self, task):
         task_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = task).first()
-        print 'hello, world' * 5
-        return task_analyzed_data
+        return task_analyzed_data           # 返回解析成功的数据
         
 
 
@@ -246,9 +246,12 @@ class ExtracterGenerator(StructureGenerator):
             # extracter = self.get_extracter(db_conf, mappings)
             data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
             conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
-            if not os.path.exists('/tmp/my_table.sql'):
-                self.sqlgenerator.test_table(conf.encode('utf8'), '/tmp/my_table.sql')
-                self.sqlgenerator.test_daoru('/tmp/my_table.sql')
+            sql_file_name = conf['database']['destination_db']['dbname']
+            sql_file_name = '/tmp/table_%s.sql' % sql_file_name
+            print sql_file_name
+            if not os.path.exists('sql_file_name'):
+                self.sqlgenerator.test_table(conf, 'sql_file_name')
+                self.sqlgenerator.test_daoru('sql_file_name')
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
@@ -279,19 +282,20 @@ class ExtracterGenerator(StructureGenerator):
         
         if extracterstructureconfig:
             try:
-                extracter_conf = extracterstructureconfig.extracter.extracter_config  # extracter_conf 为字符串格式的配置
+                extracter_configure = extracterstructureconfig.extracter.extracter_config.encode('utf8')  # extracter_conf 为字符串格式的配置
+                configure_dict = json.loads(extracter_configure)
             except Exception as e:
                 logging.error('Get extracter config error')
-            return extracter_conf
+            return configure_dict
 
     @classmethod
     def extract_fields(self, extracter_conf, data):
         """生成sql语句并导出字段"""
         print 'starting extract fields!'
         try:
-            # self.sqlgenerator.test_table(extracter_conf.encode('utf8'), '/tmp/my_table.sql')
+            # self.sqlgenerator.test_table(extracter_conf, '/tmp/my_table.sql')
             # self.sqlgenerator.test_daoru('/tmp/my_table.sql')
-            self.sqlgenerator.test_get_data(extracter_conf.encode('utf8'), data, '/tmp/insert_data.sql')
+            self.sqlgenerator.test_get_data(extracter_conf, data, '/tmp/insert_data.sql')
             self.sqlgenerator.test_daoru('/tmp/insert_data.sql')
         except Exception as e:
             print e
@@ -304,7 +308,6 @@ class ExtracterGenerator(StructureGenerator):
             logging.error("Error: there is no data to extract")
             return None
         try:
-            # extracter_conf = self.get_extracter_conf()  # 获取一条与任务相关的导出器配置
             result = self.extract_fields(conf, data.analyzed_data)   # data.analyzed_data 为一条解析后的JSON源数据
             if result:
                 data.crawler_task.update(status=9)  # status: 9导出成功, 8导出失败
