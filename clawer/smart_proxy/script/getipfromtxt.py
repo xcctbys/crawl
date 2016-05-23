@@ -19,12 +19,13 @@ class ReadFile:
         for line in f:
             #strs = line.split("\t")
             strs=line.replace('\r',"")
-            tup_time=time.localtime(tup_time)
+            timestamp=time.time()
+            tup_time=time.localtime(timestamp)
             format_time=time.strftime("%Y-%m-%d %H:%M:%S",tup_time)
             print strs
             #if len(strs) != 5:
                #continue¬
-            timestamp=time.time()
+
 
             data=(strs.replace("\n",""),'OTHER', '1',format_time,format_time)
             list.append(data)
