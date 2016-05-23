@@ -58,6 +58,9 @@ class ShandongCrawler(object):
         #html数据的存储路径
         self.html_restore_path = self.json_restore_path + '/shandong/'
         proxies = get_proxy('shandong')
+        # proxies = {'http':'http://61.135.217.15:80'}
+        # proxies = {'http':'http://218.244.140.99:8888'}
+        # proxies = {'http':'http://123.121.30.123:8118'}
         if proxies:
             print proxies
             self.requests.proxies = proxies
@@ -1427,6 +1430,8 @@ class ShandongCrawler(object):
         return r.content
 
     def run(self, ent_num):
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
         self.ent_num = str(ent_num)
