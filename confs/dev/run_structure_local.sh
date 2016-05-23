@@ -1,7 +1,7 @@
-#!/bin/bash
+!/bin/bash
 
-WORKDIR=~/Documents/gitroom/cr-clawer/clawer
+WORKDIR=/home/max/Documents/gitroom/cr-clawer/clawer
 
-GENERATOR_REDIS=redis://127.0.0.1
+STRUCTURE_REDIS=redis://127.0.0.1
 
-DJANGO_SETTINGS_MODULE="clawer.settings.local" rqworker --url ${GENERATOR_REDIS}  -v -P ${WORKDIR} structure:higher structure:high structure:normal structure:low
+DJANGO_SETTINGS_MODULE="clawer.settings.local" rqworker --url ${STRUCTURE_REDIS}  -v -P ${WORKDIR} structure:higher structure:high structure:normal structure:low
