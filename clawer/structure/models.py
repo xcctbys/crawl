@@ -52,6 +52,7 @@ class Extracter(Document):
 class ExtracterStructureConfig(Document):
     job = ReferenceField(JobMongoDB)
     extracter = ReferenceField(Extracter)
+
 class CrawlerExtracterInfo(Document):
     extract_task = ReferenceField(CrawlerTask)
     update_date = DateTimeField(default=datetime.datetime.now())

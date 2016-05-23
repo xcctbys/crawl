@@ -477,7 +477,7 @@ class TestExtracter(object):
 
 
         for count in range(20):
-            test_job = Job("creator",
+            test_job = JobMongoDB("creator",
                     "job_%d" % count,
                     "info",
                     "customer",
@@ -500,7 +500,7 @@ class TestExtracter(object):
 
     def empty_test_data(self):
         
-        Job.drop_collection()
+        JobMongoDB.drop_collection()
         Extracter.drop_collection()
         CrawlerTask.drop_collection()
         ExtracterStructureConfig.drop_collection()
