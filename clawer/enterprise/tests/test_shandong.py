@@ -17,6 +17,12 @@ from enterprise.libs.shanxi_crawler import ShanxiCrawler
 from enterprise.libs.hainan_crawler import HainanCrawler
 from enterprise.libs.xizang_crawler import XizangCrawler
 from enterprise.libs.jilin_crawler import JilinCrawler
+from enterprise.libs.zongju_crawler import ZongjuCrawler
+from enterprise.libs.fujian_crawler import FujianCrawler
+from enterprise.libs.hubei_crawler import HubeiCrawler
+from enterprise.libs.hunan_crawler import HunanCrawler
+from enterprise.libs.liaoning_crawler import LiaoningCrawler
+from enterprise.libs.qinghai_crawler import QinghaiCrawler
 from enterprise.libs.common_func import get_proxy, read_ent_from_file, exe_time,save_to_file
 
 import gevent
@@ -28,6 +34,335 @@ import gevent.monkey
 
 import re
 # gevent.monkey.patch_socket()
+
+
+class TestQinghai(TestCase):
+
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Qinghai')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 九州证券股份有限公司,青海,630000100019052
+        ent_str = '630000100019052'
+        Qinghai = QinghaiCrawler(self.path)
+        result = Qinghai.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'916300007105213377')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'九州证券股份有限公司')
+
+    def test_run_without_result(self):
+        # 九州证券股份有限公司,青海,630000100019052
+        ent_str = '10000000'
+        Qinghai = QinghaiCrawler(self.path)
+        result = Qinghai.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 九州证券股份有限公司,青海,630000100019052
+        ent_str = u'九州证券股份有限公司'
+        Qinghai = QinghaiCrawler(self.path)
+        result = Qinghai.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'916300007105213377')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'九州证券股份有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.qinghai_crawler import QinghaiCrawler
+            Qinghai = QinghaiCrawler('/tmp/')
+            result = Qinghai.run('630000100019052')
+        """
+        pass
+
+
+class TestLiaoning(TestCase):
+
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Liaoning')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 东北制药集团股份有限公司,辽宁省,210100000035297
+        ent_str = '210100000035297'
+        Liaoning = LiaoningCrawler(self.path)
+        result = Liaoning.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'210100000035297')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'东北制药集团股份有限公司')
+
+    def test_run_without_result(self):
+        # 东北制药集团股份有限公司,辽宁省,210100000035297
+        ent_str = '10000000'
+        Liaoning = LiaoningCrawler(self.path)
+        result = Liaoning.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 东北制药集团股份有限公司,辽宁省,210100000035297
+        ent_str = u'东北制药集团股份有限公司'
+        Liaoning = LiaoningCrawler(self.path)
+        result = Liaoning.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'210100000035297')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'东北制药集团股份有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.liaoning_crawler import LiaoningCrawler
+            Liaoning = LiaoningCrawler('/tmp/')
+            result = Liaoning.run('210100000035297')
+        """
+        pass
+
+
+class TestHunan(TestCase):
+
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Hunan')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 方正证券股份有限公司,湖南,330000000013908
+        ent_str = '330000000013908'
+        Hunan = HunanCrawler(self.path)
+        result = Hunan.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'914300001429279950')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'方正证券股份有限公司')
+
+    def test_run_without_result(self):
+        # 方正证券股份有限公司,湖南,330000000013908
+        ent_str = '10000000'
+        Hunan = HunanCrawler(self.path)
+        result = Hunan.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 方正证券股份有限公司,湖南,330000000013908
+        ent_str = u'方正证券股份有限公司'
+        Hunan = HunanCrawler(self.path)
+        result = Hunan.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'914300001429279950')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'方正证券股份有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.hunan_crawler import HunanCrawler
+            Hunan = HunanCrawler('/tmp/')
+            result = Hunan.run('330000000013908')
+        """
+        pass
+
+class TestFujian(TestCase):
+
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Fujian')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 中国武夷实业股份有限公司,福建省,350000100029637
+        ent_str = '350000100029637'
+        Fujian = FujianCrawler(self.path)
+        result = Fujian.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91350000158143095K')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中国武夷实业股份有限公司')
+
+    def test_run_without_result(self):
+        # 中国武夷实业股份有限公司,福建省,350000100029637
+        ent_str = '10000000'
+        Fujian = FujianCrawler(self.path)
+        result = Fujian.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 中国武夷实业股份有限公司,福建省,350000100029637
+        ent_str = u'中国武夷实业股份有限公司'
+        Fujian = FujianCrawler(self.path)
+        result = Fujian.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91350000158143095K')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中国武夷实业股份有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.fujian_crawler import FujianCrawler
+            Fujian = FujianCrawler('/tmp/')
+            result = Fujian.run('350000100029637')
+        """
+        pass
+
+class TestZongju(TestCase):
+
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Zongju')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 中信证券股份有限公司,总局,100000000018305
+        ent_str = '100000000018305'
+        Zongju = ZongjuCrawler(self.path)
+        result = Zongju.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'100000000018305')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中信证券股份有限公司')
+
+    def test_run_without_result(self):
+        # 中信证券股份有限公司,总局,100000000018305
+        ent_str = '10000000'
+        Zongju = ZongjuCrawler(self.path)
+        result = Zongju.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 中信证券股份有限公司,总局,100000000018305
+        ent_str = u'中信证券股份有限公司'
+        Zongju = ZongjuCrawler(self.path)
+        result = Zongju.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'100000000018305')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中信证券股份有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.zongju_crawler import ZongjuCrawler
+            Zongju = ZongjuCrawler('/tmp/')
+            result = Zongju.run('100000000018305')
+        """
+        pass
+
 
 class TestJilin(TestCase):
 
@@ -101,6 +436,71 @@ class TestJilin(TestCase):
             from enterprise.libs.jilin_crawler import JilinCrawler
             Jilin = JilinCrawler('/tmp/')
             result = Jilin.run('220000000005183')
+        """
+        pass
+
+class TestHubei(TestCase):
+
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Hubei')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 长江证券股份有限公司,湖北,420000000009482
+        ent_str = '420000000009482'
+        Hubei = HubeiCrawler(self.path)
+        result = Hubei.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'420000000009482')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'长江证券股份有限公司')
+
+    def test_run_without_result(self):
+        # 长江证券股份有限公司,湖北,420000000009482
+        ent_str = '10000000'
+        Hubei = HubeiCrawler(self.path)
+        result = Hubei.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 长江证券股份有限公司,湖北,420000000009482
+        ent_str = u'长江证券股份有限公司'
+        Hubei = HubeiCrawler(self.path)
+        result = Hubei.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'420000000009482')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'长江证券股份有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.hubei_crawler import HubeiCrawler
+            Hubei = HubeiCrawler('/tmp/')
+            result = Hubei.run('420000000009482')
         """
         pass
 
@@ -718,6 +1118,8 @@ class TestZhejiang(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'zhejiang')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -826,6 +1228,9 @@ class TestShandong(TestCase):
 
     def setUp(self):
         TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Shandong')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -839,14 +1244,14 @@ class TestShandong(TestCase):
             'checkcode':'http://218.57.139.24/pub/indsearch',
         }
         ent_num = "370000018067809"
-        shandong = ShandongCrawler('/tmp/')
+        shandong = ShandongCrawler(self.path)
         shandong.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
 
         self.assertTrue(shandong.ents.has_key('91370000729246347A'))
         self.assertEqual(shandong.ents['91370000729246347A'], 'gsgsdetail/1223/6e0948678bfeed4ac8115d5cafef819ad6951a24f0c0188cd6c047570329c9b6')
 
     def test_main_page(self):
-        shandong = ShandongCrawler('/tmp/')
+        shandong = ShandongCrawler(self.path)
         shandong.ents={'91370000729246347A': 'gsgsdetail/1223/6e0948678bfeed4ac8115d5cafef819ad6951a24f0c0188cd6c047570329c9b6'}
         data = shandong.crawl_page_main()
         self.assertEqual(type(data), list)
@@ -856,7 +1261,7 @@ class TestShandong(TestCase):
         # 中泰证券股份有限公司,山东,370000018067809
         # 中信证券（山东）有限责任公司,山东,370200018021238
         ent_str = '370000018067809'
-        shandong = ShandongCrawler('/tmp/')
+        shandong = ShandongCrawler(self.path)
         result = shandong.run(ent_str)
         # path = os.path.join(os.getcwd(), 'shandong.json')
         # save_to_file(path ,result)
@@ -874,7 +1279,7 @@ class TestShandong(TestCase):
         # 中泰证券股份有限公司,山东,370000018067809
         # 中信证券（山东）有限责任公司,山东,370200018021238
         ent_str = '中泰证券股份有限公司'
-        shandong = ShandongCrawler('/tmp/')
+        shandong = ShandongCrawler(self.path)
         result = shandong.run(ent_str)
         # print result
         self.assertTrue(result)

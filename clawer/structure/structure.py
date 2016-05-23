@@ -8,7 +8,12 @@ import redis
 import rq
 import json
 from mongoengine import *
-
+from django.db import models
+import django.utils
+from django.contrib.auth.models import User
+from collector.models import CrawlerTask, CrawlerDownloadData, CrawlerDownload
+from collector.models import Job as JobMongoDB
+from storage.models import Job as JobMySQL
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
 from models import StructureConfig, ExtracterStructureConfig, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
 from django.conf import settings
@@ -178,7 +183,7 @@ class ExtracterQueueGenerator(object):
 def parser_func(data):
     #print "This is the start of parser_func"
     if data is not None:
-        structureconfig = StructureConfig.objects(job = data.crawlertask.job).first()
+        structureconfig = StructureConfig.objects.get(job_copy_id = data.crawlertask.job.id)
         crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
         if structureconfig is not None:
             current_dir = os.getcwd()
@@ -205,12 +210,15 @@ def parser_func(data):
                         analyzed_data = analyzed_data)
                     logging.info("% s (uri) is successfully parsed -- Results saved" % data.crawlertask.uri)
                     return analyzed_data
-                else:
+                elif analyzed_data is None:
+                    data.crawlertask.update(status = 6)
+                    crawler_analyzed_data.update(update_date = datetime.datetime.now())
                     logging.error("Something wrong while parsing % s (uri) -- NULL result" % data.crawlertask.uri)
             except Exception as e:
                 data.crawlertask.update(status = 6)
-                logging.error("Error parsing with % d.py" % structureconfig.parser.parser_id)
-                os.chdir(current_dir)                    #切换回之前的工作目录
+                crawler_analyzed_data.update(update_date = datetime.datetime.now())
+                logging.error("Error parsing with % s.py" % structureconfig.parser.parser_id)
+            os.chdir(current_dir)                    #切换回之前的工作目录
         else:
             logging.error("Error finding Configuration file (StructureConfig) for task: % s (uri)" % data.crawlertask.uri)             
     else:
@@ -396,43 +404,62 @@ def insert_test_data():
     wrong_script = """class RawParser(object):
     def parser(self, crawlerdownloaddata):
         print crawlerdownloaddata.wrong"""
-    
-    for count in range(0,100):
-        test_job = Job("creator",
-            "job_%d" % count,
-            "info",
-            "customer",
-            random.choice(range(1,3)),
-            random.choice(range(-1,6)),
-            datetime.datetime.now())
-        test_job.save()
+    try:
+        user = User.objects.get(username = 'user_name')
+    except:
+        user = User.objects.create_user('user_name', 'user_email' ,'password')
 
+    for count in range(0,100):
+        status = random.choice(range(1,3))
+        priority = random.choice(range(-1,6))
+        
+        test_job_mysql = JobMySQL(creator = user,
+            name = "job_%d" % count,
+            info = "info",
+            customer = "customer",
+            status = status,
+            priority = priority,
+            add_datetime = django.utils.timezone.now())
+        test_job_mysql.save()
+
+        test_job_mongodb = JobMongoDB(creator = "creator_%d" % count,
+            name = "job_%d" % count,
+            info = "info",
+            customer = "customer",
+            status = status,
+            priority = priority,
+            add_datetime = datetime.datetime.now())
+        test_job_mongodb.save()
         #test_parser = Parser(count, right_script)
-        test_parser = Parser(count, random.choice([right_script, wrong_script]))
+        test_parser = Parser(parser_id = str(count),
+            python_script = random.choice([right_script, wrong_script]),
+            update_date = django.utils.timezone.now())
         test_parser.save()
 
         #test_crawlertask = CrawlerTask(test_job, uri = "test_uri_%d" % count, status = random.choice(range(1,8)))
-        test_crawlertask = CrawlerTask(test_job, uri = "test_uri_%d" % count, status = 5)
+        test_crawlertask = CrawlerTask(test_job_mongodb, uri = "test_uri_%d" % count, status = 5)
         test_crawlertask.save()
 
-        test_downloader = CrawlerDownload(test_job)
+        test_downloader = CrawlerDownload(test_job_mongodb)
         test_downloader.save()
 
-        StructureConfig(test_job, test_parser).save()
+        StructureConfig(job = test_job_mysql,
+            parser = test_parser,
+            job_copy_id = test_job_mongodb.id,
+            update_date = django.utils.timezone.now()).save()
 
-        CrawlerDownloadData(test_job, test_downloader, test_crawlertask).save()
+        CrawlerDownloadData(test_job_mongodb, test_downloader, test_crawlertask).save()
 
     print "Data Inserted!"
 
 def empty_test_data():
-    
-    Job.drop_collection()
-    Parser.drop_collection()
+    JobMongoDB.drop_collection()
+    JobMySQL.objects.all().delete()
+    Parser.objects.all().delete()
     CrawlerTask.drop_collection()
     CrawlerDownload.drop_collection()
-    StructureConfig.drop_collection()
+    StructureConfig.objects.all().delete()
     CrawlerDownloadData.drop_collection()
-
     CrawlerAnalyzedData.drop_collection()
     #ParseJobInfo.drop_collection()
 

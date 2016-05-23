@@ -20,6 +20,16 @@ high_queue = rq.Queue(Consts.QUEUE_PRIORITY_HIGH, connection = connection)
 normal_queue = rq.Queue(Consts.QUEUE_PRIORITY_NORMAL, connection = connection)
 low_queue = rq.Queue(Consts.QUEUE_PRIORITY_LOW, connection = connection)
 
+def refresh_failed_jobs():
+	count = 0
+	failed_tasks = CrawlerTask.objects(status = 6)
+	print "% d crawlertasks failed parsing now" % len(failed_tasks)
+	for failed_task in failed_tasks:
+		failed_task.update(status = 5)
+		count += 1
+	print "Refresh % d failed crawlertasks (Which failed for over max retry times)" % count
+	logging.info("Refresh % d failed crawlertasks (Which failed for over max retry times)" % count)
+
 def requeue_failed_jobs():
 	structure_generator = StructureGenerator()
 	failed_tasks = CrawlerTask.objects(status = 6)
@@ -30,12 +40,12 @@ def requeue_failed_jobs():
 	else:
 		print "Current number of failed parse jobs: %d" % len(failed_tasks)
 	count = 0
-
+	deleted_data_count = 0
 	for failed_task in failed_tasks:
 		failed_data = CrawlerAnalyzedData.objects(crawler_task = failed_task).first()
 		if failed_data.retry_times >= 3:
-			#print failed_task.uri
-			pass
+			failed_data.delete()
+			deleted_data_count += 1
 		else:
 			failed_job_source_data = structure_generator.get_task_source_data(failed_task)
 			failed_job_priority = structure_generator.get_task_priority(failed_task)
@@ -61,6 +71,8 @@ def requeue_failed_jobs():
             		count += 1
             		failed_task.update(status = 5)
 	print "%d failed parse jobs requeued successfully!" %count
+	if deleted_data_count > 0:
+		print "Delete % d data from crawlertasks which failed for over max retry times" % deleted_data_count
 
 def run():
 	print "Requeuing failed jobs..."
