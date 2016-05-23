@@ -42,6 +42,8 @@ class CrawlerAnalyzedData(Document):
      analyzed_data = StringField()
      retry_times = IntField(default = 0)
      meta = {"db_alias": "structure"}
+     
+'''
 
 class Extracter(Document):
     extracter_id = IntField()
@@ -56,3 +58,6 @@ class CrawlerExtracterInfo(Document):
     update_date = DateTimeField(default=datetime.datetime.now())
     extracted_status = BooleanField(default=False)
     retry_times = IntField(default = 0)
+
+'''
+
