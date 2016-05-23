@@ -64,6 +64,19 @@ deploy_structure_servers() {
   ${FABRIC_BIN} -f ${FABFILE} deploy_structure_servers
 }
 
+############################  CONTROL FUNCTIONS
+start() {
+  ${FABRIC_BIN} -f ${FABFILE} -R WebServer,GeneratorServers,DownloaderServers,StructureSevers start
+}
+
+stop() {
+  ${FABRIC_BIN} -f ${FABFILE} -R WebServer,GeneratorServers,DownloaderServers,StructureSevers stop
+}
+
+upgrade() {
+  ${FABRIC_BIN} -f ${FABFILE} -R WebServer,GeneratorServers,DownloaderServers,StructureSevers upgrade
+}
+
 ############################  MAIN FUNCTIONS
 main() {
   case "$1" in
@@ -103,6 +116,15 @@ main() {
     sshkey)
       copy_ssh_key_to_remote_servers
       ;;
+    start)
+      start
+      ;;
+    stop)
+      stop
+      ;;
+    upgrade)
+      upgrade
+      ;;
     help)
       useage
       ;;
@@ -121,6 +143,9 @@ useage() {
   echo "        downloader:     下载器部署"
   echo "        structure:      解析器部署"
   echo "        sshkey:         同步本地ssh pub key到远程服务器"
+  echo "        upgrade:        发布新版本"
+  echo "        start:          启动所有服务"
+  echo "        stop:           关闭所有服务"
   echo "        mongo:          MongoDB部署"
   echo "        mysql:          MySQL部署"
   echo "        redis:          Redis部署"

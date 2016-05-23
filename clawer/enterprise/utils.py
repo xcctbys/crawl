@@ -11,7 +11,9 @@ from .libs.tianjin_crawler import TianjinCrawler
 from .libs.zhejiang_crawler import ZhejiangCrawler
 from .libs.shandong_crawler import ShandongCrawler
 from .libs.xinjiang_crawler import XinjiangClawer
-from .libs.yunnan_crawler import YunnanCrawler
+# from .libs.yunnan_crawler import YunnanCrawler
+from .libs.tt_yunnan_crawler import YunnanCrawler
+
 from .libs.neimenggu_crawler import NeimengguClawer
 ##
 from .libs.henan_crawler import HenanCrawler
@@ -25,14 +27,16 @@ from .libs.tt_shanghai_crawler import ShanghaiCrawler
 # from .libs.zongju_crawler import ZongjuCrawler
 from .libs.tt_zongju_crawler import ZongjuCrawler
 # from .libs.jiangsu_crawler import JiangsuCrawler
-from .libs.test_jiangsu_crawler import JiangsuCrawler
+from .libs.tt_jiangsu_crawler import JiangsuCrawler
 from .libs.heilongjiang_crawler import HeilongjiangClawer
 from .libs.shanxi_crawler import ShanxiCrawler
 ##
 from .libs.gansu_crawler import GansuClawer
 from .libs.guangdong_crawler import GuangdongClawer
-from .libs.guangxi_crawler import GuangxiCrawler
-from .libs.anhui_crawler import AnhuiCrawler
+# from .libs.guangxi_crawler import GuangxiCrawler
+from .libs.tt_guangxi_crawler import GuangxiCrawler
+# from .libs.anhui_crawler import AnhuiCrawler
+from .libs.tt_anhui_crawler import AnhuiCrawler
 from .libs.fujian_crawler import FujianCrawler
 ##
 from .libs.guizhou_crawler import GuizhouCrawler

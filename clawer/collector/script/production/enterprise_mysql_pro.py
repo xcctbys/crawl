@@ -1,4 +1,4 @@
-#encoding=utf-8
+# encoding=utf-8
 """ example is http://gsxt.saic.gov.cn/
 """
 
@@ -17,9 +17,30 @@ import pwd
 import traceback
 import datetime
 import MySQLdb
+import redis
 
+"""
+脚本参数部分：
+    MySQL，Redis配置参数设置
+"""
 
-DEBUG = False
+HOST = 'csciwlpc.mysql.rds.aliyuncs.com'                                           # 全局变量设置MySQL的HOST USER等
+USER = 'plkj'
+PASSWD = 'Password2016'
+PORT = 3306
+MYSQL_DB = 'csciwlpc'
+STEP = 1                                                                           # 每个step取10个
+ROWS = 10
+
+REDIS_HOST = '13153c2b13894978.m.cnsza.kvstore.aliyuncs.com'                       # 全局变量，设置Redis的HOST，USER,TABLE
+REDIS_PORT = 6379
+REDIS_DB = 1
+REDIS_USER = ""
+REDIS_PWD = "Password123"
+REDIS_TABLE = 'history_enterprise'
+
+DEBUG = False  # 是否开启DEBUG
+
 if DEBUG:
     level = logging.DEBUG
 else:
@@ -27,34 +48,46 @@ else:
 
 logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
-HOST = '10.0.1.3'
-#HOST = 'localhost'
-USER = 'cacti'
-PASSWD = 'cacti'
-PORT = 3306
-STEP = 10
-ROWS = 100
 
+"""
+主程序部分：
+    负责百度搜索脚本的主要功能，公司名及关键字的搜索结果的uri抓取
+"""
 
 class History(object):
+    """
+    实现程序的可持续性，每次运行时读取上次运行时保存的参数，跳到相应位置继续执行程序
+    """
 
     def __init__(self):
+        """
+        初始化任务执行记录
+        """
+        # self.company_num = 0
         self.total_page = 0
         self.current_page = 0
-        self.path = "/tmp/qyxy"
 
     def load(self):
-        if os.path.exists(self.path) is False:
+        """
+        导入分布任务执行记录
+        :return:
+        """
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
+        if not r.hgetall(REDIS_TABLE):
             return
-
-        with open(self.path, "r") as f:
-            old = pickle.load(f)
-            self.total_page = old.total_page
-            self.current_page = old.current_page
+        r_dict = r.hgetall(REDIS_TABLE)
+        self.total_page = int(r_dict.get("total_page"))
+        self.current_page = int(r_dict.get("current_page"))
 
     def save(self):
-        with open(self.path, "w") as f:
-            pickle.dump(self, f)
+        """
+        保存分布任务执行的记录
+        :return:
+        """
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
+        r.hset(REDIS_TABLE, 'total_page', self.total_page)
+        r.hset(REDIS_TABLE, 'current_page', self.current_page)
+        # print r.hgetall(REDIS_TABLE)
 
 choices = (
         u"安徽",
@@ -92,8 +125,13 @@ choices = (
     )
 
 class Generator(object):
+    """
+    生成器主程序部分，调用MySQL企业数据，生成Enterprise格式uri
+    """
     def __init__(self):
         """
+        生成器参数初始化
+
         source_url: http://clawer.princetechs.com/enterprise/api/get/all/?page=1&rows=10&sort=id&order=asc
         """
         # self.source_url = "http://clawer.princetechs.com/enterprise/api/get/all/"
@@ -106,16 +144,8 @@ class Generator(object):
         if self.history.current_page <= 0 and self.history.total_page <= 0:
             self._load_total_page()
 
-
         for _ in range(0, self.step):
-            # query = urllib.urlencode({'page':self.history.current_page, 'rows': ROWS, 'sort': 'id', 'order': 'asc'})
-            # r = requests.get(self.source_url, query)
-            # if r.status_code != 200:
-                # continue
             r = self.paginate(self.history.current_page)
-            #print self.history.current_page
-            #print r
-
             self.history.current_page += 1
             self.history.save()
             for item in r['rows']:
@@ -128,17 +158,12 @@ class Generator(object):
         self.history.save()
 
     def _load_total_page(self,rows=ROWS):
-        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='clawer', port=PORT, charset='utf8')
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db=MYSQL_DB, port=PORT, charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
-        #print sql
         cur = conn.cursor()
-        #print cur
         count = cur.execute(sql)
-        #print count
         total_rows = cur.fetchone()[0]
-        #print total_rows
         total_page = total_rows / rows
-        #print total_page
         self.history.current_page = 0
         self.history.total_page = total_page
         self.history.save()
@@ -148,13 +173,12 @@ class Generator(object):
         return u"enterprise://localhost/%s/%s/%s/" % (choices[row['province']-1], row['name'], row['register_no'])
 
     def paginate(self, current_page, rows=ROWS):
-        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='clawer', port=PORT,charset='utf8')
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db=MYSQL_DB, port=PORT,charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
         cur = conn.cursor()
         count = cur.execute(sql)
         total_rows =cur.fetchone()[0]
         total_page = total_rows/rows
-        # print total_page
         if current_page  > total_page:
             current_page = 0
         sql = "select * from enterprise_enterprise limit %d, %d"%(current_page*rows, rows)
@@ -193,4 +217,3 @@ if __name__ == "__main__":
     generator.obtain_enterprises()
     for uri in generator.enterprise_urls:
         print json.dumps({"uri":uri})
-    #print len(generator.enterprise_urls)

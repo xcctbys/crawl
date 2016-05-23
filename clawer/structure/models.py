@@ -10,8 +10,8 @@ from mongoengine import (Document,
                               IntField,
                               StringField,
                               ReferenceField,
+                              BooleanField,
                               DateTimeField)
-
 
 class Parser(models.Model):
      parser_id = models.CharField(unique = True, max_length = 100)
@@ -42,3 +42,17 @@ class CrawlerAnalyzedData(Document):
      analyzed_data = StringField()
      retry_times = IntField(default = 0)
      meta = {"db_alias": "structure"}
+
+class Extracter(Document):
+    extracter_id = IntField()
+    extracter_config = StringField()
+
+class ExtracterStructureConfig(Document):
+    job = ReferenceField(Job)
+    extracter = ReferenceField(Extracter))
+
+class CrawlerExtracterInfo(Document):
+    extract_task = ReferenceField(CrawlerTask)
+    update_date = DateTimeField(default=datetime.datetime.now())
+    extracted_status = BooleanField(default=False)
+    retry_times = IntField(default = 0)

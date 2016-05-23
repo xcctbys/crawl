@@ -6,17 +6,20 @@ import os
 import sys
 import time
 import re
-import logging
-
+import datetime
 import json
 import codecs
-import unittest
 import threading
 from bs4 import BeautifulSoup
 from . import settings
 
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
-from enterprise.libs.proxies import Proxies
+from common_func import get_proxy, exe_time, json_dump_to_file
+import gevent
+from gevent import Greenlet
+import gevent.monkey
+import unittest
+
 
 urls = {
     'host': 'http://tjcredit.gov.cn',
@@ -35,50 +38,63 @@ CheckDetail = {     #行政处罚
                     'getEquPle' : "/saicpf/gsgqcz?id=%s&entid=%s&issaic=1&hasInfo=0",
             }
 
-headers = { 'Connetion': 'Keep-Alive',
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
-            }
 
 class TianjinCrawler(object):
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
+
     def __init__(self, json_restore_path= None):
+        headers = { 'Connetion': 'Keep-Alive',
+                    'Accept': 'text/html, application/xhtml+xml, */*',
+                    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
+                    }
         self.CR = CaptchaRecognition("tianjin")
         self.requests = requests.Session()
         self.requests.headers.update(headers)
-        self.ents = []
+        adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
+        self.requests.mount('http://', adapter)
+
+        self.ents = {}
         self.json_dict={}
         self.json_restore_path = json_restore_path
         #验证码图片的存储路径
-        self.path_captcha = settings.json_restore_path + '/tianjin/ckcode.jpeg'
+        self.path_captcha = self.json_restore_path + '/tianjin/ckcode.jpeg'
         #数据的存储路径
-        self.html_restore_path = settings.json_restore_path + '/tianjin/'
-        self.proxies = Proxies().get_proxies()
-        self.timeout = 20
-
-
-    # 破解搜索页面
-    def crawl_page_search(self, url):
-        self.crawl_page_by_url(url)
-        return
+        self.html_restore_path = self.json_restore_path + '/tianjin/'
+        proxies = get_proxy('tianjin')
+        if proxies:
+            print proxies
+            self.requests.proxies = proxies
+        self.timeout = (30,20)
 
     #分析 展示页面， 获得搜索到的企业列表
     def analyze_showInfo(self, page):
-        Ent = []
+        Ent = {}
         soup = BeautifulSoup(page, "html5lib")
         divs = soup.find_all("div", {"class":"result-item"})
         if divs:
             for div in divs:
-                a = div.find('a')
-                if a and a.has_attr('href'):
-                    Ent.append(a['href'])
+                url =""
+                ent=""
+                link = div.find('a')
+                if link and link.has_attr('href'):
+                    url = link['href']
+                profile = div.find('div', {'class': 'result-detail'})
+                ent_id = profile.span.find_next_sibling()
+                if ent_id:
+                    ent= self.get_raw_text_by_tag(ent_id)
+                name = link.get_text().strip()
+                if name == self.ent_num:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
+                Ent[ent] = url
         self.ents = Ent
 
     # 破解验证码页面
-    def crawl_page_captcha(self, url_Captcha, url_CheckCode,url_showInfo,  textfield= '120000000000165'):
-
+    def crawl_page_captcha(self,url_search, url_Captcha, url_CheckCode,url_showInfo,  textfield= '120000000000165'):
+        if not self.request_by_method('GET', url_search, timeout=self.timeout): return
         count = 0
         while count < 15:
             count+= 1
@@ -93,14 +109,16 @@ class TianjinCrawler(object):
                         'searchContent': textfield,
                         'vcode': result,
                 }
-                page=  self.crawl_page_by_url_post(url_CheckCode, datas)
+                page=  self.request_by_method('POST', url_CheckCode, data=datas, timeout=self.timeout)
+                if not page: continue
                 # 如果验证码正确，就返回一种页面，否则返回主页面
                 if self.is_search_result_page(page) :
                     self.analyze_showInfo(page)
                     break
                 else:
                     logging.error(u"crack Captcha failed, the %d time(s)", count)
-        return
+            time.sleep(random.uniform(1, 4))
+
 
     # 判断是否成功搜索页面
     def is_search_result_page(self, page):
@@ -115,7 +133,7 @@ class TianjinCrawler(object):
             return
         result = self.CR.predict_result(self.path_captcha)
         return result[1]
-        #print result
+
     # 保存验证码图片
     def save_captcha(self, Captcha):
         if Captcha is None:
@@ -132,68 +150,100 @@ class TianjinCrawler(object):
         self.write_file_mutex.release()
         return True
     def crawl_page_main(self ):
-        sub_json_dict= {}
+        gevent.monkey.patch_socket()
+        sub_json_list= []
         if not self.ents:
             logging.error(u"Get no search result\n")
         try:
-            for ent in self.ents:
-                m = re.match('http', ent)
+            for ent, url in self.ents.items():
+                m = re.match('http', url)
                 if m is None:
-                    ent = urls['host']+ ent
-                logging.error(u"ent url:%s\n"% ent)
-                ent_num = ent[ent.index('entId=')+6 :]
+                    url = urls['host']+ url
+                logging.error(u"ent url:%s\n"% url)
+                self.json_dict={}
+                threads = []
+                ent_num = url[url.index('entId=')+6 :]
                 url_format = "http://tjcredit.gov.cn/platform/saic/baseInfo.json?entId=" + ent_num+"&departmentId=scjgw&infoClassId=%s"
-                sub_json_dict.update(self.crawl_ind_comm_pub_pages(url_format))
+                threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url_format))
                 url_format = "http://tjcredit.gov.cn/report/%s?entid="+ent_num
-                sub_json_dict.update(self.crawl_ent_pub_pages(url_format))
+                threads.append(gevent.spawn(self.crawl_ent_pub_pages, url_format))
                 url_format = "http://tjcredit.gov.cn/report/%s?entid="+ ent_num
-                sub_json_dict.update(self.crawl_judical_assist_pub_pages(url_format))
+                threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url_format))
+                gevent.joinall(threads)
+                sub_json_list.append({ent:self.json_dict})
         except Exception as e:
             logging.error(u"An error ocurred when getting the main page, error: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            return sub_json_list
     #工商公式信息页面
+    @exe_time
     def crawl_ind_comm_pub_pages(self, url):
         sub_json_dict={}
         try:
-            page = self.crawl_page_by_url(url%'dj')
-            dj = self.parse_page(page) # class= result-table
+            def dj():
+                page = self.request_by_method('GET', url%'dj', timeout=self.timeout)
+                if not page: return
+                dj = self.parse_page(page) # class= result-table
 
-            sub_json_dict['ind_comm_pub_reg_basic'] = dj[u'基本信息'] if dj.has_key(u'基本信息') else {}       # 登记信息-基本信息
-            sub_json_dict['ind_comm_pub_reg_shareholder'] = dj[u'股东信息'] if dj.has_key(u'股东信息') else []   # 股东信息
-            sub_json_dict['ind_comm_pub_reg_modify'] = dj[u'变更信息'] if dj.has_key(u'变更信息') else []       # 变更信息
-            page = self.crawl_page_by_url(url%'ba')
-
-            ba = self.parse_page(page)
-            sub_json_dict['ind_comm_pub_arch_key_persons'] = ba[u'主要人员信息'] if ba.has_key(u'主要人员信息') else []   # 备案信息-主要人员信息
-            sub_json_dict['ind_comm_pub_arch_branch'] = ba[u'分支机构信息'] if ba.has_key(u'分支机构信息') else []       # 备案信息-分支机构信息
-            sub_json_dict['ind_comm_pub_arch_liquidation'] = ba[u'清算信息'] if ba.has_key(u'清算信息') else []   # 备案信息-清算信息
-            page = self.crawl_page_by_url(url%'dcdydjxx')
-            dcdy = self.parse_page(page)
-            sub_json_dict['ind_comm_pub_movable_property_reg'] = dcdy[u'动产抵押登记信息'] if dcdy.has_key(u'动产抵押登记信息') else []
-            page = self.crawl_page_by_url(url % 'gqczdjxx')
-            gqcz = self.parse_page(page)
-            sub_json_dict['ind_comm_pub_equity_ownership_reg'] = gqcz[u'股权出质登记信息'] if gqcz.has_key(u'股权出质登记信息') else []
-            page = self.crawl_page_by_url(url % 'xzcf')
-            xzcf = self.parse_page(page)
-            sub_json_dict['ind_comm_pub_administration_sanction'] = xzcf[u'行政处罚信息'] if xzcf.has_key(u'行政处罚信息') else []
-            page = self.crawl_page_by_url(url % 'qyjyycmlxx')
-            jyyc = self.parse_page(page)
-            sub_json_dict['ind_comm_pub_business_exception'] = jyyc[u'经营异常信息'] if jyyc.has_key(u'经营异常信息') else []
-            page = self.crawl_page_by_url(url % 'yzwfqyxx')
-            yzwf = self.parse_page(page)
-            sub_json_dict['ind_comm_pub_serious_violate_law'] = yzwf[u'严重违法信息'] if yzwf.has_key(u'严重违法信息') else []
-            page = self.crawl_page_by_url(url % 'ccjcxx')
-            cyjc = self.parse_page(page)
-            sub_json_dict['ind_comm_pub_spot_check'] = cyjc[u'抽查检查信息'] if cyjc.has_key(u'抽查检查信息') else []
+                sub_json_dict['ind_comm_pub_reg_basic'] = dj[u'基本信息'] if dj.has_key(u'基本信息') else {}       # 登记信息-基本信息
+                sub_json_dict['ind_comm_pub_reg_shareholder'] = dj[u'股东信息'] if dj.has_key(u'股东信息') else []   # 股东信息
+                sub_json_dict['ind_comm_pub_reg_modify'] = dj[u'变更信息'] if dj.has_key(u'变更信息') else []       # 变更信息
+            def ba():
+                page = self.request_by_method('GET', url%'ba', timeout=self.timeout)
+                if not page: return
+                ba = self.parse_page(page)
+                sub_json_dict['ind_comm_pub_arch_key_persons'] = ba[u'主要人员信息'] if ba.has_key(u'主要人员信息') else []   # 备案信息-主要人员信息
+                sub_json_dict['ind_comm_pub_arch_branch'] = ba[u'分支机构信息'] if ba.has_key(u'分支机构信息') else []       # 备案信息-分支机构信息
+                sub_json_dict['ind_comm_pub_arch_liquidation'] = ba[u'清算信息'] if ba.has_key(u'清算信息') else []   # 备案信息-清算信息
+            def dcdydjxx():
+                page = self.request_by_method('GET', url%'dcdydjxx', timeout=self.timeout)
+                if not page: return
+                dcdy = self.parse_page(page)
+                sub_json_dict['ind_comm_pub_movable_property_reg'] = dcdy[u'动产抵押登记信息'] if dcdy.has_key(u'动产抵押登记信息') else []
+            def gqczdjxx():
+                page = self.request_by_method('GET', url % 'gqczdjxx', timeout=self.timeout)
+                if not page: return
+                gqcz = self.parse_page(page)
+                sub_json_dict['ind_comm_pub_equity_ownership_reg'] = gqcz[u'股权出质登记信息'] if gqcz.has_key(u'股权出质登记信息') else []
+            def xzcf():
+                page = self.request_by_method('GET', url % 'xzcf', timeout=self.timeout)
+                if not page: return
+                xzcf = self.parse_page(page)
+                sub_json_dict['ind_comm_pub_administration_sanction'] = xzcf[u'行政处罚信息'] if xzcf.has_key(u'行政处罚信息') else []
+            def qyjyycmlxx():
+                page = self.request_by_method('GET', url % 'qyjyycmlxx', timeout=self.timeout)
+                if not page: return
+                jyyc = self.parse_page(page)
+                sub_json_dict['ind_comm_pub_business_exception'] = jyyc[u'经营异常信息'] if jyyc.has_key(u'经营异常信息') else []
+            def yzwfqyxx():
+                page = self.request_by_method('GET', url % 'yzwfqyxx', timeout=self.timeout)
+                if not page: return
+                yzwf = self.parse_page(page)
+                sub_json_dict['ind_comm_pub_serious_violate_law'] = yzwf[u'严重违法信息'] if yzwf.has_key(u'严重违法信息') else []
+            def ccjcxx():
+                page = self.request_by_method('GET', url % 'ccjcxx', timeout=self.timeout)
+                if not page: return
+                cyjc = self.parse_page(page)
+                sub_json_dict['ind_comm_pub_spot_check'] = cyjc[u'抽查检查信息'] if cyjc.has_key(u'抽查检查信息') else []
+            threads = []
+            threads.append( gevent.spawn(dj) )
+            threads.append( gevent.spawn(ba) )
+            threads.append( gevent.spawn(dcdydjxx) )
+            threads.append( gevent.spawn(gqczdjxx) )
+            threads.append( gevent.spawn(xzcf) )
+            threads.append( gevent.spawn(qyjyycmlxx) )
+            threads.append( gevent.spawn(yzwfqyxx) )
+            threads.append( gevent.spawn(ccjcxx) )
+            gevent.joinall(threads)
 
         except Exception as e:
             logging.error(u"An error ocurred in crawl_ind_comm_pub_pages: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
     #爬取 企业公示信息 页面
+    @exe_time
     def crawl_ent_pub_pages(self, url):
         sub_json_dict = {}
         try:
@@ -201,40 +251,62 @@ class TianjinCrawler(object):
             sub_json_dict['ent_pub_administration_license'] = []    #行政许可信息
             sub_json_dict['ent_pub_administration_sanction'] = []   #行政许可信息
             sub_json_dict['ent_pub_reg_modify'] = []   #变更信息
-            page = self.crawl_page_by_url(url%'nblist')
-            nb = self.parse_page(page)
-            sub_json_dict['ent_pub_ent_annual_report'] = nb[u'年报信息'] if nb.has_key(u'年报信息') else []
-            page = self.crawl_page_by_url(url%'gdcz')
-            p = self.parse_page(page)
-            sub_json_dict['ent_pub_shareholder_capital_contribution'] = p[u'股东及出资'] if p.has_key(u'股东及出资') else []
-            page = self.crawl_page_by_url(url%'gqbg')
-            p = self.parse_page(page)
-            sub_json_dict['ent_pub_equity_change'] = p[u'股权变更信息'] if p.has_key(u'股权变更信息') else []
-            page = self.crawl_page_by_url(url%'zscq')
-            p = self.parse_page(page)
-            sub_json_dict['ent_pub_knowledge_property'] = p[u'知识产权出质登记信息'] if p.has_key(u'知识产权出质登记信息') else []
-
+            def nblist():
+                page = self.request_by_method('GET', url%'nblist', timeout=self.timeout)
+                if not page: return
+                nb = self.parse_page(page)
+                sub_json_dict['ent_pub_ent_annual_report'] = nb[u'年报信息'] if nb.has_key(u'年报信息') else []
+            def gdcz():
+                page = self.request_by_method('GET', url%'gdcz', timeout=self.timeout)
+                if not page: return
+                p = self.parse_page(page)
+                sub_json_dict['ent_pub_shareholder_capital_contribution'] = p[u'股东及出资'] if p.has_key(u'股东及出资') else []
+            def gqbg():
+                page = self.request_by_method('GET', url%'gqbg', timeout=self.timeout)
+                if not page: return
+                p = self.parse_page(page)
+                sub_json_dict['ent_pub_equity_change'] = p[u'股权变更信息'] if p.has_key(u'股权变更信息') else []
+            def zscq():
+                page = self.request_by_method('GET', url%'zscq', timeout=self.timeout)
+                if not page: return
+                p = self.parse_page(page)
+                sub_json_dict['ent_pub_knowledge_property'] = p[u'知识产权出质登记信息'] if p.has_key(u'知识产权出质登记信息') else []
+            threads = []
+            threads.append( gevent.spawn(nblist) )
+            threads.append( gevent.spawn(gdcz) )
+            threads.append( gevent.spawn(gqbg) )
+            threads.append( gevent.spawn(zscq) )
+            gevent.joinall(threads)
         except Exception as e:
             logging.error(u"An error ocurred in crawl_ent_pub_pages: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
     #爬取 司法协助公式 页面
+    @exe_time
     def crawl_judical_assist_pub_pages(self, url):
         sub_json_dict = {}
         try:
             # logging.info( u"crawl the judical_assist_pub page %s."%(url))
-            page = self.crawl_page_by_url(url%'gddjlist')
-            xz = self.parse_page(page)
-            sub_json_dict['judical_assist_pub_equity_freeze'] = xz[u'司法股权冻结信息'] if xz.has_key(u'司法股权冻结信息') else []
-            page = self.crawl_page_by_url(url%'gdbglist')
-            xz = self.parse_page(page)
-            sub_json_dict['judical_assist_pub_shareholder_modify'] = xz[u'司法股东变更登记信息'] if xz.has_key(u'司法股东变更登记信息') else []
+            def gddjlist():
+                page = self.request_by_method('GET', url%'gddjlist', timeout=self.timeout)
+                if not page: return
+                xz = self.parse_page(page)
+                sub_json_dict['judical_assist_pub_equity_freeze'] = xz[u'司法股权冻结信息'] if xz.has_key(u'司法股权冻结信息') else []
+            def gdbglist():
+                page = self.request_by_method('GET', url%'gdbglist', timeout=self.timeout)
+                if not page: return
+                xz = self.parse_page(page)
+                sub_json_dict['judical_assist_pub_shareholder_modify'] = xz[u'司法股东变更登记信息'] if xz.has_key(u'司法股东变更登记信息') else []
+            threads = []
+            threads.append( gevent.spawn(gddjlist) )
+            threads.append( gevent.spawn(gdbglist) )
+            gevent.joinall(threads)
         except Exception as e:
             logging.error(u"An error ocurred in crawl_judical_assist_pub_pages: %s"% (type(e)))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
         pass
 
     def get_raw_text_by_tag(self, tag):
@@ -582,7 +654,7 @@ class TianjinCrawler(object):
                                 next_url = self.get_detail_link(td.find('a'))
                                 #print 'next_url: ' + next_url
                                 if next_url:
-                                    detail_page = self.crawl_page_by_url(next_url)
+                                    detail_page = self.request_by_method('GET', next_url, timeout=self.timeout)
                                     if table_name == u'年报信息':
                                         page_data = self.parse_ent_pub_annual_report_page(detail_page)
 
@@ -693,138 +765,33 @@ class TianjinCrawler(object):
             return table_dict
 
 
-    def crawl_page_by_url(self, url):
-        page = None
+    def request_by_method(self, method, url, *args, **kwargs):
+        r = None
         try:
-            r = self.requests.get( url, timeout = self.timeout, proxies = self.proxies)
-            if r.status_code != 200:
-                logging.error(u"Getting page by url:%s\n, return status %s\n"% (url, r.status_code))
-            page = r.text
+            r = self.requests.request(method, url, *args, **kwargs)
+        except requests.exceptions.Timeout as err:
+            logging.error(u'Getting url: %s timeout. %s .'%(url, err.message))
+            return False
         except requests.exceptions.ConnectionError :
-            self.proxies = Proxies().get_proxies()
-            logging.error("get method self.proxies changed proxies = %s\n"%(self.proxies))
-            return self.crawl_page_by_url( url)
-        except requests.exceptions.Timeout:
-            self.timeout += 5
-            if self.timeout> 35:
-                self.proxies = Proxies().get_proxies()
-                logging.error("get method self.timeout plus timeout = %d, proxies= %s\n"%(self.timeout, self.proxies) )
-            return self.crawl_page_by_url( url)
-        except Exception as e:
-            logging.error("Other exception occured in get method !type e = %s, proxies=%s \n"%(type(e), self.proxies))
-        return page
-
-    def crawl_page_by_url_post(self, url, data):
-        page = None
-        try:
-            r = self.requests.post(url, data, timeout= self.timeout)
-            if r.status_code != 200:
-                logging.error(u"Getting page by url with post:%s\n, return status %s\n"% (url, r.status_code))
-            page = r.text
-        except requests.exceptions.ConnectionError :
-            self.proxies = Proxies().get_proxies()
-            logging.error("get method self.proxies changed proxies = %s\n"%(self.proxies))
-            return self.crawl_page_by_url_post( url, data)
-        except requests.exceptions.Timeout:
-            self.timeout += 5
-            if self.timeout> 35:
-                self.proxies = Proxies().get_proxies()
-                logging.error("get method self.timeout plus timeout = %d, proxies= %s\n"%(self.timeout, self.proxies) )
-            return self.crawl_page_by_url_post( url, data)
-        except Exception as e:
-            logging.error("Other exception occured in post method!type e = %s, proxies=%s \n"%(type(e), self.proxies))
-        return page
+            logging.error(u"Getting url:%s connection error ."%(url))
+            return False
+        except Exception as err:
+            logging.error(u'Getting url: %s exception:%s . %s .'%(url, type(err), err.message))
+            return False
+        if r.status_code != 200:
+            logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
+            return False
+        return r.content
 
     def run(self, ent_num):
-        # 2016-2-16
+
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        json_dict = {}
-        self.crawl_page_search(urls['page_search'])
-        self.crawl_page_captcha(urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        self.ent_num = str(ent_num)
+        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
+        if not self.ents:
+            return json.dumps([{self.ent_num: None}])
         data = self.crawl_page_main()
-        json_dict[ent_num] = data
-        #json_dump_to_file(self.json_restore_path , self.json_dict)
-        # 2016-2-16
-        return json.dumps(json_dict)
-
-    def work(self, ent_num= ""):
-
-        # if not os.path.exists(self.html_restore_path):
-        #     os.makedirs(self.html_restore_path)
-
-        self.crawl_page_search(urls['page_search'])
-        self.crawl_page_captcha(urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
-        data = self.crawl_page_main()
-
-        #self.ents= ['/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828']
-        #data = self.crawl_page_main()
-
-        #txt = html_from_file('tianjin_dj.html')
-        #txt = html_from_file('next.html')
-        #data = self.parse_page(txt)
-        #data = self.parse_ent_pub_annual_report_page(txt)
-        #data = self.parse_page(txt)
-        json_dump_to_file('tianjin_json.json', data)
-
-
-def html_to_file(path, html):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(html)
-
-def json_dump_to_file(path, json_dict):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-
-def html_from_file(path):
-    if not os.path.exists(path):
-        return
-    a = ""
-    with codecs.open(path, 'r') as f:
-        a = f.read()
-    return a
-
-def read_ent_from_file(path):
-    read_type = 'r'
-    if not os.path.exists(path):
-        logging.error(u"There is no path : %s"% path )
-    lines = []
-    with codecs.open(path, read_type, 'utf-8') as f:
-        lines = f.readlines()
-    lines = [ line.split(',') for line in lines ]
-    return lines
-
-"""
-if __name__ == "__main__":
-    reload (sys)
-    sys.setdefaultencoding('utf8')
-    import run
-    run.config_logging()
-    if not os.path.exists("./enterprise_crawler"):
-        os.makedirs("./enterprise_crawler")
-    tianjin = TianjinCrawler('./enterprise_crawler/tianjin.json')
-    #tianjin.work('120000000000165')
-    tianjin.work('120000000000165')
-
-
-if __name__ == "__main__":
-    reload (sys)
-    sys.setdefaultencoding('utf8')
-    import run
-    run.config_logging()
-    if not os.path.exists("./enterprise_crawler"):
-        os.makedirs("./enterprise_crawler")
-    tianjin = TianjinCrawler('./enterprise_crawler/tianjin.json')
-    ents = read_ent_from_file("./enterprise_list/tianjin.txt")
-    tianjin = TianjinCrawler('./enterprise_crawler/tianjin.json')
-    for ent_str in ents:
-        logging.info(u'###################   Start to crawl enterprise with id %s   ###################\n' % ent_str[2])
-        tianjin.run(ent_num = ent_str[2])
-        logging.info(u'###################   Enterprise with id  %s Finished!  ###################\n' % ent_str[2])
-"""
+        # path = os.path.join(os.getcwd(), 'tianjin.json')
+        # json_dump_to_file(path, data)
+        return json.dumps(data)

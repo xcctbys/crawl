@@ -97,25 +97,27 @@ class CrawlerTaskGenerator(Document):
 			f.write(self.code)
 
 class CrawlerTask(Document):
-    (STATUS_LIVE, STATUS_DISPATCH, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS) = range(1, 8)
-    STATUS_CHOICES = (
-        (STATUS_LIVE, u"新增"),
-        (STATUS_DISPATCH, u'分发中'),
-        (STATUS_PROCESS, u"进行中"),
-        (STATUS_FAIL, u"下载失败"),
-        (STATUS_SUCCESS, u"下载成功"),
-        (STATUS_ANALYSIS_FAIL, u"分析失败"),
-        (STATUS_ANALYSIS_SUCCESS, u"分析成功"),
-    )
-    job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
-    task_generator = ReferenceField(CrawlerTaskGenerator, null=True)
-    uri = StringField(max_length =8000)
-    args = StringField(max_length=2048, null=True) # 存储cookie， header等信息
-    status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
-    from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
-    add_datetime = DateTimeField(default=datetime.datetime.now)
-    retry_times = IntField(default=0)
-    meta = {"db_alias": "source"} # 默认连接的数据库
+	(STATUS_LIVE, STATUS_DISPATCH, STATUS_PROCESS, STATUS_FAIL, STATUS_SUCCESS, STATUS_ANALYSIS_FAIL, STATUS_ANALYSIS_SUCCESS, STATUS_EXTRACT_FAIL, STATUS_EXTRACT_SUCCESS) = range(1, 10)
+	STATUS_CHOICES = (
+		(STATUS_LIVE, u"新增"),
+		(STATUS_DISPATCH, u'分发中'),
+		(STATUS_PROCESS, u"进行中"),
+		(STATUS_FAIL, u"下载失败"),
+		(STATUS_SUCCESS, u"下载成功"),
+		(STATUS_ANALYSIS_FAIL, u"分析失败"),
+		(STATUS_ANALYSIS_SUCCESS, u"分析成功"),
+		(STATUS_EXTRACT_FAIL, u"导出失败"),
+		(STATUS_EXTRACT_SUCCESS, u"导出成功"),
+	)
+	job = ReferenceField(Job,  reverse_delete_rule=CASCADE)
+	task_generator = ReferenceField(CrawlerTaskGenerator, null=True)
+	uri = StringField(max_length =8000)
+	args = StringField(max_length=2048, null=True) # 存储cookie， header等信息
+	status = IntField(default=STATUS_LIVE, choices=STATUS_CHOICES)
+	from_host = StringField(max_length=128, blank=True, null=True)# 从哪台主机生成
+	add_datetime = DateTimeField(default=datetime.datetime.now)
+	retry_times = IntField(default=0)
+	meta = {"db_alias": "source"} # 默认连接的数据库
 
 
 class CrawlerGeneratorLog(Document):
@@ -187,7 +189,7 @@ class CrawlerDownloadSetting(Document):
 	max_retry_times = IntField(default=5)
 	proxy = StringField()
 	cookie = StringField()
-	download_timeout = IntField(default=120)
+	download_timeout = IntField(default=1200)
 	last_update_datetime = DateTimeField(default=datetime.datetime.now)
 	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "source"}
@@ -271,3 +273,13 @@ class CrawlerDownloadLog(Document):
 	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "log"} # 默认连接的数据库
 
+#生产者：各爬虫
+#消费者：各爬虫
+class CrawlerDownloadArgs(Document):
+	province = StringField(maxlength=20)
+	register_number  = StringField(maxlength=25)
+	unifield_number = StringField(maxlength=25)
+	enterprise_name = StringField(maxlength=100)
+	download_args = DictField() #该企业号需要的信息如'id':'','ent_id':''等
+	update_datetime = DateTimeField(default=datetime.datetime.now)
+	meta = {"db_alias": "source"} # 默认连接的数据库

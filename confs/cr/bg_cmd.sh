@@ -1,7 +1,7 @@
 #!/bin/bash
 
-WORKDIR="/home/clawer/cr-clawer/clawer"
-PYTHON="/usr/local/bin/python"
+WORKDIR="/home/webapps/cr-clawer/clawer"
+PYTHON="/usr/bin/python"
 
 function safe_run()
 {
@@ -9,7 +9,7 @@ function safe_run()
 
     (
         flock -xn -w 10 200 || exit 1
-        cd ${WORKDIR}; ${PYTHON} manage_cr.py $*
+        cd ${WORKDIR}; ${PYTHON} manage_production.py $*
     ) 200>${file}
 }
 

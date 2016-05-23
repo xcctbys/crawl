@@ -1,38 +1,57 @@
 # encoding=utf-8
 
 import logging
+import re
 import json
 import urllib
 import unittest
-# import traceback
+import traceback
 import os
 import cPickle as pickle
-
+try:
+    import pwd
+except:
+    pass
 from bs4 import BeautifulSoup
 import requests
 import MySQLdb
-import timefrom gevent import Greenlet
-# import gevent.monkey
-# gevent.monkey.patch_socket()
+import redis
+
+import datetime
 import gevent
+from gevent import Greenlet                                                        # 添加这个猴子补丁，实现异步访问
+import gevent.monkey
+gevent.monkey.patch_socket()
+
 requests.packages.urllib3.disable_warnings()
 
 
-HOST = '10.0.1.3'
-# HOST ='localhost'
-USER = 'cacti'
-PASSWD = 'cacti'
+'''MySQL，Redis参数设置'''
+
+HOST = 'csciwlpc.mysql.rds.aliyuncs.com'                                           # 全局变量设置MySQL的HOST USER等
+USER = 'plkj'
+PASSWD = 'Password2016'
 PORT = 3306
-STEP =  1 # 每个step取ROWS个。
+MYSQL_DB = 'csciwlpc'
+STEP = 1                                                                           # 每个step取10个
 ROWS = 10
-DEBUG = False  # 是否开启DEBUG
+
+REDIS_HOST = '13153c2b13894978.m.cnsza.kvstore.aliyuncs.com'                       # 全局变量，设置Redis的HOST，USER,TABLE
+REDIS_PORT = 6379
+REDIS_DB = 1
+REDIS_USER = ""
+REDIS_PWD = "Password123"
+REDIS_TABLE = 'baidu'
+
+DEBUG = True  # 是否开启DEBUG
 if DEBUG:
     level = logging.DEBUG
 else:
     level = logging.ERROR
 
-logging.basicConfig(filename="/tmp/baidu.log" ,level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
+logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
+'''主程序部分'''
 
 # 所需爬取的相应关键词
 KEYWORD = [
@@ -45,51 +64,69 @@ KEYWORD = [
         u'清算'
 ]
 
+# 装饰器
+def exe_time(func):
+    def fnc(*args, **kwargs):
+        start = datetime.datetime.now()
+        # print "call "+ func.__name__ + "()..."
+        print func.__name__ +" start :"+ str(start) +" " +str(args)
+        func(*args, **kwargs)
+        end = datetime.datetime.now()
+        print func.__name__ +" end :"+ str(end)
+    return fnc
 
-class History(object):  # 实现程序的可持续性，每次运行时读取上次运行时保存的参数，跳到相应位置继续执行程序
+
+class History(object):                                                             # 实现程序的可持续性，每次运行时读取上次
 
     def __init__(self):
+        # self.company_num = 0                                                     # 初始化pickle中用作公司名称位置索引值
         self.total_page = 0
-        self.current_page = 0# 初始化pickle中用作公司名称位置索引值
-        self.path = "/tmp/baidu_company_search"  # pickle文件存放路径（提交至平台的代码记住带上tmp前斜杠）
+        self.current_page = 0
 
-    def load(self):  # pickle的载入
-        if os.path.exists(self.path) is False:  # 读取pickle失败则返回
+    def load(self):                                                                # redis记录的载入
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER+':'+REDIS_PWD)
+        if not r.hgetall(REDIS_TABLE):
             return
+        r_dict = r.hgetall(REDIS_TABLE)
+        self.total_page = int(r_dict.get("total_page"))
+        self.current_page = int(r_dict.get("current_page"))
 
-        with open(self.path, "r") as f:  # 打开pickle文件并载入
-            old = pickle.load(f)
-            self.total_page = old.total_page
-            self.current_page = old.current_page
-
-    def save(self):  # pickle的保存
-        with open(self.path, "w") as f:
-            pickle.dump(self, f)
+    def save(self):
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER+':'+REDIS_PWD)
+        r.hset(REDIS_TABLE, 'total_page', self.total_page)
+        r.hset(REDIS_TABLE, 'current_page', self.current_page)
+        #print r.hgetall(REDIS_TABLE)
 
 
 class Generator(object):
-    HOST = "https://www.baidu.com/s?"
+    HOST = "http://www.baidu.com/s?"
 
     def __init__(self):  # 初始化
         self.uris = set()
         self.args = set()
         self.history = History()
         self.history.load()
+        # self.source_url = "http://clawer.princetechs.com/enterprise/api/get/all/"
         self.enterprises= []
         self.step = STEP
 
     def search_url_with_batch(self):
         self.obtain_enterprises()
         for company in self.enterprises:
-            starts = time.time()
+            logging.debug("%s"%(company))
             for each_keyword in KEYWORD:  # 遍历搜索关键词
                 keyword = each_keyword
-                start = time.time()
                 self.page_url(company, keyword)  # 传参调用url构造函数
-                end = time.time()
-                logging.error("%s search time %f !"%(company.encode('utf8'), end - start) )
-            ends = time.time()
-            logging.error("The company %s run time %f."%(company.encode('utf8'), ends-starts))
+
+    def search_url_with_batch_asyn(self):
+        self.obtain_enterprises()
+        for company in self.enterprises:
+            threads = []
+            logging.debug("%s"%(company))
+            for each_keyword in KEYWORD:  # 遍历搜索关键词
+                keyword = each_keyword
+                threads.append( gevent.spawn( self.page_url, company, keyword) )
+            gevent.joinall(threads)
 
     def obtain_enterprises(self):
         if self.history.current_page <= 0 and self.history.total_page <= 0:
@@ -106,6 +143,7 @@ class Generator(object):
             if self.history.current_page > self.history.total_page:
                 self.history.current_page = 0
                 self.history.total_page = 0
+                # self.history.save()
                 break
         self.history.save()
 
@@ -115,16 +153,15 @@ class Generator(object):
         self.history.total_page = r['total_page']
         self.history.save()
 
+    @exe_time
     def page_url(self, current_company, current_keyword):
         for page_num in range(0, 10, 10):  # 遍历实现baidu搜索结果页翻页（第一页为0，第二页为10，第三页为20...）
             params = {"wd": current_company.encode("gbk") + " " + current_keyword.encode("gbk"),
                       "pn": page_num}  # 构造url参数
             url = "%s%s" % (self.HOST, urllib.urlencode(params))  # 构造url
-            try:
-                r = requests.get(url, verify=False, headers={"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}, timeout=5)  # 浏览器代理请求url
-            except Exception as e:
-                logging.error(traceback.format_exc(10))
-                continue
+            headers= {"user-agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0"}
+            # {"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
+            r = requests.get(url,verify = False, headers = headers, timeout=60)  # 浏览器代理请求url
             soup = BeautifulSoup(r.text, "html5lib")  # 使用html5lib解析页面内容
             contents = soup.find("div", {"id": "content_left"})  # 找到页面中id为content_left的div
             divs = contents.find_all("div", {"class": "result"})  # 在目标div中找到所有class为result的div
@@ -133,7 +170,7 @@ class Generator(object):
                 if len(all_em) > 1:
                     ems = [em.get_text().strip() for em in all_em] # 将em建为一个列表
                     if current_company in ems and current_keyword in ems: # 判断关键词是否在em标签中，若判断为真则使用浏览器代理获取目标url中的headers信息
-                        target_head = requests.head(div.h3.a["href"], headers={"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}).headers
+                        target_head = requests.head(div.h3.a["href"], headers= headers).headers
                         target_url = target_head["Location"]  # 获取目标链接真实url]
                         proto, rest = urllib.splittype(target_url)
                         host, rest = urllib.splithost(rest)
@@ -151,12 +188,13 @@ class Generator(object):
                         self.uris.add(test)  # 将url加入uris中
 
     def paginate(self, current_page, rows=10):
-        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='clawer', port=PORT,charset='utf8')
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db=MYSQL_DB, port=PORT, charset='utf8')
         sql = "select count(*) from enterprise_enterprise"
         cur = conn.cursor()
         count = cur.execute(sql)
         total_rows =cur.fetchone()[0]
         total_page = total_rows/rows
+        # print total_page
         if current_page  > total_page:
             current_page = 0
         sql = "select name from enterprise_enterprise limit %d, %d"%(current_page*rows, rows)
@@ -164,6 +202,8 @@ class Generator(object):
         columns = [desc[0] for desc in cur.description]
         result = []
         for r in cur.fetchall():
+            # for v in r:
+                # print str(v.encode('utf-8'))
             result.append(dict(zip(columns, r)))
 
         conn.close()
@@ -205,7 +245,7 @@ class GeneratorTest(unittest.TestCase):
     @unittest.skip("skipping read from file")
     def test_generator_over_totalpage(self):
         generator = Generator()
-        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db='clawer', charset='utf8', port=PORT)
+        conn = MySQLdb.connect(host=HOST, user=USER, passwd=PASSWD, db=MYSQL_DB, port=PORT, charset='utf8')
         sql='select count(*) from enterprise_enterprise'
         cur = conn.cursor()
         count = cur.execute(sql)
@@ -217,49 +257,16 @@ class GeneratorTest(unittest.TestCase):
         self.assertEqual(result['current_page'], 0)
 
 
-ents = []
-class MyGreenlet(Greenlet):
-
-    def __init__(self):
-        Greenlet.__init__(self)
-        self.g = Generator()
-
-    def _run(self):
-        # self.asynchronous()
-        self.obtain()
-
-    def obtain(self):
-        self.g.obtain_enterprises()
-        threads = []
-        for company in self.g.enterprises:
-            logging.debug("%s"%(company))
-            for each_keyword in KEYWORD:  # 遍历搜索关键词
-                keyword = each_keyword
-                threads.append(gevent.spawn(self.g.page_url, company, keyword))
-        gevent.joinall(threads)
 
 if __name__ == "__main__":
 
     if DEBUG:  # 如果DEBUG为True则进入测试单元
         unittest.main()
     else:
-        # start = time.time()
-        # generator = Generator()
+        generator = Generator()
         # generator.search_url_with_batch()
-        # end = time.time()
-        # logging.error("Totoal run time = %f ."%(end - start))
+        generator.search_url_with_batch_asyn()
 
-        # for uri in generator.uris:
-        #     str_uri = uri.encode("utf-8").split(" ")
-        #     print json.dumps({"uri": str_uri[0], "args": str_uri[1]})
-
-        startd = time.time()
-        mg = MyGreenlet()
-        mg.start()
-        mg.join()
-        endd = time.time()
-        logging.error("Total running time is %f"%(endd - startd))
-
-        for uri in mg.g.uris:  # 遍历输出uris
-            str_uri = str(uri.encode("utf-8")).split(" ")
+        for uri in generator.uris:
+            str_uri = uri.encode("utf-8").split(" ")
             print json.dumps({"uri": str_uri[0], "args": str_uri[1]})

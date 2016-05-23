@@ -1,7 +1,6 @@
 {
   "WebServer": {
     "hosts": ["172.16.80.5"]
-
   },
   "GeneratorServers": {
     "hosts": ["172.16.80.4"]

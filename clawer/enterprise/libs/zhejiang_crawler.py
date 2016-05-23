@@ -12,9 +12,14 @@ import codecs
 from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from . import settings
-import time
 import random
-from enterprise.libs.proxies import Proxies
+import datetime
+
+from common_func import get_proxy, exe_time, json_dump_to_file
+import gevent
+from gevent import Greenlet
+import gevent.monkey
+import unittest
 
 urls = {
     'host': 'http://gsxt.zjaic.gov.cn/',
@@ -22,51 +27,70 @@ urls = {
     'page_search': 'http://gsxt.zjaic.gov.cn/zhejiang.jsp',
     'page_Captcha': 'http://gsxt.zjaic.gov.cn/common/captcha/doReadKaptcha.do',
     'page_showinfo': 'http://gsxt.zjaic.gov.cn/search/doGetAppSearchResult.do',
-    'prefix_url_0':'http://gsxt.zjaic.gov.cn/appbasicinfo/',
     'checkcode':'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
 }
 
-headers = { 'Connetion': 'Keep-Alive',
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
-            #在获取验证码图片的时候，构造请求头的时候，要添加Referer
-            "Referer" : "http://gsxt.zjaic.gov.cn/zhejiang.jsp",
-        }
 
 class ZhejiangCrawler(object):
     """浙江省爬虫代码"""
     def __init__(self, json_restore_path=None):
+        headers = { 'Connetion': 'Keep-Alive',
+                    'Accept': 'text/html, application/xhtml+xml, */*',
+                    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
+                    #在获取验证码图片的时候，构造请求头的时候，要添加Referer, 在各个TAB的页面也需要在请求头中构造Referer。
+                    "Referer" : "http://gsxt.zjaic.gov.cn/zhejiang.jsp",
+                }
         self.CR = CaptchaRecognition("zhejiang")
         self.requests = requests.Session()
         self.requests.headers.update(headers)
-        self.ents = []
+        adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
+        self.requests.mount('http://', adapter)
+
+        self.ents = {}
+        self.json_dict = {}
         self.json_restore_path = json_restore_path
-        self.html_restore_path = settings.json_restore_path + '/zhejiang/'
+        self.html_restore_path = self.json_restore_path + '/zhejiang/'
         #验证码图片的存储路径
-        self.path_captcha = settings.json_restore_path + '/zhejiang/ckcode.jpg'
-        self.path_captcha_diff = settings.json_restore_path +'/zhejiang/'
+        self.path_captcha = self.json_restore_path + '/zhejiang/ckcode.jpg'
+        # self.path_captcha_diff = self.json_restore_path +'/zhejiang/'
         self.corpid = ""
         self.regNo = ""
         self.reportNo = ""
         self.year = ""
-        self.proxies = Proxies().get_proxies()
+        proxies = get_proxy('zhejiang')
+        if proxies:
+            print proxies
+            self.requests.proxies = proxies
+        self.timeout = (30,20)
 
     # 破解搜索页面
     def crawl_page_search(self, url):
-        return self.crawl_page_by_url(url)['page']
+        return self.request_by_method('GET', url, timeout=self.timeout)
 
 
     #分析 展示页面， 获得搜索到的企业列表
     def analyze_showInfo(self, url, datas):
-        content = self.crawl_page_by_url_post(url, datas)['page']
-        Ent = []
+        content = self.request_by_method('POST',url, data = datas, timeout=self.timeout)
+        Ent = {}
         soup = BeautifulSoup(content, "html5lib")
-        divs = soup.find_all("dl", {"class":"list"})
-        if divs:
-            for div in divs:
-                if div.find('a') and div.find('a').has_attr('href'):
-                    Ent.append(div.find('a')['href'])
+        dls = soup.find_all("dl", {"class":"list"})
+        if dls:
+            for dl in dls:
+                url = ""
+                ent = ""
+                link = dl.find('dt')
+                if link and link.find('a') and link.find('a').has_attr('href'):
+                    url = link.find('a')['href']
+                profile = link.find_next_sibling()
+                if  profile and profile.span:
+                    ent = self.get_raw_text_by_tag(profile.span)
+                name = link.find('a').get_text().strip()
+                if name == self.ent_num:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
+                Ent[ent] = url
         self.ents = Ent
 
     # 破解验证码页面
@@ -77,17 +101,21 @@ class ZhejiangCrawler(object):
         count = 0
         while count < 40:
             count+= 1
-            r = self.requests.get( url_Captcha)
-            if r.status_code != 200:
-                logging.error(u"Something wrong when getting the Captcha url:%s , status_code=%d", url_Captcha, r.status_code)
-                return
-            if self.save_captcha(r.content):
+            content = self.request_by_method('GET', url_Captcha, timeout=self.timeout)
+            if not content: continue
+            if self.save_captcha(content):
                 result = self.crack_captcha()
                 datas= {
                         'name': textfield,
                         'verifyCode': result,
                 }
-                response = self.get_check_response(url_CheckCode, datas)
+
+                response = self.request_by_method('POST', url_CheckCode, data = datas, timeout=self.timeout)
+                if not response: continue
+                # response is a string type. it needs to be converted to dict
+                response = json.loads(response)
+                print  response
+
                 #response 成功则返回 {u'nameResponse': {u'totalCount': 0, u'message': u'true', u'name': u'', u'appConInfoList': []}}
                 if response['nameResponse']['message'] == 'true':
                     datas['clickType'] = 1
@@ -97,12 +125,7 @@ class ZhejiangCrawler(object):
                     logging.debug(u"crack Captcha failed, the %d time(s)", count)
             time.sleep(random.uniform(1, 4))
         return
-    def get_check_response(self, url, datas):
-        """获得验证的结果信息"""
-        r = self.requests.post( url, data = datas )
-        if r.status_code != 200:
-            return False
-        return r.json()
+
     def crack_captcha(self):
         """调用函数，破解验证码图片并返回结果"""
         if os.path.exists(self.path_captcha) is False:
@@ -127,126 +150,185 @@ class ZhejiangCrawler(object):
         finally:
             f.close
         return True
-    """
-    The following functions are for main page
-        1. iterate enterprises in ents
-        2. for each ent: decide host so that choose functions by pattern
-        3. for each pattern, iterate urls
-        4. for each url, iterate item in tabs
-    """
     def crawl_page_main(self ):
-        sub_json_dict= {}
-        del self.requests.headers['Referer']
+        """
+        The following functions are for main page
+            1. iterate enterprises in ents
+            2. for each ent: decide host so that choose functions by pattern
+            3. for each pattern, iterate urls
+            4. for each url, iterate item in tabs
+        """
+        gevent.monkey.patch_socket()
+        sub_json_list = []
+        # del self.requests.headers['Referer']
 
         if not self.ents:
             logging.error(u"Get no search result\n")
         try:
-            for ent in self.ents:
-                m = re.match('http', ent)
+            for ent, url in self.ents.items():
+                m = re.match('http', url)
                 if m is None:
-                    ent = urls['host']+ ent
-                logging.debug(u"ent url:%s\n"% ent)
-                corpid = ent[ent.rfind('corpid')+7:]
+                    url = urls['host']+ url
+                logging.debug(u"ent url:%s\n"% url)
+                corpid = url[url.rfind('corpid')+7:]
                 self.corpid = corpid
-                url = ent
-                sub_json_dict.update(self.crawl_ind_comm_pub_pages(url))
+                self.json_dict={}
+                threads = []
+                threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url))
                 url = urls['host']+ "annualreport/doViewAnnualReportIndex.do?corpid="+corpid
-                sub_json_dict.update(self.crawl_ent_pub_pages(url))
+                threads.append(gevent.spawn(self.crawl_ent_pub_pages, url))
                 url = urls['host'] + "other/doGetOtherInfoAction.do?corpid=" + corpid
-                sub_json_dict.update(self.crawl_other_dept_pub_pages(url ))
+                threads.append(gevent.spawn(self.crawl_other_dept_pub_pages, url))
                 url = urls['host']+"jsp/client/biz/view/justiceInfoPublic.jsp?corpid=" + corpid
-                sub_json_dict.update(self.crawl_judical_assist_pub_pages(url))
+                threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url))
+                gevent.joinall(threads)
+                sub_json_list.append({ent: self.json_dict})
         except Exception as e:
             logging.error(u"An error ocurred when getting the main page, error: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            return sub_json_list
     #工商公式信息页面
+    @exe_time
     def crawl_ind_comm_pub_pages(self, url=""):
         """工商公式信息页面"""
         sub_json_dict={}
         try:
             logging.info( u"crawl the crawl_ind_comm_pub_pages page %s."%(url))
-            main_page = self.crawl_page_by_url(url)['page']
-            url = urls['host'] + "/appbasicinfo/doReadAppBasicInfo.do?corpid=" + self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            dj = self.parse_page_jibenxinxi(page) #
-            sub_json_dict['ind_comm_pub_reg_basic'] = dj[u'基本信息'] if dj.has_key(u'基本信息') else []        # 登记信息-基本信息
-            sub_json_dict['ind_comm_pub_reg_shareholder'] =dj[u'股东信息'] if dj.has_key(u'股东信息') else []   # 股东信息
-            sub_json_dict['ind_comm_pub_reg_modify'] =  dj[u'变更信息'] if dj.has_key(u'变更信息') else []      # 变更信息
-            url = urls['host']+ "/filinginfo/doViewFilingInfo.do?corpid=" + self.corpid
-            page = self.crawl_page_by_url(url )['page']
-            ba = self.parse_page_beian(page)
-            sub_json_dict['ind_comm_pub_arch_key_persons'] = ba[u'主要人员信息'] if ba.has_key(u'主要人员信息') else []   # 备案信息-主要人员信息
-            sub_json_dict['ind_comm_pub_arch_branch'] = ba[u'分支机构信息'] if ba.has_key(u'分支机构信息') else []       # 备案信息-分支机构信息
-            sub_json_dict['ind_comm_pub_arch_liquidation'] = ba[u'清算信息'] if ba.has_key(u'清算信息') else []   # 备案信息-清算信息
-            url = urls['host']+ "/dcdyapplyinfo/doReadDcdyApplyinfoList.do?regNo="+self.regNo+"&uniSCID="
-            page = self.crawl_page_by_url(url)['page']
-            dcdy = self.parse_page(page, 'dongchandiya')
-            sub_json_dict['ind_comm_pub_movable_property_reg'] = dcdy[u'动产抵押登记信息'] if dcdy.has_key(u'动产抵押登记信息') else []
-            url = urls['host']+ "/equityall/doReadEquityAllListFromPV.do?corpid=" + self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            gqcz = self.parse_page(page, 'guquanchuzhi')
-            sub_json_dict['ind_comm_pub_equity_ownership_reg'] = gqcz[u'股权出质登记信息'] if gqcz.has_key(u'股权出质登记信息') else []
-            url = urls['host']+ "/punishment/doViewPunishmentFromPV.do?corpid=" + self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            xzcf = self.parse_page(page)
-            sub_json_dict['ind_comm_pub_administration_sanction'] = xzcf[u'行政处罚信息'] if xzcf.has_key(u'行政处罚信息') else []
-            url = urls['host']+ "/catalogapply/doReadCatalogApplyList.do?corpid=" + self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            jyyc= self.parse_page(page, 'yichangminglu')
-            sub_json_dict['ind_comm_pub_business_exception'] = jyyc[u'经营异常信息'] if jyyc.has_key(u'经营异常信息') else []
-            url = urls['host']+ "/blacklist/doViewBlackListInfo.do?corpid=" + self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            yzwf = self.parse_page(page, 'yanzhongweifa')
-            sub_json_dict['ind_comm_pub_serious_violate_law'] = yzwf[u'严重违法信息'] if yzwf.has_key(u'严重违法信息') else []
-            url = urls['host']+ "/pubcheckresult/doViewPubCheckResultList.do?corpid=" + self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            cyjc= self.parse_page(page, 'chouchaxinxi')
-            sub_json_dict['ind_comm_pub_spot_check'] = cyjc[u'抽查检查信息'] if cyjc.has_key(u'抽查检查信息') else []
+            self.requests.headers['Referer'] = url
+            def mainInfo():
+                main_page = self.request_by_method('GET', url, timeout=self.timeout)
+            def appBasicInfo():
+                url = urls['host'] + "/appbasicinfo/doReadAppBasicInfo.do?corpid=" + self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                dj = self.parse_page_jibenxinxi(page) #
+                sub_json_dict['ind_comm_pub_reg_basic'] = dj[u'基本信息'] if dj.has_key(u'基本信息') else []        # 登记信息-基本信息
+                sub_json_dict['ind_comm_pub_reg_shareholder'] =dj[u'股东信息'] if dj.has_key(u'股东信息') else []   # 股东信息
+                sub_json_dict['ind_comm_pub_reg_modify'] =  dj[u'变更信息'] if dj.has_key(u'变更信息') else []      # 变更信息
+            def filingInfo():
+                url = urls['host']+ "/filinginfo/doViewFilingInfo.do?corpid=" + self.corpid
+                page = self.request_by_method('GET', url , timeout=self.timeout)
+                if not page : return
+                ba = self.parse_page_beian(page)
+                sub_json_dict['ind_comm_pub_arch_key_persons'] = ba[u'主要人员信息'] if ba.has_key(u'主要人员信息') else []   # 备案信息-主要人员信息
+                sub_json_dict['ind_comm_pub_arch_branch'] = ba[u'分支机构信息'] if ba.has_key(u'分支机构信息') else []       # 备案信息-分支机构信息
+                sub_json_dict['ind_comm_pub_arch_liquidation'] = ba[u'清算信息'] if ba.has_key(u'清算信息') else []   # 备案信息-清算信息
+            def dcdyApplyInfo():
+                url = urls['host']+ "/dcdyapplyinfo/doReadDcdyApplyinfoList.do?regNo="+self.regNo+"&uniSCID="
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                dcdy = self.parse_page(page, 'dongchandiya')
+                sub_json_dict['ind_comm_pub_movable_property_reg'] = dcdy[u'动产抵押登记信息'] if dcdy.has_key(u'动产抵押登记信息') else []
+            def equityAll():
+                url = urls['host']+ "/equityall/doReadEquityAllListFromPV.do?corpid=" + self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                gqcz = self.parse_page(page, 'guquanchuzhi')
+                sub_json_dict['ind_comm_pub_equity_ownership_reg'] = gqcz[u'股权出质登记信息'] if gqcz.has_key(u'股权出质登记信息') else []
+            def punishment():
+                url = urls['host']+ "/punishment/doViewPunishmentFromPV.do?corpid=" + self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                xzcf = self.parse_page(page)
+                sub_json_dict['ind_comm_pub_administration_sanction'] = xzcf[u'行政处罚信息'] if xzcf.has_key(u'行政处罚信息') else []
+            def catalogApply():
+                url = urls['host']+ "/catalogapply/doReadCatalogApplyList.do?corpid=" + self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                jyyc= self.parse_page(page, 'yichangminglu')
+                sub_json_dict['ind_comm_pub_business_exception'] = jyyc[u'经营异常信息'] if jyyc.has_key(u'经营异常信息') else []
+            def blacklist():
+                url = urls['host']+ "/blacklist/doViewBlackListInfo.do?corpid=" + self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                yzwf = self.parse_page(page, 'yanzhongweifa')
+                sub_json_dict['ind_comm_pub_serious_violate_law'] = yzwf[u'严重违法信息'] if yzwf.has_key(u'严重违法信息') else []
+            def pubCheckResult():
+                url = urls['host']+ "/pubcheckresult/doViewPubCheckResultList.do?corpid=" + self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                cyjc= self.parse_page(page, 'chouchaxinxi')
+                sub_json_dict['ind_comm_pub_spot_check'] = cyjc[u'抽查检查信息'] if cyjc.has_key(u'抽查检查信息') else []
+            threads = []
+            threads.append( gevent.spawn(mainInfo) )
+            threads.append( gevent.spawn(appBasicInfo) )
+            threads.append( gevent.spawn(filingInfo) )
+            threads.append( gevent.spawn(dcdyApplyInfo) )
+            threads.append( gevent.spawn(equityAll) )
+            threads.append( gevent.spawn(punishment) )
+            threads.append( gevent.spawn(catalogApply) )
+            threads.append( gevent.spawn(blacklist) )
+            threads.append( gevent.spawn(pubCheckResult) )
+            gevent.joinall(threads)
         except Exception as e:
             logging.debug(u"An error ocurred in crawl_ind_comm_pub_pages: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
     #爬取 企业公示信息 页面
+    @exe_time
     def crawl_ent_pub_pages(self, url= "", post_data={}):
         """爬取 企业公示信息 页面"""
         sub_json_dict = {}
         try:
             logging.info( u"crawl the crawl_ent_pub_pages page %s."%(url))
-            main_page = self.crawl_page_by_url(url)['page']
-            url = urls['host']+"/pubreportinfo/doReadPubReportInfoList.do?corpid="+self.corpid+"&appConEntTypeCatg=11"
-            page = self.crawl_page_by_url(url)['page']
-            nb = self.parse_page(page, 'qynb')
-            sub_json_dict['ent_pub_ent_annual_report'] = nb[u'企业年报'] if nb.has_key(u'企业年报') else []
-            url = urls['host']+"/pubfunded/doReadPubFunded.do?pubFunded.corpid="+ self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            tzr= self.parse_page_touziren(page)
-            sub_json_dict['ent_pub_shareholder_capital_contribution'] = tzr #tzr[u'股东及出资信息'] if tzr.has_key(u'股东及出资信息') else []
-            bg = self.parse_page_biangeng(page)
-            sub_json_dict['ent_pub_reg_modify'] = bg#bg[u'变更信息'] if bg.has_key(u'变更信息') else []
-            url = urls['host']+"/pubinstantstock/doReadPubStock.do?pubInstantStock.corpid="+ self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            gq = self.parse_page_gqbg(page)
-            sub_json_dict['ent_pub_equity_change'] = gq#gq[u'股权变更信息'] if gq.has_key(u'股权变更信息') else []
-            url = urls['host']+"/publicense/doReadPubLicense.do?pubLicense.corpid="+ self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            xk = self.parse_page_xzxk(page, 'xingzhengxuke')
-            sub_json_dict['ent_pub_administration_license'] =  xk#xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
-            url = urls['host']+"/pubinstantpunish/doReadPubInstantPunish.do?pubInstantPunish.corpid="+ self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            cf = self.parse_page_xzcf(page, 'xingzhengchufa')
-            sub_json_dict['ent_pub_administration_sanction'] = cf#cf[u'行政处罚信息'] if cf.has_key(u'行政处罚信息') else []
-            url = urls['host']+"/pubinstantintellectual/doReadPubInstantIntellectual.do?pubInstantIntellectual.corpid="+ self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            zscq = self.parse_page_zscq(page, 'zhishichanquan')
-            sub_json_dict['ent_pub_knowledge_property'] =  zscq #zscq[u'知识产权出质登记信息'] if zscq.has_key(u'知识产权出质登记信息') else []
+            self.requests.headers['Referer'] = url
+            def mainInfo():
+                main_page = self.request_by_method('GET', url, timeout=self.timeout)
+            def pubReportInfo():
+                url = urls['host']+"/pubreportinfo/doReadPubReportInfoList.do?corpid="+self.corpid+"&appConEntTypeCatg=11"
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                nb = self.parse_page(page, 'qynb')
+                sub_json_dict['ent_pub_ent_annual_report'] = nb[u'企业年报'] if nb.has_key(u'企业年报') else []
+            def pubFunded():
+                url = urls['host']+"/pubfunded/doReadPubFunded.do?pubFunded.corpid="+ self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                tzr= self.parse_page_touziren(page)
+                sub_json_dict['ent_pub_shareholder_capital_contribution'] = tzr #tzr[u'股东及出资信息'] if tzr.has_key(u'股东及出资信息') else []
+                bg = self.parse_page_biangeng(page)
+                sub_json_dict['ent_pub_reg_modify'] = bg#bg[u'变更信息'] if bg.has_key(u'变更信息') else []
+            def pubInstantStock():
+                url = urls['host']+"/pubinstantstock/doReadPubStock.do?pubInstantStock.corpid="+ self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                gq = self.parse_page_gqbg(page)
+                sub_json_dict['ent_pub_equity_change'] = gq#gq[u'股权变更信息'] if gq.has_key(u'股权变更信息') else []
+            def pubLicense():
+                url = urls['host']+"/publicense/doReadPubLicense.do?pubLicense.corpid="+ self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                xk = self.parse_page_xzxk(page, 'xingzhengxuke')
+                sub_json_dict['ent_pub_administration_license'] =  xk#xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
+            def pubInstantPunish():
+                url = urls['host']+"/pubinstantpunish/doReadPubInstantPunish.do?pubInstantPunish.corpid="+ self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                cf = self.parse_page_xzcf(page, 'xingzhengchufa')
+                sub_json_dict['ent_pub_administration_sanction'] = cf#cf[u'行政处罚信息'] if cf.has_key(u'行政处罚信息') else []
+            def pubInstantIntellectual():
+                url = urls['host']+"/pubinstantintellectual/doReadPubInstantIntellectual.do?pubInstantIntellectual.corpid="+ self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page : return
+                zscq = self.parse_page_zscq(page, 'zhishichanquan')
+                sub_json_dict['ent_pub_knowledge_property'] =  zscq #zscq[u'知识产权出质登记信息'] if zscq.has_key(u'知识产权出质登记信息') else []
+            threads = []
+            threads.append( gevent.spawn(mainInfo) )
+            threads.append( gevent.spawn(pubReportInfo) )
+            threads.append( gevent.spawn(pubFunded) )
+            threads.append( gevent.spawn(pubInstantStock) )
+            threads.append( gevent.spawn(pubLicense) )
+            threads.append( gevent.spawn(pubInstantPunish) )
+            threads.append( gevent.spawn(pubInstantIntellectual) )
+            gevent.joinall(threads)
         except Exception as e:
             logging.debug(u"An error ocurred in crawl_ent_pub_pages: %s"% type(e))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
+
     def parse_page_zscq(self, page="", div_id=""):
         """企业公示信息  知识产权出质登记信息"""
         table_data = []
@@ -259,7 +341,9 @@ class ZhejiangCrawler(object):
                 "pagination.pageSize": 5,
             }
             logging.info( u"crawl the crawl_ent_pub_pages- zscq page with %s."%(url))
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             row = {}
             lists = res["pagination"]["dataList"]
             for i,l in enumerate(lists):
@@ -267,7 +351,8 @@ class ZhejiangCrawler(object):
                     url = urls['host']+ "/pubinstantintellectual/doEnIntelDetail.do?pubInstantIntellectual.intelNo="+l['intelNo']+"&pubInstantIntellectual.corpid="+ self.corpid
                 else:
                     url = urls['host'] + "/pubinstantintellectual/doEnPubIntel.do?pubInstantIntellectual.intelNo=" + l['intelNo']
-                detail_page = self.crawl_page_by_url(url)['page']
+                detail_page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not detail_page: continue
                 detail_data = self.parse_page(detail_page)
                 intelStartDate =time.strftime(u"%Y年%m月%d日",time.localtime(l['intelStartDate']['time']/1000))
                 intelEndDate =time.strftime(u"%Y年%m月%d日",time.localtime(l['intelEndDate']['time']/1000))
@@ -292,7 +377,9 @@ class ZhejiangCrawler(object):
                 "pagination.pageSize": 10,
             }
             logging.info( u"crawl the crawl_ent_pub_pages- xzcf page with %s."%(url))
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             row = {}
             lists = res["pagination"]["dataList"]
             for i,l in enumerate(lists):
@@ -317,7 +404,9 @@ class ZhejiangCrawler(object):
                 "pagination.pageSize": 10,
             }
             logging.info( u"crawl the crawl_ent_pub_pages- xzxk page with %s."%(url))
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             row = {}
             lists = res["pagination"]["dataList"]
             for i,l in enumerate(lists):
@@ -325,7 +414,8 @@ class ZhejiangCrawler(object):
                     url = urls['host'] +'/publicense/doReadDetail.do?pubLicense.licNo='+str(l['licNo'])+'&pubLicense.corpid='+self.corpid
                 else:
                     url = urls['host']+ '/publicense/doEnPubLic.do?pubLicense.licNo='+ l['licNo']
-                detail_page = self.crawl_page_by_url(url)['page']
+                detail_page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not detail_page: continue
                 detail_data = self.parse_page(detail_page)
                 licStartDate =time.strftime(u"%Y年%m月%d日",time.localtime(l['licStartDate']['time']/1000))
                 licEndDate =time.strftime(u"%Y年%m月%d日",time.localtime(l['licEndDate']['time']/1000))
@@ -349,7 +439,9 @@ class ZhejiangCrawler(object):
                 "pagination.pageSize": 10,
             }
             logging.info( u"crawl the crawl_ent_pub_pages- gqbg page with %s."%(url))
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             row = {}
             lists = res["pagination"]["dataList"]
             for i,l in enumerate(lists):
@@ -376,7 +468,9 @@ class ZhejiangCrawler(object):
                 "pagination.pageSize": 10,
             }
             logging.info( u"crawl the crawl_ent_pub_pages- touziren page with %s."%(url))
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             row = {}
             lists = res["pagination"]["dataList"]
             for l in lists:
@@ -403,7 +497,9 @@ class ZhejiangCrawler(object):
                 "pagination.pageSize": 5,
             }
             logging.info( u"crawl the crawl_ent_pub_pages- biangeng page with %s."%(url))
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             row = {}
             lists = res["pagination"]["dataList"]
 
@@ -459,8 +555,8 @@ class ZhejiangCrawler(object):
                     data = {
                         "entMemberPagination.currentPage": i+2, "entMemberPagination.pageSize": int(pageSize),
                     }
-                    new_page = self.crawl_page_by_url_post(url, data)['page']
-                    # html_to_file('new_page.html', new_page)
+                    new_page = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+                    if not new_page: continue
                     new_soup = BeautifulSoup(new_page, 'html5lib')
                     people_table = new_soup.find_all('table')[0]
                     table_name = self.get_table_title(people_table)
@@ -481,7 +577,8 @@ class ZhejiangCrawler(object):
                     data = {
                         "branchInfoPagination.currentPage": i+2, "branchInfoPagination.pageSize": int(pageSize),
                     }
-                    new_page = self.crawl_page_by_url_post(url, data)['page']
+                    new_page = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+                    if not new_page: continue
                     new_soup = BeautifulSoup(new_page, 'html5lib')
                     branch_table = new_soup.find_all('table')[1]
                     table_name = self.get_table_title(branch_table)
@@ -519,8 +616,8 @@ class ZhejiangCrawler(object):
                     data = {
                         "entInvestorPagination.currentPage": i+2, "entInvestorPagination.pageSize": int(pageSize),
                     }
-                    new_page = self.crawl_page_by_url_post(url, data)['page']
-                    # html_to_file('new_page.html', new_page)
+                    new_page = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+                    if not new_page: continue
                     new_soup = BeautifulSoup(new_page, 'html5lib')
                     gudong_table = new_soup.find_all('table')[1]
                     table_name = self.get_table_title(gudong_table)
@@ -542,8 +639,8 @@ class ZhejiangCrawler(object):
                     data = {
                         "checkAlterPagination.currentPage": i+2, "checkAlterPagination.pageSize": int(pageSize),
                     }
-                    new_page = self.crawl_page_by_url_post(url, data)['page']
-                    # html_to_file('new_page.html', new_page)
+                    new_page = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+                    if not new_page: continue
                     new_soup = BeautifulSoup(new_page, 'html5lib')
                     biangeng_table = new_soup.find_all('table')[2]
                     table_name = self.get_table_title(biangeng_table)
@@ -627,7 +724,9 @@ class ZhejiangCrawler(object):
                 "pagination.currentPage": 1,
                 "pagination.pageSize": 5,
             }
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result =self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads()
             row = {}
             lists = res["pagination"]["dataList"]
             for i, l in enumerate(lists):
@@ -702,7 +801,9 @@ class ZhejiangCrawler(object):
                 "pagination.currentPage": 1,
                 "pagination.pageSize": 5,
             }
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             row = {}
             lists = res["pagination"]["dataList"]
             for l in lists:
@@ -742,7 +843,9 @@ class ZhejiangCrawler(object):
                 "pagination.currentPage": 1,
                 "pagination.pageSize": 5,
             }
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             lists = res["pagination"]["dataList"]
             row = {}
             for l in lists:
@@ -772,7 +875,9 @@ class ZhejiangCrawler(object):
                 "pagination.currentPage": 1,
                 "pagination.pageSize": 5,
             }
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             row = {}
             lists = res["pagination"]["dataList"]
             for l in lists:
@@ -794,7 +899,9 @@ class ZhejiangCrawler(object):
                 "pagination.currentPage": 1,
                 "pagination.pageSize": 5,
             }
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             lists = res["pagination"]["dataList"]
             row = {}
             for l in lists:
@@ -816,7 +923,9 @@ class ZhejiangCrawler(object):
                 "pagination.currentPage": 1,
                 "pagination.pageSize": 5,
             }
-            res = json.loads(self.crawl_page_by_url_post(url, data)['page'])
+            result = self.request_by_method('POST',url, data=data, timeout=self.timeout)
+            if not result: return
+            res = json.loads(result)
             lists = res["pagination"]["dataList"]
             row = {}
             for l in lists:
@@ -830,45 +939,69 @@ class ZhejiangCrawler(object):
         finally:
             return table_data
     #爬取 其他部门公示 页面
+    @exe_time
     def crawl_other_dept_pub_pages(self, url="", post_data={}):
         """爬取 其他部门公示 页面"""
         sub_json_dict = {}
         try:
             logging.info( u"crawl the crawl_other_dept_pub_pages page %s."%(url))
-            main_page = self.crawl_page_by_url(url)['page']
-            url = urls['host'] + "/pubotherlicence/readPubOtherLicenceInfo.do?corpid="+ self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            xk = self.parse_page(page, "xingzhengxuke")#行政许可信息
-            sub_json_dict["other_dept_pub_administration_license"] =  xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
-            url = urls['host'] + "/pubotherpunish/readPubOtherPunishInfo.do?corpid=" + self.corpid
-            page = self.crawl_page_by_url(url)['page']
-            cf = self.parse_page(page, "xingzhengchufa")  # 行政处罚信息
-            sub_json_dict["other_dept_pub_administration_sanction"] = cf[u'行政处罚信息'] if cf.has_key(u'行政处罚信息') else []
+            self.requests.headers['Referer'] = url
+            def mainInfo():
+                main_page = self.request_by_method('GET', url, timeout=self.timeout)
+            def pubOtherLicence():
+                url = urls['host'] + "/pubotherlicence/readPubOtherLicenceInfo.do?corpid="+ self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page: return
+                xk = self.parse_page(page, "xingzhengxuke")#行政许可信息
+                sub_json_dict["other_dept_pub_administration_license"] =  xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
+            def pubOtherPunish():
+                url = urls['host'] + "/pubotherpunish/readPubOtherPunishInfo.do?corpid=" + self.corpid
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page: return
+                cf = self.parse_page(page, "xingzhengchufa")  # 行政处罚信息
+                sub_json_dict["other_dept_pub_administration_sanction"] = cf[u'行政处罚信息'] if cf.has_key(u'行政处罚信息') else []
+            threads = []
+            threads.append( gevent.spawn(mainInfo) )
+            threads.append( gevent.spawn(pubOtherLicence) )
+            threads.append( gevent.spawn(pubOtherPunish) )
+            gevent.joinall(threads)
         except Exception as e:
             logging.debug(u"An error ocurred in crawl_other_dept_pub_pages: %s"% (type(e)))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
         # 爬取司法协助信息页面
+    @exe_time
     def crawl_judical_assist_pub_pages(self, url="", post_data={}):
         """爬取司法协助信息页面 """
         sub_json_dict = {}
         try:
             logging.info( u"crawl the crawl_judical_assist_pub_pages page %s."%(url))
-            main_page = self.crawl_page_by_url(url)['page']
-            url = urls['host'] + "/jsp/client/biz/view/justice/readJusticeEquityInfo.jsp"
-            page = self.crawl_page_by_url(url)['page']
-            xz = self.parse_page(page, 'sifaxiezhu')
-            sub_json_dict['judical_assist_pub_equity_freeze'] = xz[u'司法股权冻结信息'] if xz.has_key(u'司法股权冻结信息') else []
-            url = urls['host'] + "/jsp/client/biz/view/justice/readJusticeEquityChangeInfo.jsp"
-            page = self.crawl_page_by_url(url)['page']
-            gd = self.parse_page(page, 'sifagudong')
-            sub_json_dict['judical_assist_pub_shareholder_modify'] = gd[u'司法股东变更登记信息'] if gd.has_key(u'司法股东变更登记信息') else []
+            self.requests.headers['Referer'] = url
+            def mainInfo():
+                main_page = self.request_by_method('GET', url, timeout=self.timeout)
+            def readJusticeEquityInfo():
+                url = urls['host'] + "/jsp/client/biz/view/justice/readJusticeEquityInfo.jsp"
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page: return
+                xz = self.parse_page(page, 'sifaxiezhu')
+                sub_json_dict['judical_assist_pub_equity_freeze'] = xz[u'司法股权冻结信息'] if xz.has_key(u'司法股权冻结信息') else []
+            def readJusticeEquityChangeInfo():
+                url = urls['host'] + "/jsp/client/biz/view/justice/readJusticeEquityChangeInfo.jsp"
+                page = self.request_by_method('GET', url, timeout=self.timeout)
+                if not page: return
+                gd = self.parse_page(page, 'sifagudong')
+                sub_json_dict['judical_assist_pub_shareholder_modify'] = gd[u'司法股东变更登记信息'] if gd.has_key(u'司法股东变更登记信息') else []
+            threads = []
+            threads.append( gevent.spawn(mainInfo) )
+            threads.append( gevent.spawn(readJusticeEquityInfo) )
+            threads.append( gevent.spawn(readJusticeEquityChangeInfo) )
+            gevent.joinall(threads)
         except Exception as e:
             logging.debug(u"An error ocurred in crawl_judical_assist_pub_pages: %s"% (type(e)))
             raise e
         finally:
-            return sub_json_dict
+            self.json_dict.update(sub_json_dict)
 
     def parse_page(self, page, div_id='sifapanding', post_data= {}):
         soup = BeautifulSoup(page, 'html5lib')
@@ -928,20 +1061,17 @@ class ZhejiangCrawler(object):
                             if td.find('a', recursive = False):
                                 #try to retrieve detail link from page
                                 next_url = self.get_detail_link(td.find('a'))
-                                # print next_url
-                                logging.info(u'crawl detail url: %s'% next_url)
                                 if next_url:
-                                    detail_page = self.crawl_page_by_url(next_url)
-                                    #html_to_file("test.html", detail_page['page'])
+                                    detail_page = self.request_by_method('GET', next_url, timeout=self.timeout)
+                                    if not detail_page: continue
                                     #print "table_name : "+ table_name
                                     if table_name == u'企业年报':
-                                        #logging.debug(u"next_url = %s, table_name= %s\n", detail_page['url'], table_name)
-                                        page_data = self.parse_ent_pub_annual_report_page(detail_page['page'])
+                                        page_data = self.parse_ent_pub_annual_report_page(detail_page)
 
                                         item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
                                         item[u'详情'] = page_data #this may be a detail page data
                                     else:
-                                        page_data = self.parse_page(detail_page['page'])
+                                        page_data = self.parse_page(detail_page)
                                         item[columns[col_count][0]] = page_data #this may be a detail page data
                                 else:
                                     #item[columns[col_count]] = CrawlerUtils.get_raw_text_in_bstag(td)
@@ -1132,92 +1262,34 @@ class ZhejiangCrawler(object):
         else:
             return self.get_raw_text_by_tag(td_tag)
 
-    def crawl_page_by_url(self, url):
-        r = self.requests.get( url)
-
-        if r.status_code != 200:
-            logging.error(u"Getting page by url:%s\n, return status %s\n"% (url, r.status_code))
+    def request_by_method(self, method, url, *args, **kwargs):
+        r = None
+        try:
+            r = self.requests.request(method, url, *args, **kwargs)
+        except requests.exceptions.Timeout as err:
+            logging.error(u'Getting url: %s timeout. %s .'%(url, err.message))
             return False
-        # 为了防止页面间接跳转，获取最终目标url
-        return {'page' : r.text, 'url': r.url}
-
-    def crawl_page_by_url_post(self, url, data):
-        r = self.requests.post(url, data)
-        if r.status_code != 200:
-            logging.error(u"Getting page by url with post:%s\n, return status %s\n"% (url, r.status_code))
+        except requests.exceptions.ConnectionError :
+            logging.error(u"Getting url:%s connection error ."%(url))
             return False
-        return {'page': r.text, 'url': r.url}
+        except Exception as err:
+            logging.error(u'Getting url: %s exception:%s . %s .'%(url, type(err), err.message))
+            return False
+        if r.status_code != 200:
+            logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
+            return False
+        return r.content
 
-    # main function
     def run(self, ent_num):
+        """ main function """
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        json_dict = {}
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        self.ent_num = str(ent_num)
+        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
+        if not self.ents:
+            return json.dumps([{self.ent_num: None}])
         data = self.crawl_page_main()
-        json_dict[ent_num] = data
-        #json_dump_to_file(self.json_restore_path , json_dict)
-        # 2016-2-16
-        return json.dumps(json_dict)
+        # path = os.path.join(os.getcwd(), 'zhejiang.json')
+        # json_dump_to_file(path, data)
+        return json.dumps(data)
 
-    def work(self, ent_num):
-        if not os.path.exists(self.html_restore_path):
-            os.makedirs(self.html_restore_path)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
-        self.regNo = ent_num
-        data = self.crawl_page_main()
-        json_dump_to_file( 'zhejiang.json' , data)
-
-def html_to_file(path, html):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(html)
-
-def json_dump_to_file(path, json_dict):
-    write_type = 'w'
-    if os.path.exists(path):
-        write_type = 'a'
-    with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-
-def read_ent_from_file(path):
-    read_type = 'r'
-    if not os.path.exists(path):
-        logging.error(u"There is no path : %s"% path )
-    lines = []
-    with codecs.open(path, read_type, 'utf-8') as f:
-        lines = f.readlines()
-    lines = [ line.split(',') for line in lines ]
-    return lines
-
-"""
-if __name__ == "__main__":
-    reload (sys)
-    sys.setdefaultencoding('utf8')
-    import run
-    run.config_logging()
-    if not os.path.exists("./enterprise_crawler"):
-        os.makedirs("./enterprise_crawler")
-    zhejiang = ZhejiangCrawler('./enterprise_crawler/zhejiang.json')
-    #zhejiang.work('330000000050426')
-    #zhejiang.work('330000000000503')
-    zhejiang.work('330000000050426')
-
-if __name__ == "__main__":
-    reload (sys)
-    sys.setdefaultencoding('utf8')
-    import run
-    run.config_logging()
-    if not os.path.exists("./enterprise_crawler"):
-        os.makedirs("./enterprise_crawler")
-    zhejiang = ZhejiangCrawler('./enterprise_crawler/zhejiang.json')
-    ents = read_ent_from_file("./enterprise_list/zhejiang.txt")
-    zhejiang = ZhejiangCrawler('./enterprise_crawler/zhejiang.json')
-    for ent_str in ents:
-        logging.info(u'###################   Start to crawl enterprise with id %s   ###################\n' % ent_str[2])
-        zhejiang.run(ent_num = ent_str[2])
-        logging.info(u'###################   Enterprise with id  %s Finished!  ###################\n' % ent_str[2])
-
-"""

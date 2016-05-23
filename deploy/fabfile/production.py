@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 import json
 from fabric.api import env, roles, run, cd
 from fabric.contrib.project import rsync_project
@@ -32,6 +33,10 @@ def deploy_web_server():
     run("yum install -y memcached")
     run("service memcached start")
     run("chkconfig memcached on")
+
+    # Create web log folder
+    run("mkdir -p /home/logs/cr-clawer")
+    run("chown -R nginx:nginx /home/logs/cr-clawer")
 
     # Start web server on port 4000
     _supervisord("web")
@@ -86,6 +91,8 @@ def deploy_structure_servers():
     _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
                    remote_project_path=REMOTE_PROJECT_PATH)
 
+    _install_project_deps()
+
     # Use supervisor to monitor rq workers.
     _supervisord("structure")
 
@@ -96,9 +103,25 @@ def ssh_key(key_file="~/.ssh/id_rsa.pub"):
     append('~/.ssh/authorized_keys', key_text)
 
 
-#####################
-# Internal Function #
-#####################
+def start():
+    _start()
+
+
+def stop():
+    _stop()
+
+
+def upgrade():
+    # Rsync local project files to remote server.
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
+                   remote_project_path=REMOTE_PROJECT_PATH)
+
+    # Restart Services.
+    _restart()
+
+
+###################
+# Internal Function
 def _read_ssh_pub_key(key_file):
     key_file = os.path.expanduser(key_file)
     # Check is it a pub key.
@@ -142,15 +165,35 @@ def _create_used_folders():
     # Create log folder
     run("mkdir -p /home/logs")
 
-    # Create web log folder
-    run("mkdir -p /home/logs/cr-clawer")
-    run("chown -R nginx:nginx /home/logs/cr-clawer")
-
 
 def _supervisord(server):
     with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
+        run("rm -rf /etc/supervisord.conf")
         run("yes | cp {0}/supervisord.conf /etc/supervisord.conf".format(server))
         if not exists("/etc/systemd/system/supervisord.service"):
             run("yes | cp config/production/supervisord.service /etc/systemd/system/")
     run("service supervisord start")
     run("chkconfig supervisord on")
+
+
+def _start():
+    run("service supervisord start")
+    if exists("/etc/nginx/conf.d/cr-clawer.conf"):
+        run("service nginx start")
+
+
+def _stop():
+    run("service supervisord stop")
+    if exists("/etc/nginx/conf.d/cr-clawer.conf"):
+        run("service nginx stop")
+
+
+def _restart():
+    run("service supervisord stop")
+    time.sleep(2)
+    run("service supervisord start")
+
+    if exists("/etc/nginx/conf.d/cr-clawer.conf"):
+        run("service nginx stop")
+        time.sleep(2)
+        run("service nginx start")

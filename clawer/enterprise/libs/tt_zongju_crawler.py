@@ -30,7 +30,8 @@ class InitInfo(object):
 		self.ckcode_image_path = settings.json_restore_path + '/zongju/ckcode.jpg'
 
 		self.code_cracker = CaptchaRecognition('zongju')
-
+		if not os.path.exists(os.path.dirname(self.ckcode_image_path)):
+			os.makedirs(os.path.dirname(self.ckcode_image_path))
 		# 多线程爬取时往最后的json文件中写时的加锁保护
 		self.write_file_mutex = threading.Lock()
 		self.timeout = 40
@@ -210,7 +211,7 @@ class MyParser(Parser):
 	def parse_post_check_page(self, page):
 		"""解析提交验证码之后的页面，获取必要的信息
 		"""
-		soup = BeautifulSoup(page)
+		soup = BeautifulSoup(page, 'html.parser')
 		div_tag = soup.find('div', attrs={'class': 'link'})
 		if not div_tag:
 			return False
@@ -657,28 +658,32 @@ class ZongjuCrawler(object):
 		
 
 class TestZongjuCrawler(unittest.TestCase):
-	def __init__(self):
-		pass
+
 	def setUp(self):
 		self.info = InitInfo()
 		self.crawler = MyCrawler(info=self.info)
 		self.parser = MyParser(info=self.info, crawler=self.crawler)
 
-	# def test_checkcode(self):
-	# 	self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
-	# 	is_valid = self.crack.run(ent_number)
-	# 	self.assertTrue(is_valid)
+	def test_checkcode(self):
+		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
+		ent_number = '100000000018983'
+		is_valid = self.crack.run(ent_number)
+		self.assertTrue(is_valid)
 
 	def test_crawler_register_num(self):
 		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
-		ent_list = []
+		ent_list = ['100000000018983']
 		for ent_number in ent_list:
 			result = crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 	def test_crawler_key(self):
 		crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
 		ent_list = [u'创业投资中心']
 		for ent_number in ent_list:
 			crawler.run(ent_number=ent_number)
+			self.assertTrue(result)
+			self.assertEqual(type(result), list)
 
 
 if __name__ == '__main__':

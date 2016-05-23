@@ -9,6 +9,7 @@ import time
 import re
 import json
 import urlparse
+import urllib
 import codecs
 from bs4 import BeautifulSoup
 import datetime
@@ -16,11 +17,13 @@ import gevent
 from gevent import Greenlet
 
 import gevent.monkey
-gevent.monkey.patch_socket()
-# from common_func import exe_time
+
 import unittest
 
 def exe_time(func):
+    """
+        装饰器，在调试协程时候用到；用于查看调用顺序
+    """
     def fnc(*args, **kwargs):
         start = datetime.datetime.now()
         print "call "+ func.__name__ + "()..."
@@ -30,21 +33,44 @@ def exe_time(func):
         print func.__name__ +" end :"+ str(end)
     return fnc
 
+def get_cookie( url):
+    """
+        获取浏览的cookie信息
+    """
+    g = ghost.Ghost()
+    cookiedict = []
+    cookiestr = ""
+    with g.start() as se:
+        se.wait_timeout = 999
+        mycookielist=[]
+        page, extra_resources = se.open(url)
+        for element in se.cookies:
+            mycookielist.append(element.toRawForm().split(";"))
+        # for item in mycookielist:
+        #     cookiedict.update( reduce(lambda x,y: {x: y},  item[0].split("=")) )
+        cookiestr = reduce(lambda x, y: x[0]+ ";" + y[0], mycookielist)
+    return cookiestr
+
 class Crawler(object):
     analysis = None
     def __init__(self, req= None):
         headers = { 'Connetion': 'Keep-Alive',
                     'Accept': 'text/html, application/xhtml+xml, */*',
                     'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
+                    "User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0",
+                    # "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
+                    }
         if req:
-            self.requests = req
+            self.request = req
+
         else:
-            self.requests = requests.Session()
-            self.requests.headers.update(headers)
+            self.request = requests.Session()
+            self.request.headers.update(headers)
+            adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
+            self.request.mount('http://', adapter)
         self.ents = []
         self.json_dict={}
-        self.timeout = 20
+        self.timeout = (30,20)
 
     # 爬取 工商公示信息 页面
     @exe_time
@@ -141,7 +167,7 @@ class Crawler(object):
                 page = self.request_by_method('POST',url, data = post_data)
                 # print page.encode('utf8')
                 p = self.analysis.parse_page_2(page, 'qiyenianbao', post_data)
-                sub_json_dict['ent_pub_ent_annual_report'] = p[u'qiyenianbao'] if p.has_key(u'qiyenianbao') else []
+                sub_json_dict['ent_pub_ent_annual_report'] = p[u'企业年报'] if p.has_key(u'企业年报') else []
             @exe_time
             def permission():
                 url = "%s/%s" % (self.urls['host'] ,"aiccips/AppPerInformation.html")
@@ -175,11 +201,11 @@ class Crawler(object):
                 sub_json_dict['ent_pub_knowledge_property'] = p[u'知识产权出质登记信息'] if p.has_key(u'知识产权出质登记信息') else []
             threads =[]
             threads.append( gevent.spawn(report))
-            # threads.append( gevent.spawn(permission))
-            # threads.append( gevent.spawn(sanction))
-            # threads.append( gevent.spawn(shareholder))
-            # threads.append( gevent.spawn(change))
-            # threads.append( gevent.spawn(properties))
+            threads.append( gevent.spawn(permission))
+            threads.append( gevent.spawn(sanction))
+            threads.append( gevent.spawn(shareholder))
+            threads.append( gevent.spawn(change))
+            threads.append( gevent.spawn(properties))
             gevent.joinall(threads)
         except Exception as e:
             logging.error(u"An error ocurred in crawl_ent_pub_pages: %s, types = %d"% (type(e), types))
@@ -240,7 +266,7 @@ class Crawler(object):
     def request_by_method(self,method, url, *args, **kwargs):
         r = None
         try:
-            r = self.requests.request(method, url, *args, **kwargs)
+            r = self.request.request(method, url, *args, **kwargs)
         except requests.Timeout as err:
             logging.error(u'Getting url: %s timeout. %s .'%(url, err.message))
             return False
@@ -256,7 +282,6 @@ class Crawler(object):
         url = ent
         page_entInfo = self.request_by_method('GET', url) #self.crawl_page_by_url(url)['page']
         post_data = self.analysis.parse_page_data_2(page_entInfo)
-        # print post_data
         self.crawl_ind_comm_pub_pages(url, 2, post_data)
         # url = "http://gsxt.gdgs.gov.cn/aiccips/BusinessAnnals/BusinessAnnalsList.html"
         self.crawl_ent_pub_pages(url, 2, post_data)
@@ -266,23 +291,36 @@ class Crawler(object):
         self.crawl_judical_assist_pub_pages(url, 2, post_data)
         return self.json_dict
 
-    def run_asyn(self, ent):
+    def run_asyn(self, url):
+        gevent.monkey.patch_socket()
         threads=[]
-        url = ent
+        # cookies = get_cookie(url)
+        # print cookies
+        # cookies = {"__jsluid":"0310175ec8b141ee15613e2c0ad95dfe" , "__jsl_clearance":"1463469056.082|0|I2ZEEWsFDuyXH0KYg1GV1Xe9JkE%3D"}
+        # for key, value in cookies.items():
+        #     self.request.cookies[str(key)] = str(value)
+        # heads={}
+        # cookies="__jsluid=0310175ec8b141ee15613e2c0ad95dfe;__jsl_clearance=1463469056.082|0|I2ZEEWsFDuyXH0KYg1GV1Xe9JkE%3D"
+        # self.request.headers["Cookie"] = str(cookies)
+
+        # heads['Cookie'] = str(cookies)
         page_entInfo = self.request_by_method('GET', url)
+        # print page_entInfo
+        # print self.request.cookies.keys()
+        if not page_entInfo:
+            logging.error("Can't get page %s ."%(url))
+            return {}
         post_data = self.analysis.parse_page_data_2(page_entInfo)
 
-        # threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url, 2, post_data))
-
+        threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url, 2, post_data))
         threads.append(gevent.spawn(self.crawl_ent_pub_pages, url, 2, post_data))
-
-        # threads.append(gevent.spawn(self.crawl_other_dept_pub_pages, url, 2, post_data))
-
-        # threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url, 2, post_data))
-
+        threads.append(gevent.spawn(self.crawl_other_dept_pub_pages, url, 2, post_data))
+        threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url, 2, post_data))
         gevent.joinall(threads)
 
         return self.json_dict
+
+
 
 class Analyze(object):
 
@@ -323,7 +361,7 @@ class Analyze(object):
             if not self.sub_column_count(th):
                 columns.append(( self.get_raw_text_by_tag(th), self.get_raw_text_by_tag(th)))
             else:
-            #if has sub-sub columns
+                #if has sub-sub columns
                 columns.append((self.get_raw_text_by_tag(th), self.get_sub_columns(tr_tag.nextSibling.nextSibling, 0, self.sub_column_count(th))))
         return columns
 
@@ -349,20 +387,40 @@ class Analyze(object):
             return self.get_raw_text_by_tag(td_tag)
 
     def get_detail_link(self, bs4_tag):
-        if bs4_tag['href'] and bs4_tag['href'] != '#':
+        if bs4_tag.has_attr('onclick'):
+            url = self.get_detail_link_onclick(bs4_tag['onclick'])
+            return url
+
+        elif bs4_tag.has_attr('href') and bs4_tag['href'] != '#':
             pattern = re.compile(r'http')
             if pattern.search(bs4_tag['href']):
+
                 return bs4_tag['href']
             return None
-        elif bs4_tag['onclick']:
-            return self.get_detail_link_onclick(bs4_tag)
 
     def get_detail_link_onclick(self, bs4_tag):
+        var_re='((?:[a-z][a-z0-9_]*))' # Variable Name 1
+        m = re.compile(var_re,re.IGNORECASE|re.DOTALL).search(bs4_tag)
+        if m:
+            var_str = m.group(1)
+            var = var_str.strip("'")
+            if var == "toDetail":
+                # toDetail('a94afb64-ce89-4158-88a9-dd1eb32797bf','有效')
+                # "http://gsxt.gdgs.gov.cn/aiccips/detailedness?id="+id+"&status="+encodeURI(status));
+                m2 = re.compile('.*?(\'.*?\').*?(\'.*?\')', re.IGNORECASE|re.DOTALL).search(bs4_tag)
+                if m2:
+                    id_str = m2.group(1).strip("\'")
+                    status_str= m2.group(2).strip("\'")
+                    query_param = urllib.urlencode({'id': id_str, 'status':status_str.encode('utf8')})
+                    url = "%s/%s"%(self.urls['host'], "aiccips/detailedness?"+query_param)
+                    return url
+
+
         re1='.*?'   # Non-greedy match on filler
         re2='(\\\'.*?\\\')' # Single Quote String 1
 
         rg = re.compile(re1+re2,re.IGNORECASE|re.DOTALL)
-        m = rg.search(bs4_tag['onclick'])
+        m = rg.search(bs4_tag)
         url= ""
         if m:
             strng1=m.group(1)
@@ -394,10 +452,7 @@ class Analyze(object):
                 tr = bs_table.find_all('tr')[0]
             elif bs_table.find_all('tr')[1].find('th') and not bs_table.find_all('tr')[1].find('td') and len(bs_table.find_all('tr')[1].find_all('th')) > 1:
                 tr = bs_table.find_all('tr')[1]
-        #logging.error(u"get_columns_of_record_table->tr:%s\n", tr)
         ret_val=  self.get_record_table_columns_by_tr(tr, table_name)
-        #logging.error(u"table columns:%s\n"% table_name)
-        #logging.error(u"ret_val->%s\n", ret_val)
         return  ret_val
 
     def get_record_table_columns_by_tr(self, tr_tag, table_name):
@@ -413,8 +468,6 @@ class Analyze(object):
             count = 0
             for i, th in enumerate(tr_tag.find_all('th')):
                 col_name = self.get_raw_text_by_tag(th)
-                #if col_name and ((col_name, col_name) not in columns) :
-
                 if col_name:
                     if ((col_name, col_name) in columns) :
                         col_name= col_name+'_'
@@ -422,8 +475,12 @@ class Analyze(object):
                     if not self.sub_column_count(th):
                         columns.append((col_name, col_name))
                     else: #has sub_columns
+                        if not len(tr_tag.nextSibling.nextSibling.find_all('th')):
+                            columns.append((col_name, col_name))
+                            continue
                         columns.append((col_name, self.get_sub_columns(tr_tag.nextSibling.nextSibling, sub_col_index, self.sub_column_count(th))))
                         sub_col_index += self.sub_column_count(th)
+
             if count == len(tr_tag.find_all('th'))/2:
                 columns= columns[: len(columns)/2]
 
@@ -454,11 +511,8 @@ class Analyze(object):
                 while table:
                     if table.name == 'table':
                         table_name = self.get_table_title(table)
-                        print table_name.encode('utf8')
                         page_data[table_name] = []
-                        print table
                         columns = self.get_columns_of_record_table(table, base_page, table_name)
-                        print columns
                         page_data[table_name] =self.parse_table_2(table, columns, {}, table_name)
                     table = table.nextSibling
             except Exception as e:
@@ -530,7 +584,6 @@ class Analyze(object):
                         table = soup.body.find('table')
                     else :
                         table = divs.find('table')
-                    #print table
                     table_name = ""
                     columns = []
                     while table:
@@ -579,7 +632,6 @@ class Analyze(object):
                         table = soup.body.find('table')
                     else :
                         table = divs.find('table')
-                    #print table
                     table_name = ""
                     columns = []
                     while table:
@@ -655,7 +707,6 @@ class Analyze(object):
                         "entType" : post_data["entType"].encode('utf-8'),
                     }
                     res = self.crawler.request_by_method('POST', url, data = data, headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',})
-                    # print res.encode('utf8')
                     if table_name == u"变更信息":
                         # chaToPage
                         d = json.loads(res)
@@ -673,7 +724,6 @@ class Analyze(object):
 
                     elif table_name == u"分支机构信息":
                         #braToPage
-                        #print u"分支机构"
                         d = json.loads(res)
                         titles = [column[0] for column in columns]
                         for i, model in enumerate(d['list']):
@@ -681,14 +731,12 @@ class Analyze(object):
                             item_array.append(dict(zip(titles, data)))
 
                     elif table_name == u"股东信息":
-                        #print "股东信息"
                         d = json.loads(res)
                         titles = [column[0] for column in columns]
                         surl = self.urls['host'] + "/aiccips/GSpublicity/invInfoDetails.html?"+"entNo="+ str(post_data['entNo'])+"&regOrg="+str(post_data['regOrg'])
                         for model in (d['list']):
                             # 详情
                             nurl = surl+"&invNo="+str(model['invNo'])
-                            print nurl
                             nres = self.crawler.request_by_method('GET', nurl)
                             detail_page = self.parse_page_2(nres, table_name+'_detail')
                             data = [ model['invType'], model['inv'], model['certName'], model['certNo'], detail_page]
@@ -702,29 +750,24 @@ class Analyze(object):
                         records_tag = tables[0]
                     else:
                         records_tag = tbody
-                    # print records_tag
                     for tr in records_tag.find_all('tr'):
                         if tr.find('td') and len(tr.find_all('td', recursive=False)) % column_size == 0:
                             col_count = 0
                             item = {}
-                            print "table_name=%s"%table_name.encode('utf8')
+                            # print "table_name=%s"%table_name.encode('utf8')
                             for td in tr.find_all('td',recursive=False):
                                 if td.find('a'):
                                     next_url = self.get_detail_link(td.find('a'))
-                                    print next_url
+                                    # print next_url
                                     if re.match(r"http", next_url):
                                         detail_page = self.crawler.request_by_method('GET',next_url)
                                         if table_name == u'企业年报':
                                             #logging.error(u"next_url = %s, table_name= %s\n", detail_page['url'], table_name)
                                             page_data = self.parse_ent_pub_annual_report_page_2(detail_page, table_name + '_detail')
                                             item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
+
                                             item[u'详情'] = page_data
-                                            #item[columns[col_count][0]] = page_data #this may be a detail page data
-                                        # elif table_name == u'qiyenianbao':
-                                        #     print "in table_name"
-                                        #     page_data = self.parse_ent_pub_annual_report_page_2(detail_page, table_name+ '_detail')
-                                        #     item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
-                                        #     item[u'详情'] = page_data
+
                                         else:
                                             page_data = self.parse_page_2(detail_page, table_name + '_detail')
                                             item[columns[col_count][0]] = page_data #this may be a detail page data
@@ -746,7 +789,6 @@ class Analyze(object):
                                 if td.find('a'):
                                     #try to retrieve detail link from page
                                     next_url = self.get_detail_link(td.find('a'))
-                                    #has detail link
                                     if next_url:
                                         detail_page = self.crawler.request_by_method('GET', next_url)
 
@@ -754,12 +796,10 @@ class Analyze(object):
                                             #logging.error(u"2next_url = %s, table_name= %s\n", next_url, table_name)
 
                                             page_data = self.parse_ent_pub_annual_report_page_2(detail_page, table_name + '_detail')
+
                                             item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
                                             item[u'详情'] = page_data
-                                        # elif table_name == 'qiyenianbao':
-                                        #     page_data = self.parse_ent_pub_annual_report_page_2(detail_page, table_name+ '_detail')
-                                        #     item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
-                                        #     item[u'详情'] = page_data
+
                                         else:
                                             page_data = self.parse_page_2(detail_page, table_name + '_detail')
                                             item[columns[col_count][0]] = page_data #this may be a detail page data
@@ -822,21 +862,18 @@ class Guangdong2(object):
     def run_asyn(self, url):
         return self.crawler.run_asyn(url)
 
-class GeneratorTest(unittest.TestCase):
+# class Guangdong2Test(unittest.TestCase):
 
-    def setUp(self):
-        unittest.TestCase.setUp(self)
+#     def setUp(self):
+#         unittest.TestCase.setUp(self)
 
-    # @unittest.skip("skipping")
-    def test_crawl_ind_comm_pub_pages(self):
-        ent_str = "http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_GmjYOaEEX9Xx3eeM0JcrtOywZcfQzs3Ry0M6NPS1/iCr+cQwm+oHVoPBzdIqEiYb-7vusEl1hPU+qjV70QwcUXQ=="
-        guangdong = Guangdong2()
-        result = guangdong.run_asyn(ent_str)
-        self.assertTrue(result)
-        print result
+#     # @unittest.skip("skipping")
+#     def test_crawl_ind_comm_pub_pages(self):
+#         ent_str = "http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_GmjYOaEEX9Xx3eeM0JcrtOywZcfQzs3Ry0M6NPS1/iCr+cQwm+oHVoPBzdIqEiYb-7vusEl1hPU+qjV70QwcUXQ=="
+#         guangdong = Guangdong2()
+#         result = guangdong.run_asyn(ent_str)
+#         self.assertTrue(result)
+#         print result
 
-
-
-
-if __name__ == "__main__":
-    unittest.main()
+# if __name__ == "__main__":
+#     unittest.main()

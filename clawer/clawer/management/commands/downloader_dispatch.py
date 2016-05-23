@@ -90,15 +90,15 @@ def dispatch_use_pool(task):
             0].max_retry_times
         if settings.OPEN_CRAWLER_FAILED_ONLY:
             down_tasks = CrawlerTask.objects(
-                status=CrawlerTask.STATUS_FAIL)[:dispatch_num]
+                status=CrawlerTask.STATUS_FAIL).order_by('?')[:dispatch_num]
         else:
             if datetime.datetime.now().minute >= 56:
                 #max_retry_times <= max_retry_times
                 down_tasks = CrawlerTask.objects(
-                    status=CrawlerTask.STATUS_FAIL, retry_times__lte=max_retry_times)[:dispatch_num]
+                    status=CrawlerTask.STATUS_FAIL, retry_times__lte=max_retry_times).order_by('?')[:dispatch_num]
             else:
                 down_tasks = CrawlerTask.objects(
-                    status=CrawlerTask.STATUS_LIVE)[:dispatch_num]
+                    status=CrawlerTask.STATUS_LIVE).order_by('?')[:dispatch_num]
             if len(down_tasks) == 0:
                 # write_dispatch_alter_log(job=task.job, reason='get down_tasks len is 0')
                 return
@@ -185,10 +185,11 @@ def run():
         total = 0
         pool = Pool()
         jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
+        print "jobscount:",jobs.count()
         for job in jobs:
-            #print '------1111--'
-            #print '---rawlerTask.objects(job=job).count()
-            #print 'total:', total
+            total = CrawlerTask.objects(job=job).count()
+            #print '---crawlerTask.objects(job=job).count()
+            print 'total:', total
             if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
                 break
             tasks = CrawlerTask.objects(job=job)
