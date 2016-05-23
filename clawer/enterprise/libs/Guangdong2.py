@@ -18,9 +18,7 @@ from gevent import Greenlet
 
 import gevent.monkey
 
-# from common_func import exe_time
 import unittest
-# import ghost
 
 def exe_time(func):
     """
@@ -268,7 +266,6 @@ class Crawler(object):
     def request_by_method(self,method, url, *args, **kwargs):
         r = None
         try:
-            # print self.request.headers
             r = self.request.request(method, url, *args, **kwargs)
         except requests.Timeout as err:
             logging.error(u'Getting url: %s timeout. %s .'%(url, err.message))
@@ -285,7 +282,6 @@ class Crawler(object):
         url = ent
         page_entInfo = self.request_by_method('GET', url) #self.crawl_page_by_url(url)['page']
         post_data = self.analysis.parse_page_data_2(page_entInfo)
-        # print post_data
         self.crawl_ind_comm_pub_pages(url, 2, post_data)
         # url = "http://gsxt.gdgs.gov.cn/aiccips/BusinessAnnals/BusinessAnnalsList.html"
         self.crawl_ent_pub_pages(url, 2, post_data)
@@ -398,7 +394,7 @@ class Analyze(object):
         elif bs4_tag.has_attr('href') and bs4_tag['href'] != '#':
             pattern = re.compile(r'http')
             if pattern.search(bs4_tag['href']):
-                print bs4_tag['href']
+
                 return bs4_tag['href']
             return None
 
@@ -472,7 +468,6 @@ class Analyze(object):
             count = 0
             for i, th in enumerate(tr_tag.find_all('th')):
                 col_name = self.get_raw_text_by_tag(th)
-                # print col_name.encode('utf8')
                 if col_name:
                     if ((col_name, col_name) in columns) :
                         col_name= col_name+'_'
@@ -637,7 +632,6 @@ class Analyze(object):
                         table = soup.body.find('table')
                     else :
                         table = divs.find('table')
-                    #print table
                     table_name = ""
                     columns = []
                     while table:
@@ -713,7 +707,6 @@ class Analyze(object):
                         "entType" : post_data["entType"].encode('utf-8'),
                     }
                     res = self.crawler.request_by_method('POST', url, data = data, headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',})
-                    # print res.encode('utf8')
                     if table_name == u"变更信息":
                         # chaToPage
                         d = json.loads(res)
@@ -757,7 +750,6 @@ class Analyze(object):
                         records_tag = tables[0]
                     else:
                         records_tag = tbody
-                    # print records_tag
                     for tr in records_tag.find_all('tr'):
                         if tr.find('td') and len(tr.find_all('td', recursive=False)) % column_size == 0:
                             col_count = 0
@@ -766,7 +758,7 @@ class Analyze(object):
                             for td in tr.find_all('td',recursive=False):
                                 if td.find('a'):
                                     next_url = self.get_detail_link(td.find('a'))
-                                    print next_url
+                                    # print next_url
                                     if re.match(r"http", next_url):
                                         detail_page = self.crawler.request_by_method('GET',next_url)
                                         if table_name == u'企业年报':
@@ -870,18 +862,18 @@ class Guangdong2(object):
     def run_asyn(self, url):
         return self.crawler.run_asyn(url)
 
-class Guangdong2Test(unittest.TestCase):
+# class Guangdong2Test(unittest.TestCase):
 
-    def setUp(self):
-        unittest.TestCase.setUp(self)
+#     def setUp(self):
+#         unittest.TestCase.setUp(self)
 
-    # @unittest.skip("skipping")
-    def test_crawl_ind_comm_pub_pages(self):
-        ent_str = "http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_GmjYOaEEX9Xx3eeM0JcrtOywZcfQzs3Ry0M6NPS1/iCr+cQwm+oHVoPBzdIqEiYb-7vusEl1hPU+qjV70QwcUXQ=="
-        guangdong = Guangdong2()
-        result = guangdong.run_asyn(ent_str)
-        self.assertTrue(result)
-        print result
+#     # @unittest.skip("skipping")
+#     def test_crawl_ind_comm_pub_pages(self):
+#         ent_str = "http://gsxt.gdgs.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_GmjYOaEEX9Xx3eeM0JcrtOywZcfQzs3Ry0M6NPS1/iCr+cQwm+oHVoPBzdIqEiYb-7vusEl1hPU+qjV70QwcUXQ=="
+#         guangdong = Guangdong2()
+#         result = guangdong.run_asyn(ent_str)
+#         self.assertTrue(result)
+#         print result
 
-if __name__ == "__main__":
-    unittest.main()
+# if __name__ == "__main__":
+#     unittest.main()

@@ -46,8 +46,7 @@ class Crawler(object):
             self.requests.headers.update(headers)
         self.ents = []
         self.json_dict={}
-        self.timeout = 20
-        # print self.requests.proxies
+        self.timeout = (30, 20)
 
 
     def crawl_xingzhengchufa_page(self, url, text):

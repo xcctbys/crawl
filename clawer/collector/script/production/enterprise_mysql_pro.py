@@ -19,6 +19,10 @@ import datetime
 import MySQLdb
 import redis
 
+"""
+脚本参数部分：
+    MySQL，Redis配置参数设置
+"""
 
 HOST = 'csciwlpc.mysql.rds.aliyuncs.com'                                           # 全局变量设置MySQL的HOST USER等
 USER = 'plkj'
@@ -35,7 +39,8 @@ REDIS_USER = ""
 REDIS_PWD = "Password123"
 REDIS_TABLE = 'history_enterprise'
 
-DEBUG = False
+DEBUG = False  # 是否开启DEBUG
+
 if DEBUG:
     level = logging.DEBUG
 else:
@@ -44,15 +49,30 @@ else:
 logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
 
-class History(object):                                                             # 实现程序的可持续性，每次运行时读取上次
+"""
+主程序部分：
+    负责百度搜索脚本的主要功能，公司名及关键字的搜索结果的uri抓取
+"""
+
+class History(object):
+    """
+    实现程序的可持续性，每次运行时读取上次运行时保存的参数，跳到相应位置继续执行程序
+    """
 
     def __init__(self):
-        # self.company_num = 0                                                     # 初始化pickle中用作公司名称位置索引值
+        """
+        初始化任务执行记录
+        """
+        # self.company_num = 0
         self.total_page = 0
         self.current_page = 0
 
-    def load(self):                                                                # redis记录的载入
-        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER+':'+REDIS_PWD)
+    def load(self):
+        """
+        导入分布任务执行记录
+        :return:
+        """
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
         if not r.hgetall(REDIS_TABLE):
             return
         r_dict = r.hgetall(REDIS_TABLE)
@@ -60,10 +80,14 @@ class History(object):                                                          
         self.current_page = int(r_dict.get("current_page"))
 
     def save(self):
-        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER+':'+REDIS_PWD)
+        """
+        保存分布任务执行的记录
+        :return:
+        """
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
         r.hset(REDIS_TABLE, 'total_page', self.total_page)
         r.hset(REDIS_TABLE, 'current_page', self.current_page)
-        #print r.hgetall(REDIS_TABLE)
+        # print r.hgetall(REDIS_TABLE)
 
 choices = (
         u"安徽",
@@ -101,8 +125,13 @@ choices = (
     )
 
 class Generator(object):
+    """
+    生成器主程序部分，调用MySQL企业数据，生成Enterprise格式uri
+    """
     def __init__(self):
         """
+        生成器参数初始化
+
         source_url: http://clawer.princetechs.com/enterprise/api/get/all/?page=1&rows=10&sort=id&order=asc
         """
         # self.source_url = "http://clawer.princetechs.com/enterprise/api/get/all/"
@@ -114,7 +143,6 @@ class Generator(object):
     def obtain_enterprises(self):
         if self.history.current_page <= 0 and self.history.total_page <= 0:
             self._load_total_page()
-
 
         for _ in range(0, self.step):
             r = self.paginate(self.history.current_page)

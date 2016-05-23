@@ -6,6 +6,7 @@ import sys
 import datetime
 import redis
 import rq
+import json
 from mongoengine import *
 
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
@@ -14,7 +15,7 @@ from django.conf import settings
 #from django.models import model_to_dict
 import django
 
-from json_to_sql import JsonToSql as SqlGenerator
+from extracters.sql_generator import JsonToSql as SqlGenerator
 
 class Consts(object):
     QUEUE_PRIORITY_TOO_HIGH = u"structure:higher"
@@ -62,7 +63,8 @@ class StructureGenerator(object):
 
     def get_task_analyzed_data(self, task):
         task_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = task).first()
-        return task_analyzed_data
+        return task_analyzed_data           # 返回解析成功的数据
+        
 
 
 class ParserGenerator(StructureGenerator):
@@ -216,10 +218,10 @@ def parser_func(data):
 
 class ExtracterGenerator(StructureGenerator):
 
+    sqlgenerator = SqlGenerator()        # 用于处理源数据生成sql，并导入关系数据库
     def __init__(self):
         self.queuegenerator = ExtracterQueueGenerator()
         self.queues = self.queuegenerator.rq_queues
-        self.sqlgenerator = SqlGenerator()        # 用于处理源数据生成sql，并导入关系数据库
         
     def get_task_priority(self, task):
         if task.job.priority == -1:
@@ -237,6 +239,7 @@ class ExtracterGenerator(StructureGenerator):
     def assign_extract_tasks(self):
         """分配所有导出任务"""
         tasks = self.filter_parsed_tasks()
+        conf_hash_last = None
         for task in tasks:
             priority = self.get_task_priority(task)
             # db_conf = self.get_extracter_db_config(task)
@@ -244,6 +247,15 @@ class ExtracterGenerator(StructureGenerator):
             # extracter = self.get_extracter(db_conf, mappings)
             data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
             conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
+            conf_hash = hash(conf)
+            sql_file_name = conf['database']['destination_db']['dbname']
+            sql_file_name = '/tmp/table_%s.sql' % sql_file_name
+            
+            # if not os.path.exists(sql_file_name):
+            if conf_hash != conf_hash_last:
+                conf_hash_list = conf_hash
+                self.sqlgenerator.test_table(conf, sql_file_name)
+                self.sqlgenerator.test_daoru(sql_file_name)
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
@@ -261,7 +273,7 @@ class ExtracterGenerator(StructureGenerator):
                 return None
             else:
                 CrawlerExtracterInfo(extract_task=data.crawler_task, update_date=datetime.datetime.now()).save()
-                print 'assing task %s succeed !' % extract_job_id
+                print 'assign task %s succeed !' % extract_job_id
                 logging.info("Extract task successfully added")
                 return extract_job_id
         except:
@@ -274,19 +286,25 @@ class ExtracterGenerator(StructureGenerator):
         
         if extracterstructureconfig:
             try:
-                extracter_conf = extracterstructureconfig.extracter.extracter_config  # extracter_conf 为字符串格式的配置
-                # extracter_conf_dict = STR_TO_DICT(extracter_conf)  # 需实现 STR_TO_DICT
+                extracter_configure = extracterstructureconfig.extracter.extracter_config.encode('utf8')  # extracter_conf 为字符串格式的配置
+                configure_dict = json.loads(extracter_configure)
             except Exception as e:
                 logging.error('Get extracter config error')
-                raise e
-            return extracter_conf_dict
+            return configure_dict
 
     @classmethod
     def extract_fields(self, extracter_conf, data):
         """生成sql语句并导出字段"""
-        print 'starting extract fields!'
-        print '♫' * 30
-        self.sqlgenerator.test_get_data(extracter_conf, data, './insert_data.sql')
+        try:
+            # self.sqlgenerator.test_table(extracter_conf, '/tmp/my_table.sql')
+            # self.sqlgenerator.test_daoru('/tmp/my_table.sql')
+            # conf = json.loads(extracter_conf)
+            sql_file_name = extracter_conf['database']['destination_db']['dbname']
+            sql_file_name = '/tmp/data_%s.sql' % sql_file_name
+            self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
+            self.sqlgenerator.test_daoru(sql_file_name)
+        except Exception as e:
+            print e
         return True
 
     @classmethod
@@ -296,8 +314,7 @@ class ExtracterGenerator(StructureGenerator):
             logging.error("Error: there is no data to extract")
             return None
         try:
-            # extracter_conf = self.get_extracter_conf()  # 获取一条与任务相关的导出器配置
-            result = self.extract_fields(conf, data)
+            result = self.extract_fields(conf, data.analyzed_data)   # data.analyzed_data 为一条解析后的JSON源数据
             if result:
                 data.crawler_task.update(status=9)  # status: 9导出成功, 8导出失败
                 crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
@@ -306,7 +323,7 @@ class ExtracterGenerator(StructureGenerator):
         except Exception as e:
             data.crawler_task.update(status=8) 
             logging.error('Extract fields error')
-            raise e
+            print e
         return True
 
 
@@ -334,9 +351,6 @@ class ExtracterGenerator(StructureGenerator):
 
         # return extracter
 
-    def if_not_exist_create_db_schema(self, conf):
-        self.sqlgenerator.test_table(conf, './my_table.sql')
-        # pass
 
 
 class ExecutionTasks(object):
@@ -429,10 +443,10 @@ class TestExtracter(object):
     def insert_extracter_test_data(self):
 
         config = open('structure/extracters/gs_table_conf.json').read()
-        analyzeddata=open('structure/extracters/a.json').read()
+        analyzeddata=open('structure/extracters/guangxi.json')
 
 
-        for count in range(50):
+        for count in range(20):
             test_job = Job("creator",
                     "job_%d" % count,
                     "info",
@@ -451,7 +465,7 @@ class TestExtracter(object):
             
             ExtracterStructureConfig(job=test_job, extracter=test_extracter).save()
 
-            CrawlerAnalyzedData(crawler_task=test_crawlertask, analyzed_data=analyzeddata).save()
+            CrawlerAnalyzedData(crawler_task=test_crawlertask, analyzed_data=analyzeddata.readline()).save()
         print "Extracter Test Data Inserted"
 
     def empty_test_data(self):
