@@ -21,10 +21,8 @@ class JsonToSql(object):
         :return:解析后生成的字典
         """
         # config_json = open(config,'r+')
-        print '*******************************hhh'
         # config = config.encode('utf8')
-        print type(config)
-        print '******************************zzz'
+        #print type(config)
         dict_json = None
         try:
             dict_json = json.loads(config)
@@ -177,13 +175,10 @@ class JsonToSql(object):
         :param export_file: 输出的sql文件
         :return: 无
         """
-        print 'hi, test tables!'
-        self.config_dic = self.parser_json(extracter_conf)
-        print 'json parser over'
+        # self.config_dic = self.parser_json(extracter_conf)
+        self.config_dic = extracter_conf
         self.get_mapping()
-        print 'mapping  over'
         self.create_table_sql(export_file)
-        print 'table table over'
         pass
 
     def test_get_data(self, extracter_conf, data, export_file):
@@ -194,26 +189,20 @@ class JsonToSql(object):
         :param export_file: 输入的sql文件
         :return: 无
         """
-        print 'hi, get data!'
-        self.config_dic = self.parser_json(extracter_conf)
-        print 'json parser over'
+        # self.config_dic = self.parser_json(extracter_conf)
+        self.config_dic = extracter_conf
         self.get_mapping()
-        print 'mapping  over'
         self.data_sql = open(export_file, 'w')
         use_database = 'use %s;\n' % self.config_dic['database']['destination_db']['dbname']
         self.data_sql.write(use_database)
-        print 'open export file over'
         for k in self.mapping.keys():
             self.table_name = self.mapping[k]['dest_table']
             path = self.mapping[k]['source_path']
             associated_field_path = self.mapping[k]['associated_field_source_path']
-            print 'create data start'
             type(data)
             self.create_data_sql(data, path, associated_field_path)
-            print 'data  over'
             self.tmp_dic.clear()
         self.data_sql.close()
-        print 'over'
 
     def test_daoru(self, sql_file):
         result = self.create_commond() + sql_file
