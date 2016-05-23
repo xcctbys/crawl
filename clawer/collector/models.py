@@ -189,7 +189,7 @@ class CrawlerDownloadSetting(Document):
 	max_retry_times = IntField(default=5)
 	proxy = StringField()
 	cookie = StringField()
-	download_timeout = IntField(default=120)
+	download_timeout = IntField(default=1200)
 	last_update_datetime = DateTimeField(default=datetime.datetime.now)
 	add_datetime = DateTimeField(default=datetime.datetime.now)
 	meta = {"db_alias": "source"}
