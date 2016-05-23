@@ -249,9 +249,9 @@ class ExtracterGenerator(StructureGenerator):
             sql_file_name = conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
             print sql_file_name
-            if not os.path.exists('sql_file_name'):
-                self.sqlgenerator.test_table(conf, 'sql_file_name')
-                self.sqlgenerator.test_daoru('sql_file_name')
+            if not os.path.exists(sql_file_name):
+                self.sqlgenerator.test_table(conf, sql_file_name)
+                self.sqlgenerator.test_daoru(sql_file_name)
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
@@ -295,8 +295,12 @@ class ExtracterGenerator(StructureGenerator):
         try:
             # self.sqlgenerator.test_table(extracter_conf, '/tmp/my_table.sql')
             # self.sqlgenerator.test_daoru('/tmp/my_table.sql')
-            self.sqlgenerator.test_get_data(extracter_conf, data, '/tmp/insert_data.sql')
-            self.sqlgenerator.test_daoru('/tmp/insert_data.sql')
+            conf = json.loads(extracter_conf)
+            sql_file_name = conf['database']['destination_db']['dbname']
+            sql_file_name = '/tmp/data_%s.sql' % sql_file_name
+            print sql_file_name
+            self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
+            self.sqlgenerator.test_daoru(sql_file_name)
         except Exception as e:
             print e
         return True
