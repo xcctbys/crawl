@@ -239,6 +239,7 @@ class ExtracterGenerator(StructureGenerator):
     def assign_extract_tasks(self):
         """分配所有导出任务"""
         tasks = self.filter_parsed_tasks()
+        conf_hash_last = None
         for task in tasks:
             priority = self.get_task_priority(task)
             # db_conf = self.get_extracter_db_config(task)
@@ -246,10 +247,13 @@ class ExtracterGenerator(StructureGenerator):
             # extracter = self.get_extracter(db_conf, mappings)
             data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
             conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
+            conf_hash = hash(conf)
             sql_file_name = conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
             
-            if not os.path.exists(sql_file_name):
+            # if not os.path.exists(sql_file_name):
+            if conf_hash != conf_hash_last:
+                conf_hash_list = conf_hash
                 self.sqlgenerator.test_table(conf, sql_file_name)
                 self.sqlgenerator.test_daoru(sql_file_name)
             extract_function = self.extracter
