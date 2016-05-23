@@ -9,7 +9,7 @@ def run():
     q = None
     queue_name = raw_input()
     try:
-        redis_url = settings.REDIS
+        redis_url = settings.EXTRACTER_REDIS
     except:
         redis_url = None
     connection = redis.Redis.from_url(

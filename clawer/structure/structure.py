@@ -147,7 +147,7 @@ class QueueGenerator(object):
             return  structure_job.id
 
 class ExtracterQueueGenerator(object):
-    def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
+    def __init__(self, redis_url = settings.EXTRACTER_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.too_high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
         self.high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_HIGH, connection=self.connection)
