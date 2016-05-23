@@ -248,7 +248,7 @@ class ExtracterGenerator(StructureGenerator):
             conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
             sql_file_name = conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
-            print sql_file_name
+            
             if not os.path.exists(sql_file_name):
                 self.sqlgenerator.test_table(conf, sql_file_name)
                 self.sqlgenerator.test_daoru(sql_file_name)
@@ -291,14 +291,12 @@ class ExtracterGenerator(StructureGenerator):
     @classmethod
     def extract_fields(self, extracter_conf, data):
         """生成sql语句并导出字段"""
-        print 'starting extract fields!'
         try:
             # self.sqlgenerator.test_table(extracter_conf, '/tmp/my_table.sql')
             # self.sqlgenerator.test_daoru('/tmp/my_table.sql')
-            conf = json.loads(extracter_conf)
-            sql_file_name = conf['database']['destination_db']['dbname']
+            # conf = json.loads(extracter_conf)
+            sql_file_name = extracter_conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/data_%s.sql' % sql_file_name
-            print sql_file_name
             self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
             self.sqlgenerator.test_daoru(sql_file_name)
         except Exception as e:
