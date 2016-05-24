@@ -294,7 +294,7 @@ class ExtracterGenerator(StructureGenerator):
     def get_extracter_conf(self, data):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
-        configure_dict = open('structure/extracters/gs_table_conf.json').read()
+        configure_dict = open('structure/extracters/csciwlpc_conf.json').read()
         configure_dict =  json.loads(configure_dict)
         return configure_dict
 
@@ -319,16 +319,17 @@ class ExtracterGenerator(StructureGenerator):
             sql_file_name = '/tmp/data_%s.sql' % sql_file_name
             self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
             self.sqlgenerator.test_restore(sql_file_name)
+            result = self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
+            if not result:
+                return False
+            self.sqlgenerator.test_restore(sql_file_name)
         except Exception as e:
-            print e
+            return False
         return True
 
     @classmethod
     def extracter(self, conf, data):
         """导出器"""
-        if not data:
-            logging.error("Error: there is no data to extract")
-            return None
         try:
             result = self.extract_fields(conf, data.analyzed_data)   # data.analyzed_data 为一条解析后的JSON源数据
             if result:
@@ -336,10 +337,13 @@ class ExtracterGenerator(StructureGenerator):
                 crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
                 crawler_extract_info.update(extracted_status=True, update_date=datetime.datetime.now()) # 更新导出状态信息
                 logging.info('Extract fields succeed')
+            else:
+                data.crawler_task.update(status=8)
+                logging.error('Extract fields failed')
         except Exception as e:
             data.crawler_task.update(status=8) 
             logging.error('Extract fields error')
-            print e
+            return False
         return True
 
 

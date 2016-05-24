@@ -19,8 +19,6 @@ class Parser(models.Model):
      python_script = models.TextField()
      update_date = models.DateField(django.utils.timezone.now())
 
-     class Meta:
-          db_table = "parser"
 
 class StructureConfig(models.Model):
      job_copy_id = models.CharField(unique = True, max_length = 100)
@@ -34,8 +32,7 @@ class StructureConfig(models.Model):
 
      update_date = models.DateField(django.utils.timezone.now())
 
-     class  Meta:
-          db_table = "structure_config"
+
 
 class CrawlerAnalyzedData(Document):
      crawler_task = ReferenceField(CrawlerTask)
@@ -48,12 +45,15 @@ class CrawlerAnalyzedData(Document):
 class Extracter(Document):
     extracter_id = IntField()
     extracter_config = StringField()
+    meta = {"db_alias": "structure"}
 
 class ExtracterStructureConfig(Document):
     job = ReferenceField(JobMongoDB)
     extracter = ReferenceField(Extracter)
+    meta = {"db_alias": "structure"}
 
 class CrawlerExtracterInfo(Document):
     extract_task = ReferenceField(CrawlerTask)
     update_date = DateTimeField(default=datetime.datetime.now())
     extracted_status = BooleanField(default=False)
+    meta = {"db_alias": "structure"}
