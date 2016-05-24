@@ -23,6 +23,7 @@ from enterprise.libs.hubei_crawler import HubeiCrawler
 from enterprise.libs.hunan_crawler import HunanCrawler
 from enterprise.libs.liaoning_crawler import LiaoningCrawler
 from enterprise.libs.qinghai_crawler import QinghaiCrawler
+from enterprise.libs.sichuan_crawler import SichuanCrawler
 from enterprise.libs.common_func import get_proxy, read_ent_from_file, exe_time,save_to_file
 
 import gevent
@@ -34,6 +35,73 @@ import gevent.monkey
 
 import re
 # gevent.monkey.patch_socket()
+
+
+class TestSichuan(TestCase):
+
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Sichuan')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 中信产业投资基金管理有限公司,四川省,510708000002128
+        ent_str = '510708000002128'
+        Sichuan = SichuanCrawler(self.path)
+        result = Sichuan.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'510708000002128')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中信产业投资基金管理有限公司')
+
+    def test_run_without_result(self):
+        # 中信产业投资基金管理有限公司,四川省,510708000002128
+        ent_str = '10000000'
+        Sichuan = SichuanCrawler(self.path)
+        result = Sichuan.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 中信产业投资基金管理有限公司,四川省,510708000002128
+        ent_str = u'中信产业投资基金管理有限公司'
+        Sichuan = SichuanCrawler(self.path)
+        result = Sichuan.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'510708000002128')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中信产业投资基金管理有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.sichuan_crawler import SichuanCrawler
+            Sichuan = SichuanCrawler('/tmp/')
+            result = Sichuan.run('510708000002128')
+        """
+        pass
+
 
 
 class TestQinghai(TestCase):

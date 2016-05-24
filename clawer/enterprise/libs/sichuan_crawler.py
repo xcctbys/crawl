@@ -6,25 +6,28 @@ sys.setdefaultencoding('utf-8')
 import requests
 import re
 import os,os.path
-from crawler import CrawlerUtils
-from bs4 import BeautifulSoup
 import time
-from . import settings
 import json
 import logging
+import datetime
+from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
+from common_func import get_proxy, exe_time
+import gevent
+from gevent import Greenlet
+import gevent.monkey
+
 class SichuanCrawler(object):
-	#html数据的存储路径
-	html_restore_path = settings.json_restore_path + '/sichuan/'
-	ckcode_image_path = settings.json_restore_path + '/sichuan/ckcode.jpg'
-    	#write_file_mutex = threading.Lock()
-	def __init__(self, json_restore_path):
+	#write_file_mutex = threading.Lock()
+	def __init__(self, json_restore_path = None):
 		self.pripid = None
 		self.cur_time = str(int(time.time()*1000))
 		self.reqst = requests.Session()
 		self.json_restore_path = json_restore_path
-		self.ckcode_image_path = settings.json_restore_path + '/sichuan/ckcode.jpg'
+		self.ckcode_image_path = self.json_restore_path + '/sichuan/ckcode.jpg'
+		#html数据的存储路径
+		self.html_restore_path = self.json_restore_path + '/sichuan/'
 		self.code_cracker = CaptchaRecognition('sichuan')
 		self.result_json_dict = {}
 		self.reqst.headers.update(
@@ -32,6 +35,11 @@ class SichuanCrawler(object):
 			'Accept-Encoding': 'gzip, deflate',
 			'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
 			'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+		proxies = get_proxy('shaanxi')
+		if proxies:
+			print proxies
+			self.reqst.proxies = proxies
+		self.timeout = (30,20)
 
 		self.mydict = {'eareName':'http://www.ahcredit.gov.cn',
 				'search':'http://gsxt.scaic.gov.cn/ztxy.do?method=index&random=',
@@ -71,7 +79,8 @@ class SichuanCrawler(object):
 				u'司法股权冻结信息':'judical_assist_pub_equity_freeze',
 				u'股东变更信息':'judical_assist_pub_shareholder_modify',
 				u'司法股东变更登记信息':'judical_assist_pub_shareholder_modify'}
-		self.result_json_dict = {}
+
+
 
 	def get_check_num(self):
 		# print self.mydict['search']+self.cur_time
@@ -183,8 +192,6 @@ class SichuanCrawler(object):
 				tempdict['list'] = [onelist_dict]
 				return {u'股东及出资信息':[tempdict]}
 				break
-		# else:
-		# 	print 'i'*100
 
 	def get_head_ths_tds(self, table):
 		# print table
@@ -270,7 +277,6 @@ class SichuanCrawler(object):
 			templist = []
 			x = 0
 			y = x + len(allths)
-			#print '---------------------%d-------------------------------%d' % (len(allth), len(alltd))
 			while y <= len(alltds):
 				tempdict = {}
 				for keys, values in zip(allths,alltds[x:y]):
@@ -356,7 +362,7 @@ class SichuanCrawler(object):
 		self.pripid = self.get_id_num(findCode)
 		if self.pripid is None:
 			return json.dumps({self.ent_number:{}})
-		# print findCode, self.pripid
+
 		self.result_json_dict = {}
 
 		data = {'method':'qyInfo', 'maent.pripid':self.pripid, 'czmk':'czmk1', 'random':self.cur_time}
@@ -443,17 +449,4 @@ class SichuanCrawler(object):
 		self.result_json_dict['ind_comm_pub_reg_basic'] = self.result_json_dict['ind_comm_pub_reg_basic'][0]
 		if 'ind_comm_pub_arch_liquidation' in self.result_json_dict.keys() and len(self.result_json_dict['ind_comm_pub_arch_liquidation']) > 0:
 			self.result_json_dict['ind_comm_pub_arch_liquidation'] = self.result_json_dict['ind_comm_pub_arch_liquidation'][0]
-		return json.dumps({self.ent_number: self.result_json_dict})
-		# CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.result_json_dict})
-"""
-if __name__ == '__main__':
-	sichuan = SichuanCrawler('./enterprise_crawler/sichuan.json')
-	sichuan.run('510181000035008')
-	# sichuan.run('511000000000753')
-	# sichuan.run('510300000004462')
-	# f = open('enterprise_list/sichuan.txt', 'r')
-	# for line in f.readlines():
-	# 	print line.split(',')[2].strip()
-	# 	sichuan.run(str(line.split(',')[2]).strip())
-	# f.close()
-"""
+		return json.dumps([{self.ent_number: self.result_json_dict}])
