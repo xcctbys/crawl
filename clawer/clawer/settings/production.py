@@ -124,7 +124,7 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple'
+            'formatter': 'verbose'
         },
         'mail_admins': {
             'level': 'ERROR',
@@ -147,7 +147,7 @@ LOGGING = {
             'level': 'ERROR',
         },
         'django': {
-            'handlers': ['null'],
+            'handlers': ['file'],
             'propagate': True,
             'level': 'ERROR',
         },
