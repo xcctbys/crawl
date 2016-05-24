@@ -569,7 +569,7 @@ db.crawler_task.find().pretty()
 status 的含义: 6为解析失败, 7为解析成功, 8为导出失败, 9为导出成功
 
 
-use default
+use structure
 show tables
 结果如下:
 crawler_analyzed_data   解析成功待导出的数据
@@ -627,7 +627,7 @@ db.crawler_task.find({status:8}).count()   导出失败的任务数量
 ## 查看导出的结果:
 ```
 MongoDB中的信息:
-use default
+use structure
 db.crawler_extracter_info.find().pretty()
 类似如下结果:
 {
