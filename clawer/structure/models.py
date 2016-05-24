@@ -45,12 +45,15 @@ class CrawlerAnalyzedData(Document):
 class Extracter(Document):
     extracter_id = IntField()
     extracter_config = StringField()
+    meta = {"db_alias": "structure"}
 
 class ExtracterStructureConfig(Document):
     job = ReferenceField(JobMongoDB)
     extracter = ReferenceField(Extracter)
+    meta = {"db_alias": "structure"}
 
 class CrawlerExtracterInfo(Document):
     extract_task = ReferenceField(CrawlerTask)
     update_date = DateTimeField(default=datetime.datetime.now())
     extracted_status = BooleanField(default=False)
+    meta = {"db_alias": "structure"}

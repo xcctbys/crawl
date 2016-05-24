@@ -294,7 +294,7 @@ class ExtracterGenerator(StructureGenerator):
     def get_extracter_conf(self, data):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
-        configure_dict = open('structure/extracters/gs_table_conf.json').read()
+        configure_dict = open('structure/extracters/csciwlpc_conf.json').read()
         configure_dict =  json.loads(configure_dict)
         return configure_dict
 
@@ -317,7 +317,9 @@ class ExtracterGenerator(StructureGenerator):
             # conf = json.loads(extracter_conf)
             sql_file_name = extracter_conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/data_%s.sql' % sql_file_name
-            self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
+            result = self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
+            if not result:
+                return False
             self.sqlgenerator.test_daoru(sql_file_name)
         except Exception as e:
             return False
@@ -326,9 +328,6 @@ class ExtracterGenerator(StructureGenerator):
     @classmethod
     def extracter(self, conf, data):
         """导出器"""
-        if not data:
-            logging.error("Error: there is no data to extract")
-            return None
         try:
             result = self.extract_fields(conf, data.analyzed_data)   # data.analyzed_data 为一条解析后的JSON源数据
             if result:
