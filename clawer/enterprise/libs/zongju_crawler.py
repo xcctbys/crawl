@@ -6,115 +6,67 @@ import time
 import re
 import random
 import threading
-import unittest
+
 from bs4 import BeautifulSoup
 from crawler import Crawler
 from crawler import Parser
-from crawler import CrawlerUtils
+
 from datetime import datetime, timedelta
 from . import settings
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
-from enterprise.libs.proxies import Proxies
+from common_func import get_proxy, exe_time
+
 
 class ZongjuCrawler(Crawler):
     """总局工商爬虫
     """
-    # html数据的存储路径
-    html_restore_path = settings.json_restore_path + '/zongju/'
-
-    # 验证码图片的存储路径
-    ckcode_image_path = settings.json_restore_path + '/zongju/ckcode.jpg'
 
     code_cracker = CaptchaRecognition('zongju')
-
     # 多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    urls = {'host': 'http://qyxy.baic.gov.cn',
+    urls = {'host': 'http://qyxy.saic.gov.cn',
             'official_site': 'http://gsxt.saic.gov.cn/zjgs/',
             'get_checkcode': 'http://gsxt.saic.gov.cn/zjgs/captcha?preset=',
             'post_checkcode': 'http://gsxt.saic.gov.cn/zjgs/security/verify_captcha',
             'get_info_entry': 'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',  # 获得企业入口
             'open_info_entry': 'http://gsxt.saic.gov.cn/zjgs/notice/view?',
             # 获得企业信息页面的url，通过指定不同的tab=1-4来选择不同的内容（工商公示，企业公示...）
-            'open_detail_info_entry': ''
             }
 
-    def __init__(self, json_restore_path):
+    def __init__(self, json_restore_path=None):
+        super(ZongjuCrawler, self).__init__()
         self.json_restore_path = json_restore_path
-        self.parser = ZongjuParser(self)
-        self.img_count = 1
-        if not os.path.exists(self.html_restore_path):
-            os.makedirs(self.html_restore_path)
-        p = Proxies()
-        self.proxies = p.get_proxies()
-        self.timeout = 20
 
-    def run(self, ent_number=0):
+        # html数据的存储路径
+        self.html_restore_path = self.json_restore_path + '/zongju/'
+        # 验证码图片的存储路径
+        self.ckcode_image_path = self.json_restore_path + '/zongju/ckcode.jpg'
+
+        self.parser = ZongjuParser(self)
+        self.proxies = get_proxy('beijing')
+        self.timeout = (30,20)
+
+    def run(self, _ent):
         """爬取的主函数
         """
-        print "in zongju"
-        return Crawler.run(self, ent_number)
-        '''
-        self.ent_number = str(ent_number)
-        self.html_restore_path = ZongjuCrawler.html_restore_path + self.ent_number + '/'
 
-        if saveingtml and os.path.exists(self.html_restore_path):
-            CrawlerUtils.make_dir(self.html_restore_path)
+        # self.proxies = {'http':'http://123.121.30.123:8118'}
+        if self.proxies:
+            print self.proxies
+            self.reqst.proxies = self.proxies
+        if not os.path.exists(self.html_restore_path):
+            os.makedirs(self.html_restore_path)
+        return Crawler.run(self, _ent)
 
-        self.json_dict = {}
-
-        self.reqst = requests.Session()
-        self.reqst.headers.update({
-                'Accept': 'text/html, application/xhtml+xml, */*',
-                'Accept-Encoding': 'gzip, deflate',
-                'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
-
-        if not self.crawl_check_page():
-            logging.error('crack check code failed, stop to crawl enterprise %s' % self.ent_number)
-            return
-
-        cur_time = datetime.now()
-        if cur_time >= staringcrawl_time + max_ingawl_time:
-            logging.info('crawl time over, exit!')
-            exit(1)
-
-        self.crawl_ind_comm_pub_pages()
-
-        cur_time = datetime.now()
-        if cur_time >= staringcrawl_time + max_ingawl_time:
-            logging.info('crawl time over, exit!')
-            exit(1)
-
-        self.crawl_ent_pub_pages()
-
-        cur_time = datetime.now()
-        if cur_time >= staringcrawl_time + max_ingawl_time:
-            logging.info('crawl time over, exit!')
-            exit(1)
-        self.crawl_other_dept_pub_pages()
-
-        cur_time = datetime.now()
-        if cur_time >= staringcrawl_time + max_ingawl_time:
-            logging.info('crawl time over, exit!')
-            exit(1)
-        self.crawl_judical_assist_pub_pages()
-
-        #采用多线程，在写入文件时需要注意加锁
-        self.write_file_mutex.acquire()
-        CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.json_dict})
-        self.write_file_mutex.release()
-        return True
-        '''
 
     def crawl_check_page(self):
         """爬取验证码页面，包括获取验证码url，下载验证码图片，破解验证码并提交
         """
         count = 0
         next_url = self.urls['official_site']
-        resp = self.reqst.get(next_url, proxies=self.proxies, timeout=self.timeout, verify=False)
+        resp = self.reqst.get(next_url, timeout=self.timeout, verify=False)
         if resp.status_code != 200:
             logging.error('failed to get official site')
             return False
@@ -129,7 +81,7 @@ class ZongjuCrawler(Crawler):
                 continue
             post_data = {'captcha': ckcode[1], 'session.token': self.session_token};
             next_url = self.urls['post_checkcode']
-            resp = self.reqst.post(next_url, data=post_data, proxies=self.proxies, timeout=self.timeout, verify=False)
+            resp = self.reqst.post(next_url, data=post_data, timeout=self.timeout, verify=False)
             if resp.status_code != 200:
                 logging.error('failed to get crackcode image by url %s, fail count = %d' % (next_url, count))
                 continue
@@ -144,81 +96,122 @@ class ZongjuCrawler(Crawler):
                 'searchType': '1',
                 'captcha': ckcode[1],
                 'session.token': self.session_token,
-                'condition.keyword': self.ent_number
+                'condition.keyword': self._ent
              }
-            resp = self.reqst.post(next_url, data=post_data, proxies=self.proxies, timeout=self.timeout, verify=False)
+
+            resp = self.reqst.post(next_url, data=post_data, timeout=self.timeout)
+
             if resp.status_code != 200:
                 logging.error('faild to crawl url %s' % next_url)
                 return False
 
             if self.parse_post_check_page(resp.content):
                 return True
-
             logging.error('crack checkcode failed, total fail count = %d' % count)
 
-            time.sleep(random.uniform(5,10))
+            time.sleep(random.uniform(1,3))
         return False
-
-    def crawl_ind_comm_pub_pages(self):
+    @exe_time
+    def crawl_ind_comm_pub_pages(self, *args, **kwargs):
         """爬取工商公示信息页面
         在总局的网站中，工商公示信息在一个页面中返回。页面中包含了多个表格，调用 Parser的 parse_ind_comm_page进行解析
         在 Parser的ind_comm_pub_page 中，访问并设置 crawler中的 json_dict。
         """
+        if not len(args):   return
+        url = args[0]
+        m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', url)
+        if m:
+            self.uuid = m.group(1)
         next_url = self.urls['open_info_entry'] + 'uuid=' + self.uuid + '&tab=01'
-        logging.info('crawl ind comm pub pages, url:\n%s' % next_url)
-        resp = self.reqst.get(next_url, proxies=self.proxies, timeout=self.timeout, verify=False)
+        resp = self.reqst.get(next_url, timeout=self.timeout, verify=False)
         if resp.status_code != 200:
-            logging.warn('get ind comm pub info failed!')
+            logging.error('get ind comm pub info failed!')
             return False
         self.parser.parse_ind_comm_pub_pages(resp.content)
-
-    def crawl_ent_pub_pages(self):
+    @exe_time
+    def crawl_ent_pub_pages(self, *args, **kwargs):
         """爬取企业公示信息页面
         """
+        if not len(args):   return
+        url = args[0]
+        m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', url)
+        if m:
+            self.uuid = m.group(1)
         next_url = self.urls['open_info_entry'] + 'uuid=' + self.uuid + '&tab=02'
-        logging.info('crawl ent pub pages, url:\n%s' % next_url)
-        resp = self.reqst.get(next_url, proxies=self.proxies, timeout=self.timeout, verify=False)
+        resp = self.reqst.get(next_url, timeout=self.timeout, verify=False)
         if resp.status_code != 200:
-            logging.warn('get ent pub info failed!')
+            logging.error('get ent pub info failed!')
             return False
         self.parser.parse_ent_pub_pages(resp.content)
-
-    def crawl_other_dept_pub_pages(self):
+    @exe_time
+    def crawl_other_dept_pub_pages(self, *args, **kwargs):
         """爬取其他部门公示信息页面
         """
+        if not len(args):   return
+        url = args[0]
+        m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', url)
+        if m:
+            self.uuid = m.group(1)
         next_url = self.urls['open_info_entry'] + 'uuid=' + self.uuid + '&tab=03'
-        logging.info('crawl other dept pub pages, url:\n%s' % next_url)
-        resp = self.reqst.get(next_url, proxies=self.proxies, timeout=self.timeout, verify=False)
+        resp = self.reqst.get(next_url, timeout=self.timeout, verify=False)
         if resp.status_code != 200:
-            logging.warn('get other dept pub info failed!')
+            logging.error('get other dept pub info failed!')
             return False
         self.parser.parse_other_dept_pub_pages(resp.content)
-
-    def crawl_judical_assist_pub_pages(self):
+    @exe_time
+    def crawl_judical_assist_pub_pages(self, *args, **kwargs):
         """爬取司法协助信息页面
         """
+        if not len(args):   return
+        url = args[0]
+        m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', url)
+        if m:
+            self.uuid = m.group(1)
         next_url = self.urls['open_info_entry'] + 'uuid=' + self.uuid + '&tab=06'
-        logging.info('crawl judical assist pub pages, url:\n%s' % next_url)
-        resp = self.reqst.get(next_url, proxies=self.proxies, timeout=self.timeout, verify=False)
+        resp = self.reqst.get(next_url, timeout=self.timeout, verify=False)
         if resp.status_code != 200:
-            logging.warn('get judical assist info failed!')
+            logging.error('get judical assist info failed!')
             return False
         self.parser.parse_judical_assist_pub_pages(resp.content)
 
     def parse_post_check_page(self, page):
         """解析提交验证码之后的页面，获取必要的信息
         """
-        soup = BeautifulSoup(page)
-        div_tag = soup.find('div', attrs={'class': 'link'})
-        if not div_tag:
-            return False
-        open_info_url = div_tag.find('a').get('href')
-        m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', open_info_url)
-        if m:
-            self.uuid = m.group(1)
+        soup = BeautifulSoup(page, 'html5lib')
+        divs = soup.find_all('div', attrs={'class':'list-item'})
+
+        if divs:
+            Ent={}
+            for div in divs:
+                link = div.find('div', attrs={'class':'link'})
+                profile = div.find('div', attrs={'class':'profile'})
+                url=""
+                ent = ""
+                if link and link.find('a') and link.find('a').has_attr('href'):
+                    url = link.find('a')['href']
+                if profile and profile.span:
+                    ent = profile.span.get_text().strip()
+                name = link.find('a').get_text().strip()
+                if name == self._ent:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
+                Ent[ent] = url
+            self.ents = Ent
             return True
         else:
             return False
+
+        # div_tag = soup.find('div', attrs={'class': 'link'})
+        # if not div_tag:
+        #     return False
+        # open_info_url = div_tag.find('a').get('href')
+        # m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', open_info_url)
+        # if m:
+        #     self.uuid = m.group(1)
+        #     return True
+        # else:
+        #     return False
 
     def parse_pre_check_page(self, page):
         """解析提交验证码之前的页面
@@ -233,7 +226,7 @@ class ZongjuCrawler(Crawler):
     def crawl_page_by_url(self, url):
         """通过url直接获取页面
         """
-        resp = self.reqst.get(url, proxies=self.proxies, timeout=self.timeout, verify=False)
+        resp = self.reqst.get(url, timeout=self.timeout, verify=False)
         if resp.status_code != 200:
             logging.error('failed to crawl page by url' % url)
             return
@@ -247,7 +240,7 @@ class ZongjuCrawler(Crawler):
         """破解验证码"""
         checkcode_url = self.urls['get_checkcode'] + '&ra=' + str(random.random())
         ckcode = ('', '')
-        resp = self.reqst.get(checkcode_url, proxies=self.proxies, timeout=self.timeout, verify=False)
+        resp = self.reqst.get(checkcode_url, timeout=self.timeout, verify=False)
         if resp.status_code != 200:
             logging.error('failed to get checkcode img')
             return ckcode
@@ -264,10 +257,9 @@ class ZongjuCrawler(Crawler):
         try:
             ckcode = self.code_cracker.predict_result(self.ckcode_image_path)
         except Exception as e:
-            logging.warn('exception occured when crack checkcode')
+            logging.error('exception occured when crack checkcode')
             ckcode = ('', '')
             os.remove(self.ckcode_image_path)
-            time.sleep(10)
         finally:
             pass
         self.write_file_mutex.release()
@@ -283,7 +275,7 @@ class ZongjuParser(Parser):
     def parse_ind_comm_pub_pages(self, page):
         """解析工商公示信息-页面，在总局的页面中，工商公示信息所有信息都通过一个http get返回
         """
-        soup = BeautifulSoup(page)
+        soup = BeautifulSoup(page, 'html5lib')
         id_table_map = {
             'branchTable': 'ind_comm_pub_arch_branch',      # 分支机构信息
             'punishTable': 'ind_comm_pub_administration_sanction',      # 行政处罚信息
@@ -340,7 +332,7 @@ class ZongjuParser(Parser):
     def parse_ent_pub_pages(self, page):
         """解析企业公示信息页面
         """
-        soup = BeautifulSoup(page)
+        soup = BeautifulSoup(page, 'html5lib')
         name_table_map = {
             u'企业年报': 'ent_pub_ent_annual_report',
             u'行政许可信息': 'ent_pub_administration_license',
@@ -357,7 +349,7 @@ class ZongjuParser(Parser):
     def parse_other_dept_pub_pages(self, page):
         """解析其他部门公示信息页面
         """
-        soup = BeautifulSoup(page)
+        soup = BeautifulSoup(page, 'html5lib')
         name_table_map = {
             u'行政许可信息': 'other_dept_pub_administration_license',
             u'行政处罚信息': 'other_dept_pub_administration_sanction'
@@ -371,7 +363,7 @@ class ZongjuParser(Parser):
     def parse_judical_assist_pub_pages(self, page):
         """解析司法协助信息
         """
-        soup = BeautifulSoup(page)
+        soup = BeautifulSoup(page, 'html5lib')
         name_table_map = {
             u'司法股权冻结信息': 'judical_assist_pub_equity_freeze'
         }
@@ -498,7 +490,7 @@ class ZongjuParser(Parser):
     def parse_ent_pub_annual_report_page(self, page):
         """解析企业年报页面，该页面需要单独处理
         """
-        soup = BeautifulSoup(page)
+        soup = BeautifulSoup(page, 'html5lib')
         table_names = (u'企业基本信息', u'网站或网店信息', u'股东及出资信息', u'对外投资信息',
                        u'企业资产状况信息', u'对外提供保证担保信息', u'股权变更信息', u'修改记录')
         annual_report_dict = {}
@@ -537,60 +529,3 @@ class ZongjuParser(Parser):
             next_url = bs4_tag['href']
 
         return next_url
-
-
-class TestParser(unittest.TestCase):
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        self.crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
-        self.parser = self.crawler.parser
-        self.crawler.json_dict = {}
-        self.crawler.ent_number = '00000'
-
-    def test_parse_ind_comm_pub_page(self):
-        with open('./enterprise_crawler/zongju/ind_comm_pub.html') as f:
-            page = f.read()
-            self.parser.parse_ind_comm_pub_pages(page)
-
-    def test_parse_ent_pub_skeleton(self):
-        with open('./enterprise_crawler/zongju/ent_pub.html') as f:
-            page = f.read()
-            self.parser.parse_ent_pub_pages(page)
-
-    def test_parse_other_dept_pub_skeleton(self):
-        with open('./enterprise_crawler/zongju/other_dept_pub.html') as f:
-            page = f.read()
-            self.parser.parse_other_dept_pub_pages(page)
-
-    def test_parse_judical_assist_pub_skeleton(self):
-        with open('./enterprise_crawler/zongju/judical_assist_pub.html') as f:
-            page = f.read()
-            self.parser.parse_judical_assist_pub_pages(page)
-
-    def test_parse_annual_report_page(self):
-        with open('./enterprise_crawler/zongju/annual_report.html') as f:
-            page = f.read()
-            result = self.parser.parse_ent_pub_annual_report_page(page)
-            CrawlerUtils.json_dump_to_file(self.crawler.json_restore_path, {self.crawler.ent_number: result})
-
-    def test_parse_shareholder_detail_page(self):
-        with open('./enterprise_crawler/zongju/shareholder_detail.html') as f:
-            page = f.read()
-            result = self.parser.parse_ind_comm_pub_shareholder_detail_page(page)
-            CrawlerUtils.json_dump_to_file(self.crawler.json_restore_path, {self.crawler.ent_number: result})
-
-"""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-    run.config_logging()
-    ZongjuCrawler.code_cracker = CaptchaRecognition('zongju')
-
-    crawler = ZongjuCrawler('./enterprise_crawler/zongju.json')
-    enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/zongju.txt')
-    # enterprise_list = ['100000000018305']
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        logging.info('###############   Start to crawl enterprise with id %s   ################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""

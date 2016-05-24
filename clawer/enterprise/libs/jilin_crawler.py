@@ -1270,6 +1270,8 @@ class JilinCrawler(object):
         return r.content
 
     def run(self, ent_num):
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
         self.ent_num = str(ent_num)

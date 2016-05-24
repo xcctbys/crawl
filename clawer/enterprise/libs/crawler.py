@@ -158,6 +158,8 @@ class Crawler(object):
         print "In Crawler"
 
     def run(self, _ent):
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
         self._ent = str(_ent)
         if not self.crawl_check_page():
             logging.error('crack check code failed, stop to crawl enterprise %s' % self._ent)

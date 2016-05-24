@@ -147,7 +147,7 @@ class QueueGenerator(object):
             return  structure_job.id
 
 class ExtracterQueueGenerator(object):
-    def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
+    def __init__(self, redis_url = settings.EXTRACTER_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.too_high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
         self.high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_HIGH, connection=self.connection)
@@ -247,7 +247,7 @@ class ExtracterGenerator(StructureGenerator):
     def assign_extract_tasks(self):
         """分配所有导出任务"""
         tasks = self.filter_parsed_tasks()
-        conf_hash_last = None
+        conf_dict = None
         for task in tasks:
             priority = self.get_task_priority(task)
             # db_conf = self.get_extracter_db_config(task)
@@ -255,13 +255,12 @@ class ExtracterGenerator(StructureGenerator):
             # extracter = self.get_extracter(db_conf, mappings)
             data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
             conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
-            conf_hash = hash(conf)
             sql_file_name = conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
             
             # if not os.path.exists(sql_file_name):
-            if conf_hash != conf_hash_last:
-                conf_hash_list = conf_hash
+            if conf_dict != conf:
+                conf_dict = conf
                 self.sqlgenerator.test_table(conf, sql_file_name)
                 self.sqlgenerator.test_daoru(sql_file_name)
             extract_function = self.extracter
@@ -290,8 +289,12 @@ class ExtracterGenerator(StructureGenerator):
     def get_extracter_conf(self, data):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
+        configure_dict = open('structure/extracters/gs_table_conf.json').read()
+        configure_dict =  json.loads(configure_dict)
+        return configure_dict
+
+        """
         extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first() # 获取导出器配置 
-        
         if extracterstructureconfig:
             try:
                 extracter_configure = extracterstructureconfig.extracter.extracter_config.encode('utf8')  # extracter_conf 为字符串格式的配置
@@ -299,7 +302,7 @@ class ExtracterGenerator(StructureGenerator):
             except Exception as e:
                 logging.error('Get extracter config error')
             return configure_dict
-
+        """
     @classmethod
     def extract_fields(self, extracter_conf, data):
         """生成sql语句并导出字段"""
@@ -474,7 +477,7 @@ class TestExtracter(object):
 
 
         for count in range(20):
-            test_job = Job("creator",
+            test_job = JobMongoDB("creator",
                     "job_%d" % count,
                     "info",
                     "customer",
@@ -497,7 +500,7 @@ class TestExtracter(object):
 
     def empty_test_data(self):
         
-        Job.drop_collection()
+        JobMongoDB.drop_collection()
         Extracter.drop_collection()
         CrawlerTask.drop_collection()
         ExtracterStructureConfig.drop_collection()

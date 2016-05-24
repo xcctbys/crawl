@@ -59,6 +59,7 @@ REDIS = "redis://127.0.0.1/0"
 GENERATOR_REDIS = "redis://127.0.0.1/0"
 DOWNLOADER_REDIS = "redis://127.0.0.1/0"
 STRUCTURE_REDIS = "redis://127.0.0.1/0"
+EXTRACTER_REDIS = "redis://127.0.0.1/0"
 FILTER_REDIS = "redis://127.0.0.1/0"
 
 
