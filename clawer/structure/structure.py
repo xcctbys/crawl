@@ -267,7 +267,7 @@ class ExtracterGenerator(StructureGenerator):
             if conf_dict != conf:
                 conf_dict = conf
                 self.sqlgenerator.test_table(conf, sql_file_name)
-                self.sqlgenerator.test_daoru(sql_file_name)
+                self.sqlgenerator.test_restore(sql_file_name)
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
@@ -313,12 +313,12 @@ class ExtracterGenerator(StructureGenerator):
         """生成sql语句并导出字段"""
         try:
             # self.sqlgenerator.test_table(extracter_conf, '/tmp/my_table.sql')
-            # self.sqlgenerator.test_daoru('/tmp/my_table.sql')
+            # self.sqlgenerator.test_restore('/tmp/my_table.sql')
             # conf = json.loads(extracter_conf)
             sql_file_name = extracter_conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/data_%s.sql' % sql_file_name
             self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
-            self.sqlgenerator.test_daoru(sql_file_name)
+            self.sqlgenerator.test_restore(sql_file_name)
         except Exception as e:
             print e
         return True

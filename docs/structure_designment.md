@@ -639,10 +639,55 @@ db.crawler_extracter_info.find().pretty()
 }
 extracted_status 成功为true, 失败为false
 
-MySQL中的信息:
-待补充...
-```
+## MySQL中的信息:
 
+以工商为例
+mysql -ucacti -pcacti
+show databases;
+数据库的名字已配置文件中（~/Documents/gitroom/cr-clawer/clawer/structure/extracters/gs_table_conf.json），database->destination_db->dbname的值为准
+如下例子中为 GongShang
+```
+    "database": {
+        "source_db":{
+            "dbtype": "mongodb",
+            "host": "127.0.0.1",
+            "port": "27017",
+            "username": "",
+            "password": "",
+            "dbname": "GongShang"
+        },
+        "destination_db": {
+            "dbtype": "mysql",
+            "host": "127.0.0.1",
+            "port": "3306",
+            "username": "cacti",
+            "password": "cacti",
+            "dbname": "GongShang"
+        }
+    }
+```
+use GongShang; 
+show tables;
+```
++----------------------------+
+| Tables_in_GongShang        |
++----------------------------+
+| Basic                      |
+| EnterAnnualReport          |
+| IndustryCommerceBranch     |
+| IndustryCommerceMainperson |
+| YearReportAssets           |
+| YearReportInvestment       |
+| YearReportOnline           |
+| YearReportSharechange      |
+| YearReportShareholder      |
+| YearReportWarrandice       |
++----------------------------+
+
+```
+查看公司基本信息
+select * from Basic;
+大多数表都有数据的话，就插入成功,个别表中没数据属于正常现象
 
 
 
