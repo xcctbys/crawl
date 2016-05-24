@@ -222,7 +222,7 @@ def parser_func(data):
         else:
             logging.error("Error finding Configuration file (StructureConfig) for task: % s (uri)" % data.crawlertask.uri)             
     else:
-        logging.error("Error finding parser from % s (uri) -- Null data" % data.crawlertask.uri)
+        logging.error("Error finding parser from (uri) -- Null data" )
 
 class ExtracterGenerator(StructureGenerator):
 
