@@ -226,6 +226,8 @@ def parser_func(data):
     else:
         logging.error("Error finding Configuration file (StructureConfig) for task: %s (uri)" % data.crawlertask.uri)
 
+    return data.clawertask.id
+
 
 class ExtracterGenerator(StructureGenerator):
 
