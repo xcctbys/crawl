@@ -226,7 +226,7 @@ def parser_func(data):
             logging.error("Error finding parser from (uri) -- Null data" )
     except:
         import traceback
-        print traceback.format_exc(10)
+        logging.error(traceback.format_exc(10))
 
 
 class ExtracterGenerator(StructureGenerator):
