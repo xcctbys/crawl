@@ -174,7 +174,7 @@ class JsonToSql(object):
         :return: 无
         """
         print 'hi, spider!'
-        self.config_dic = extracter_conf
+        self.config_dic = self.parser_json(extracter_conf)
         self.get_mapping()
         self.create_table_sql(export_file)
         pass
@@ -188,7 +188,7 @@ class JsonToSql(object):
         :return: 无
         """
         print 'hi, spider!'
-        self.config_dic = extracter_conf
+        self.config_dic = self.parser_json(extracter_conf)
         self.get_mapping()
         self.data_sql = open(export_file, 'w')
         use_database = 'use %s;\n' % self.config_dic['database']['destination_db']['dbname']
@@ -210,7 +210,7 @@ class JsonToSql(object):
 
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
-    json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', './my_insert.sql')
+    json_to_sql.test_get_data('gs_table_conf.json', 'tianjin.json', './my_insert.sql')
     json_to_sql.test_table('gs_table_conf.json', './my_table.sql')
     json_to_sql.test_daoru('./my_table.sql')
 
