@@ -210,7 +210,7 @@ class JsonToSql(object):
 
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
-    json_to_sql.test_get_data('gs_table_conf.json', 'tianjin.json', './my_insert.sql')
+    json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', './my_insert.sql')
     json_to_sql.test_table('gs_table_conf.json', './my_table.sql')
     json_to_sql.test_daoru('./my_table.sql')
 

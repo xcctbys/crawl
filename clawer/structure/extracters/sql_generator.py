@@ -47,7 +47,7 @@ class JsonToSql(object):
     
     def create_commond(self):
         db_info = self.config_dic['database']['destination_db']
-        comm = '%s -u %s -p%s -h %s -P %s -f < ' % (db_info['dbtype'],db_info['username'],db_info['password'],db_info['host'],db_info['port'])
+        comm = '-u %s -p%s -h %s -P %s -f' % (db_info['username'],db_info['password'],db_info['host'],db_info['port'])
         return comm
 
     def create_table_sql(self, table_file):
@@ -204,15 +204,22 @@ class JsonToSql(object):
             self.tmp_dic.clear()
         self.data_sql.close()
 
-    def test_daoru(self, sql_file):
-        result = self.create_commond() + sql_file
+    def test_restore(self, sql_file):
+        result = 'mysql %s < %s' % (self.create_commond(), sql_file)
         tmp = os.popen(result).readlines()
         print tmp
+        #pass
+
+    def test_backup(self, sql_file):
+        result = 'mysqldump %s > %s' % (self.create_commond(), sql_file)
+        print result
+        #tmp = os.popen(result).readlines()
+        #print tmp
         #pass
 
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
     json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', '/tmp/my_insert.sql')
     json_to_sql.test_table('gs_table_conf.json', '/tmp/my_table.sql')
-    json_to_sql.test_daoru('./my_table.sql')
+    json_to_sql.test_restore('./my_table.sql')
 
