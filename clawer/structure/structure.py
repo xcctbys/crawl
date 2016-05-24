@@ -312,13 +312,8 @@ class ExtracterGenerator(StructureGenerator):
     def extract_fields(self, extracter_conf, data):
         """生成sql语句并导出字段"""
         try:
-            # self.sqlgenerator.test_table(extracter_conf, '/tmp/my_table.sql')
-            # self.sqlgenerator.test_restore('/tmp/my_table.sql')
-            # conf = json.loads(extracter_conf)
             sql_file_name = extracter_conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/data_%s.sql' % sql_file_name
-            self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
-            self.sqlgenerator.test_restore(sql_file_name)
             result = self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
             if not result:
                 return False
