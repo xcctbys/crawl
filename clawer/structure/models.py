@@ -4,7 +4,7 @@ import json
 import datetime
 from django.db import models
 #from storage.models import Job
-from storage.models import Job
+from storage.models import Job as JobMySQL
 from collector.models import Job as JobMongoDB
 from collector.models import CrawlerTask, CrawlerDownloadData
 from mongoengine import (Document,
@@ -25,7 +25,7 @@ class Parser(models.Model):
 class StructureConfig(models.Model):
      job_copy_id = models.CharField(unique = True, max_length = 100)
      job = models.OneToOneField(
-          Job,
+          JobMySQL,
           on_delete = models.CASCADE)
 
      parser = models.OneToOneField(

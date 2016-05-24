@@ -111,6 +111,7 @@ def dispatch_use_pool(task):
     for task in down_tasks:
         priority = task.job.priority
         try:
+            task.status = CrawlerTask.STATUS_DISPATCH
             if priority == -1:
                 if len(q_down_super) >= settings.Q_DOWN_SUPER_LEN:
                     write_dispatch_alter_log(
@@ -159,7 +160,7 @@ def dispatch_use_pool(task):
                     continue
                 q_down_low.enqueue(download_clawer_task, args=[
                                    task], at_front=False)
-            task.status = CrawlerTask.STATUS_DISPATCH
+            
             task.save()
             # write_success_dispatch_log()
             write_dispatch_success_log(job=task.job, reason='success')
