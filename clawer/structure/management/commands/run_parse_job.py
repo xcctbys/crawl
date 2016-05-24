@@ -1,6 +1,8 @@
 # coding=utf-8
+#!/usr/bin/python
 from django.core.management.base import BaseCommand
-from structure.structure import ParserGenerator, Consts, ExecutionTasks
+from structure.structure import ParserGenerator, Consts
+from django.conf import settings
 import redis
 import rq
 
@@ -8,10 +10,10 @@ def run():
 	q =None
     	queue_name = raw_input()
     	try:
-    		redis_url = settings.REDIS
+    		redis_url = settings.STRUCTURE_REDIS
 	except:
     		redis_url = None
-    	connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
+    	connection = redis.Redis.from_url(redis_url)
 	too_high_queue = rq.Queue(Consts.QUEUE_PRIORITY_TOO_HIGH, connection = connection)
 	high_queue = rq.Queue(Consts.QUEUE_PRIORITY_HIGH, connection = connection)
 	normal_queue = rq.Queue(Consts.QUEUE_PRIORITY_NORMAL, connection = connection)
@@ -27,8 +29,9 @@ def run():
     	else:
     		print "Error: Cannot find the queue from Redis."
   	if q is not None:
-    		executiontasks = ExecutionTasks()
-    		executiontasks.exec_task(q)
+        	with rq.Connection(connection):
+        		w = rq.Worker([q])
+        		w.work()
     
 class Command(BaseCommand):
     	args = ""

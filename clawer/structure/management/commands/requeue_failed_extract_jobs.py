@@ -10,7 +10,7 @@ import logging
 import redis
 
 try:
-    redis_url = settings.STRUCTURE_REDIS
+    redis_url = settings.EXTRACTER_REDIS
 except:
     redis_url = None
 

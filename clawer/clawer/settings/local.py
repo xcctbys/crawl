@@ -31,7 +31,7 @@ CACHES = {
     }
 }
 
-PYTHON = "/home/mingming/Documents/pyenv/dj18/bin/python"
+PYTHON = "/usr/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
 
@@ -59,6 +59,7 @@ REDIS = "redis://127.0.0.1/0"
 GENERATOR_REDIS = "redis://127.0.0.1/0"
 DOWNLOADER_REDIS = "redis://127.0.0.1/0"
 STRUCTURE_REDIS = "redis://127.0.0.1/0"
+EXTRACTER_REDIS = "redis://127.0.0.1/0"
 FILTER_REDIS = "redis://127.0.0.1/0"
 
 

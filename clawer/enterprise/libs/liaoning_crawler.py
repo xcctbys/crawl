@@ -8,7 +8,7 @@ import random
 import threading
 import json
 import urllib
-import unittest
+
 from datetime import datetime, timedelta
 from . import settings
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
@@ -16,17 +16,12 @@ import logging
 from bs4 import BeautifulSoup
 from crawler import Crawler
 from crawler import Parser
-from crawler import CrawlerUtils
+from common_func import get_proxy, exe_time#, json_dump_to_file
 
 
 class LiaoningCrawler(Crawler):
     """辽宁工商爬虫
     """
-    #html数据的存储路径
-    html_restore_path = settings.json_restore_path + '/liaoning/'
-
-    #验证码图片的存储路径
-    ckcode_image_path = settings.json_restore_path + '/liaoning/ckcode.jpg'
     code_cracker = CaptchaRecognition('liaoning')
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
@@ -36,18 +31,31 @@ class LiaoningCrawler(Crawler):
             'post_checkcode': 'http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/lngsSearchFpc.action',
         }
 
-    def __init__(self, json_restore_path):
+    def __init__(self, json_restore_path=None):
+        super(LiaoningCrawler, self).__init__()
         self.json_restore_path = json_restore_path
-        self.parser = LiaoningParser(self)
-        self.img_count = 1
-        if not os.path.exists(self.html_restore_path):
-            os.makedirs(self.html_restore_path)
+        #html数据的存储路径
+        self.html_restore_path = self.json_restore_path + '/liaoning/'
 
-    def run(self, ent_number=0):
+        #验证码图片的存储路径
+        self.ckcode_image_path = self.json_restore_path + '/liaoning/ckcode.jpg'
+        self.parser = LiaoningParser(self)
+        self.proxies = get_proxy('liaoning')
+
+        self.timeout = (30,20)
+
+
+    def run(self, _ent):
         """爬取的主函数
         """
-
-        return Crawler.run(self, ent_number)
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
+        if self.proxies:
+            print self.proxies
+            self.reqst.proxies = self.proxies
+        if not os.path.exists(self.html_restore_path):
+            os.makedirs(self.html_restore_path)
+        return Crawler.run(self, _ent)
 
     def crawl_check_page(self):
         """爬取验证码页面，包括获取验证码url，下载验证码图片，破解验证码并提交
@@ -57,12 +65,12 @@ class LiaoningCrawler(Crawler):
             count += 1
 
             ckcode = self.crack_checkcode()
-            logging.info('crack code = %s, %s' % (ckcode[0], ckcode[1]))
+            logging.debug('crack code = %s, %s' % (ckcode[0], ckcode[1]))
             if ckcode == "":
                 continue
             post_data = {
                 'authCode': ckcode[1],
-                'solrCondition': self.ent_number,
+                'solrCondition': self._ent,
              }
 
             next_url = self.urls['post_checkcode']
@@ -70,29 +78,56 @@ class LiaoningCrawler(Crawler):
             if resp.status_code != 200:
                 logging.error('failed to get crackcode image by url %s, fail count = %d' % (next_url, count))
                 continue
-            # logging.info('crack code = %s, %s, response =  %s' %(ckcode[0], ckcode[1], resp.content))
             m = re.search(r'codevalidator= \"(.*)\"', resp.content)
 
             status = m.group(1)
             if status == "fail":
                 continue
             else:
-                m = re.search(r'searchList_paging\(\[(.*)\]', resp.content)
-                if m.group(1) != "null":
+                # m = re.search(r'searchList_paging\[(.*)\]', resp.content)
+                # if m.group(1) != "null":
+                #     js ='[' + m.group(1) +']'
+                #     results = json.loads(js)
+                #     for item in results:
+                #         if item['entname'] == self._ent or item['regno']== self._ent:
+                #             self.ents[self._ent] =
 
-                    js = json.loads(m.group(1))
-                    self.type = js["enttype"]
-                    self.pripid = js['pripid']
-                    self.entname = js["entname"]
-                    self.optstate = js["optstate"]
-                    self.regno = js["regno"]
-
+                    # self.type = js["enttype"]
+                    # self.pripid = js['pripid']
+                    # self.entname = js["entname"]
+                    # self.optstate = js["optstate"]
+                    # self.regno = js["regno"]
+                if self.analyze_showInfo(resp.content):
                     return True
                 else:
                     logging.error('crack checkcode failed, total fail count = %d' % (count))
 
-            time.sleep(random.uniform(2, 4))
+            time.sleep(random.uniform(1, 4))
         return False
+
+    def analyze_showInfo(self, page):
+        """ 判断是否成功搜索页面
+            分析 展示页面， 获得搜索到的企业列表
+        """
+        m = re.search(r'searchList_paging.*\[(.*)\]', page)
+        if m:
+            if m.group(1) != "null":
+                js ='[' + m.group(1) +']'
+                results = json.loads(js)
+                onclick = "openDetail('%s', '%s', '%s', '%s', '%s', '%s')"
+                Ent={}
+                for item in results:
+                    if item['entname'] == self._ent or item['regno']== self._ent:
+                        Ent.clear()
+                        Ent[item['regno']] = onclick%(item['regno'], item['enttype'], item['pripid'], item['entname'], item['optstate'], 'undefined')
+                        break
+                    else:
+                        Ent[item['regno']] = onclick%(item['regno'], item['enttype'], item['pripid'], item['entname'], item['optstate'], 'undefined')
+                self.ents = Ent
+                return True
+            return False
+        else:
+            return False
 
     def crack_checkcode(self):
         """破解验证码"""
@@ -122,25 +157,38 @@ class LiaoningCrawler(Crawler):
         self.write_file_mutex.release()
         f.close()
         return ckcode
-
-    def crawl_ind_comm_pub_pages(self):
+    @exe_time
+    def crawl_ind_comm_pub_pages(self, *args, **kwargs):
         """爬取工商公示信息
         """
-        self.parser.parse_ind_comm_pub_pages()
+        if not len(args):   return
+        url = args[0]
+        results = re.findall( '\'(.*?)\'', url)
+        self.regno = results[0]
+        self.type = results[1]
+        self.pripid = results[2]
+        self.entname = results[3]
+        self.optstate = results[4]
+        self.revdate = results[5]
 
-    def crawl_ent_pub_pages(self):
+        self.parser.parse_ind_comm_pub_pages()
+    @exe_time
+    def crawl_ent_pub_pages(self, *args, **kwargs):
         """爬取企业公示信息
         """
-        self.parser.parse_ent_pub_pages()
 
-    def crawl_other_dept_pub_pages(self):
+        self.parser.parse_ent_pub_pages()
+    @exe_time
+    def crawl_other_dept_pub_pages(self, *args, **kwargs):
         """爬取其他部门公示信息
         """
-        self.parser.crawl_other_dept_pub_pages()
 
-    def crawl_judical_assist_pub_pages(self):
+        self.parser.crawl_other_dept_pub_pages()
+    @exe_time
+    def crawl_judical_assist_pub_pages(self, *args, **kwargs):
         """爬取司法协助信息
         """
+
         self.parser.parse_judical_assist_pub_pages()
 
 class LiaoningParser(Parser):
@@ -224,7 +272,7 @@ class LiaoningParser(Parser):
         # 清算信息
         url = "%s%s%s%s%s%s" % (host, "Qsxx", args1, self.crawler.pripid, args2, self.crawler.type)
         resp = self.crawler.reqst.get(url)
-        soup = BeautifulSoup(resp.content, "lxml")
+        soup = BeautifulSoup(resp.content, "html5lib")
 
         table = soup.find("table")
         self.crawler.json_dict["ind_comm_pub_arch_liquidation"] = self.parse_table2(table)
@@ -344,7 +392,7 @@ class LiaoningParser(Parser):
                         dyw_list.append(table_dyw)
                 detail[u"抵押物概况"] = dyw_list
 
-                soup = BeautifulSoup(resp.content, "lxml")
+                soup = BeautifulSoup(resp.content, "html5lib")
                 name_table_map = [u'被担保债权概况',u'动产抵押登记信息']
                 for table in soup.find_all('table'):
                     list_table_title = table.find("th")
@@ -415,7 +463,7 @@ class LiaoningParser(Parser):
         url = "%s%s%s%s%s%s" % (host, "Jbxx", args1, self.crawler.pripid, args2, self.crawler.type)
         resp = self.crawler.reqst.get(url)
 
-        soup = BeautifulSoup(resp.content, "lxml")
+        soup = BeautifulSoup(resp.content, "html5lib")
         table = soup.find("table")
         self.crawler.json_dict["ind_comm_pub_reg_basic"] = self.parse_table1(table)
 
@@ -723,7 +771,7 @@ class LiaoningParser(Parser):
                         sw_list.append(table_detail)
                 detail[u"修改记录"] = sw_list
 
-                soup = BeautifulSoup(resp.content, "lxml")
+                soup = BeautifulSoup(resp.content, "html5lib")
                 name_table_map = [u'企业基本信息', u'企业资产状况信息']
                 for table in soup.find_all('table'):
                     list_table_title = table.find("th")
@@ -749,7 +797,7 @@ class LiaoningParser(Parser):
                 'revdate': 'undefined',
              }
         resp = self.crawler.reqst.post(next_url, data=post_data)
-        soup = BeautifulSoup(resp.content, "lxml")
+        soup = BeautifulSoup(resp.content, "html5lib")
 
         id_table_map = {
             's_qt_xzxkxx': 'other_dept_pub_administration_license',  # 行政许可信息
@@ -865,19 +913,3 @@ class LiaoningParser(Parser):
 
         return total
 
-"""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-    run.config_logging()
-    LiaoningCrawler.code_cracker = CaptchaRecognition('liaoning')
-
-    crawler = LiaoningCrawler('./enterprise_crawler/liaoning.json')
-    enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/liaoning.txt')
-    # enterprise_list = ['210000004920321']
-    # enterprise_list = ['210200400016720']
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        logging.info('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""

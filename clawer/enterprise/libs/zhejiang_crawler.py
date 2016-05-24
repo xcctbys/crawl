@@ -59,6 +59,7 @@ class ZhejiangCrawler(object):
         self.reportNo = ""
         self.year = ""
         proxies = get_proxy('zhejiang')
+        # proxies = {'http':'http://218.244.140.99:8888'}
         if proxies:
             print proxies
             self.requests.proxies = proxies
@@ -1282,6 +1283,8 @@ class ZhejiangCrawler(object):
 
     def run(self, ent_num):
         """ main function """
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
         self.ent_num = str(ent_num)

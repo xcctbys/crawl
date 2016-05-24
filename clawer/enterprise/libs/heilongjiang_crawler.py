@@ -14,7 +14,7 @@ from crawler import CrawlerUtils
 from . import settings
 import logging
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
-from common_func import get_proxy #, exe_time, json_dump_to_file
+from common_func import get_proxy, exe_time#, json_dump_to_file
 
 class HeilongjiangClawer(Crawler):
     """黑龙江工商公示信息网页爬虫
@@ -59,7 +59,6 @@ class HeilongjiangClawer(Crawler):
         self.ckcode_image_path = self.json_restore_path + '/heilongjiang/ckcode.jpg'
 
         self.parser = HeilongjiangParser(self)
-        self.img_count = 1
 
         self.proxies = get_proxy('heilongjiang')
 
@@ -156,7 +155,7 @@ class HeilongjiangClawer(Crawler):
         self.write_file_mutex.release()
 
         return ckcode[1]
-
+    @exe_time
     def crawl_ind_comm_pub_pages(self, *args, **kwargs):
         """爬取工商公示信息
         """
@@ -169,7 +168,7 @@ class HeilongjiangClawer(Crawler):
         if resp.status_code != 200:
             logging.error('failed to get ind_comm_pub_skeleton')
         self.parser.parse_ind_comm_pub_pages(resp.content)
-
+    @exe_time
     def crawl_ent_pub_pages(self, *args, **kwargs):
         """爬取企业公示信息
         """
@@ -182,7 +181,7 @@ class HeilongjiangClawer(Crawler):
         if resp.status_code != 200:
             logging.error('failed to get ent_pub_skeleton')
         self.parser.parse_ent_pub_pages(resp.content)
-
+    @exe_time
     def crawl_other_dept_pub_pages(self, *args, **kwargs):
         """爬取其他部门公示信息
         """
@@ -195,7 +194,7 @@ class HeilongjiangClawer(Crawler):
         if resp.status_code != 200:
             logging.error('failed to get other_dept_pub_skeleton')
         self.parser.crawl_other_dept_pub_pages(resp.content)
-
+    @exe_time
     def crawl_judical_assist_pub_pages(self, *args, **kwargs):
         """爬取司法协助信息
         """
