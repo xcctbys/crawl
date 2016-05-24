@@ -49,13 +49,13 @@ class StructureGenerator(object):
             logging.info("No parsed (status = 7) tasks")
         return parsed_tasks                            #返回状态为解析成功的爬虫任务
 
-    def get_task_priority(self, task):              #将爬虫任务中的Job的priority(range(-1,6))化为解析任务的priority(Consts)        
+    def get_task_priority(self, task):              #将爬虫任务中的Job的priority(range(-1,6))化为解析任务的priority(Consts)
         if task.job.priority == -1:
             task_priority = Consts.QUEUE_PRIORITY_TOO_HIGH
         elif task.job.priority == 0 or task.job.priority == 1:
             task_priority = Consts.QUEUE_PRIORITY_HIGH
         elif task.job.priority == 2 or task.job.priority == 3:
-            task_priority = Consts.QUEUE_PRIORITY_NORMAL            
+            task_priority = Consts.QUEUE_PRIORITY_NORMAL
         elif task.job.priority == 4 or task.job.priority == 5:
             task_priority = Consts.QUEUE_PRIORITY_LOW
         else:
@@ -69,7 +69,7 @@ class StructureGenerator(object):
     def get_task_analyzed_data(self, task):
         task_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = task).first()
         return task_analyzed_data           # 返回解析成功的数据
-        
+
 
 
 class ParserGenerator(StructureGenerator):
@@ -111,7 +111,7 @@ class ParserGenerator(StructureGenerator):
             else:
                 logging.error("Parse task duplicates -- % s (uri)" % data.crawlertask.uri)
         return self.queues
-    
+
 class QueueGenerator(object):
     def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = Consts.QUEUE_MAX_LENGTH):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
@@ -124,7 +124,7 @@ class QueueGenerator(object):
             self.high_queue,
             self.normal_queue,
             self.low_queue)
-        
+
     def enqueue(self, priority, func, *args, **kwargs):
         q = None
         if priority == Consts.QUEUE_PRIORITY_TOO_HIGH:
@@ -158,7 +158,7 @@ class ExtracterQueueGenerator(object):
             self.high_queue,
             self.normal_queue,
             self.low_queue)
-        
+
     def enqueue(self, priority, func, *args, **kwargs):
         q = None
         if priority == ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH:
@@ -178,13 +178,17 @@ class ExtracterQueueGenerator(object):
         else:
             extracter_job = q.enqueue_call(func, *args, **kwargs)
             return  extracter_job.id
-    
+
 
 def parser_func(data):
     if data is None:
-        logging.debug("data is none")
         return None
+    data.crawlertask.update(status=7)
+    crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task=data.crawlertask).first()
+    crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
+    return data.crawlertask.id
 
+    '''
     structureconfig = StructureConfig.objects.get(job_copy_id = data.crawlertask.job.id)
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
 
@@ -192,7 +196,7 @@ def parser_func(data):
         current_dir = os.getcwd()
         parsers_dir = "/home/webapps/cr-clawer/clawer/structure/parsers"
         # parsers_dir = "structure/parsers"
-        if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
+        if not os.path.isdir(parsers_dir):      #判断解析器目录是否存在，如不存在则创建
             os.mkdir(parsers_dir)
         os.chdir(parsers_dir)
         parser_init = open("__init__.py", 'w')
@@ -227,7 +231,7 @@ def parser_func(data):
         logging.error("Error finding Configuration file (StructureConfig) for task: %s (uri)" % data.crawlertask.uri)
 
     return data.clawertask.id
-
+    '''
 
 class ExtracterGenerator(StructureGenerator):
 
@@ -235,14 +239,14 @@ class ExtracterGenerator(StructureGenerator):
     def __init__(self):
         self.queuegenerator = ExtracterQueueGenerator()
         self.queues = self.queuegenerator.rq_queues
-        
+
     def get_task_priority(self, task):
         if task.job.priority == -1:
             task_priority = ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH
         elif task.job.priority == 0 or task.job.priority == 1:
             task_priority = ExtracterConsts.QUEUE_PRIORITY_HIGH
         elif task.job.priority == 2 or task.job.priority == 3:
-            task_priority = ExtracterConsts.QUEUE_PRIORITY_NORMAL            
+            task_priority = ExtracterConsts.QUEUE_PRIORITY_NORMAL
         elif task.job.priority == 4 or task.job.priority == 5:
             task_priority = ExtracterConsts.QUEUE_PRIORITY_LOW
         else:
@@ -262,7 +266,7 @@ class ExtracterGenerator(StructureGenerator):
             conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
             sql_file_name = conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
-            
+
             # if not os.path.exists(sql_file_name):
             if conf_dict != conf:
                 conf_dict = conf
@@ -299,7 +303,7 @@ class ExtracterGenerator(StructureGenerator):
         return configure_dict
 
         """
-        extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first() # 获取导出器配置 
+        extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first() # 获取导出器配置
         if extracterstructureconfig:
             try:
                 extracter_configure = extracterstructureconfig.extracter.extracter_config.encode('utf8')  # extracter_conf 为字符串格式的配置
@@ -336,7 +340,7 @@ class ExtracterGenerator(StructureGenerator):
                 data.crawler_task.update(status=8)
                 logging.error('Extract fields failed')
         except Exception as e:
-            data.crawler_task.update(status=8) 
+            data.crawler_task.update(status=8)
             logging.error('Extract fields error')
             return False
         return True
@@ -396,10 +400,10 @@ class ExecutionExtracterTasks(object):
     #         job.exc_info = None
     #         requeue_queue = rq.Queue(job.origin, connection=self.connection)
     #         requeue_queue.enqueue_job(job)
-    #         return False 
+    #         return False
 
 def insert_test_data():
-    
+
     right_script = """class RawParser(object):
     def parser(self, crawlerdownloaddata):
         data = "JSON Format Data After Parsing"
@@ -416,7 +420,7 @@ def insert_test_data():
     for count in range(0,100):
         status = random.choice(range(1,3))
         priority = random.choice(range(-1,6))
-        
+
         test_job_mysql = JobMySQL(creator = user,
             name = "job_%d" % count,
             info = "info",
@@ -496,14 +500,14 @@ class TestExtracter(object):
 
             test_crawlertask = CrawlerTask(test_job, uri="test_uri_%d" % count, status=7)
             test_crawlertask.save()
-            
+
             ExtracterStructureConfig(job=test_job, extracter=test_extracter).save()
 
             CrawlerAnalyzedData(crawler_task=test_crawlertask, analyzed_data=analyzeddata.readline()).save()
         print "Extracter Test Data Inserted"
 
     def empty_test_data(self):
-        
+
         JobMongoDB.drop_collection()
         Extracter.drop_collection()
         CrawlerTask.drop_collection()
@@ -511,5 +515,5 @@ class TestExtracter(object):
         CrawlerAnalyzedData.drop_collection()
         CrawlerExtracterInfo.drop_collection()
         print "Extracter Test Data Cleaned!"
-        
+
 
