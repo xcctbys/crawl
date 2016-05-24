@@ -182,9 +182,11 @@ class ExtracterQueueGenerator(object):
 
 def parser_func(data):
     if data is None:
-        logging.debug("data is none")
         return None
+    data.crawlertask.update(status=7)
+    return data.crawlertask.id
 
+    '''
     structureconfig = StructureConfig.objects.get(job_copy_id = data.crawlertask.job.id)
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
 
@@ -192,7 +194,7 @@ def parser_func(data):
         current_dir = os.getcwd()
         parsers_dir = "/home/webapps/cr-clawer/clawer/structure/parsers"
         # parsers_dir = "structure/parsers"
-        if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
+        if not os.path.isdir(parsers_dir):      #判断解析器目录是否存在，如不存在则创建
             os.mkdir(parsers_dir)
         os.chdir(parsers_dir)
         parser_init = open("__init__.py", 'w')
@@ -227,7 +229,7 @@ def parser_func(data):
         logging.error("Error finding Configuration file (StructureConfig) for task: %s (uri)" % data.crawlertask.uri)
 
     return data.clawertask.id
-
+    '''
 
 class ExtracterGenerator(StructureGenerator):
 
