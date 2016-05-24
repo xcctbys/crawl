@@ -147,7 +147,7 @@ class QueueGenerator(object):
             return  structure_job.id
 
 class ExtracterQueueGenerator(object):
-    def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
+    def __init__(self, redis_url = settings.EXTRACTER_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.too_high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
         self.high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_HIGH, connection=self.connection)
@@ -181,48 +181,51 @@ class ExtracterQueueGenerator(object):
     
 
 def parser_func(data):
-    #print "This is the start of parser_func"
-    if data is not None:
-        structureconfig = StructureConfig.objects.get(job_copy_id = data.crawlertask.job.id)
-        crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
-        if structureconfig is not None:
-            current_dir = os.getcwd()
-            parsers_dir = "/home/webapps/cr-clawer/clawer/structure/parsers"
-            # parsers_dir = "structure/parsers"
-            if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
-                os.mkdir(parsers_dir)
-            os.chdir(parsers_dir)
-            parser_init = open("__init__.py", 'w')
-            parser_init.close()            
-            parser_py_script = open(str(structureconfig.parser.parser_id) + ".py", 'w')
-            parser_py_script.write(structureconfig.parser.python_script)
-            parser_py_script.close()                #将python脚本写进解析器文件中并关闭文件
-            sys.path.append(parsers_dir)           #把解析器路徑添加到系統路徑
-            try:
-                parser_module = __import__(str(structureconfig.parser.parser_id))
-                rawparser = parser_module.RawParser()
-                analyzed_data = str(rawparser.parser(data))
+    if data is None:
+        logging.debug("data is none")
+        return None
 
-                if analyzed_data is not None:
-                    data.crawlertask.update(status = 7)       #如果解析函数执行完且结果为不为空的字符串，则认为解析成功，写回标志位
-                    #print "Status updated!"
-                    crawler_analyzed_data.update(update_date = datetime.datetime.now(),
-                        analyzed_data = analyzed_data)
-                    logging.info("% s (uri) is successfully parsed -- Results saved" % data.crawlertask.uri)
-                    return analyzed_data
-                elif analyzed_data is None:
-                    data.crawlertask.update(status = 6)
-                    crawler_analyzed_data.update(update_date = datetime.datetime.now())
-                    logging.error("Something wrong while parsing % s (uri) -- NULL result" % data.crawlertask.uri)
-            except Exception as e:
+    structureconfig = StructureConfig.objects.get(job_copy_id = data.crawlertask.job.id)
+    crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
+
+    if structureconfig is not None:
+        current_dir = os.getcwd()
+        parsers_dir = "/home/webapps/cr-clawer/clawer/structure/parsers"
+        # parsers_dir = "structure/parsers"
+        if not os.path.isdir(parsers_dir):     #判断解析器目录是否存在，如不存在则创建
+            os.mkdir(parsers_dir)
+        os.chdir(parsers_dir)
+        parser_init = open("__init__.py", 'w')
+        parser_init.close()
+        parser_py_script = open(str(structureconfig.parser.parser_id) + ".py", 'w')
+        parser_py_script.write(structureconfig.parser.python_script)
+        parser_py_script.close()                #将python脚本写进解析器文件中并关闭文件
+        sys.path.append(parsers_dir)           #把解析器路徑添加到系統路徑
+        try:
+            parser_module = __import__(str(structureconfig.parser.parser_id))
+            rawparser = parser_module.RawParser()
+            analyzed_data = str(rawparser.parser(data))
+
+            if analyzed_data is not None:
+                data.crawlertask.update(status = 7)       #如果解析函数执行完且结果为不为空的字符串，则认为解析成功，写回标志位
+                #print "Status updated!"
+                crawler_analyzed_data.update(update_date = datetime.datetime.now(),
+                    analyzed_data = analyzed_data)
+                logging.info("%s (uri) is successfully parsed -- Results saved" % data.crawlertask.uri)
+                return analyzed_data
+            elif analyzed_data is None:
                 data.crawlertask.update(status = 6)
                 crawler_analyzed_data.update(update_date = datetime.datetime.now())
-                logging.error("Error parsing with % s.py" % structureconfig.parser.parser_id)
-            os.chdir(current_dir)                    #切换回之前的工作目录
-        else:
-            logging.error("Error finding Configuration file (StructureConfig) for task: % s (uri)" % data.crawlertask.uri)             
+                logging.error("Something wrong while parsing %s (uri) -- NULL result" % data.crawlertask.uri)
+        except Exception as e:
+            data.crawlertask.update(status = 6)
+            crawler_analyzed_data.update(update_date = datetime.datetime.now())
+            logging.error("Error parsing with %s.py" % structureconfig.parser.parser_id)
+
+        os.chdir(current_dir)                    #切换回之前的工作目录
     else:
-        logging.error("Error finding parser from % s (uri) -- Null data" % data.crawlertask.uri)
+        logging.error("Error finding Configuration file (StructureConfig) for task: %s (uri)" % data.crawlertask.uri)
+
 
 class ExtracterGenerator(StructureGenerator):
 
@@ -477,7 +480,7 @@ class TestExtracter(object):
 
 
         for count in range(20):
-            test_job = Job("creator",
+            test_job = JobMongoDB("creator",
                     "job_%d" % count,
                     "info",
                     "customer",
@@ -500,7 +503,7 @@ class TestExtracter(object):
 
     def empty_test_data(self):
         
-        Job.drop_collection()
+        JobMongoDB.drop_collection()
         Extracter.drop_collection()
         CrawlerTask.drop_collection()
         ExtracterStructureConfig.drop_collection()

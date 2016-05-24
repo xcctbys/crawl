@@ -59,6 +59,7 @@ REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/0"
 GENERATOR_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/1"
 DOWNLOADER_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/2"
 STRUCTURE_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/3"
+EXTRACTER_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/5"
 FILTER_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/4"
 MONITOR_REDIS = "redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/0"
 
@@ -123,7 +124,7 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple'
+            'formatter': 'verbose'
         },
         'mail_admins': {
             'level': 'ERROR',
@@ -146,7 +147,7 @@ LOGGING = {
             'level': 'ERROR',
         },
         'django': {
-            'handlers': ['null'],
+            'handlers': ['file'],
             'propagate': True,
             'level': 'ERROR',
         },

@@ -4,7 +4,8 @@ import json
 import datetime
 from django.db import models
 #from storage.models import Job
-from storage.models import Job
+from storage.models import Job as JobMySQL
+from collector.models import Job as JobMongoDB
 from collector.models import CrawlerTask, CrawlerDownloadData
 from mongoengine import (Document,
                               IntField,
@@ -24,7 +25,7 @@ class Parser(models.Model):
 class StructureConfig(models.Model):
      job_copy_id = models.CharField(unique = True, max_length = 100)
      job = models.OneToOneField(
-          Job,
+          JobMySQL,
           on_delete = models.CASCADE)
 
      parser = models.OneToOneField(
@@ -42,17 +43,17 @@ class CrawlerAnalyzedData(Document):
      analyzed_data = StringField()
      retry_times = IntField(default = 0)
      meta = {"db_alias": "structure"}
+     
 
 class Extracter(Document):
     extracter_id = IntField()
     extracter_config = StringField()
 
 class ExtracterStructureConfig(Document):
-    job = ReferenceField(Job)
-    extracter = ReferenceField(Extracter))
+    job = ReferenceField(JobMongoDB)
+    extracter = ReferenceField(Extracter)
 
 class CrawlerExtracterInfo(Document):
     extract_task = ReferenceField(CrawlerTask)
     update_date = DateTimeField(default=datetime.datetime.now())
     extracted_status = BooleanField(default=False)
-    retry_times = IntField(default = 0)
