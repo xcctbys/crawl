@@ -569,7 +569,7 @@ db.crawler_task.find().pretty()
 status 的含义: 6为解析失败, 7为解析成功, 8为导出失败, 9为导出成功
 
 
-use default
+use structure
 show tables
 结果如下:
 crawler_analyzed_data   解析成功待导出的数据
@@ -627,7 +627,7 @@ db.crawler_task.find({status:8}).count()   导出失败的任务数量
 ## 查看导出的结果:
 ```
 MongoDB中的信息:
-use default
+use structure
 db.crawler_extracter_info.find().pretty()
 类似如下结果:
 {
@@ -639,10 +639,55 @@ db.crawler_extracter_info.find().pretty()
 }
 extracted_status 成功为true, 失败为false
 
-MySQL中的信息:
-待补充...
-```
+## MySQL中的信息:
 
+以工商为例
+mysql -ucacti -pcacti
+show databases;
+数据库的名字已配置文件中（~/Documents/gitroom/cr-clawer/clawer/structure/extracters/gs_table_conf.json），database->destination_db->dbname的值为准
+如下例子中为 GongShang
+```
+    "database": {
+        "source_db":{
+            "dbtype": "mongodb",
+            "host": "127.0.0.1",
+            "port": "27017",
+            "username": "",
+            "password": "",
+            "dbname": "GongShang"
+        },
+        "destination_db": {
+            "dbtype": "mysql",
+            "host": "127.0.0.1",
+            "port": "3306",
+            "username": "cacti",
+            "password": "cacti",
+            "dbname": "GongShang"
+        }
+    }
+```
+use GongShang; 
+show tables;
+```
++----------------------------+
+| Tables_in_GongShang        |
++----------------------------+
+| Basic                      |
+| EnterAnnualReport          |
+| IndustryCommerceBranch     |
+| IndustryCommerceMainperson |
+| YearReportAssets           |
+| YearReportInvestment       |
+| YearReportOnline           |
+| YearReportSharechange      |
+| YearReportShareholder      |
+| YearReportWarrandice       |
++----------------------------+
+
+```
+查看公司基本信息
+select * from Basic;
+大多数表都有数据的话，就插入成功,个别表中没数据属于正常现象
 
 
 
