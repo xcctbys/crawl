@@ -36,4 +36,4 @@ MySQL-python
 Django==1.8
 Ghost.py
 Pyside
-PyQt4
+PyQt
