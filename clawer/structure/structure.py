@@ -159,6 +159,12 @@ class ExtracterQueueGenerator(object):
             self.normal_queue,
             self.low_queue)
 
+    def filter_parsed_tasks(self):
+        parsed_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_ANALYSIS_SUCCESS)
+        if parsed_tasks is None:
+            logging.info("No parsed (status = 7) tasks")
+        return parsed_tasks                            #返回状态为解析成功的爬虫任务
+
     def enqueue(self, priority, func, *args, **kwargs):
         q = None
         if priority == ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH:
@@ -299,6 +305,7 @@ class ExtracterGenerator(StructureGenerator):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
         configure_dict = open('structure/extracters/csciwlpc_conf.json').read()
+        # configure_dict = open('structure/extracters/gs_table_conf.json').read()
         configure_dict =  json.loads(configure_dict)
         return configure_dict
 
@@ -333,14 +340,17 @@ class ExtracterGenerator(StructureGenerator):
             result = self.extract_fields(conf, data.analyzed_data)   # data.analyzed_data 为一条解析后的JSON源数据
             if result:
                 data.crawler_task.update(status=9)  # status: 9导出成功, 8导出失败
+                # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_SUCCESS
                 crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
                 crawler_extract_info.update(extracted_status=True, update_date=datetime.datetime.now()) # 更新导出状态信息
                 logging.info('Extract fields succeed')
             else:
                 data.crawler_task.update(status=8)
+                # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_FAIL
                 logging.error('Extract fields failed')
         except Exception as e:
             data.crawler_task.update(status=8)
+            # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_FAIL
             logging.error('Extract fields error')
             return False
         return True
