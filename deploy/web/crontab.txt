@@ -6,5 +6,9 @@
 */2    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh downloader_dispatch
 
 
-# extracter 
+# structure
+*/5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_parser_dispatch
+
+
+# extracter
 */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_extracter_dispatch
