@@ -172,6 +172,12 @@ class JsonToSql(object):
         :param export_file: 输入的sql文件
         :return: True/False
         """
+        try:
+            json.loads(data)
+        except Exception as e:
+            print 'json error'
+            print e
+            return False
         if not extracter_conf or not data or not export_file:
             return False
         # self.config_dic = self.parser_json(extracter_conf)
