@@ -53,7 +53,8 @@ class JsonToSql(object):
         tables_info = self.config_dic['table']
         db_name = self.config_dic['database']['destination_db']['dbname']
         table_sql = open(table_file, 'w')
-        database_sql = 'DROP DATABASE IF EXISTS %s;\nCREATE DATABASE %s;\nUSE %s;\n' % (db_name, db_name, db_name)
+        #database_sql = 'DROP DATABASE IF EXISTS %s;\nCREATE DATABASE %s;\nUSE %s;\n' % (db_name, db_name, db_name)
+        database_sql = 'CREATE f %s;\nUSE %s;\n' % (db_name, db_name)
         table_sql.write(database_sql.encode('utf8'))
         sql = ''
         for t_name in tables_info:
@@ -172,11 +173,13 @@ class JsonToSql(object):
         :param export_file: 输入的sql文件
         :return: True/False
         """
+
+        #tmp = data.decode('utf8')
+        #print type(tmp)
+        #print tmp
         try:
             json.loads(data)
         except Exception as e:
-            print 'json error'
-            print e
             return False
         if not extracter_conf or not data or not export_file:
             return False

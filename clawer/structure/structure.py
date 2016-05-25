@@ -7,11 +7,11 @@ import datetime
 import redis
 import rq
 import json
+import ast
 from mongoengine import *
 from django.db import models
 import django.utils
 from django.contrib.auth.models import User
-from collector.models import CrawlerTask, CrawlerDownloadData, CrawlerDownload
 from collector.models import Job as JobMongoDB
 from storage.models import Job as JobMySQL
 from collector.models import CrawlerTask, CrawlerDownloadData, Job, CrawlerDownload
@@ -38,7 +38,7 @@ class ExtracterConsts(object):
 
 class StructureGenerator(object):
     def filter_downloaded_tasks(self):
-        downloaded_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_SUCCESS)
+        downloaded_tasks = CrawlerTask.objects(status=5)
         if downloaded_tasks is None:
             logging.info("No downloaded (status = 5) tasks")
         return downloaded_tasks                        #返回状态为下载成功的爬虫任务
@@ -63,7 +63,14 @@ class StructureGenerator(object):
         return task_priority
 
     def get_task_source_data(self, task):
-        task_source_data = CrawlerDownloadData.objects(crawlertask = task).first()
+        #print task.to_json()
+        task_source_data = CrawlerDownloadData.objects(crawlertask=task).first()
+        if task_source_data is None:
+            pass
+        else:
+            print task_source_data.to_json()
+        # task_source_data = CrawlerDownloadData.objects(crawlertask=task).first()
+
         return task_source_data                        #根据uri返回爬虫的下载数据（类型）
 
     def get_task_analyzed_data(self, task):
@@ -98,6 +105,7 @@ class ParserGenerator(StructureGenerator):
 
     def assign_parse_tasks(self):
         tasks = self.filter_downloaded_tasks()
+        print len(tasks)
         for task in tasks:
             parser_function = self.get_parser()
             priority = self.get_task_priority(task)
@@ -107,7 +115,7 @@ class ParserGenerator(StructureGenerator):
                     pass
                 else:
                     logging.info('Queue for priority "% s" is full' % priority)
-                    break
+                    pass
             else:
                 logging.error("Parse task duplicates -- % s (uri)" % data.crawlertask.uri)
         return self.queues
@@ -160,9 +168,12 @@ class ExtracterQueueGenerator(object):
             self.low_queue)
 
     def filter_parsed_tasks(self):
-        parsed_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_ANALYSIS_SUCCESS)
+        #parsed_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_ANALYSIS_SUCCESS)
+        parsed_tasks = CrawlerTask.objects(status = 7)
+
         if parsed_tasks is None:
             logging.info("No parsed (status = 7) tasks")
+
         return parsed_tasks                            #返回状态为解析成功的爬虫任务
 
     def enqueue(self, priority, func, *args, **kwargs):
@@ -187,9 +198,15 @@ class ExtracterQueueGenerator(object):
 
 
 def parser_func(data):
+    #print "data crawler:", data.crawlertask
+    #print "dir data",dir(data.crawlertask)
+
     if data is None:
         return None
-    data.crawlertask.update(status=7)
+    #data.crawlertask.update(status=7)
+    #print "data crawler old status", data.crawlertask.status
+    #data.crawlertask.update(status=7)
+    #print "data crawler update status", data.crawlertask.status
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task=data.crawlertask).first()
     crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
     return data.crawlertask.id
@@ -242,6 +259,7 @@ def parser_func(data):
 class ExtracterGenerator(StructureGenerator):
 
     sqlgenerator = SqlGenerator()        # 用于处理源数据生成sql，并导入关系数据库
+    conf_dict = None
     def __init__(self):
         self.queuegenerator = ExtracterQueueGenerator()
         self.queues = self.queuegenerator.rq_queues
@@ -262,20 +280,22 @@ class ExtracterGenerator(StructureGenerator):
     def assign_extract_tasks(self):
         """分配所有导出任务"""
         tasks = self.filter_parsed_tasks()
-        conf_dict = None
+
         for task in tasks:
+            print 'start assign extract tasks......'
             priority = self.get_task_priority(task)
             # db_conf = self.get_extracter_db_config(task)
             # mappings = self.get_extracter_mappings(task)
             # extracter = self.get_extracter(db_conf, mappings)
             data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
+            #print data.analyzed_data
             conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
             sql_file_name = conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
 
             # if not os.path.exists(sql_file_name):
-            if conf_dict != conf:
-                conf_dict = conf
+            if self.conf_dict != conf:
+                self.conf_dict = conf
                 self.sqlgenerator.test_table(conf, sql_file_name)
                 self.sqlgenerator.test_restore(sql_file_name)
             extract_function = self.extracter
@@ -290,6 +310,7 @@ class ExtracterGenerator(StructureGenerator):
     def assign_extract_task(self, priority, extract_function, conf, data):
         """分配一项导出任务"""
         try:
+
             extract_job_id = self.queuegenerator.enqueue(priority, extract_function, args=[conf, data])
             if not extract_job_id:
                 return None
@@ -305,7 +326,7 @@ class ExtracterGenerator(StructureGenerator):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
         configure_dict = open('structure/extracters/csciwlpc_conf.json').read()
-        # configure_dict = open('structure/extracters/gs_table_conf.json').read()
+        #configure_dict = open('structure/extracters/gs_table_conf.json').read()
         configure_dict =  json.loads(configure_dict)
         return configure_dict
 
@@ -321,11 +342,16 @@ class ExtracterGenerator(StructureGenerator):
         """
     @classmethod
     def extract_fields(self, extracter_conf, data):
+        data = ast.literal_eval(data)
+        json_data = json.dumps(data)
         """生成sql语句并导出字段"""
         try:
+            #data = data.encode('utf8')
+            #json_data = data.replace('\'','\"')
+            #json_data = json_data.replace('None', 'null')
             sql_file_name = extracter_conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/data_%s.sql' % sql_file_name
-            result = self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
+            result = self.sqlgenerator.test_get_data(extracter_conf, json_data, sql_file_name)
             if not result:
                 return False
             self.sqlgenerator.test_restore(sql_file_name)
@@ -335,6 +361,9 @@ class ExtracterGenerator(StructureGenerator):
 
     @classmethod
     def extracter(self, conf, data):
+
+        if not data:
+            return False
         """导出器"""
         try:
             result = self.extract_fields(conf, data.analyzed_data)   # data.analyzed_data 为一条解析后的JSON源数据
@@ -349,9 +378,9 @@ class ExtracterGenerator(StructureGenerator):
                 # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_FAIL
                 logging.error('Extract fields failed')
         except Exception as e:
-            data.crawler_task.update(status=8)
+            #data.crawler_task.update(status=8)
             # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_FAIL
-            logging.error('Extract fields error')
+            logging.error('Extract fields error %s'%e)
             return False
         return True
 
