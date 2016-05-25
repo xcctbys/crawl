@@ -205,7 +205,7 @@ def parser_func(data):
         return None
     #data.crawlertask.update(status=7)
     #print "data crawler old status", data.crawlertask.status
-    #data.crawlertask.update(status=7)
+    data.crawlertask.update(status=7)
     #print "data crawler update status", data.crawlertask.status
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task=data.crawlertask).first()
     crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
