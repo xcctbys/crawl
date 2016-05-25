@@ -7,9 +7,7 @@ import logging
 import unittest
 import re
 import urllib
-import time
-from bs4 import BeautifulSoup
-from multiprocessing.dummy import Pool
+
 
 DEBUG = True
 if DEBUG:
@@ -43,6 +41,39 @@ sortby  IP排序	默认最快优先， 传入 speed表示最快优先， time �
  上海使用 protocol='https'
 """
 
+choices = dict([
+(u'安徽', 'ANHUI'),
+(u'北京', 'BEIJING'),
+(u'重庆', 'CHONGQING'),
+(u'福建', 'FUJIAN'),
+(u'甘肃', 'GANSU'),
+(u'广东', 'GUANGDONG'),
+(u'广西', 'GUANGXI'),
+(u'贵州', 'GUIZHOU'),
+(u'海南', 'HAINAN'),
+(u'河北', 'HEBEI'),
+(u'黑龙', 'HEILONGJIANG'),
+(u'河南', 'HENAN'),
+(u'湖北', 'HUBEI'),
+(u'湖南', 'HUNAN'),
+(u'江苏', 'JIANGSU'),
+(u'江西', 'JIANGXI'),
+(u'吉林', 'JILIN'),
+(u'辽宁', 'LIAONING'),
+(u'内蒙', 'NEIMENGGU'),
+(u'宁夏', 'NINGXIA'),
+(u'青海', 'QINGHAI'),
+(u'陕西', 'SHAANXI'),
+(u'山东', 'SHANDONG'),
+(u'上海', 'SHANGHAI'),
+(u'山西', 'SHANXI'),
+(u'四川', 'SICHUAN'),
+(u'天津', 'TIANJIN'),
+(u'新疆', 'XINJIANG'),
+(u'云南', 'YUNNAN'),
+(u'浙江', 'ZHEJIANG'),
+(u'西藏', 'XIZANG')])
+
 
 
 class BaseProxy(object):
@@ -62,7 +93,7 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, tid='557067352008097',num='10',area='北京',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=choices, tid='557067352008097',num='10',province='BEIJING',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         #self.url = 'http://www.xicidaili.com/nn'          #西刺代理
         self.a_list=[]
@@ -74,10 +105,13 @@ class PaidProxy(BaseProxy):
         self.delay=delay
         self.sortby=sortby
         self.foreign=foreign
+        area= prodict.get(province,'OTHER')
         self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby}
 
         para_url = urllib.urlencode(self.parameter)
         self.urlget= self.url+para_url+'&area='+area
+
+
 
         #parameter_list=[tid,num,operator,area,ports,exclude_ports,filter,protocol,category,delay,sortby]
         #'protocol':self.protocol,'sortby':self.sortby,
@@ -90,12 +124,8 @@ class PaidProxy(BaseProxy):
         ip_content= re.split('\r\n',resp.content)
         proxy_list = ip_content
 
-
         print proxy_list
         return proxy_list
-
-
-
 
 
 
