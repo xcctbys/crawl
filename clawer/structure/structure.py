@@ -169,7 +169,7 @@ class ExtracterQueueGenerator(object):
 
     def filter_parsed_tasks(self):
         #parsed_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_ANALYSIS_SUCCESS)
-        parsed_tasks = CrawlerTask.objects(status = 7)
+        parsed_tasks = CrawlerTask.objects(status=7)
 
         if parsed_tasks is None:
             logging.info("No parsed (status = 7) tasks")
@@ -205,7 +205,7 @@ def parser_func(data):
         return None
     #data.crawlertask.update(status=7)
     #print "data crawler old status", data.crawlertask.status
-    #data.crawlertask.update(status=7)
+    data.crawlertask.update(status=7)
     #print "data crawler update status", data.crawlertask.status
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task=data.crawlertask).first()
     crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
@@ -259,7 +259,7 @@ def parser_func(data):
 class ExtracterGenerator(StructureGenerator):
 
     sqlgenerator = SqlGenerator()        # 用于处理源数据生成sql，并导入关系数据库
-    conf_dict = None
+    #conf_dict = None
     def __init__(self):
         self.queuegenerator = ExtracterQueueGenerator()
         self.queues = self.queuegenerator.rq_queues
@@ -294,10 +294,10 @@ class ExtracterGenerator(StructureGenerator):
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
 
             # if not os.path.exists(sql_file_name):
-            if self.conf_dict != conf:
-                self.conf_dict = conf
-                self.sqlgenerator.test_table(conf, sql_file_name)
-                self.sqlgenerator.test_restore(sql_file_name)
+            #if self.conf_dict != conf:
+                #self.conf_dict = conf
+            self.sqlgenerator.test_table(conf, sql_file_name)
+            self.sqlgenerator.test_restore(sql_file_name)
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
@@ -325,8 +325,8 @@ class ExtracterGenerator(StructureGenerator):
     def get_extracter_conf(self, data):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
-        configure_dict = open('structure/extracters/csciwlpc_conf.json').read()
-        #configure_dict = open('structure/extracters/gs_table_conf.json').read()
+        #configure_dict = open('structure/extracters/csciwlpc_conf.json').read()
+        configure_dict = open('structure/extracters/gs_table_conf.json').read()
         configure_dict =  json.loads(configure_dict)
         return configure_dict
 
