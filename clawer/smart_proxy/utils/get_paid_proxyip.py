@@ -42,39 +42,41 @@ sortby  IP排序	默认最快优先， 传入 speed表示最快优先， time �
 """
 
 choices = dict([
-(u'安徽', 'ANHUI'),
-(u'北京', 'BEIJING'),
-(u'重庆', 'CHONGQING'),
-(u'福建', 'FUJIAN'),
-(u'甘肃', 'GANSU'),
-(u'广东', 'GUANGDONG'),
-(u'广西', 'GUANGXI'),
-(u'贵州', 'GUIZHOU'),
-(u'海南', 'HAINAN'),
-(u'河北', 'HEBEI'),
-(u'黑龙', 'HEILONGJIANG'),
-(u'河南', 'HENAN'),
-(u'湖北', 'HUBEI'),
-(u'湖南', 'HUNAN'),
-(u'江苏', 'JIANGSU'),
-(u'江西', 'JIANGXI'),
-(u'吉林', 'JILIN'),
-(u'辽宁', 'LIAONING'),
-(u'内蒙', 'NEIMENGGU'),
-(u'宁夏', 'NINGXIA'),
-(u'青海', 'QINGHAI'),
-(u'陕西', 'SHAANXI'),
-(u'山东', 'SHANDONG'),
-(u'上海', 'SHANGHAI'),
-(u'山西', 'SHANXI'),
-(u'四川', 'SICHUAN'),
-(u'天津', 'TIANJIN'),
-(u'新疆', 'XINJIANG'),
-(u'云南', 'YUNNAN'),
-(u'浙江', 'ZHEJIANG'),
-(u'西藏', 'XIZANG')])
+('ANHUI',u'安徽'),
+('BEIJING',u'北京'),
+('CHONGQING',u'重庆'),
+('FUJIAN',u'福建'),
+('GANSU',u'甘肃'),
+('GUANGDONG',u'广东'),
+('GUANGXI',u'广西'),
+('GUIZHOU',u'贵州'),
+('HAINAN',u'海南'),
+('HEBEI',u'河北'),
+('HEILONGJIANG',u'黑龙'),
+('HENAN',u'河南'),
+('HUBEI',u'湖北'),
+('HUNAN',u'湖南'),
+('JIANGSU',u'江苏'),
+('JIANGXI',u'江西'),
+('JILIN',u'吉林'),
+('LIAONING',u'辽宁'),
+('NEIMENGGU',u'内蒙'),
+('NINGXIA',u'宁夏'),
+('QINGHAI',u'青海'),
+('SHAANXI',u'陕西'),
+('SHANDONG',u'山东'),
+('SHANGHAI',u'上海'),
+('SHANXI',u'山西'),
+('SICHUAN',u'四川'),
+('TIANJIN',u'天津'),
+('XINJIANG',u'新疆'),
+('YUNNAN',u'云南'),
+('ZHEJIANG',u'浙江'),
+('XIZANG',u'西藏')])
 
-
+def test(choices):
+    print type(choices)
+    print choices
 
 class BaseProxy(object):
     def __init__(self):
@@ -105,11 +107,15 @@ class PaidProxy(BaseProxy):
         self.delay=delay
         self.sortby=sortby
         self.foreign=foreign
-        area= prodict.get(province,'OTHER')
+        area= prodict.get(province,'北京')
+        print area
+        print '-----area-----'
         self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby}
 
         para_url = urllib.urlencode(self.parameter)
         self.urlget= self.url+para_url+'&area='+area
+        print self.urlget
+        print '-------urlget-------'
 
 
 
@@ -131,7 +137,7 @@ class PaidProxy(BaseProxy):
 
 
 if __name__ == '__main__':
-
+    # test(choices)
     #if DEBUG:
         #unittest.main()
     test =PaidProxy(num=2,sortby= 'time',protocol= 'https')
