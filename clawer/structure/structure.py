@@ -339,8 +339,8 @@ class ExtracterGenerator(StructureGenerator):
     def get_extracter_conf(self, data):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
-        #configure_dict = open('structure/extracters/csciwlpc_conf.json').read()
-        configure_dict = open('structure/extracters/gs_table_conf.json').read()
+        conf_path = settings.EXTRACTER_CONFIG_PATH
+        configure_dict = open(conf_path).read()
         configure_dict =  json.loads(configure_dict)
         return configure_dict
 
