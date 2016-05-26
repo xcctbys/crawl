@@ -107,7 +107,7 @@ class ParserGenerator(StructureGenerator):
                     CrawlerAnalyzedData(crawler_task=data.crawlertask, update_date=datetime.datetime.now()).save()
                     logging.info("Parse task successfully added")
                     return parse_job_id
-            elif not data:
+            elif data and self.null(data.response_body):
                 data.crawlertask.update(status=6)
         except:
             logging.error("Error assigning task when enqueuing")
