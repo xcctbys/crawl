@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-¬
-import os¬
+import os
 import mysql.connector
 import time
 #中证配置
@@ -53,4 +53,3 @@ class ReadFile:
 if __name__ == "__main__":
     readFile = ReadFile()
     readFile.readLines()
-getiptxt.py

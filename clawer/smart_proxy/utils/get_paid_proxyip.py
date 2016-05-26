@@ -95,7 +95,7 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=choices, tid='557067352008097',num='10',province='BEIJING',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=choices, tid='557067352008097',num='10',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         #self.url = 'http://www.xicidaili.com/nn'          #西刺代理
         self.a_list=[]
@@ -107,13 +107,17 @@ class PaidProxy(BaseProxy):
         self.delay=delay
         self.sortby=sortby
         self.foreign=foreign
-        area= prodict.get(province,'北京')
-        print area
-        print '-----area-----'
+
         self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby}
 
         para_url = urllib.urlencode(self.parameter)
-        self.urlget= self.url+para_url+'&area='+area
+        if province:
+            area= prodict.get(province,'北京')
+            print area
+            print '-----area-----'
+            self.urlget= self.url+para_url+'&area='+area
+        else:
+            self.urlget= self.url+para_url
         print self.urlget
         print '-------urlget-------'
 
