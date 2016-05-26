@@ -92,14 +92,15 @@ class ParserGenerator(StructureGenerator):
 
     def assign_parse_task(self, priority, parser_function, data):
         try:
-            parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args = [data])
-            if parse_job_id == None:
-                return None
-            else:
-                CrawlerAnalyzedData(crawler_task = data.crawlertask,
-                    update_date = datetime.datetime.now()).save()
-                logging.info("Parse task successfully added")
-                return parse_job_id
+            if not data and not self.null(data.response_body):
+                parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args = [data])
+                if parse_job_id == None:
+                    return None
+                else:
+                    CrawlerAnalyzedData(crawler_task = data.crawlertask,
+                        update_date = datetime.datetime.now()).save()
+                    logging.info("Parse task successfully added")
+                    return parse_job_id
         except:
             logging.error("Error assigning task when enqueuing")
 
@@ -119,6 +120,16 @@ class ParserGenerator(StructureGenerator):
             else:
                 logging.error("Parse task duplicates -- % s (uri)" % data.crawlertask.uri)
         return self.queues
+
+    def null(self, s):
+        d = ast.literal_eval(s)
+        if not d:
+            return True
+        else:
+            if not d[d.keys()[0]]:
+                return True
+            else:
+                return False
 
 class QueueGenerator(object):
     def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = Consts.QUEUE_MAX_LENGTH):
