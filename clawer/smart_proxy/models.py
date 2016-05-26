@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class ProxyIp(models.Model):
-	ip_port = models.CharField(max_length=24, unique=True, blank=False)
+	ip_port = models.CharField(max_length=24, blank=False)
 	province = models.CharField(max_length=20)
 	is_valid = models.BooleanField()
 	create_datetime = models.DateTimeField(auto_now_add=True)

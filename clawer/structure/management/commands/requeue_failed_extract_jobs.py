@@ -21,6 +21,8 @@ normal_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_NORMAL, connection = conn
 low_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_LOW, connection = connection)
 
 def requeue_failed_jobs():
+	pass   # 待修改
+	return
 	extracter_generator = ExtracterGenerator()
 	failed_tasks = CrawlerTask.objects(status = 8)
 	
@@ -37,7 +39,7 @@ def requeue_failed_jobs():
 			pass
 		else:
 			failed_job_data = extracter_generator.get_task_analyzed_data(failed_task)
-                        extracterstructureconfig= ExtracterStructureConfig.objects(job=data.crawler_task.job).first()
+                        extracterstructureconfig= ExtracterStructureConfig.objects(job=data.crawlertask.job).first()
                         failed_job_conf = extracterstructureconfig.extracter.extracter_config
 			failed_job_priority = extracter_generator.get_task_priority(failed_task)
 			q = None

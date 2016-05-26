@@ -352,6 +352,7 @@ class StructureConfig(Document):
 1. 仅能用于建立基本表
 2. associated_field_source_path 必须是 source_path 的子集
 3. 每个表必须设置 associated_field_source_path, 如不必要则填为空串(如 [""])
+4. 当配置文件改变，如，修改表字段，需要手动备份数据库
 
 
 
@@ -535,3 +536,161 @@ service memcached start
 安装rq-dashboard:
 	sudo pip install rq-dashboard
 根据其提供的URL登陆浏览器即可通过图形化界面监控RQ队列及其任务
+
+
+### 导出模块单模块测试接口
+## 生成需要导出的数据
+使用Django shell:  
+```python manage.py shell```
+添加测试数据:
+```
+from structure.structure import TestExtracter
+testextracter = TestExtracter()
+testextracter.empty_test_data()
+testextracter.insert_extracter_test_data()
+```
+查看数据, 打开mongo:
+```
+use source
+show tables
+结果如下:
+crawler_task     任务的信息
+job         job的信息
+
+样例数据:
+db.crawler_task.find().pretty()
+{
+        "_id" : ObjectId("573ff14ed6194c295a1c10e6"),
+        "job" : ObjectId("573ff14dd6194c295a1c10e4"),
+        "uri" : "test_uri_0",
+        "status" : 7,
+        "add_datetime" : ISODate("2016-05-21T13:25:34.464Z"),
+        "retry_times" : 0
+}
+status 的含义: 6为解析失败, 7为解析成功, 8为导出失败, 9为导出成功
+
+
+use structure
+show tables
+结果如下:
+crawler_analyzed_data   解析成功待导出的数据
+crawler_extracter_info  导出结果相关信息
+extracter               导出器信息, 包括每个导出器id及其配置
+extracter_structure_config  导出器与job的关联设置
+
+具体样例:
+db.crawler_analyzed_data.find().pretty()
+{
+        "_id" : ObjectId("5741c0dfd6194c2887205ed8"),
+        "crawler_task" : ObjectId("5741c0dfd6194c2887205ed6"),
+        "update_date" : ISODate("2016-05-22T21:52:58.044Z"),
+        "analyzed_data" : "{....待导出的数据....}"
+}
+db.extracter.find().pretty()
+{
+        "_id" : ObjectId("5742632cd6194c2887205fa2"),
+        "extracter_id" : 解析器的ID,
+        "extracter_config" : "{.......JSON格式的配置文件内容.....}"
+}
+
+## 执行导出过程
+### 分发导出任务
+```
+输入指令:
+python manage.py task_extracter_dispatch
+输出:
+生产4个RQ队列: extracter:higher, extracter:high, extracter:normal, extracter:low
+可用rq info查看.  任务总数与CrawlerTask中解析成功的总数一致, 可在MongoDB中查看:
+use source
+db.crawer_task.find({status:7}).count()
+```
+### 执行导出任务
+```
+输入指令:
+cd ~/cr-crawler/confs/dev
+./run_extracter_local    开启rq worker执行任务
+输出:
+可在MongoDB中查看导出结果信息, 实际导出的数据则在MySQL中
+use source
+db.crawer_task.find({status:9}).count()     状态8为导出失败, 9为导出成功
+```
+
+### 重新分发导出失败的任务
+```
+输入指令:
+python manage.py requeue_failed_extract_jobs
+输出:
+导出失败的任务再次分发到rq队列
+use source
+db.crawler_task.find({status:8}).count()   导出失败的任务数量
+```
+
+## 查看导出的结果:
+```
+MongoDB中的信息:
+use structure
+db.crawler_extracter_info.find().pretty()
+类似如下结果:
+{
+        "_id" : ObjectId("57429904d6194c64d2360c91"),
+        "extract_task" : ObjectId("574298d6d6194c57a8d68829"),
+        "update_date" : ISODate("2016-05-23T13:54:32.984Z"),
+        "extracted_status" : true,
+        "retry_times" : 0
+}
+extracted_status 成功为true, 失败为false
+
+## MySQL中的信息:
+
+以工商为例
+mysql -ucacti -pcacti
+show databases;
+数据库的名字已配置文件中（~/Documents/gitroom/cr-clawer/clawer/structure/extracters/gs_table_conf.json），database->destination_db->dbname的值为准
+如下例子中为 GongShang
+```
+    "database": {
+        "source_db":{
+            "dbtype": "mongodb",
+            "host": "127.0.0.1",
+            "port": "27017",
+            "username": "",
+            "password": "",
+            "dbname": "GongShang"
+        },
+        "destination_db": {
+            "dbtype": "mysql",
+            "host": "127.0.0.1",
+            "port": "3306",
+            "username": "cacti",
+            "password": "cacti",
+            "dbname": "GongShang"
+        }
+    }
+```
+use GongShang; 
+show tables;
+```
++----------------------------+
+| Tables_in_GongShang        |
++----------------------------+
+| Basic                      |
+| EnterAnnualReport          |
+| IndustryCommerceBranch     |
+| IndustryCommerceMainperson |
+| YearReportAssets           |
+| YearReportInvestment       |
+| YearReportOnline           |
+| YearReportSharechange      |
+| YearReportShareholder      |
+| YearReportWarrandice       |
++----------------------------+
+
+```
+查看公司基本信息
+select * from Basic;
+大多数表都有数据的话，就插入成功,个别表中没数据属于正常现象
+
+
+
+
+

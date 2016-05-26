@@ -100,6 +100,9 @@ RAVEN_CONFIG = {
     'dsn': 'http://917b2f66b96f46b785f8a1e635712e45:556a6614fe28410dbf074552bd566750@sentry.princetechs.com//2',
 }
 
+# Extracter config file path
+EXTRACTER_CONFIG_PATH = 'structure/extracters/csciwlpc_conf.json'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

@@ -97,6 +97,9 @@ for name, db in MongoDBS.iteritems():
     connect(host=db['host'], alias= name)
 
 
+# Extracter config file path
+EXTRACTER_CONFIG_PATH = 'structure/extracters/gs_table_conf.json'
+
 """
 RAVEN_CONFIG = {
     'dsn': '',

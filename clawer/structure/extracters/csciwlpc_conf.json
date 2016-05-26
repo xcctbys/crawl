@@ -2,19 +2,19 @@
     "database": {
         "source_db":{
             "dbtype": "mongodb",
-            "host": "127.0.0.1",
-            "port": "27017",
-            "username": "",
-            "password": "",
-            "dbname": "GongShang"
+            "host": "dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com",
+            "port": "3717",
+            "username": "root",
+            "password": "Password123",
+            "dbname": ""
         },
         "destination_db": {
             "dbtype": "mysql",
-            "host": "127.0.0.1",
+            "host": "csciwlpc.mysql.rds.aliyuncs.com",
             "port": "3306",
-            "username": "cacti",
-            "password": "cacti",
-            "dbname": "GongShang"
+            "username": "plkj",
+            "password": "Password2016",
+            "dbname": "csciwlpc_aic"
         }
     },
     "mapping": {
@@ -183,7 +183,7 @@
                 },
                 {
                     "dest_field": "establish_date",
-                    "datatype": "CHAR(20)",
+                    "datatype": "CHAR(30)",
                     "option": ""
                 },
                 {
@@ -193,12 +193,12 @@
                 },
                 {
                     "dest_field": "time_start",
-                    "datatype": "CHAR(20)",
+                    "datatype": "CHAR(30)",
                     "option": ""
                 },
                 {
                     "dest_field": "time_end",
-                    "datatype": "CHAR(20)",
+                    "datatype": "CHAR(30)",
                     "option": ""
                 },
                 {
@@ -213,7 +213,7 @@
                 },
                 {
                     "dest_field": "check_date",
-                    "datatype": "CHAR(20)",
+                    "datatype": "CHAR(30)",
                     "option": ""
                 },
                 {
@@ -280,7 +280,7 @@
             },
             {
                 "dest_field": "publicity_date",
-                "datatype": "CHAR(20)",
+                "datatype": "CHAR(30)",
                 "option":""
             }
         ],
@@ -339,7 +339,7 @@
             },
             {
                 "dest_field": "paid_time",
-                "datatype": "CHAR(20)",
+                "datatype": "CHAR(30)",
                 "option": ""
             },
             {
@@ -359,7 +359,7 @@
             },
             {
                 "dest_field": "subscription_time",
-                "datatype": "CHAR(20)",
+                "datatype": "CHAR(30)",
                 "option": ""
             },
             {
@@ -374,7 +374,7 @@
             },
             {
                 "dest_field": "paid_date",
-                "datatype": "CHAR(20)",
+                "datatype": "CHAR(30)",
                 "option": ""
             },
             {
