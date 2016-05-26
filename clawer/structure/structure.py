@@ -495,7 +495,7 @@ class TestExtracter(object):
     def insert_extracter_test_data(self):
 
         config = open('structure/extracters/gs_table_conf.json').read()
-        analyzeddata = open('structure/extracters/guangxi.json')
+        analyzeddata = open('structure/extracters/test_data_for_extracter')
 
         for count in range(20):
             test_job = JobMongoDB("creator", "job_%d" % count, "info", "customer", random.choice(range(1, 3)),
