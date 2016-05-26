@@ -196,7 +196,10 @@ def parser_func(data):
         return None
     data.crawlertask.update(status=7)
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task=data.crawlertask).first()
-    crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
+    if crawler_analyzed_data:
+        crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
+    else:
+        data.crawlertask.update(status=6)
     return data.crawlertask.id
     '''
     structureconfig = StructureConfig.objects.get(job_copy_id = data.crawlertask.job.id)
