@@ -78,6 +78,9 @@ class JsonToSql(object):
         :param associated_field_path: 外键的路径
         :return: 数据源value为None返回False
         """
+
+        #*****************************换成字典****
+        '''
         source = json.loads(data)
         self.id = source.keys()[0]        # 获取许可证号，待改进
         if not source[source.keys()[0]]:
@@ -85,7 +88,12 @@ class JsonToSql(object):
             print 'key'
             print source[source.keys()[0]]
             return False
-        self.get_data(source.values()[0], table_path, associated_field_path)
+        '''
+        self.id = data.keys()[0]
+        if not data[self.id]:
+            return False
+
+        self.get_data(data.values()[0], table_path, associated_field_path)
         return True
 
     def get_data(self, source, path, associated_field_path):
@@ -96,14 +104,15 @@ class JsonToSql(object):
         :param associated_field_path:外键的路径
         :return: 无
         """
+        if not source:
+            return
+
         if not path:
             if isinstance(source, types.ListType) and len(source) > 0:
                 for i in range(len(source)):
                     self.parser_data(source[i])
             elif isinstance(source, types.DictionaryType):
                 self.parser_data(source)
-            elif not source:
-                pass
             else:
                 print 'warning: unknown data source'
             return
@@ -172,7 +181,7 @@ class JsonToSql(object):
         """
         生成数据sql文件，用于向关系数据库中导入数据
         :param extracter_conf: 配置文件
-        :param data: 数据源
+        :param data: 数据源 (dict)
         :param export_file: 输入的sql文件
         :return: True/False
         """
@@ -181,12 +190,10 @@ class JsonToSql(object):
         #print type(tmp)
         #print tmp
         print 'start get data'
-        try:
-            json.loads(data)
-        except Exception as e:
-            return False
-        print 'get data json'
         if not extracter_conf or not data or not export_file:
+            return False
+        print 'get data dict'
+        if not isinstance(data,types.DictionaryType):
             return False
         print 'config ok'
         # self.config_dic = self.parser_json(extracter_conf)
@@ -212,13 +219,13 @@ class JsonToSql(object):
 
     def test_restore(self, sql_file):
         result = 'mysql %s < %s' % (self.create_commond(), sql_file)
-        tmp = os.popen(result).readlines()
-        print tmp
+        os.popen(result)
+        #tmp = os.popen(result).readlines()
 
     def test_backup(self, sql_file):
         result = 'mysqldump %s > %s' % (self.create_commond(), sql_file)
-        tmp = os.popen(result).readlines()
-        print tmp
+        os.popen(result)
+        #tmp = os.popen(result).readlines()
 
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
