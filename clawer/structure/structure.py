@@ -343,7 +343,7 @@ class ExtracterGenerator(StructureGenerator):
     @classmethod
     def extract_fields(self, extracter_conf, data):
         data = ast.literal_eval(data)
-        json_data = json.dumps(data)
+        #json_data = json.dumps(data)
         """生成sql语句并导出字段"""
         try:
             #data = data.encode('utf8')
@@ -351,7 +351,7 @@ class ExtracterGenerator(StructureGenerator):
             #json_data = json_data.replace('None', 'null')
             sql_file_name = extracter_conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/data_%s.sql' % sql_file_name
-            result = self.sqlgenerator.test_get_data(extracter_conf, json_data, sql_file_name)
+            result = self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
             if not result:
                 return False
             self.sqlgenerator.test_restore(sql_file_name)
