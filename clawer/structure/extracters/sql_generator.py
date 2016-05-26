@@ -53,7 +53,8 @@ class JsonToSql(object):
         tables_info = self.config_dic['table']
         db_name = self.config_dic['database']['destination_db']['dbname']
         table_sql = open(table_file, 'w')
-        database_sql = 'DROP DATABASE IF EXISTS %s;\nCREATE DATABASE %s;\nUSE %s;\n' % (db_name, db_name, db_name)
+        #database_sql = 'DROP DATABASE IF EXISTS %s;\nCREATE DATABASE %s;\nUSE %s;\n' % (db_name, db_name, db_name)
+        database_sql = 'CREATE DATABASE %s;\nUSE %s;\n' % (db_name, db_name)
         table_sql.write(database_sql.encode('utf8'))
         sql = ''
         for t_name in tables_info:
@@ -80,6 +81,9 @@ class JsonToSql(object):
         source = json.loads(data)
         self.id = source.keys()[0]        # 获取许可证号，待改进
         if not source[source.keys()[0]]:
+            print source.keys()
+            print 'key'
+            print source[source.keys()[0]]
             return False
         self.get_data(source.values()[0], table_path, associated_field_path)
         return True
@@ -172,29 +176,38 @@ class JsonToSql(object):
         :param export_file: 输入的sql文件
         :return: True/False
         """
+
+        #tmp = data.decode('utf8')
+        #print type(tmp)
+        #print tmp
+        print 'start get data'
         try:
             json.loads(data)
         except Exception as e:
-            print 'json error'
-            print e
             return False
+        print 'get data json'
         if not extracter_conf or not data or not export_file:
             return False
+        print 'config ok'
         # self.config_dic = self.parser_json(extracter_conf)
         self.config_dic = extracter_conf
         self.get_mapping()
         self.data_sql = open(export_file, 'w')
         use_database = 'use %s;\n' % self.config_dic['database']['destination_db']['dbname']
         self.data_sql.write(use_database)
+        print 'confing........oooo'
         for k in self.mapping.keys():
             self.table_name = self.mapping[k]['dest_table']
             path = self.mapping[k]['source_path']
             associated_field_path = self.mapping[k]['associated_field_source_path']
+            print 'create data sql'
             result = self.create_data_sql(data, path, associated_field_path)
-            if not result:
-                return False
+            print 'over data sql'
+            #if not result:
+                #return False
             self.tmp_dic.clear()
         self.data_sql.close()
+        print 'get data over'
         return True
 
     def test_restore(self, sql_file):
