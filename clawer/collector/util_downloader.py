@@ -37,17 +37,16 @@ class Download(object):
 		return result
 
 	def download_with_enterprise(self):
-		print 'i am come in enterprise download'
-		pass
 		start_time = time.time()
-		
+
 		try:
+			print 'start enterprise download'
 			#  uri = 'enterprise://%E9%87%8D%E5%BA%86/%E9%87%8D%E5%BA%86%E7%90%86%E5%BF%85%E6%98%93%E6%8A%95%E8%B5%84%E7%AE%A1%E7%90%86%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/500905004651063/'
 			downloader = EnterpriseDownload(self.task.uri)
 			list_result = downloader.download()
 			end_time = time.time()
 			spend_time = end_time - start_time
-			print '----------------json data---------------------'
+			print 'finish enterprise download'
 			list_result = json.loads(list_result)
 			for result in list_result:
 				# print result
@@ -59,7 +58,7 @@ class Download(object):
 				hostname = str(socket.gethostname())
 
 				# write_downloaddata_to_mongo
-				cdd = CrawlerDownloadData(	job=self.task.job, 
+				cdd = CrawlerDownloadData(	job=self.task.job,
 											downloader=self.crawler_download,
 											crawlertask=self.task,
 											requests_headers=requests_headers,
@@ -83,6 +82,7 @@ class Download(object):
 			# 改变这个任务的状态为下载成功
 			self.task.status = CrawlerTask.STATUS_SUCCESS
 			self.task.save()
+			print 'save enterprise download!'
 
 		except Exception as e:
 			# 改变这个任务的状态为下载失败
@@ -102,7 +102,7 @@ class Download(object):
 			self.task.status = CrawlerTask.STATUS_FAIL
 			self.task.save()
 			print 'ERROR:',e
-			
+
 
 	def download(self):
 		self.task.status = CrawlerTask.STATUS_PROCESS
@@ -135,7 +135,7 @@ class Download(object):
 
 		if self.crawler_download.types.language == 'python':
 			start_time = time.time()
-			print 'it is python-------------------------'
+			print 'it is python downloader -------------------------'
 			try:
 				# print 'save code from db;import crawler_download.code; run()'
 				sys.path.append( settings.CODE_PATH )
@@ -161,7 +161,7 @@ class Download(object):
 				hostname = str(socket.gethostname())
 
 				# write_downloaddata_to_mongo
-				cdd = CrawlerDownloadData(	job=self.task.job, 
+				cdd = CrawlerDownloadData(	job=self.task.job,
 											downloader=self.crawler_download,
 											crawlertask=self.task,
 											requests_headers=requests_headers,
@@ -214,7 +214,7 @@ class Download(object):
 
 		elif self.crawler_download.types.language == 'shell':
 			start_time = time.time()
-			print 'it is shell ---------------------------'
+			print 'it is shell downloader---------------------------'
 			# print 'result = commands.getstatusoutput(sh code)'
 			# filename = os.path.join( settings.CODE_PATH, 'shellcode%s.sh' % str(self.crawler_download.id))
 			try:
@@ -226,7 +226,7 @@ class Download(object):
 				# os.system("chmod +x %s" % filename)
 				result = commands.getstatusoutput('sh %s %s' % (filename,self.task.uri))
 				result = dict()
-				# result = json.loads(result) 
+				# result = json.loads(result)
 				# print result
 
 				end_time = time.time()
@@ -241,7 +241,7 @@ class Download(object):
 				hostname = str(socket.gethostname())
 
 				# write_downloaddata_to_mongo
-				cdd = CrawlerDownloadData(	job=self.task.job, 
+				cdd = CrawlerDownloadData(	job=self.task.job,
 											downloader=self.crawler_download,
 											crawlertask=self.task,
 											requests_headers=requests_headers,
@@ -288,7 +288,7 @@ class Download(object):
 
 		elif self.crawler_download.types.language == 'curl':
 			start_time = time.time()
-			print 'it is curl ----------------------------'
+			print 'it is curl downloader----------------------------'
 			try:
 
 
@@ -307,7 +307,7 @@ class Download(object):
 				hostname = str(socket.gethostname())
 
 				# write_downloaddata_to_mongo
-				cdd = CrawlerDownloadData(	job=self.task.job, 
+				cdd = CrawlerDownloadData(	job=self.task.job,
 											downloader=self.crawler_download,
 											crawlertask=self.task,
 											requests_headers=requests_headers,
@@ -353,6 +353,7 @@ class Download(object):
 				print e,'sentry.excepterror()'
 			pass
 		else:
+			print 'it is other downloader ----------------------------'
 			start_time = time.time()
 			try:
 				resp = self.reqst.get(self.task.uri, timeout=25)
@@ -373,7 +374,7 @@ class Download(object):
 				hostname = str(socket.gethostname())
 
 				# write_downloaddata_to_mongo
-				cdd = CrawlerDownloadData(	job=self.task.job, 
+				cdd = CrawlerDownloadData(	job=self.task.job,
 											downloader=self.crawler_download,
 											crawlertask=self.task,
 											requests_headers=requests_headers,
@@ -479,4 +480,4 @@ def download_clawer_task(task):
 	timer.start()
 	down.download()
 	timer.cancel()
-	
+

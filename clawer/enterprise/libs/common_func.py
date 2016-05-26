@@ -77,6 +77,6 @@ def get_proxy(province = '' ):
         proxies = {}
     else:
         proxy = Proxy()
-        proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5)),
-                    'https':'https://'+random.choice(proxy.get_proxy(num=5))}
+        proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5)) }
+        # , 'https':'https://'+random.choice(proxy.get_proxy(num=5))}
     return proxies

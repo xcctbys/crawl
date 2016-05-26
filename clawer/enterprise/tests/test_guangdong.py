@@ -341,3 +341,13 @@ class TestGuangdong(TestCase):
                 self.assertTrue(v.has_key('ind_comm_pub_reg_basic'))
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'广发证券股份有限公司')
 
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.guangdong_crawler import GuangdongClawer
+            shangdong = GuangdongClawer('/tmp/')
+            result = shangdong.run('深圳湘粤资产管理有限公司')
+        """
+        pass
+

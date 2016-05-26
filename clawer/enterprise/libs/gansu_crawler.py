@@ -163,6 +163,7 @@ class GansuCrawler(Crawler):
         """
         self.reqst.get(GansuCrawler.urls['main'], timeout=self.timeout)
         logging.error(self.reqst.cookies)
+        self.cookies = self.reqst.cookies
         count = 0
         while count < 5:
             count += 1
@@ -170,7 +171,7 @@ class GansuCrawler(Crawler):
             # 'browse': '', 'loginName': '输入注册号/统一代码点击搜索', 'cerNo': '', 'authCode': '',
             data = {'authCodeQuery': ck_code,
                     'queryVal': self.ent_number}
-            resp = self.reqst.post(GansuCrawler.urls['post_checkCode'], data=data,timeout=self.timeout)
+            resp = self.reqst.post(GansuCrawler.urls['post_checkCode'], data=data,timeout=self.timeout, cookies=self.cookies)
 
             if resp.status_code != 200:
                 logging.error("crawl post check page failed!")
@@ -189,7 +190,7 @@ class GansuCrawler(Crawler):
         params = {}
         params['v'] = times
 
-        resp = self.reqst.get(GansuCrawler.urls['get_checkcode'], params=params,timeout=self.timeout)
+        resp = self.reqst.get(GansuCrawler.urls['get_checkcode'], params=params,timeout=self.timeout, cookies=self.cookies)
         if resp.status_code != 200:
             logging.error('failed to get get_checkcode')
             return None
@@ -215,9 +216,9 @@ class GansuCrawler(Crawler):
         通过传入不同的参数获得不同的页面
         """
         if url is None:
-            resp = self.reqst.post(GansuCrawler.urls['post_all_page'], data=data,timeout=self.timeout)
+            resp = self.reqst.post(GansuCrawler.urls['post_all_page'], data=data,timeout=self.timeout, cookies=self.cookies)
         else:
-            resp = self.reqst.post(url, data=data,timeout=self.timeout)
+            resp = self.reqst.post(url, data=data,timeout=self.timeout, cookies=self.cookies)
         if resp.status_code != 200:
             logging.error('crawl page by url failed! url = %s' % GansuCrawler.urls['post_all_page'])
         page = resp.content
@@ -338,7 +339,7 @@ class GansuParser(Parser):
                     detail_data['pripid'] = self.crawler.pripid
                     detail_data['regno'] = self.crawler.ent_number
                     detail_url = 'http://xygs.gsaic.gov.cn/gsxygs/pub!getDetails.do'
-                    detail_page = self.crawler.reqst.get(detail_url, params=detail_data,timeout=self.timeout)
+                    detail_page = self.crawler.reqst.get(detail_url, params=detail_data,timeout=self.timeout, cookies=self.cookies)
                     if detail_page.status_code != 200:
                         i += 1
                         continue
@@ -720,7 +721,7 @@ class GansuParser(Parser):
                 detail_data['pripid'] = self.crawler.pripid
                 detail_data['regno'] = self.crawler.ent_number
                 detail_url = 'http://xygs.gsaic.gov.cn/gsxygs/pub!getDetails.do'
-                detail_page = self.crawler.reqst.get(detail_url, params=detail_data,timeout=self.timeout)
+                detail_page = self.crawler.reqst.get(detail_url, params=detail_data,timeout=self.timeout, cookies=self.cookies)
                 if detail_page.status_code != 200:
                     j += 1
                     continue

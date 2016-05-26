@@ -70,7 +70,7 @@ class GuangdongClawer(object):
     def get_page_showInfo(self, url, datas):
         r = self.request_by_method('POST', url, data = datas, timeout= self.timeout)
         if not r:
-            logging.error(u"Something wrong when posting the url:%s , status_code=%d", url, r.status_code)
+            logging.error(u"Something wrong when posting the url:%s."%( url ))
             return False
         self.html_showInfo = r.text
 
@@ -134,10 +134,9 @@ class GuangdongClawer(object):
                     break
                 else:
                     logging.error(u"crack ID: %s Captcha failed, the %d time(s)"%(self.ent_num ,count))
-                    if count > 15:
-                        logging.error(u"ID: %s, crack Captcha failed after the %d times of trial" %( textfield,count))
-                        break
+
             time.sleep(random.uniform(1, 4))
+        logging.error(u"ID: %s, crack Captcha failed after the %d times of trial" %( textfield,count))
         return
 
     #调用函数，破解验证码图片并返回结果
@@ -177,7 +176,6 @@ class GuangdongClawer(object):
             return False
         if r.status_code != 200:
             logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
-            return False
         return r
     def crawl_page_main(self ):
         """

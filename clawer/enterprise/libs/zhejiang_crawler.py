@@ -58,8 +58,8 @@ class ZhejiangCrawler(object):
         self.regNo = ""
         self.reportNo = ""
         self.year = ""
-        proxies = get_proxy('zhejiang')
-        # proxies = {'http':'http://218.244.140.99:8888'}
+        # proxies = get_proxy('zhejiang')
+        proxies = {'http':'http://42.85.232.245:8888'}
         if proxies:
             print proxies
             self.requests.proxies = proxies
@@ -82,20 +82,23 @@ class ZhejiangCrawler(object):
                 count += 1
                 url = ""
                 ent = ""
+                name = ""
                 link = dl.find('dt')
                 if link and link.find('a') and link.find('a').has_attr('href'):
                     url = link.find('a')['href']
+                    name = link.find('a').get_text().strip()
+                else:
+                    break
                 profile = link.find_next_sibling()
                 if  profile and profile.span:
                     ent = self.get_raw_text_by_tag(profile.span)
-                name = link.find('a').get_text().strip()
                 if name == self.ent_num:
                     Ent.clear()
                     Ent[ent] = url
                     break
+                Ent[ent] = url
                 if count == 3:
                     break
-                Ent[ent] = url
         self.ents = Ent
 
     # 破解验证码页面

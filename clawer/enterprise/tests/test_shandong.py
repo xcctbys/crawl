@@ -1909,6 +1909,7 @@ class TestZhejiang(TestCase):
             python manage.py shell
             from enterprise.libs.zhejiang_crawler import ZhejiangCrawler
             zhejiang = ZhejiangCrawler('/tmp/')
+            result = zhejiang.run(u'浙江南方集团公司')
             result = zhejiang.run('330000000050426')
         """
         pass
