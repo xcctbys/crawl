@@ -22,12 +22,14 @@ import django
 
 from extracters.sql_generator import JsonToSql as SqlGenerator
 
+
 class Consts(object):
     QUEUE_PRIORITY_TOO_HIGH = u"structure:higher"
     QUEUE_PRIORITY_HIGH = u"structure:high"
     QUEUE_PRIORITY_NORMAL = u"structure:normal"
     QUEUE_PRIORITY_LOW = u"structure:low"
     QUEUE_MAX_LENGTH = 10000
+
 
 class ExtracterConsts(object):
     QUEUE_PRIORITY_TOO_HIGH = u"extracter:higher"
@@ -36,20 +38,21 @@ class ExtracterConsts(object):
     QUEUE_PRIORITY_LOW = u"extracter:low"
     QUEUE_MAX_LENGTH = 10000
 
+
 class StructureGenerator(object):
     def filter_downloaded_tasks(self):
         downloaded_tasks = CrawlerTask.objects(status=5)
         if downloaded_tasks is None:
             logging.info("No downloaded (status = 5) tasks")
-        return downloaded_tasks                        #返回状态为下载成功的爬虫任务
+        return downloaded_tasks    #返回状态为下载成功的爬虫任务
 
     def filter_parsed_tasks(self):
-        parsed_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_ANALYSIS_SUCCESS)
+        parsed_tasks = CrawlerTask.objects(status=CrawlerTask.STATUS_ANALYSIS_SUCCESS)
         if parsed_tasks is None:
             logging.info("No parsed (status = 7) tasks")
-        return parsed_tasks                            #返回状态为解析成功的爬虫任务
+        return parsed_tasks    #返回状态为解析成功的爬虫任务
 
-    def get_task_priority(self, task):              #将爬虫任务中的Job的priority(range(-1,6))化为解析任务的priority(Consts)
+    def get_task_priority(self, task):    #将爬虫任务中的Job的priority(range(-1,6))化为解析任务的priority(Consts)
         if task.job.priority == -1:
             task_priority = Consts.QUEUE_PRIORITY_TOO_HIGH
         elif task.job.priority == 0 or task.job.priority == 1:
@@ -71,12 +74,11 @@ class StructureGenerator(object):
         #     print task_source_data.to_json()
         # task_source_data = CrawlerDownloadData.objects(crawlertask=task).first()
 
-        return task_source_data                        #根据uri返回爬虫的下载数据（类型）
+        return task_source_data    #根据uri返回爬虫的下载数据（类型）
 
     def get_task_analyzed_data(self, task):
-        task_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = task).first()
-        return task_analyzed_data           # 返回解析成功的数据
-
+        task_analyzed_data = CrawlerAnalyzedData.objects(crawler_task=task).first()
+        return task_analyzed_data    # 返回解析成功的数据
 
 
 class ParserGenerator(StructureGenerator):
@@ -84,7 +86,7 @@ class ParserGenerator(StructureGenerator):
         self.queuegenerator = QueueGenerator()
         self.queues = self.queuegenerator.rq_queues
 
-    def get_parser(self):                                #返回解析脚本中的RawParser类的实例
+    def get_parser(self):    #返回解析脚本中的RawParser类的实例
         return parser_func
 
     def is_duplicates(self, data):
@@ -96,12 +98,11 @@ class ParserGenerator(StructureGenerator):
             print "###########################"
             print data and not self.null(data.response_body)
             if data and not self.null(data.response_body):
-                parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args = [data])
+                parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args=[data])
                 if parse_job_id == None:
                     return None
                 else:
-                    CrawlerAnalyzedData(crawler_task = data.crawlertask,
-                        update_date = datetime.datetime.now()).save()
+                    CrawlerAnalyzedData(crawler_task=data.crawlertask, update_date=datetime.datetime.now()).save()
                     logging.info("Parse task successfully added")
                     return parse_job_id
         except:
@@ -134,18 +135,16 @@ class ParserGenerator(StructureGenerator):
             else:
                 return False
 
+
 class QueueGenerator(object):
-    def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = Consts.QUEUE_MAX_LENGTH):
+    def __init__(self, redis_url=settings.STRUCTURE_REDIS, queue_length=Consts.QUEUE_MAX_LENGTH):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.too_high_queue = rq.Queue(Consts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
         self.high_queue = rq.Queue(Consts.QUEUE_PRIORITY_HIGH, connection=self.connection)
         self.normal_queue = rq.Queue(Consts.QUEUE_PRIORITY_NORMAL, connection=self.connection)
         self.low_queue = rq.Queue(Consts.QUEUE_PRIORITY_LOW, connection=self.connection)
         self.max_queue_length = queue_length if queue_length is not None else settings.MAX_QUEUE_LENGTH
-        self.rq_queues = (self.too_high_queue,
-            self.high_queue,
-            self.normal_queue,
-            self.low_queue)
+        self.rq_queues = (self.too_high_queue, self.high_queue, self.normal_queue, self.low_queue)
 
     def enqueue(self, priority, func, *args, **kwargs):
         q = None
@@ -166,20 +165,18 @@ class QueueGenerator(object):
         else:
             structure_job = q.enqueue_call(func, *args, **kwargs)
             #parser_job.meta.setdefault("failures", 0)
-            return  structure_job.id
+            return structure_job.id
+
 
 class ExtracterQueueGenerator(object):
-    def __init__(self, redis_url = settings.EXTRACTER_REDIS, queue_length = ExtracterConsts.QUEUE_MAX_LENGTH):
+    def __init__(self, redis_url=settings.EXTRACTER_REDIS, queue_length=ExtracterConsts.QUEUE_MAX_LENGTH):
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.too_high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection=self.connection)
         self.high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_HIGH, connection=self.connection)
         self.normal_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_NORMAL, connection=self.connection)
         self.low_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_LOW, connection=self.connection)
         self.max_queue_length = queue_length if queue_length is not None else settings.MAX_QUEUE_LENGTH
-        self.rq_queues = (self.too_high_queue,
-            self.high_queue,
-            self.normal_queue,
-            self.low_queue)
+        self.rq_queues = (self.too_high_queue, self.high_queue, self.normal_queue, self.low_queue)
 
     def filter_parsed_tasks(self):
         #parsed_tasks = CrawlerTask.objects(status = CrawlerTask.STATUS_ANALYSIS_SUCCESS)
@@ -188,7 +185,7 @@ class ExtracterQueueGenerator(object):
         if parsed_tasks is None:
             logging.info("No parsed (status = 7) tasks")
 
-        return parsed_tasks                            #返回状态为解析成功的爬虫任务
+        return parsed_tasks    #返回状态为解析成功的爬虫任务
 
     def enqueue(self, priority, func, *args, **kwargs):
         q = None
@@ -208,7 +205,7 @@ class ExtracterQueueGenerator(object):
             return None
         else:
             extracter_job = q.enqueue_call(func, *args, **kwargs)
-            return  extracter_job.id
+            return extracter_job.id
 
 
 def parser_func(data):
@@ -224,7 +221,6 @@ def parser_func(data):
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task=data.crawlertask).first()
     crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
     return data.crawlertask.id
-
     '''
     structureconfig = StructureConfig.objects.get(job_copy_id = data.crawlertask.job.id)
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task = data.crawlertask).first()
@@ -270,9 +266,11 @@ def parser_func(data):
     return data.clawertask.id
     '''
 
+
 class ExtracterGenerator(StructureGenerator):
 
-    sqlgenerator = SqlGenerator()        # 用于处理源数据生成sql，并导入关系数据库
+    sqlgenerator = SqlGenerator()    # 用于处理源数据生成sql，并导入关系数据库
+
     #conf_dict = None
     def __init__(self):
         self.queuegenerator = ExtracterQueueGenerator()
@@ -301,15 +299,15 @@ class ExtracterGenerator(StructureGenerator):
             # db_conf = self.get_extracter_db_config(task)
             # mappings = self.get_extracter_mappings(task)
             # extracter = self.get_extracter(db_conf, mappings)
-            data = self.get_task_analyzed_data(task)  # 获取一条解析成功的数据
+            data = self.get_task_analyzed_data(task)    # 获取一条解析成功的数据
             #print data.analyzed_data
-            conf = self.get_extracter_conf(data)  # 获取一条与任务相关的导出器配置
+            conf = self.get_extracter_conf(data)    # 获取一条与任务相关的导出器配置
             sql_file_name = conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
 
             # if not os.path.exists(sql_file_name):
             #if self.conf_dict != conf:
-                #self.conf_dict = conf
+            #self.conf_dict = conf
             self.sqlgenerator.test_table(conf, sql_file_name)
             self.sqlgenerator.test_restore(sql_file_name)
             extract_function = self.extracter
@@ -341,9 +339,8 @@ class ExtracterGenerator(StructureGenerator):
             参数data为一条JSON格式源数据, str类型"""
         conf_path = settings.EXTRACTER_CONFIG_PATH
         configure_dict = open(conf_path).read()
-        configure_dict =  json.loads(configure_dict)
+        configure_dict = json.loads(configure_dict)
         return configure_dict
-
         """
         extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first() # 获取导出器配置
         if extracterstructureconfig:
@@ -354,6 +351,7 @@ class ExtracterGenerator(StructureGenerator):
                 logging.error('Get extracter config error')
             return configure_dict
         """
+
     @classmethod
     def extract_fields(self, extracter_conf, data):
         data = ast.literal_eval(data)
@@ -380,12 +378,12 @@ class ExtracterGenerator(StructureGenerator):
             return False
         """导出器"""
         try:
-            result = self.extract_fields(conf, data.analyzed_data)   # data.analyzed_data 为一条解析后的JSON源数据
+            result = self.extract_fields(conf, data.analyzed_data)    # data.analyzed_data 为一条解析后的JSON源数据
             if result:
-                data.crawler_task.update(status=9)  # status: 9导出成功, 8导出失败
+                data.crawler_task.update(status=9)    # status: 9导出成功, 8导出失败
                 # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_SUCCESS
                 crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
-                crawler_extract_info.update(extracted_status=True, update_date=datetime.datetime.now()) # 更新导出状态信息
+                crawler_extract_info.update(extracted_status=True, update_date=datetime.datetime.now())    # 更新导出状态信息
                 logging.info('Extract fields succeed')
             else:
                 data.crawler_task.update(status=8)
@@ -394,35 +392,31 @@ class ExtracterGenerator(StructureGenerator):
         except Exception as e:
             #data.crawler_task.update(status=8)
             # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_FAIL
-            logging.error('Extract fields error %s'%e)
+            logging.error('Extract fields error %s' % e)
             return False
         return True
 
-
-
-
     # def get_extracter_db_config():
-        # pass
+    # pass
 
     # def get_extracter_mappings():
-        # pass
+    # pass
 
     # def get_extracter(self, db_conf, mappings):
 
-        # def extracter():
-            # try:
-                # self.if_not_exist_create_db_schema(db_conf)
-                # logging.info("create db schema succeed")
-            # except:
-                # logging.error("create db schema error")
-            # try:
-                # self.extract_fields(mappings)
-                # logging.info("extract fields succeed")
-            # except:
-                # logging.error("extract fields error")
+    # def extracter():
+    # try:
+    # self.if_not_exist_create_db_schema(db_conf)
+    # logging.info("create db schema succeed")
+    # except:
+    # logging.error("create db schema error")
+    # try:
+    # self.extract_fields(mappings)
+    # logging.info("extract fields succeed")
+    # except:
+    # logging.error("extract fields error")
 
-        # return extracter
-
+    # return extracter
 
 
 class ExecutionTasks(object):
@@ -432,13 +426,13 @@ class ExecutionTasks(object):
             #w.push_exc_handler(self.retry_handler)
             w.work()
 
+
 class ExecutionExtracterTasks(object):
     def exec_task(self, queue=ExtracterConsts.QUEUE_PRIORITY_NORMAL):
         with rq.Connection():
             w = rq.Worker([queue])
             #w.push_exc_handler(self.retry_handler)
             w.work()
-
 
     # def retry_handler(self, job, exc_type, exc_value, traceback):
     #     print "This is the start of RQ Exception Handler!"
@@ -455,6 +449,7 @@ class ExecutionExtracterTasks(object):
     #         requeue_queue.enqueue_job(job)
     #         return False
 
+
 def insert_test_data():
 
     right_script = """class RawParser(object):
@@ -465,53 +460,55 @@ def insert_test_data():
     wrong_script = """class RawParser(object):
     def parser(self, crawlerdownloaddata):
         print crawlerdownloaddata.wrong"""
+
     try:
-        user = User.objects.get(username = 'user_name')
+        user = User.objects.get(username='user_name')
     except:
-        user = User.objects.create_user('user_name', 'user_email' ,'password')
+        user = User.objects.create_user('user_name', 'user_email', 'password')
 
-    for count in range(0,100):
-        status = random.choice(range(1,3))
-        priority = random.choice(range(-1,6))
+    for count in range(0, 100):
+        status = random.choice(range(1, 3))
+        priority = random.choice(range(-1, 6))
 
-        test_job_mysql = JobMySQL(creator = user,
-            name = "job_%d" % count,
-            info = "info",
-            customer = "customer",
-            status = status,
-            priority = priority,
-            add_datetime = django.utils.timezone.now())
+        test_job_mysql = JobMySQL(creator=user,
+                                  name="job_%d" % count,
+                                  info="info",
+                                  customer="customer",
+                                  status=status,
+                                  priority=priority,
+                                  add_datetime=django.utils.timezone.now())
         test_job_mysql.save()
 
-        test_job_mongodb = JobMongoDB(creator = "creator_%d" % count,
-            name = "job_%d" % count,
-            info = "info",
-            customer = "customer",
-            status = status,
-            priority = priority,
-            add_datetime = datetime.datetime.now())
+        test_job_mongodb = JobMongoDB(creator="creator_%d" % count,
+                                      name="job_%d" % count,
+                                      info="info",
+                                      customer="customer",
+                                      status=status,
+                                      priority=priority,
+                                      add_datetime=datetime.datetime.now())
         test_job_mongodb.save()
         #test_parser = Parser(count, right_script)
-        test_parser = Parser(parser_id = str(count),
-            python_script = random.choice([right_script, wrong_script]),
-            update_date = django.utils.timezone.now())
+        test_parser = Parser(parser_id=str(count),
+                             python_script=random.choice([right_script, wrong_script]),
+                             update_date=django.utils.timezone.now())
         test_parser.save()
 
         #test_crawlertask = CrawlerTask(test_job, uri = "test_uri_%d" % count, status = random.choice(range(1,8)))
-        test_crawlertask = CrawlerTask(test_job_mongodb, uri = "test_uri_%d" % count, status = 5)
+        test_crawlertask = CrawlerTask(test_job_mongodb, uri="test_uri_%d" % count, status=5)
         test_crawlertask.save()
 
         test_downloader = CrawlerDownload(test_job_mongodb)
         test_downloader.save()
 
-        StructureConfig(job = test_job_mysql,
-            parser = test_parser,
-            job_copy_id = test_job_mongodb.id,
-            update_date = django.utils.timezone.now()).save()
+        StructureConfig(job=test_job_mysql,
+                        parser=test_parser,
+                        job_copy_id=test_job_mongodb.id,
+                        update_date=django.utils.timezone.now()).save()
 
         CrawlerDownloadData(test_job_mongodb, test_downloader, test_crawlertask).save()
 
     print "Data Inserted!"
+
 
 def empty_test_data():
     JobMongoDB.drop_collection()
@@ -526,25 +523,21 @@ def empty_test_data():
 
     print "Data Cleaned!"
 
+
 class TestExtracter(object):
     """测试导出器"""
+
     def __init__(self):
         pass
 
     def insert_extracter_test_data(self):
 
         config = open('structure/extracters/gs_table_conf.json').read()
-        analyzeddata=open('structure/extracters/guangxi.json')
-
+        analyzeddata = open('structure/extracters/guangxi.json')
 
         for count in range(20):
-            test_job = JobMongoDB("creator",
-                    "job_%d" % count,
-                    "info",
-                    "customer",
-                    random.choice(range(1, 3)),
-                    random.choice(range(-1, 6)),
-                    datetime.datetime.now())
+            test_job = JobMongoDB("creator", "job_%d" % count, "info", "customer", random.choice(range(1, 3)),
+                                  random.choice(range(-1, 6)), datetime.datetime.now())
             test_job.save()
 
             # test_extracter = ExtracterGenerator.extracter
@@ -568,5 +561,3 @@ class TestExtracter(object):
         CrawlerAnalyzedData.drop_collection()
         CrawlerExtracterInfo.drop_collection()
         print "Extracter Test Data Cleaned!"
-
-

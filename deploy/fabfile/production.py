@@ -24,8 +24,7 @@ def deploy_web_server():
     _create_used_folders()
 
     # Rsync local project files to remote server.
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
 
     _install_project_deps()
 
@@ -59,8 +58,7 @@ def deploy_generator_servers():
     _create_used_folders()
 
     # Rsync local project files to remote server.
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
 
     _install_project_deps()
 
@@ -74,8 +72,7 @@ def deploy_downloader_servers():
     _create_used_folders()
 
     # Rsync local project files to remote server.
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
     # Use supervisor to monitor rq workers.
@@ -88,8 +85,7 @@ def deploy_structure_servers():
     _create_used_folders()
 
     # Rsync local project files to remote server.
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
 
     _install_project_deps()
 
@@ -113,8 +109,7 @@ def stop():
 
 def upgrade():
     # Rsync local project files to remote server.
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
 
     # Restart Services.
     _restart()
