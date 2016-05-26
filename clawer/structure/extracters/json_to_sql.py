@@ -5,13 +5,14 @@ import types
 import sys
 import os
 
+
 class JsonToSql(object):
     def __init__(self):
         self.config_dic = {}    #记录配置文件json解析后的字典
-        self.mapping = {}       #记录self.config_dic中的映射关系
-        self.tmp_dic = {}       #记录所需要的逻辑外键
+        self.mapping = {}    #记录self.config_dic中的映射关系
+        self.tmp_dic = {}    #记录所需要的逻辑外键
         self.table_name = ''    #记录所需要的数据库表名
-        self.id = ''            #记录公司的唯一标识id
+        self.id = ''    #记录公司的唯一标识id
         self.data_sql = None    #保持需要插入数据库的数据的sql文件
 
     def parser_json(self, config):
@@ -20,30 +21,30 @@ class JsonToSql(object):
         :param config: json文件源
         :return:解析后生成的字典
         """
-        config_json = open(config,'r+')
+        config_json = open(config, 'r+')
         try:
             dict_json = json.loads(config_json.read())
         except:
             print 'json error'
         config_json.close()
-        return  dict_json
-
+        return dict_json
 
     def get_json_source(self):
         self.data_source = self.config_dic['database']['source_file']['filename']
 
     def create_source_db(self):
         source_db = self.config_dic['database']['source_db']
-        
+
     def create_destination_db(self):
         destination_db = self.config_dic['database']['destination_db']
 
     def get_mapping(self):
         self.mapping = self.config_dic['mapping']
-    
+
     def create_commond(self):
         db_info = self.config_dic['database']['destination_db']
-        comm = '%s -u %s -p%s -h %s -P %s -f < ' % (db_info['dbtype'],db_info['username'],db_info['password'],db_info['host'],db_info['port'])
+        comm = '%s -u %s -p%s -h %s -P %s -f < ' % (db_info['dbtype'], db_info['username'], db_info['password'],
+                                                    db_info['host'], db_info['port'])
         return comm
 
     def create_table_sql(self, table_file):
@@ -67,7 +68,7 @@ class JsonToSql(object):
                 if field['option']:
                     sql += ' ' + (field['option'])
                 sql += ','
-            sql = sql[0:len(sql)-1]
+            sql = sql[0:len(sql) - 1]
             sql += ');\n\n'
             table_sql.write(sql.encode('utf8'))
         table_sql.close()
@@ -80,7 +81,7 @@ class JsonToSql(object):
         :param associated_field_path: 外键的路径
         :return: 无
         """
-        source_json = open(data, 'r+')  #guangxi.json数据源需要改成动态获取
+        source_json = open(data, 'r+')    #guangxi.json数据源需要改成动态获取
         for line in source_json:
             source = json.loads(line)
             # 获取许可证号，待改进
@@ -130,8 +131,8 @@ class JsonToSql(object):
         except KeyError:
             print 'warning: the company has not these info'
         #except IndexError:
-            #self.get_data(source[path[0]], [], associated_field_path[1:])
-            #self.record_associated(source, associated_field_path)
+        #self.get_data(source[path[0]], [], associated_field_path[1:])
+        #self.record_associated(source, associated_field_path)
 
     def parser_data(self, source):
         """
@@ -147,11 +148,11 @@ class JsonToSql(object):
         self.tmp_dic[u'主键'] = self.id
         merged_dict = source.copy()
         merged_dict.update(self.tmp_dic)
-        field = []       #记录字段的英文名
-        values = []      #记录字段的数据
+        field = []    #记录字段的英文名
+        values = []    #记录字段的数据
 
         #for k in merged_dict.keys():
-            #print k
+        #print k
 
         for k in self.mapping[self.table_name]['dest_field'].keys():
             field.append(self.mapping[self.table_name]['dest_field'][k])
@@ -203,14 +204,14 @@ class JsonToSql(object):
         print 'over'
 
     def test_daoru(self, sql_file):
-        result = self.create_commond()+sql_file
+        result = self.create_commond() + sql_file
         tmp = os.popen(result).readlines()
         print tmp
         pass
+
 
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
     json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', './my_insert.sql')
     json_to_sql.test_table('gs_table_conf.json', './my_table.sql')
     json_to_sql.test_daoru('./my_table.sql')
-

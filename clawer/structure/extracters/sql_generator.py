@@ -5,13 +5,14 @@ import types
 import sys
 import os
 
+
 class JsonToSql(object):
     def __init__(self):
         self.config_dic = {}    #记录配置文件json解析后的字典
-        self.mapping = {}       #记录self.config_dic中的映射关系
-        self.tmp_dic = {}       #记录所需要的逻辑外键
+        self.mapping = {}    #记录self.config_dic中的映射关系
+        self.tmp_dic = {}    #记录所需要的逻辑外键
         self.table_name = ''    #记录所需要的数据库表名
-        self.id = ''            #记录公司的唯一标识id
+        self.id = ''    #记录公司的唯一标识id
         self.data_sql = None    #保持需要插入数据库的数据的sql文件
 
     def parser_json(self, config):
@@ -32,16 +33,17 @@ class JsonToSql(object):
 
     def create_source_db(self):
         source_db = self.config_dic['database']['source_db']
-        
+
     def create_destination_db(self):
         destination_db = self.config_dic['database']['destination_db']
 
     def get_mapping(self):
         self.mapping = self.config_dic['mapping']
-    
+
     def create_commond(self):
         db_info = self.config_dic['database']['destination_db']
-        comm = '-u %s -p%s -h %s -P %s -f' % (db_info['username'],db_info['password'],db_info['host'],db_info['port'])
+        comm = '-u %s -p%s -h %s -P %s -f' % (db_info['username'], db_info['password'], db_info['host'],
+                                              db_info['port'])
         return comm
 
     def create_table_sql(self, table_file):
@@ -65,7 +67,7 @@ class JsonToSql(object):
                 if field['option']:
                     sql += ' ' + (field['option'])
                 sql += ','
-            sql = sql[0:len(sql)-1]
+            sql = sql[0:len(sql) - 1]
             sql += ');\n\n'
             table_sql.write(sql.encode('utf8'))
         table_sql.close()
@@ -147,8 +149,8 @@ class JsonToSql(object):
         self.tmp_dic[u'主键'] = self.id
         merged_dict = source.copy()
         merged_dict.update(self.tmp_dic)
-        field = []       #记录字段的英文名
-        values = []      #记录字段的数据
+        field = []    #记录字段的英文名
+        values = []    #记录字段的数据
 
         for k in self.mapping[self.table_name]['dest_field'].keys():
             field.append(self.mapping[self.table_name]['dest_field'][k])
@@ -193,7 +195,7 @@ class JsonToSql(object):
         if not extracter_conf or not data or not export_file:
             return False
         print 'get data dict'
-        if not isinstance(data,types.DictionaryType):
+        if not isinstance(data, types.DictionaryType):
             return False
         print 'config ok'
         # self.config_dic = self.parser_json(extracter_conf)
@@ -211,7 +213,7 @@ class JsonToSql(object):
             result = self.create_data_sql(data, path, associated_field_path)
             print 'over data sql'
             #if not result:
-                #return False
+            #return False
             self.tmp_dic.clear()
         self.data_sql.close()
         print 'get data over'
@@ -227,9 +229,9 @@ class JsonToSql(object):
         os.popen(result)
         #tmp = os.popen(result).readlines()
 
+
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
     json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', '/tmp/my_insert.sql')
     json_to_sql.test_table('gs_table_conf.json', '/tmp/my_table.sql')
     json_to_sql.test_restore('./my_table.sql')
-

@@ -12,13 +12,10 @@ def run():
         redis_url = settings.EXTRACTER_REDIS
     except:
         redis_url = None
-    connection = redis.Redis.from_url(
-        redis_url) if redis_url else redis.Redis()
-    too_high_queue = rq.Queue(
-        ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection=connection)
+    connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
+    too_high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_TOO_HIGH, connection=connection)
     high_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_HIGH, connection=connection)
-    normal_queue = rq.Queue(
-        ExtracterConsts.QUEUE_PRIORITY_NORMAL, connection=connection)
+    normal_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_NORMAL, connection=connection)
     low_queue = rq.Queue(ExtracterConsts.QUEUE_PRIORITY_LOW, connection=connection)
     if queue_name == "extracter:higher":
         q = too_high_queue

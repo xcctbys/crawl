@@ -25,8 +25,7 @@ env.password = "P@ssw0rd2015"
 @roles("WebServer")
 def deploy_web_server():
     # Rsync local project files to remote server.
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
     # Install nginx and start nginx server.
@@ -43,8 +42,7 @@ def deploy_web_server():
 
 @roles("GeneratorServers")
 def deploy_genertor_servers():
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
     # Start rqworkers by supervisord.
@@ -53,28 +51,24 @@ def deploy_genertor_servers():
 
 @roles("DownloaderServers")
 def deploy_downloader_servers():
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
 
 @roles("FilterServers")
 def deploy_filter_servers():
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
     _install_project_deps()
 
 
 @roles("CaptchaServers")
 def deploy_captcha_servers():
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("StructureSevers")
 def deploy_structure_servers():
-    _rsync_project(local_project_path=LOCAL_PROJECT_PATH,
-                   remote_project_path=REMOTE_PROJECT_PATH)
+    _rsync_project(local_project_path=LOCAL_PROJECT_PATH, remote_project_path=REMOTE_PROJECT_PATH)
 
 
 @roles("MongoServers")

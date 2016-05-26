@@ -29,7 +29,7 @@ USER = 'plkj'
 PASSWD = 'Password2016'
 PORT = 3306
 MYSQL_DB = 'csciwlpc'
-STEP = 1                                                                           # 每个step取10个
+STEP = 10                                                                           # 每个step取10个
 ROWS = 10
 
 REDIS_HOST = '13153c2b13894978.m.cnsza.kvstore.aliyuncs.com'                       # 全局变量，设置Redis的HOST，USER,TABLE
