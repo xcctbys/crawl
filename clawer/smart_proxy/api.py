@@ -1,11 +1,10 @@
-#coding:utf8
+# coding:utf8
 import os
 import sys
 import requests
 sys.path.append(os.getcwd())
 
 from smart_proxy.models import ProxyIp, IpUser
-from smart_proxy.utils.get_ip_into_my import *
 # from models import ProxyIp
 
 
@@ -156,7 +155,7 @@ class UseProxy(object):
 			one_province = IpUser.objects.filter(province__icontains=province)
 			# print 'len(one_province):', len(one_province)
 			# print one_province
-			return one_province[0].is_use_proxy if one_province else None                                                                                                                                               
+			return one_province[0].is_use_proxy if one_province else None
 
 
 def getproxy_http_to_my():
@@ -177,7 +176,7 @@ def proxyuser_default():
 	userproxy.set_all_default()
 	change_use_proxy_all_province(is_use_proxy=True)
 
-		
+
 if __name__ == '__main__':
 	proxy = Proxy()
 	print proxy.get_proxy()
