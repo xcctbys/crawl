@@ -4,30 +4,29 @@ import sys
 import requests
 import re
 import os,os.path
-from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
 import time
 import json
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
-from . import settings
 import logging
-
+import random
 
 class GuizhouCrawler(object):
 	#html数据的存储路径
-	html_restore_path = settings.json_restore_path + '/guizhou/'
-	ckcode_image_path = settings.json_restore_path + '/guizhou/ckcode.jpg'
     	#write_file_mutex = threading.Lock()
-	def __init__(self, json_restore_path):
+	def __init__(self, json_restore_path=None):
 		self.cur_time = str(int(time.time()*1000))
 		self.nbxh = None
 		self.reqst = requests.Session()
 		self.json_restore_path = json_restore_path
+		self.html_restore_path = self.json_restore_path + '/guizhou/'
+		self.ckcode_image_path = self.json_restore_path + '/guizhou/ckcode.jpg'
 		self.code_cracker = CaptchaRecognition('guizhou')
-		self.ckcode_image_path = settings.json_restore_path + '/guizhou/ckcode.jpg'
 		self.result_json_dict = {}
 		self.reqst.headers.update(
-			{'Accept': 'text/html, application/xhtml+xml, */*',
+			{
+			'Connection': "keep-alive",
+			'Accept': 'text/html, application/xhtml+xml, */*',
 			'Accept-Encoding': 'gzip, deflate',
 			'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
 			'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
@@ -88,9 +87,8 @@ class GuizhouCrawler(object):
 				search_count += 1
 				continue
 		if resp.status_code != 200:
-			# print resp.status_code
 			return None
-		# print BeautifulSoup(resp.content).prettify
+
 		validate_count = 0
 		while validate_count<5:
 			try:
@@ -187,47 +185,32 @@ class GuizhouCrawler(object):
 	def get_id_num(self, findCode):
 		count = 0
 		while count < 20:
+			count += 1
 			# print self.cur_time
 			yzm = self.get_check_num()
-			# print yzm
-			if yzm is None:
-				# print count,yzm
-				count += 1
-				continue
 			data = {'q':findCode, 'validCode':yzm}
-			first_count = 0
-			resp = None
-			while first_count<10:
-				try:
-					resp = self.reqst.post(self.mydict['searchList'], data=data)
-				except:
-					first_count += 1
-					continue
-				if resp.status_code == 200:
-					break
 
-			if resp.status_code == 200 :
-				result_dict = json.loads(resp.content)
-				# print result_dict
-				if result_dict[u'successed'] == 'true' or result_dict[u'successed'] == True:
-					# print result_dict
-					try:
-						re = result_dict[u'data'][0][u'nbxh']
-						return re
-					except:
-						return None
-					break
-				else:
-					count += 1
-					continue
-			else:
-				count+=1
+			resp = self.reqst.post(self.mydict['searchList'], data=data)
+			if resp.status_code != 200 :
+				logging.error("status code of searchList page is not 200.")
+				time.sleep(random.uniform(1, 3))
 				continue
-			# print resp.content
-			break
-			count += 1
-		pass
-
+			result_dict = json.loads(resp.content)
+			# print result_dict
+			if result_dict['successed'] == True:
+				try:
+					datas = result_dict.get('data')
+					if not datas:
+						return False
+					# 只取前三个
+					self.ents = datas[0:3]
+					return True
+				except:
+					return False
+				break
+			else:
+				logging.error('The count is %d.'%(count))
+		return False
 
 	def get_one_to_one_dict(self, allths, alltds):
 		# if len(allths) == len(alltds):
@@ -239,7 +222,6 @@ class GuizhouCrawler(object):
 		templist = []
 		x = 0
 		y = x + len(allths)
-		#print '---------------------%d-------------------------------%d' % (len(allth), len(alltd))
 		while y <= len(alltds):
 			tempdict = {}
 			for keys, values in zip(allths,alltds[x:y]):
@@ -353,161 +335,155 @@ class GuizhouCrawler(object):
 		if not os.path.exists(self.html_restore_path):
 			os.makedirs(self.html_restore_path)
 
-		nbxh = self.get_id_num(findCode)
-		if nbxh is None:
-			return json.dumps({self.ent_number: {}})
-		self.nbxh = nbxh
+		result = self.get_id_num(self.ent_number)
+		if not result:
+			return json.dumps([{self.ent_number: None}])
+		json_list = []
+		for item in self.ents:
+			self.nbxh = item.get('nbxh')
+			zch = item.get('zch')
+			self.result_json_dict = {}
+
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '5')
+			# print result_dict
+			self.get_json_one(allths=[u'注册号/统一社会信用代码', u'名称', u'类型', u'法定代表人', u'注册资本', u'成立日期', u'住所', u'营业期限自', u'营业期限至', u'经营范围', u'登记机关', u'核准日期', u'登记状态'],
+								alltds = result_dict,
+								alltds_keys = [u'zch',u'qymc',u'qylxmc',u'fddbr',u'zczb',u'clrq',u'zs',u'yyrq1',u'yyrq2',u'jyfw',u'djjgmc',u'hzrq',u'mclxmc'],
+								head = 'ind_comm_pub_reg_basic')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '3')
+			print result_dict
+			self.get_json_one(allths = [u'变更事项', u'变更前内容', u'变更后内容', u'变更日期'],
+								alltds = result_dict,
+								alltds_keys = [u'bcsxmc',u'bcnr',u'bghnr', u'hzrq'],
+								head = 'ind_comm_pub_reg_modify')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '2', '3')
+			# print result_dict
+			self.get_json_one(allths = [u'股东类型', u'股东', u'证照/证件类型', u'证照/证件号码', u'详情'],
+								alltds = result_dict,
+								alltds_keys = [u'tzrlxmc',u'czmc',u'zzlxmc', u'zzbh'],
+								head = 'ind_comm_pub_reg_shareholder')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '8')
+			# print result_dict
+			self.get_json_one(allths = [u'序号', u'姓名', u'职务'],
+								alltds = result_dict,
+								alltds_keys = [u'rownum',u'xm',u'zwmc'],
+								head = 'ind_comm_pub_arch_key_persons')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '36')
+			# print result_dict
+			self.get_json_one(allths = [u'清算负责人', u'清算组成员'],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ind_comm_pub_arch_liquidation')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '9')
+			# print result_dict
+			self.get_json_one(allths = [u'序号', u'注册号/统一社会信用代码', u'名称', u'登记机关'],
+								alltds = result_dict,
+								alltds_keys = [u'rownum',u'fgszch',u'fgsmc', u'fgsdjjgmc'],
+								head = 'ind_comm_pub_arch_branch')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '25')
+			# print result_dict
+			self.get_json_one(allths = [u'序号', u'登记编号', u'登记日期', u'登记机关', u'被担保债权数额', u'状态', u'公示日期', u'详情'],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ind_comm_pub_movable_property_reg')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '4')
+			# print result_dict
+			self.get_json_one(allths = [u'序号', u'登记编号', u'出质人', u'证照/证件号码', u'出质股权数额', u'质权人', u'证照/证件号码', u'股权出质设立登记日期', u'状态', u'公示日期', u'变化情况'],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ind_comm_pub_equity_ownership_reg')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '1')
+			# print result_dict
+			self.get_json_one(allths = [],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ind_comm_pub_administration_sanction')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '33')
+			# print result_dict
+			self.get_json_one(allths = [],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ind_comm_pub_business_exception')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '34')
+			# print result_dict
+			self.get_json_one(allths = [],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ind_comm_pub_serious_violate_law')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '35')
+			# print result_dict
+			self.get_json_one(allths = [],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ind_comm_pub_spot_check')
 
 
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '5')
-		# print result_dict
-		self.get_json_one(allths=[u'注册号/统一社会信用代码', u'名称', u'类型', u'法定代表人', u'注册资本', u'成立日期', u'住所', u'营业期限自', u'营业期限至', u'经营范围', u'登记机关', u'核准日期', u'登记状态'],
-							alltds = result_dict,
-							alltds_keys = [u'zch',u'qymc',u'qylxmc',u'fddbr',u'zczb',u'clrq',u'zs',u'yyrq1',u'yyrq2',u'jyfw',u'djjgmc',u'hzrq',u'mclxmc'],
-							head = 'ind_comm_pub_reg_basic')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '3')
-		# print result_dict
-		self.get_json_one(allths = [u'变更事项', u'变更前内容', u'变更后内容', u'变更日期'],
-							alltds = result_dict,
-							alltds_keys = [u'bcsxmc',u'bcnr',u'bghnr', u'hzrq'],
-							head = 'ind_comm_pub_reg_modify')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '2', '3')
-		# print result_dict
-		self.get_json_one(allths = [u'股东类型', u'股东', u'证照/证件类型', u'证照/证件号码', u'详情'],
-							alltds = result_dict,
-							alltds_keys = [u'tzrlxmc',u'czmc',u'zzlxmc', u'zzbh'],
-							head = 'ind_comm_pub_reg_shareholder')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '8')
-		# print result_dict
-		self.get_json_one(allths = [u'序号', u'姓名', u'职务'],
-							alltds = result_dict,
-							alltds_keys = [u'rownum',u'xm',u'zwmc'],
-							head = 'ind_comm_pub_arch_key_persons')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '36')
-		# print result_dict
-		self.get_json_one(allths = [u'清算负责人', u'清算组成员'],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ind_comm_pub_arch_liquidation')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '9')
-		# print result_dict
-		self.get_json_one(allths = [u'序号', u'注册号/统一社会信用代码', u'名称', u'登记机关'],
-							alltds = result_dict,
-							alltds_keys = [u'rownum',u'fgszch',u'fgsmc', u'fgsdjjgmc'],
-							head = 'ind_comm_pub_arch_branch')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '25')
-		# print result_dict
-		self.get_json_one(allths = [u'序号', u'登记编号', u'登记日期', u'登记机关', u'被担保债权数额', u'状态', u'公示日期', u'详情'],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ind_comm_pub_movable_property_reg')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '4')
-		# print result_dict
-		self.get_json_one(allths = [u'序号', u'登记编号', u'出质人', u'证照/证件号码', u'出质股权数额', u'质权人', u'证照/证件号码', u'股权出质设立登记日期', u'状态', u'公示日期', u'变化情况'],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ind_comm_pub_equity_ownership_reg')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '1')
-		# print result_dict
-		self.get_json_one(allths = [],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ind_comm_pub_administration_sanction')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '33')
-		# print result_dict
-		self.get_json_one(allths = [],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ind_comm_pub_business_exception')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '34')
-		# print result_dict
-		self.get_json_one(allths = [],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ind_comm_pub_serious_violate_law')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '35')
-		# print result_dict
-		self.get_json_one(allths = [],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ind_comm_pub_spot_check')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '13')
+			# print result_dict
+			self.get_json_two(allths = [u'序号', u'详情', u'报送年度', u'发布日期'],
+								alltds = result_dict,
+								alltds_keys = [u'rownum', u'lsh', u'nd', u'rq'],
+								head = 'ent_pub_ent_annual_report')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '40')
+			# print result_dict
+			self.get_json_two(allths = [u'股东', u'认缴额（万元）', u'实缴额（万元）', u'认缴出资方式', u'认缴出资额（万元）', u'认缴出资日期', u'认缴公示日期', u'实缴出资方式', u'实缴出资额（万元）', u'实缴出资日期', u'实缴公示日期'],
+								alltds = result_dict,
+								alltds_keys = [u'tzrmc', u'ljrje', u'ljsje', u'rjczfs', u'rjcze', u'rjczrq', u'rjgsrq', u'sjczfs', u'sjcze', u'sjczrq', u'sjgsrq'],
+								head = 'ent_pub_shareholder_capital_contribution')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '23')
+			# print result_dict
+			self.get_json_two(allths = [u'序号', u'股东', u'变更前股权比例', u'变更后股权比例', u'股权变更日期', u'公示日期'],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ent_pub_equity_change')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '20')
+			# print result_dict
+			self.get_json_two(allths = [u'序号', u'许可文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'许可机关', u'许可内容', u'状态', u'公示日期', u'详情'],
+								alltds = result_dict,
+								alltds_keys = [u'rownum', u'xkwjbh', u'xkwjmc', u'ksyxqx', u'jsyxqx', u'xkjg', u'xknr', u'zt', u'gsrq', u'lsh'],
+								head = 'ent_pub_administration_license')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '21')
+			# print result_dict
+			self.get_json_two(allths = [],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ent_pub_knowledge_property')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '22')
+			# print result_dict
+			self.get_json_two(allths = [],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'ent_pub_shareholder_modify')
 
 
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '13')
-		# print result_dict
-		self.get_json_two(allths = [u'序号', u'详情', u'报送年度', u'发布日期'],
-							alltds = result_dict,
-							alltds_keys = [u'rownum', u'lsh', u'nd', u'rq'],
-							head = 'ent_pub_ent_annual_report')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '40')
-		# print result_dict
-		self.get_json_two(allths = [u'股东', u'认缴额（万元）', u'实缴额（万元）', u'认缴出资方式', u'认缴出资额（万元）', u'认缴出资日期', u'认缴公示日期', u'实缴出资方式', u'实缴出资额（万元）', u'实缴出资日期', u'实缴公示日期'],
-							alltds = result_dict,
-							alltds_keys = [u'tzrmc', u'ljrje', u'ljsje', u'rjczfs', u'rjcze', u'rjczrq', u'rjgsrq', u'sjczfs', u'sjcze', u'sjczrq', u'sjgsrq'],
-							head = 'ent_pub_shareholder_capital_contribution')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '23')
-		# print result_dict
-		self.get_json_two(allths = [u'序号', u'股东', u'变更前股权比例', u'变更后股权比例', u'股权变更日期', u'公示日期'],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ent_pub_equity_change')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '20')
-		# print result_dict
-		self.get_json_two(allths = [u'序号', u'许可文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'许可机关', u'许可内容', u'状态', u'公示日期', u'详情'],
-							alltds = result_dict,
-							alltds_keys = [u'rownum', u'xkwjbh', u'xkwjmc', u'ksyxqx', u'jsyxqx', u'xkjg', u'xknr', u'zt', u'gsrq', u'lsh'],
-							head = 'ent_pub_administration_license')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '21')
-		# print result_dict
-		self.get_json_two(allths = [],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ent_pub_knowledge_property')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '22')
-		# print result_dict
-		self.get_json_two(allths = [],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'ent_pub_shareholder_modify')
-
-
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchOldData.shtml',nbxh, '0', '37')
-		# print result_dict
-		self.get_json_three(allths = [u'序号', u'许可文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'有效期', u'许可机关', u'许可内容', u'状态', u'详情'],
-							alltds = result_dict,
-							alltds_keys = [u'rownum', u'xkwjbh', u'xkwjmc', u'yxq1', u'yxq2', u'yxq', u'xkjg', u'xknr', u'zt', u'zt'],
-							head = 'other_dept_pub_administration_license')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchOldData.shtml',nbxh, '0', '38')
-		# print result_dict
-		self.get_json_two(allths = [u'序号', u'行政处罚决定书文号', u'违法行为类型', u'行政处罚内容', u'作出行政处罚决定机关名称', u'作出行政处罚决定日期'],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'other_dept_pub_administration_sanction')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchOldData.shtml',self.nbxh, '0', '37')
+			# print result_dict
+			self.get_json_three(allths = [u'序号', u'许可文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'有效期', u'许可机关', u'许可内容', u'状态', u'详情'],
+								alltds = result_dict,
+								alltds_keys = [u'rownum', u'xkwjbh', u'xkwjmc', u'yxq1', u'yxq2', u'yxq', u'xkjg', u'xknr', u'zt', u'zt'],
+								head = 'other_dept_pub_administration_license')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchOldData.shtml',self.nbxh, '0', '38')
+			# print result_dict
+			self.get_json_two(allths = [u'序号', u'行政处罚决定书文号', u'违法行为类型', u'行政处罚内容', u'作出行政处罚决定机关名称', u'作出行政处罚决定日期'],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'other_dept_pub_administration_sanction')
 
 
 
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '49')
-		# print result_dict
-		self.get_json_four(allths = [u'序号', u'被执行人', u'股权数额', u'执行法院', u'协助公示通知书文号', u'状态', u'详情'],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'judical_assist_pub_equity_freeze')
-		result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',nbxh, '0', '53')
-		# print result_dict
-		self.get_json_four(allths = [u'序号', u'被执行人', u'股权数额', u'受让人', u'执行法院', u'详情'],
-							alltds = result_dict,
-							alltds_keys = [],
-							head = 'judical_assist_pub_shareholder_modify')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '49')
+			# print result_dict
+			self.get_json_four(allths = [u'序号', u'被执行人', u'股权数额', u'执行法院', u'协助公示通知书文号', u'状态', u'详情'],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'judical_assist_pub_equity_freeze')
+			result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml',self.nbxh, '0', '53')
+			# print result_dict
+			self.get_json_four(allths = [u'序号', u'被执行人', u'股权数额', u'受让人', u'执行法院', u'详情'],
+								alltds = result_dict,
+								alltds_keys = [],
+								head = 'judical_assist_pub_shareholder_modify')
+			json_list.append({zch : self.result_json_dict})
+		return  json.dumps(json_list)
 
-		return  json.dumps({self.ent_number: self.result_json_dict})
-		#CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.result_json_dict})
-"""
-if __name__ == '__main__':
-	guizhou = GuizhouCrawler('./enterprise_crawler/guizhou.json')
-	# guizhou.run('520300000040573')
-	f = open('enterprise_list/guizhou.txt', 'r')
-	for line in f.readlines():
-		# print line.split(',')[2].strip()
-		guizhou.run(str(line.split(',')[2]).strip())
-	f.close()
-"""
+

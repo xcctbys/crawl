@@ -207,13 +207,13 @@ class MyParser(Parser):
 					tds.append(self.info.urls['eareName'] + td.a['onclick'][13:-2])
 				else:
 					tds.append(td.get_text().strip() if td.get_text() else None)
-			
+
 		else:
 			try:
 				tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')]
 			except Exception as e:
 				tds = []
-		
+
 		print 'len(tds):', len(tds)
 		for td in tds:
 			print td
@@ -477,7 +477,7 @@ class EnterprisePubliction(object):
 		except Exception as e:
 			print e
 			self.info.result_json['ent_pub_shareholder_capital_contribution'] = []
-			return 
+			return
 		if table:
 			ths = self.parser.parser_classic_ths_from_exists_table(what='ent_pub_shareholder_capital_contribution', content=table)
 		else:
@@ -554,7 +554,7 @@ class EnterprisePubliction(object):
 		self.get_intellectual_property_rights_pledge_registration_info()
 		self.get_administrative_punishment_info()
 		pass
-		
+
 # 其他部门公示信息
 class OtherDepartmentsPubliction(object):
 	def __init__(self, info=None, crawler=None, parser=None, *args, **kwargs):
@@ -594,7 +594,7 @@ class OtherDepartmentsPubliction(object):
 		self.get_administrative_licensing_info()
 		self.get_administrative_punishment_info()
 		pass
-		
+
 # 司法协助公示信息
 class JudicialAssistancePubliction(object):
 	def __init__(self, info=None, crawler=None, parser=None, *args, **kwargs):
@@ -633,7 +633,7 @@ class JudicialAssistancePubliction(object):
 	def run(self, *args, **kwargs):
 		self.get_equity_freeze_info()
 		self.get_shareholders_change_info()
-				
+
 class AnhuiCrawler(object):
 	"""江苏工商公示信息网页爬虫
 	"""
@@ -648,7 +648,7 @@ class AnhuiCrawler(object):
 			write_type = 'a'
 		with codecs.open(path, write_type, 'utf-8') as f:
 			f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-	
+
 	def run(self, ent_number=None, *args, **kwargs):
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
 		is_valid = self.crack.run(ent_number)
@@ -657,7 +657,7 @@ class AnhuiCrawler(object):
 			return
 		# print 'self.info.mainId:', self.info.mainId
 		self.info.result_json_list = []
-		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs={'class':'list'}):
+		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs={'class':'list'})[0:3]:
 			# print item_page
 			print self.info.ent_number
 			self.info.result_json = {}
@@ -689,8 +689,8 @@ class AnhuiCrawler(object):
 
 			self.json_dump_to_file('anhui.json', {self.info.ent_number: self.info.result_json})
 			self.info.result_json_list.append({self.info.ent_number: self.info.result_json})
-		return self.info.result_json_list
-		
+		return json.dumps(self.info.result_json_list)
+
 class TestAnhuiCrawler(unittest.TestCase):
 	def setUp(self):
 		self.info = InitInfo()
@@ -717,7 +717,7 @@ class TestAnhuiCrawler(unittest.TestCase):
 			crawler.run(ent_number=ent_number)
 			self.assertTrue(result)
 			self.assertEqual(type(result), list)
-			
+
 if __name__ == '__main__':
 	if DEBUG:
 		unittest.main()

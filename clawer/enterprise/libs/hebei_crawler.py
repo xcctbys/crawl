@@ -67,7 +67,9 @@ class HebeiCrawler(object):
         soup = BeautifulSoup(page, "html5lib")
         divs = soup.find_all("div", {"class":"list-item"})
         if divs:
+            count = 0
             for div in divs:
+                count += 1
                 link = div.find('div', {'class':'link'})
                 profile = div.find('div', {'class': 'profile'})
                 url = ""
@@ -80,6 +82,8 @@ class HebeiCrawler(object):
                 if name == self.ent_num:
                     Ent.clear()
                     Ent[ent] = url
+                    break
+                if count == 3:
                     break
                 Ent[ent] = url
         self.ents = Ent

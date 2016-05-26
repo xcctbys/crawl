@@ -35,16 +35,16 @@ from .libs.hebei_crawler import HebeiCrawler
 from .libs.hubei_crawler import HubeiCrawler
 from .libs.hunan_crawler import HunanCrawler
 from .libs.liaoning_crawler import LiaoningCrawler
-##
 from .libs.sichuan_crawler import SichuanCrawler
 from .libs.henan_crawler import HenanCrawler
-from .libs.chongqing_crawler import ChongqingClawer
-from .libs.jiangxi_crawler import JiangxiCrawler
+from .libs.chongqing_crawler import ChongqingCrawler
 from .libs.xinjiang_crawler import XinjiangClawer
-from .libs.neimenggu_crawler import NeimengguClawer
-from .libs.gansu_crawler import GansuClawer
+from .libs.neimenggu_crawler import NeimengguCrawler
+from .libs.ningxia_crawler import NingxiaCrawler
 from .libs.guizhou_crawler import GuizhouCrawler
-# from .libs.ningxia_crawler import NingxiaClawer
+##
+from .libs.jiangxi_crawler import JiangxiCrawler
+from .libs.gansu_crawler import GansuCrawler
 
 
 
@@ -55,13 +55,13 @@ import urlparse
 class EnterpriseDownload(object):
     PROVINCES = [
         {"id": Province.BEIJING, "class": BeijingCrawler},
-        {"id": Province.CHONGQING, "class": ChongqingClawer},
+        {"id": Province.CHONGQING, "class": ChongqingCrawler},
         {"id": Province.TIANJIN, "class": TianjinCrawler},
         {'id': Province.ZHEJIANG, 'class': ZhejiangCrawler},
         {'id': Province.SHANDONG, 'class': ShandongCrawler},
         {'id': Province.XINJIANG, 'class': XinjiangClawer},
         {'id': Province.YUNNAN, 'class': YunnanCrawler},
-        {'id': Province.NEIMENGGU, 'class': NeimengguClawer},
+        {'id': Province.NEIMENGGU, 'class': NeimengguCrawler},
         #####
         {'id': Province.HENAN, 'class': HenanCrawler},
         {'id': Province.HAINAN, 'class': HainanCrawler},
@@ -75,7 +75,7 @@ class EnterpriseDownload(object):
         {'id': Province.HEILONGJIANG, 'class': HeilongjiangClawer},
         {'id': Province.SHANXI, 'class': ShanxiCrawler},
         ###
-        {'id': Province.GANSU, 'class': GansuClawer},
+        {'id': Province.GANSU, 'class': GansuCrawler},
         {'id': Province.GUANGDONG, 'class': GuangdongClawer},
         {'id': Province.GUANGXI, 'class': GuangxiCrawler},
         {'id': Province.ANHUI, 'class': AnhuiCrawler},
@@ -87,7 +87,7 @@ class EnterpriseDownload(object):
         {'id': Province.HUNAN, 'class': HunanCrawler},
         {'id': Province.LIAONING, 'class': LiaoningCrawler},
         ###
-        # {'id': Province.NINGXIA, 'class': NingxiaClawer},
+        {'id': Province.NINGXIA, 'class': NingxiaCrawler},
         {'id': Province.QINGHAI, 'class': QinghaiCrawler},
         {'id': Province.SICHUAN, 'class': SichuanCrawler},
         {'id': Province.JIANGXI, 'class': JiangxiCrawler},

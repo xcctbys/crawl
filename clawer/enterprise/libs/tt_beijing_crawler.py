@@ -198,7 +198,7 @@ class CrackCheckcode(object):
 # 自己的爬取类，继承爬取类
 class MyCrawler(Crawler):
 	def __init__(self, info=None, parser=None, *args, **kwargs):
-		
+
 		useproxy = UseProxy()
 		is_use_proxy = useproxy.get_province_is_use_proxy(province='BEIJING')
 		if not is_use_proxy:
@@ -243,18 +243,18 @@ class MyCrawler(Crawler):
 			return False
 		# return r.content
 		return r
-		
+
 	def generate_time_stamp(self):
 		"""生成时间戳
 		"""
 		return int(time.time())
 
-	
+
 # 自己的解析类，继承解析类
 class MyParser(Parser):
 	def __init__(self, info=None, crawler=None, *args, **kwargs):
 		self.info = info
-		
+
 	def parse_pre_check_page(self, page):
 		"""解析提交验证码之前的页面
 		"""
@@ -402,7 +402,7 @@ class MyParser(Parser):
 		# 	print td
 
 		return self.zip_ths_tds(ths=ths, tds=tds)
-	
+
 # 工商公示信息
 class IndustrialPubliction(object):
 	def __init__(self, info=None, crawler=None, parser=None, *args, **kwargs):
@@ -635,7 +635,7 @@ class EnterprisePubliction(object):
 		self.get_administrative_licensing_info()
 		self.get_intellectual_property_rights_pledge_registration_info()
 		self.get_administrative_punishment_info()
-		
+
 # 其他部门公示信息
 class OtherDepartmentsPubliction(object):
 	def __init__(self, info=None, crawler=None, parser=None, *args, **kwargs):
@@ -663,7 +663,7 @@ class OtherDepartmentsPubliction(object):
 		pass
 		self.get_administrative_licensing_info()
 		self.get_administrative_punishment_info()
-		
+
 # 司法协助公示信息
 class JudicialAssistancePubliction(object):
 	def __init__(self, info=None, crawler=None, parser=None, *args, **kwargs):
@@ -697,7 +697,7 @@ class BeijingCrawler(object):
 			write_type = 'a'
 		with codecs.open(path, write_type, 'utf-8') as f:
 			f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-	
+
 	def run(self, ent_number=None, *args, **kwargs):
 		start_time = time.time()
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler, parser=self.parser)
@@ -708,7 +708,7 @@ class BeijingCrawler(object):
 		end_time = time.time()
 		print '------------------------------------crack_spent_time:%s--------------------' % (end_time - start_time)
 		self.info.result_json_list = []
-		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs= {'class':"list", 'style':"min-height: 400px;"})[0].find_all('ul'):
+		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs= {'class':"list", 'style':"min-height: 400px;"})[0].find_all('ul')[0:3]:
 			# print item_page
 			# print self.info.ent_number
 			self.info.result_json = {}
@@ -727,11 +727,11 @@ class BeijingCrawler(object):
 			# print self.info.result_json
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
-		for item in self.info.result_json_list:
-			self.json_dump_to_file('beijing.json',  item )
+		# for item in self.info.result_json_list:
+		# 	self.json_dump_to_file('beijing.json',  item )
 
-		return self.info.result_json_list
-		
+		return json.dumps(self.info.result_json_list)
+
 
 class TestBeijingCrawler(unittest.TestCase):
 	def setUp(self):

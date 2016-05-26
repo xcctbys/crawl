@@ -1,26 +1,27 @@
 #!/usr/bin/env python
 # encoding=utf-8
-import os
 import time
 import re
 import random
 import logging
 import requests
-import unittest
+import json
+import os
 from os import path
 import threading
-
 from bs4 import BeautifulSoup
-import json
-from . import settings
 from .crawler import Crawler
 from .crawler import Parser
-from .crawler import CrawlerUtils
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
+from common_func import get_proxy, exe_time
+import gevent
+from gevent import Greenlet
+import gevent.monkey
+import traceback
 
 
-class ChongqingClawer(Crawler):
+class ChongqingCrawler(Crawler):
     """重庆工商公示信息网页爬虫
     """
 
@@ -58,7 +59,7 @@ class ChongqingClawer(Crawler):
     }
     write_file_mutex = threading.Lock()
 
-    def __init__(self, json_restore_path):
+    def __init__(self, json_restore_path=None):
         """
         初始化函数
         Args:
@@ -66,22 +67,19 @@ class ChongqingClawer(Crawler):
             需要在写入文件的时候加锁
         Returns:
         """
-        # json 数据集
-        # POST
-
+        super(ChongqingCrawler, self).__init__()
         self.json_restore_path = json_restore_path
-        if os.path.exists(self.json_restore_path) is False:
-            os.makedirs(self.json_restore_path, 0775)
-        self.parser = ChongqingParser(self)
-        self.credit_ticket = None
+
         #html数据的存储路径
-        self.html_restore_path = os.path.join(self.json_restore_path, "/chongqing/")
-        if os.path.exists(self.html_restore_path) is False:
-            os.makedirs(self.html_restore_path, 0775)
+        self.html_restore_path = os.path.join(self.json_restore_path, "chongqing")
+
         #验证码图片的存储路径
         self.ckcode_image_path = os.path.join(self.html_restore_path, 'ckcode.jpg')
         self.code_cracker = CaptchaRecognition("chongqing")
+        self.parser = ChongqingParser(self)
+        self.credit_ticket = None
         self.ent_number = None
+        self.ents = {}
         # GET
         self.ckcode = None
         self.json_ent_info = None
@@ -96,29 +94,55 @@ class ChongqingClawer(Crawler):
         self.json_year_daily_peninfo = None
         self.json_year_daily_licinfo = None
         self.json_year_daily_pleinfo = None
-        self.json_dict = {}
-        self.json_restore_path = json_restore_path
-        self.parser = ChongqingParser(self)
-        self.reqst = requests.Session()
-        self.reqst.headers.update({
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
 
-    def run(self, ent_number=0):
+
+
+    def run(self, ent_number):
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
         self.ent_number = str(ent_number)
-        page = self.crawl_check_page()
-        try:
-            self.crawl_page_jsons(page)
-            self.parser.parse_jsons()
-            self.parser.merge_jsons()
-        except Exception as e:
-            # logging.error('error')
+        if not os.path.exists(self.html_restore_path):
+            os.makedirs(self.html_restore_path)
+        self.crawl_check_page()
+        if not self.ents:
+            return json.dumps([{self.ent_number:None}])
+        data = self.crawl_main_page()
+        return json.dumps(data)
+
+    def analyze_showInfo(self, page):
+        # 解析供查询页面, 获得工商信息页面POST值
+        soup = BeautifulSoup(page, "html5lib")
+        result = soup.find('div', {'id': 'result'})
+        if result is None:
             return None
-
-        return json.dumps({self.ent_number: self.json_dict})
-
+        items = result.find_all('div', {'class': 'item'})
+        if items:
+            count = 0
+            Ent = {}
+            for item in items:
+                count+=1
+                key_map = {}
+                link = item.find('a')
+                entId = link.get('data-entid')
+                types = link.get('data-type')
+                ids = link.get('data-id')
+                name = link.get_text().strip()
+                key_map['entId'] = entId
+                key_map['type'] = types
+                key_map['id'] = ids
+                key_map['name'] = name
+                profile = item.find('span', attrs={'class':'value'}).get_text().strip()
+                if name == self.ent_number:
+                    Ent.clear()
+                    Ent[profile] = key_map
+                    break
+                if key_map is not None:
+                    Ent[profile] = key_map
+                if count == 3:
+                    break
+            self.ents = Ent
+            return True
+        return False
 
     def crawl_check_page(self):
         """爬取验证码页面，包括下载验证码图片以及破解验证码
@@ -126,21 +150,23 @@ class ChongqingClawer(Crawler):
         """
         count = 0
         while count < 30:
+            count += 1
             ck_code = self.crack_check_code()
             data = {'key':self.ent_number,'code':ck_code}
-            resp = self.reqst.post(ChongqingClawer.urls['post_checkcode'], data=data)
+            resp = self.reqst.post(ChongqingCrawler.urls['post_checkcode'], data=data)
             if resp.status_code != 200:
                 logging.error("crawl post check page failed!")
-                count += 1
                 continue
-            return resp.content
-        return None
+            if self.analyze_showInfo(resp.content):
+                return True
+            time.sleep(random.uniform(1, 3))
+        return False
 
     def crack_check_code(self):
         """破解验证码
         :return 破解后的验证码
         """
-        resp = self.reqst.get(ChongqingClawer.urls['get_checkcode'])
+        resp = self.reqst.get(ChongqingCrawler.urls['get_checkcode'])
         if resp.status_code != 200:
             logging.error('failed to get get_checkcode')
             return None
@@ -151,87 +177,66 @@ class ChongqingClawer(Crawler):
 
         try:
             ckcode = self.code_cracker.predict_result(self.ckcode_image_path)
-            # ckcode = self.code_cracker.predict_result(self.ckcode_image_dir_path + 'image' + str(i) + '.jpg')
         except Exception as e:
             logging.warn('exception occured when crack checkcode')
             ckcode = ('', '')
-        finally:
-            pass
         self.write_file_mutex.release()
-
         return ckcode[1]
 
-    def crack_checkcode(self):
-        """破解验证码
-        :return 破解后的验证码
-        """
-        resp = self.reqst.get(ChongqingClawer.urls['get_checkcode'])
-        if resp.status_code != 200:
-            logging.error('failed to get get_checkcode')
-            print 'error'
-            return None
-
-        time.sleep(random.uniform(2, 4))
-
-        self.write_file_mutex.acquire()
-        self.ckcode_image_path = settings.json_restore_path + '/chongqing/ckcode.jpg'
-        with open(self.ckcode_image_path, 'wb') as f:
-            f.write(resp.content)
-        self.write_file_mutex.release()
-
-        try:
-            ckcode = self.code_cracker.predict_result(self.ckcode_image_path)
-        except Exception as e:
-            logging.warn('exception occured when crack checkcode')
-            ckcode = ('', '')
-        finally:
-            pass
-
-        return ckcode[1]
-
-    def crawl_page_jsons(self,page):
+    def crawl_main_page(self):
         """获取所有界面的json数据"""
-        data = self.parser.parse_search_results_pages(page)
-        if data is not None:
-            self.crawl_ent_info_json(data)
-            self.crawl_year_report_json(data)
+        sub_json_list=[]
+        for ent, data in self.ents.items():
+            self.json_dict = {}
+            try:
+                if data is not None:
+                    self.json_ent_info = None
+                    self.json_sfxzgdbg = None
+                    self.json_sfxz = None
+                    self.json_other_qlicinfo = None
+                    self.json_other_qpeninfo = None
+                    self.json_year_report = None
+                    self.json_year_report_detail = []
+                    self.json_year_daily_transinfo = None
+                    self.json_year_daily_invsub = None
+                    self.json_year_daily_peninfo = None
+                    self.json_year_daily_licinfo = None
+                    self.json_year_daily_pleinfo = None
 
-            self.crawl_year_report_detail_json(data)
-            # print(self.json_year_report_detail)
-            # time.sleep(0.1)
-            self.crawl_sfxzgdbg_json(data)
-            # print(self.json_sfxzgdbg)
-            # time.sleep(0.1)
-            self.crawl_sfxz_json(data)
-            # print(self.json_sfxz)
-            # time.sleep(0.1)
-            self.crawl_year_daily_invsub_json(data)
-            # print(self.json_year_daily_invsub)
-            # time.sleep(0.1)
-            self.crawl_year_daily_licinfo_json(data)
-            # print(self.json_year_daily_licinfo)
-            # time.sleep(0.1)
-            self.crawl_year_daily_peninfo_json(data)
-            # print(self.json_year_daily_peninfo)
-            # time.sleep(0.1)
-            self.crawl_year_daily_transinfo_json(data)
-            # print(self.json_year_daily_transinfo)
-            # time.sleep(0.1)
-            self.crawl_year_daily_pleinfo_json(data)
-            # print(self.json_year_daily_pleinfo)
-            # time.sleep(0.1)
-            self.crawl_other_qpeninfo_json(data)
-            # print(self.json_other_qpeninfo)
-            # time.sleep(0.1)
-            self.crawl_other_qlicinfo_json(data)
-            # print(self.json_other_qlicinfo)
-        else:
-            print('error')
+                    self.crawl_ent_info_json(data)
+                    self.crawl_year_report_json(data)
+                    self.crawl_year_report_detail_json(data)
+                    time.sleep(0.1)
+                    self.crawl_sfxzgdbg_json(data)
+                    time.sleep(0.1)
+                    self.crawl_sfxz_json(data)
+                    time.sleep(0.1)
+                    self.crawl_year_daily_invsub_json(data)
+                    time.sleep(0.1)
+                    self.crawl_year_daily_licinfo_json(data)
+                    time.sleep(0.1)
+                    self.crawl_year_daily_peninfo_json(data)
+                    time.sleep(0.1)
+                    self.crawl_year_daily_transinfo_json(data)
+                    time.sleep(0.1)
+                    self.crawl_year_daily_pleinfo_json(data)
+                    time.sleep(0.1)
+                    self.crawl_other_qpeninfo_json(data)
+                    time.sleep(0.1)
+                    self.crawl_other_qlicinfo_json(data)
+                else:
+                    continue
+                self.parser.parse_jsons()
+                self.parser.merge_jsons()
+            except Exception as e:
+                logging.error('%s .'%(traceback.format_exc(10)))
+            sub_json_list.append({ent: self.json_dict})
+        return sub_json_list
 
     def crawl_ent_info_json(self, data, type=1):
         """企业详细信息"""
         params = {'entId': data.get('entId'), 'id': data.get('id'), 'type': type}
-        json_data = self.reqst.get(ChongqingClawer.urls['search_ent'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['search_ent'], params=params)
         if json_data.status_code == 200:
             json_data = json_data.content
             json_data = str(json_data)
@@ -243,9 +248,9 @@ class ChongqingClawer(Crawler):
     def crawl_year_report_json(self, data):
         """年报数据"""
         params = {'id': data.get('id'), 'type': 1}
-        json_data = self.reqst.get(ChongqingClawer.urls['year_report'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['year_report'], params=params)
         while json_data.status_code != 200:
-            json_data = self.reqst.get(ChongqingClawer.urls['year_report'], params=params)
+            json_data = self.reqst.get(ChongqingCrawler.urls['year_report'], params=params)
         json_data = json_data.content
         json_data = str(json_data)
         self.json_year_report = json_data[6:]  # 去掉数据中的前六个字符保证数据为完整json格式数据
@@ -257,20 +262,24 @@ class ChongqingClawer(Crawler):
         while self.json_year_report is None:
             self.crawl_year_report_json(data)
         year_report = json.loads(self.json_year_report, encoding='utf-8')
+
         histories = year_report.get('history')
         for i in range(len(histories)):
+            sub_json_dict = {}
+            sub_json_dict.update(histories[i])
             year = histories[i].get('year')
             params = {'id': data.get('id'), 'type': 1, 'year': str(year)}
-            json_data = self.reqst.get(ChongqingClawer.urls['year_report_detail'], params=params)
+            json_data = self.reqst.get(ChongqingCrawler.urls['year_report_detail'], params=params)
             if json_data.status_code == 200:
                 # 此页面响应结果直接就是 json_data
-                self.json_year_report_detail = str(json_data.content)
-                # print(self.json_year_report_detail)
+                sub_json_dict['detail'] = json.loads(str(json_data.content))
+            self.json_year_report_detail.append(sub_json_dict)
+        # print(self.json_year_report_detail)
 
     def crawl_year_daily_transinfo_json(self, data):
         """股权变更"""
         params = {'id': data.get('id'), 'jtype': 'transinfo'}
-        json_data = self.reqst.get(ChongqingClawer.urls['year_daily_transinfo'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['year_daily_transinfo'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -281,7 +290,7 @@ class ChongqingClawer(Crawler):
     def crawl_year_daily_pleinfo_json(self, data):
         """行政许可"""
         params = {'id': data.get('id'), 'jtype': 'pleinfo'}
-        json_data = self.reqst.get(ChongqingClawer.urls['year_daily_pleinfo'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['year_daily_pleinfo'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -292,7 +301,7 @@ class ChongqingClawer(Crawler):
     def crawl_year_daily_invsub_json(self, data):
         """股东出资信息"""
         params = {'id': data.get('id'), 'jtype': 'invsub'}
-        json_data = self.reqst.get(ChongqingClawer.urls['year_daily_invsub'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['year_daily_invsub'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -303,7 +312,7 @@ class ChongqingClawer(Crawler):
     def crawl_year_daily_licinfo_json(self, data):
         """行政许可"""
         params = {'id': data.get('id'), 'jtype': 'licinfo'}
-        json_data = self.reqst.get(ChongqingClawer.urls['year_daily_licinfo'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['year_daily_licinfo'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -314,7 +323,7 @@ class ChongqingClawer(Crawler):
     def crawl_year_daily_peninfo_json(self, data):
         """行政处罚"""
         params = {'id': data.get('id'), 'jtype': 'peninfo'}
-        json_data = self.reqst.get(ChongqingClawer.urls['year_daily_peninfo'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['year_daily_peninfo'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -325,7 +334,7 @@ class ChongqingClawer(Crawler):
     def crawl_sfxzgdbg_json(self, data):
         """股东变更信息"""
         params = {'entId': data.get('entId'), 'id': data.get('id'), 'type': 1}
-        json_data = self.reqst.get(ChongqingClawer.urls['sfxzgdbg_page'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['sfxzgdbg_page'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -336,7 +345,7 @@ class ChongqingClawer(Crawler):
     def crawl_sfxz_json(self, data):
         """股权冻结信息"""
         params = {'entId': data.get('entId'), 'id': data.get('id'), 'type': 1}
-        json_data = self.reqst.get(ChongqingClawer.urls['sfxz_page'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['sfxz_page'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -347,7 +356,7 @@ class ChongqingClawer(Crawler):
     def crawl_other_qlicinfo_json(self, data):
         """股东出资信息"""
         params = {'entId': data.get('entId'), 'id': data.get('id'), 'qtype': 'Qlicinfo', 'type': 1}
-        json_data = self.reqst.get(ChongqingClawer.urls['other_qlicinfo'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['other_qlicinfo'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -358,7 +367,7 @@ class ChongqingClawer(Crawler):
     def crawl_other_qpeninfo_json(self, data):
         """股东出资信息"""
         params = {'entId': data.get('entId'), 'id': data.get('id'), 'qtype': 'Qpeninfo', 'type': 1}
-        json_data = self.reqst.get(ChongqingClawer.urls['other_qpeninfo'], params=params)
+        json_data = self.reqst.get(ChongqingCrawler.urls['other_qpeninfo'], params=params)
         if json_data.status_code == 200:
             # 此页面响应结果直接就是 json_data
             json_data = json_data.content
@@ -396,27 +405,7 @@ class ChongqingParser(Parser):
         self.judical_assist_pub_equity_freeze = None
         self.judical_assist_pub_shareholder_modify = None
 
-    def parse_search_results_pages(self, page):
-        # 解析供查询页面, 获得工商信息页面POST值
-        soup = BeautifulSoup(page, "html5lib")
-        result = soup.find('div', {'id': 'result'})
-        key_map = {}
-        if result is None:
-            return None
-        item = result.find('div', {'class': 'item'})
-        link = item.find('a')
-        entId = link.get('data-entid')
-        type = link.get('data-type')
-        id = link.get('data-id')
-        name = link.get_text()
-        key_map['entId'] = entId
-        key_map['type'] = type
-        key_map['id'] = id
-        key_map['name'] = name
-        if key_map is not None:
-            return key_map
-        else:
-            return None
+
 
     def parse_jsons(self):
         self.parse_json_ent_info()
@@ -445,6 +434,7 @@ class ChongqingParser(Parser):
         self.crawler.json_dict['ind_comm_pub_business_exception'] = self.ind_comm_pub_business_exception
         self.crawler.json_dict['ind_comm_pub_serious_violate_law'] = self.ind_comm_pub_serious_violate_law
         self.crawler.json_dict['ind_comm_pub_spot_check'] = self.ind_comm_pub_spot_check
+        self.crawler.json_dict['ent_pub_ent_annual_report'] = self.ent_pub_ent_annual_report
         self.crawler.json_dict['ent_pub_shareholder_capital_contribution'] = self.ent_pub_shareholder_capital_contribution
         self.crawler.json_dict['ent_pub_equity_change'] = self.ent_pub_equity_change
         self.crawler.json_dict['ent_pub_administration_license'] = self.ent_pub_administration_license
@@ -457,7 +447,7 @@ class ChongqingParser(Parser):
 
     def check_key_is_exists(self, investor, sharehodler, newkey, oldkey):
         if oldkey in investor.keys():
-            sharehodler[newkey] = str(investor[oldkey]).strip(' ')
+            sharehodler[newkey] = str(investor[oldkey]).strip()
         else:
             sharehodler[newkey] = None
 
@@ -471,7 +461,7 @@ class ChongqingParser(Parser):
         # print json_ent_info.keys()
         self.check_key_is_exists(base_info, self.ind_comm_pub_reg_basic, u'注册资本', 'regcap')
         self.check_key_is_exists(base_info, self.ind_comm_pub_reg_basic, u'经营范围', 'opscope')
-        self.check_key_is_exists(base_info, self.ind_comm_pub_reg_basic, u'注册号/统一社会信用代码', 'pripid')
+        self.check_key_is_exists(base_info, self.ind_comm_pub_reg_basic, u'注册号/统一社会信用代码', 'creditcode')
         self.check_key_is_exists(base_info, self.ind_comm_pub_reg_basic, u'营业期限至', 'opto')
         self.check_key_is_exists(base_info, self.ind_comm_pub_reg_basic, u'注册号', 'regno')
         self.check_key_is_exists(base_info, self.ind_comm_pub_reg_basic, u'住所', 'dom')
@@ -493,18 +483,19 @@ class ChongqingParser(Parser):
             sharehodler = {}
             self.check_key_is_exists(investors[i], sharehodler, u'股东类型', 'invtype')
             self.check_key_is_exists(investors[i], sharehodler, u'证照/证件号码', 'oid')
+            self.check_key_is_exists(investors[i], sharehodler, u'股东', 'inv')
+            self.check_key_is_exists(investors[i], sharehodler, u'证照/证件类型', 'blictype')
+            self.check_key_is_exists(investors[i], sharehodler, u'认缴额（万元）', 'lisubconam')
+            self.check_key_is_exists(investors[i], sharehodler, u'实缴额（万元）', 'liacconam')
             if len(investors[i].get('gInvaccon')) > 0:
                 self.check_key_is_exists(investors[i].get('gInvaccon')[0], sharehodler, u'认缴出资日期', 'accondate')
-                self.check_key_is_exists(investors[i], sharehodler, '认缴额（万元）', 'lisubconam')
                 self.check_key_is_exists(investors[i].get('gInvaccon')[0], sharehodler, u'认缴出资方式', 'acconform')
                 self.check_key_is_exists(investors[i].get('gInvaccon')[0], sharehodler, u'认缴出资额（万元）', 'acconam')
-            self.check_key_is_exists(investors[i], sharehodler, u'实缴出资方式', 'liacconam')
+
             if len(investors[i].get('gInvsubcon')) > 0:
                 self.check_key_is_exists(investors[i].get('gInvsubcon')[0], sharehodler, u'实缴出资方式', 'conform')
                 self.check_key_is_exists(investors[i].get('gInvsubcon')[0], sharehodler, u'实缴出资日期', 'condate')
                 self.check_key_is_exists(investors[i].get('gInvsubcon')[0], sharehodler, u'实缴出资额（万元）', 'subconam')
-            self.check_key_is_exists(investors[i], sharehodler, u'股东', 'inv')
-            self.check_key_is_exists(investors[i], sharehodler, u'证照/证件类型', 'blictype')
             sharehodlers.append(sharehodler)
             i = i + 1
         self.ind_comm_pub_reg_shareholder = sharehodlers
@@ -723,10 +714,111 @@ class ChongqingParser(Parser):
         pass
 
     def parse_json_year_report_detail(self):
-        pass
+        json_ent_info = json.loads(self.crawler.json_ent_info)
+        # 公司基本信息
+        base_info = json_ent_info.get('base')
+        creditcode = base_info.get('creditcode')
+        year_report_list = []
+        for item in self.crawler.json_year_report_detail:
+            year_report={}
+            self.check_key_is_exists(item, year_report, u'报送年度', 'year')
+            self.check_key_is_exists(item, year_report, u'首次公示日期', 'firstDate')
+            self.check_key_is_exists(item, year_report, u'最后一次修改日期', 'pubDate')
+            details={}
+            report_detail = item['detail']
+            base = report_detail.get('base')
+            base_dict = {}
+            year_report_detail={}
+            if base:
+                base_dict[u'统一社会信用代码/注册号'] = creditcode
+                self.check_key_is_exists(base, base_dict, u'企业名称', 'entname')
+                self.check_key_is_exists(base, base_dict, u'企业联系电话', 'tel')
+                self.check_key_is_exists(base, base_dict, u'邮政编码', 'postalcode')
+                self.check_key_is_exists(base, base_dict, u'企业通信地址', 'addr')
+                self.check_key_is_exists(base, base_dict, u'电子邮箱', 'email')
+                self.check_key_is_exists(base, base_dict, u'有限责任公司本年度是否发生股东股权转让', 'istransfer')
+                self.check_key_is_exists(base, base_dict, u'企业存续状态', 'opstate')
+                self.check_key_is_exists(base, base_dict, u'是否有网站或网店', 'haswebsite')
+                self.check_key_is_exists(base, base_dict, u'企业是否有投资信息或购买其他公司股权', 'hasbrothers')
+                self.check_key_is_exists(base, base_dict, u'是否对外担保', 'hasexternalsecurity')
+                self.check_key_is_exists(base, base_dict, u'从业人数', 'empnumispublish')
+            year_report_detail[u'企业基本信息'] = base_dict
+            webs = report_detail.get('webSites')
+            web_list=[]
+            if webs:
+                for web in webs:
+                    details={}
+                    self.check_key_is_exists(web, details, u'类型', 'webtypename')
+                    self.check_key_is_exists(web, details, u'名称', 'websitname')
+                    self.check_key_is_exists(web, details, u'网址', 'domain')
+                    web_list.append(details)
+            year_report_detail[u'网站或网店信息'] = web_list
+            shareholders = report_detail.get('mNGsentinv')
+            shareholder_list=[]
+            if shareholders:
+                for sharehodler in shareholders:
+                    details={}
+                    self.check_key_is_exists(sharehodler, details, u'股东', 'inv')
+                    self.check_key_is_exists(sharehodler['mNGsentinvsubcon'], details, u'认缴出资额（万人民币）', 'subconam')
+                    self.check_key_is_exists(sharehodler['mNGsentinvsubcon'], details, u'认缴出资时间', 'ancheyear')
+                    self.check_key_is_exists(sharehodler['mNGsentinvsubcon'], details, u'认缴出资方式', 'conform')
+
+                    self.check_key_is_exists(sharehodler['mNGsentinvaccon'], details, u'实缴出资额（万人民币）', 'acconam')
+                    self.check_key_is_exists(sharehodler['mNGsentinvaccon'], details, u'出资时间', 'ancheyear')
+                    self.check_key_is_exists(sharehodler['mNGsentinvaccon'], details, u'出资方式', 'acconform')
+                    shareholder_list.append(details)
+            year_report_detail[u'股东及出资信息'] = shareholder_list
+            mean= report_detail.get('means')
+            means_dict={}
+            if mean:
+                self.check_key_is_exists(mean, means_dict, u'资产总额', 'assgro')
+                self.check_key_is_exists(mean, means_dict, u'所有者权益合计', 'totequ')
+                self.check_key_is_exists(mean, means_dict, u'营业总收入', 'vendinc')
+                self.check_key_is_exists(mean, means_dict, u'利润总额', 'progro')
+                self.check_key_is_exists(mean, means_dict, u'营业总收入中主营业务收入', 'maibusinc')
+                self.check_key_is_exists(mean, means_dict, u'净利润', 'netinc')
+                self.check_key_is_exists(mean, means_dict, u'纳税总额', 'ratgro')
+                self.check_key_is_exists(mean, means_dict, u'负债总额', 'liagro')
+            year_report_detail[u'企业资产状况信息'] = means_dict
+            dbs = report_detail.get('dwdbinfo')
+            db_list=[]
+            if dbs:
+                for db in dbs:
+                    details = {}
+                    self.check_key_is_exists(db, details, u'债权人', 'more')
+                    self.check_key_is_exists(db, details, u'债务人', 'mortgagor')
+                    self.check_key_is_exists(db, details, u'主债权种类', 'priclaseckind')
+                    self.check_key_is_exists(db, details, u'主债权数额', 'priclasecam')
+                    self.check_key_is_exists(db, details, u'履行债务的开始期限', 'pefperform')
+                    self.check_key_is_exists(db, details, u'履行债务的结束期限', 'pefperto')
+                    self.check_key_is_exists(db, details, u'保证的期间', 'guaranperiod')
+                    self.check_key_is_exists(db, details, u'保证的方式', 'gatype')
+                    self.check_key_is_exists(db, details, u'保证担保的范围', 'rage')
+
+                    db_list.append(details)
+            year_report_detail[u'对外提供保证担保信息'] = db_list
+            ngstzents = report_detail.get('ngstzentinfos')
+            ngstzents_list = []
+            if ngstzents:
+                for item in ngstzents:
+                    details = {}
+                    self.check_key_is_exists(db, details, u'投资设立企业或购买股权企业名称', 'entname')
+                    self.check_key_is_exists(db, details, u'统一社会信用代码/注册号', 'tzregno')
+                    ngstzents_list.append(details)
+            year_report_detail[u'对外投资信息'] = ngstzents_list
+            modifies = report_detail.get('modifies')
+            modifies_list = []
+            if modifies:
+                for item in modifies:
+                    details = {}
+                    # 空着没数据呢
+                    modifies_list.append(details)
+            year_report_detail[u'股权变更信息'] = modifies_list
+            year_report[u'详情'] = year_report_detail
+            year_report_list.append(year_report)
+        self.ent_pub_ent_annual_report = year_report_list
 
     def parse_json_other_qpeninfo(self):
-        # print self.crawler.json_other_qpeninfo
         json_other_qpeninfo = json.loads(self.crawler.json_other_qpeninfo)
 
     def parse_json_other_qlicinfo(self):
@@ -736,16 +828,16 @@ class ChongqingParser(Parser):
         i = 0
         while i < len(json_other_qlicinfoes):
             administration_license = {}
-            administration_license['序号'] = i + 1
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '状态', 'type')
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '有效期至', 'valto')
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '许可内容', 'licitem')
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '许可文件名称', 'licname')
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '许可文件编号', 'licno')
+            administration_license[u'序号'] = i + 1
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, u'状态', 'type')
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, u'有效期至', 'valto')
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, u'许可内容', 'licitem')
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, u'许可文件名称', 'licname')
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, u'许可文件编号', 'licno')
             # 暂时没有确定
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '详情',
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, u'详情',
                                      'license_detail')
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '许可机关',
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, u'许可机关',
                                      'licanth')
             self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '有效期自', 'valfrom')
             administration_licenses.append(administration_license)
@@ -753,31 +845,3 @@ class ChongqingParser(Parser):
         self.other_dept_pub_administration_license = administration_licenses
         # print '行政许可===', administration_licenses
 
-
-class TestParser(unittest.TestCase):
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        from CaptchaRecognition import CaptchaRecognition
-        self.crawler = ChongqingClawer('./enterprise_crawler/chongqing.json')
-        self.parser = self.crawler.parser
-        ChongqingClawer.code_cracker = CaptchaRecognition('chongqing')
-        self.crawler.json_dict = {}
-        self.crawler.ent_number = '500232000003942'
-
-
-# if __name__ == '__main__':
-#
-#     import sys
-#     reload(sys)
-#     sys.setdefaultencoding("utf-8")
-#     from CaptchaRecognition import CaptchaRecognition
-#
-#     ChongqingClawer.code_cracker = CaptchaRecognition('chongqing')
-#     crawler = ChongqingClawer('./enterprise_crawler/chongqing/chongqing.json')
-#     start_time = time.localtime()
-#     enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/chongqing.txt')
-#     for ent_number in enterprise_list:
-#         ent_number = ent_number.rstrip('\n')
-#         print(
-#                 '############   Start to crawl enterprise with id %s   ################\n' % ent_number)
-#         crawler.run(ent_number=ent_number)
