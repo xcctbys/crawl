@@ -30,8 +30,8 @@ class Proxy(object):
 			if province == 'BEIJING':
 				backup = ['HEBEI','TIANJIN','SHANXI','HENAN','LIAONING','OTHER',]
 			for province in backup:
-				temp_list = ProxyIp.objects.filter(province__icontains=province, is_valid=is_valid).order_by('-update_datetime')
-				#temp_list = ProxyIp.objects.filter(province__icontains= province , is_valid=is_valid).order_by('?')
+				#temp_list = ProxyIp.objects.filter(province__icontains=province, is_valid=is_valid).order_by('-update_datetime')
+				temp_list = ProxyIp.objects.filter(province__icontains= province , is_valid=is_valid).order_by('?')
 				temp_list = [item.ip_port for item in temp_list]
 				ip_list.extend(temp_list)
 		if len(ip_list) <= num:
