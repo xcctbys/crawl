@@ -183,7 +183,7 @@
                 },
                 {
                     "dest_field": "establish_date",
-                    "datatype": "DATE",
+                    "datatype": "CHAR(20)",
                     "option": ""
                 },
                 {
@@ -193,12 +193,12 @@
                 },
                 {
                     "dest_field": "time_start",
-                    "datatype": "DATE",
+                    "datatype": "CHAR(20)",
                     "option": ""
                 },
                 {
                     "dest_field": "time_end",
-                    "datatype": "DATE",
+                    "datatype": "CHAR(20)",
                     "option": ""
                 },
                 {
@@ -213,7 +213,7 @@
                 },
                 {
                     "dest_field": "check_date",
-                    "datatype": "DATE",
+                    "datatype": "CHAR(20)",
                     "option": ""
                 },
                 {
@@ -280,7 +280,7 @@
             },
             {
                 "dest_field": "publicity_date",
-                "datatype": "DATE",
+                "datatype": "CHAR(20)",
                 "option":""
             }
         ],
@@ -339,7 +339,7 @@
             },
             {
                 "dest_field": "paid_time",
-                "datatype": "DATE",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
@@ -359,7 +359,7 @@
             },
             {
                 "dest_field": "subscription_time",
-                "datatype": "DATE",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {
@@ -374,7 +374,7 @@
             },
             {
                 "dest_field": "paid_date",
-                "datatype": "DATE",
+                "datatype": "CHAR(20)",
                 "option": ""
             },
             {

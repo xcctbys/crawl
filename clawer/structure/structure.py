@@ -65,10 +65,10 @@ class StructureGenerator(object):
     def get_task_source_data(self, task):
         #print task.to_json()
         task_source_data = CrawlerDownloadData.objects(crawlertask=task).first()
-        if task_source_data is None:
-            pass
-        else:
-            print task_source_data.to_json()
+        # if task_source_data is None:
+        #     pass
+        # else:
+        #     print task_source_data.to_json()
         # task_source_data = CrawlerDownloadData.objects(crawlertask=task).first()
 
         return task_source_data                        #根据uri返回爬虫的下载数据（类型）
@@ -92,14 +92,18 @@ class ParserGenerator(StructureGenerator):
 
     def assign_parse_task(self, priority, parser_function, data):
         try:
-            parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args = [data])
-            if parse_job_id == None:
-                return None
-            else:
-                CrawlerAnalyzedData(crawler_task = data.crawlertask,
-                    update_date = datetime.datetime.now()).save()
-                logging.info("Parse task successfully added")
-                return parse_job_id
+            print data
+            print "###########################"
+            print data and not self.null(data.response_body)
+            if data and not self.null(data.response_body):
+                parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args = [data])
+                if parse_job_id == None:
+                    return None
+                else:
+                    CrawlerAnalyzedData(crawler_task = data.crawlertask,
+                        update_date = datetime.datetime.now()).save()
+                    logging.info("Parse task successfully added")
+                    return parse_job_id
         except:
             logging.error("Error assigning task when enqueuing")
 
@@ -119,6 +123,16 @@ class ParserGenerator(StructureGenerator):
             else:
                 logging.error("Parse task duplicates -- % s (uri)" % data.crawlertask.uri)
         return self.queues
+
+    def null(self, s):
+        d = ast.literal_eval(s)
+        if not d:
+            return True
+        else:
+            if not d[d.keys()[0]]:
+                return True
+            else:
+                return False
 
 class QueueGenerator(object):
     def __init__(self, redis_url = settings.STRUCTURE_REDIS, queue_length = Consts.QUEUE_MAX_LENGTH):
@@ -325,8 +339,8 @@ class ExtracterGenerator(StructureGenerator):
     def get_extracter_conf(self, data):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
-        #configure_dict = open('structure/extracters/csciwlpc_conf.json').read()
-        configure_dict = open('structure/extracters/gs_table_conf.json').read()
+        conf_path = settings.EXTRACTER_CONFIG_PATH
+        configure_dict = open(conf_path).read()
         configure_dict =  json.loads(configure_dict)
         return configure_dict
 
