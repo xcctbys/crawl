@@ -88,7 +88,9 @@ class JilinCrawler(object):
         soup = BeautifulSoup(page, "html5lib")
         divs = soup.find_all("div", {"class":"list"})
         if divs:
+            count = 0
             for div in divs:
+                count += 1
                 url = ""
                 ent = ""
                 link = div.find('li')
@@ -101,6 +103,8 @@ class JilinCrawler(object):
                 if name == self.ent_num:
                     Ent.clear()
                     Ent[ent] = url
+                    break
+                if count == 3:
                     break
                 Ent[ent] = url
         self.ents = Ent

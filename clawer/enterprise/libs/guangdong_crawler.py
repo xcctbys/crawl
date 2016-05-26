@@ -83,7 +83,9 @@ class GuangdongClawer(object):
         soup = BeautifulSoup(self.html_showInfo, "html5lib")
         divs = soup.find_all("div", {"class":"list"})
         if divs:
+            count = 0
             for div in divs:
+                count += 1
                 link = div.find('li')
                 url =""
                 ent = ""
@@ -96,6 +98,8 @@ class GuangdongClawer(object):
                 if name == self.ent_num:
                     Ent.clear()
                     Ent[ent] = url
+                    break
+                if count == 3:
                     break
                 Ent[ent] = url
         self.ents = Ent

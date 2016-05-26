@@ -18,7 +18,7 @@ from common_func import get_proxy, exe_time, json_dump_to_file
 import gevent
 from gevent import Greenlet
 import gevent.monkey
-import unittest
+import random
 
 
 urls = {
@@ -74,7 +74,9 @@ class TianjinCrawler(object):
         soup = BeautifulSoup(page, "html5lib")
         divs = soup.find_all("div", {"class":"result-item"})
         if divs:
+            count = 0
             for div in divs:
+                count += 1
                 url =""
                 ent=""
                 link = div.find('a')
@@ -88,6 +90,8 @@ class TianjinCrawler(object):
                 if name == self.ent_num:
                     Ent.clear()
                     Ent[ent] = url
+                    break
+                if count == 3:
                     break
                 Ent[ent] = url
         self.ents = Ent

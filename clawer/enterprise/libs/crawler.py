@@ -146,6 +146,7 @@ class Crawler(object):
     def __init__(self):
         self.reqst = requests.Session()
         self.reqst.headers.update({
+                'Connection':"keep-alive",
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',

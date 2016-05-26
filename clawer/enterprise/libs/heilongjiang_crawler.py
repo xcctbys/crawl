@@ -84,7 +84,9 @@ class HeilongjiangClawer(Crawler):
 
         if divs:
             Ent={}
+            count = 0
             for div in divs:
+                count += 1
                 url=""
                 ent=""
                 link = div.find('li')
@@ -97,6 +99,8 @@ class HeilongjiangClawer(Crawler):
                 if name == self._ent:
                     Ent.clear()
                     Ent[ent] = url
+                    break
+                if count == 3:
                     break
                 Ent[ent] = url
             self.ents = Ent
@@ -112,7 +116,7 @@ class HeilongjiangClawer(Crawler):
         count = 0
         while count < 10:
             count += 1
-            ck_code = self.crack_check_code()
+            ck_code = self.crack_checkcode()
 
             data = {'checkNo': ck_code}
             resp = self.reqst.post(self.urls['post_checkcode'], data=data, timeout=self.timeout)
@@ -129,9 +133,10 @@ class HeilongjiangClawer(Crawler):
                     logging.error("crawl post check page failed! count = %d ."%(count))
             else:
                 logging.error("crawl post check page failed! count = %d ."%(count))
+            time.sleep(random.uniform(1, 3))
         return False
 
-    def crack_check_code(self):
+    def crack_checkcode(self):
         """破解验证码
         :return 破解后的验证码
         """

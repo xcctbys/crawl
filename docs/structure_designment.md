@@ -352,6 +352,7 @@ class StructureConfig(Document):
 1. 仅能用于建立基本表
 2. associated_field_source_path 必须是 source_path 的子集
 3. 每个表必须设置 associated_field_source_path, 如不必要则填为空串(如 [""])
+4. 当配置文件改变，如，修改表字段，需要手动备份数据库
 
 
 

@@ -68,7 +68,9 @@ class ShaanxiCrawler(object):
         soup = BeautifulSoup(page, "html5lib")
         divs = soup.find_all("div", {"style":"width:950px; padding:25px 20px 0px; overflow: hidden;float: left;"})
         if divs:
+            count = 0
             for div in divs:
+                count += 1
                 url=""
                 ent=""
                 link = div.find('li')
@@ -82,6 +84,8 @@ class ShaanxiCrawler(object):
                 if name == self.ent_num:
                     Ent.clear()
                     Ent[ent] = url
+                    break
+                if count==3:
                     break
                 Ent[ent] = url
         if not Ent:

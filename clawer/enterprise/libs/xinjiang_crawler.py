@@ -130,7 +130,7 @@ class XinjiangClawer(Crawler):
         """
         count = 0
         while count < 30:
-            ck_code = self.crack_check_code()
+            ck_code = self.crack_checkcode()
             data = {'currentPageNo': 1, 'yzm': ck_code, 'maent.entname': self.ent_number, 'pName': self.ent_number,
                     'BA_ZCH': self.ent_number}
             params = {}
@@ -147,7 +147,7 @@ class XinjiangClawer(Crawler):
             return resp.content
         return None
 
-    def crack_check_code(self):
+    def crack_checkcode(self):
         """破解验证码
         :return 破解后的验证码
         """

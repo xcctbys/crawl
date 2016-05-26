@@ -182,7 +182,9 @@ class ZongjuCrawler(Crawler):
 
         if divs:
             Ent={}
+            count = 0
             for div in divs:
+                count += 1
                 link = div.find('div', attrs={'class':'link'})
                 profile = div.find('div', attrs={'class':'profile'})
                 url=""
@@ -195,6 +197,8 @@ class ZongjuCrawler(Crawler):
                 if name == self._ent:
                     Ent.clear()
                     Ent[ent] = url
+                    break
+                if count == 3:
                     break
                 Ent[ent] = url
             self.ents = Ent

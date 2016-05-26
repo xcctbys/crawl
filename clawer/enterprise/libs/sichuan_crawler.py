@@ -6,32 +6,44 @@ sys.setdefaultencoding('utf-8')
 import requests
 import re
 import os,os.path
-from crawler import CrawlerUtils
-from bs4 import BeautifulSoup
 import time
-from . import settings
 import json
 import logging
+import datetime
+from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
+import random
+
+from common_func import get_proxy, exe_time
+import gevent
+from gevent import Greenlet
+import gevent.monkey
+import traceback
 
 class SichuanCrawler(object):
-	#html数据的存储路径
-	html_restore_path = settings.json_restore_path + '/sichuan/'
-	ckcode_image_path = settings.json_restore_path + '/sichuan/ckcode.jpg'
-    	#write_file_mutex = threading.Lock()
-	def __init__(self, json_restore_path):
+	#write_file_mutex = threading.Lock()
+	def __init__(self, json_restore_path = None):
 		self.pripid = None
 		self.cur_time = str(int(time.time()*1000))
 		self.reqst = requests.Session()
 		self.json_restore_path = json_restore_path
-		self.ckcode_image_path = settings.json_restore_path + '/sichuan/ckcode.jpg'
+		self.ckcode_image_path = self.json_restore_path + '/sichuan/ckcode.jpg'
+		#html数据的存储路径
+		self.html_restore_path = self.json_restore_path + '/sichuan/'
 		self.code_cracker = CaptchaRecognition('sichuan')
 		self.result_json_dict = {}
+		self.json_list=[]
 		self.reqst.headers.update(
 			{'Accept': 'text/html, application/xhtml+xml, */*',
 			'Accept-Encoding': 'gzip, deflate',
 			'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
 			'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+		proxies = get_proxy('shaanxi')
+		if proxies:
+			print proxies
+			self.reqst.proxies = proxies
+		self.timeout = (30,20)
+		self.ents={}
 
 		self.mydict = {'eareName':'http://www.ahcredit.gov.cn',
 				'search':'http://gsxt.scaic.gov.cn/ztxy.do?method=index&random=',
@@ -71,16 +83,17 @@ class SichuanCrawler(object):
 				u'司法股权冻结信息':'judical_assist_pub_equity_freeze',
 				u'股东变更信息':'judical_assist_pub_shareholder_modify',
 				u'司法股东变更登记信息':'judical_assist_pub_shareholder_modify'}
-		self.result_json_dict = {}
+
+
 
 	def get_check_num(self):
 		# print self.mydict['search']+self.cur_time
-		resp = self.reqst.get(self.mydict['search']+self.cur_time, timeout = 180)
+		resp = self.reqst.get(self.mydict['search']+self.cur_time, timeout = self.timeout)
 		if resp.status_code != 200:
 			# print resp.status_code
 			return None
 		# print BeautifulSoup(resp.content).prettify
-		resp = self.reqst.get(self.mydict['validateCode']+'&dt=%s&random=%s' % (self.cur_time, self.cur_time), timeout = 180)
+		resp = self.reqst.get(self.mydict['validateCode']+'&dt=%s&random=%s' % (self.cur_time, self.cur_time), timeout = self.timeout)
 		if resp.status_code != 200:
 			# print 'no validateCode'
 			return None
@@ -95,42 +108,63 @@ class SichuanCrawler(object):
 
 
 
+	def analyze_showInfo(self, page):
+		soup = BeautifulSoup(page, 'html.parser')
+		divs = soup.find_all('div', attrs={"style":"width:950px; padding:25px 20px 0px; overflow: hidden;float: left;"})
+		if divs:
+			try:
+				Ent={}
+				count = 0
+				for div in divs:
+					count += 1
+					link = div.find('li')
+					url = ""
+					if link and link.find('a') and link.find('a').has_attr('onclick'):
+						url = link.find('a')['onclick']
+					ent =""
+					profile = link.find_next_sibling()
+					if profile and profile.span:
+						ent = profile.span.get_text().strip()
+					name = link.find('a').get_text().strip()
+					if self.ent_num == name or self.ent_num == ent:
+						Ent.clear()
+						Ent[ent] = url
+						break
+					if count == 3:
+						break
+				if not Ent:
+					return False
+				self.ents = Ent
+				return True
+
+			except:
+				logging.error(u"%s"%(traceback.format_exc(10)))
+		return False
+
+
 	def get_id_num(self, findCode):
 		count = 0
 		while count < 20:
 			yzm = self.get_check_num()
-			if yzm is None:
-				count += 1
-				continue
-			# print self.cur_time
-			data = {'currentPageNo':'1', 'yzm':yzm, 'cxym':"cxlist", 'maent.entname':findCode}
-			resp = self.reqst.post(self.mydict['searchList']+self.cur_time, data=data, timeout = 180)
-			# print resp.content
-			divs = BeautifulSoup(resp.content, 'html.parser')
-			divs = divs.find_all('div', attrs={"style":"width:950px; padding:25px 20px 0px; overflow: hidden;float: left;"})
-			try:
-				onclick = divs[0].ul.li.a['onclick']
-				# print onclick
-				m = re.search(r"openView\(\'(\w+?)\'", onclick)
-				if m:
-					return m.group(1)
-			except:
-				# print count
-				# print '*'*100
-				count += 1
-				continue
-				pass
 			count += 1
+			if yzm is None:
+				continue
+
+			data = {'currentPageNo':'1', 'yzm':yzm, 'cxym':"cxlist", 'maent.entname':findCode}
+			resp = self.reqst.post(self.mydict['searchList']+self.cur_time, data=data, timeout = self.timeout)
+			if self.analyze_showInfo(resp.content):
+				return True
+			time.sleep(random.uniform(1, 4))
 		else:
-			return None
-		pass
+			return False
+
 	def get_re_list_from_content(self, content):
 
 		pass
 
 	def help_dcdy_get_dict(self, method, maent_pripid, maent_xh, random):
 		data = {'method':method, 'maent.pripid':maent_pripid, 'maent.xh':maent_xh, 'random':random}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data = data, timeout = 180)
+		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data = data, timeout = self.timeout)
 		needdict = {}
 		for table in BeautifulSoup(resp.content, 'html.parser').find_all('table'):
 			dcdy_head, dcdy_allths, dcdy_alltds = self.get_head_ths_tds(table)
@@ -139,7 +173,7 @@ class SichuanCrawler(object):
 
 	def help_enter_get_dict(self, method, maent_pripid, year, random):
 		data = {'method':method, 'maent.pripid':maent_pripid, 'maent.nd':year, 'random':random}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
+		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
 		#print resp.status_code
 		#print BeautifulSoup(resp.content).prettify
 		needdict = {}
@@ -166,7 +200,7 @@ class SichuanCrawler(object):
 
 	def help_detail_get_dict(self, method, maent_xh, maent_pripid, random):
 		data = {'method':method, 'maent.xh':maent_xh, 'maent.pripid':maent_pripid, 'random':random}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
+		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
 		# print resp.status_code
 		# print BeautifulSoup(resp.content).prettify
 		for table in BeautifulSoup(resp.content, 'html.parser').find_all('table'):
@@ -183,8 +217,6 @@ class SichuanCrawler(object):
 				tempdict['list'] = [onelist_dict]
 				return {u'股东及出资信息':[tempdict]}
 				break
-		# else:
-		# 	print 'i'*100
 
 	def get_head_ths_tds(self, table):
 		# print table
@@ -270,7 +302,6 @@ class SichuanCrawler(object):
 			templist = []
 			x = 0
 			y = x + len(allths)
-			#print '---------------------%d-------------------------------%d' % (len(allth), len(alltd))
 			while y <= len(alltds):
 				tempdict = {}
 				for keys, values in zip(allths,alltds[x:y]):
@@ -346,114 +377,122 @@ class SichuanCrawler(object):
 				#self.test_print_all_ths_tds(head, allths, alltds)
 				self.result_json_dict [mydict[head]] = self.get_one_to_one_dict(allths, alltds)
 		pass
+	def main_page(self):
+		gevent.monkey.patch_socket()
+		sub_json_list =[]
+		for ent, url in self.ents.items():
+			m = re.search(r"openView\(\'(\w+?)\'", url)
+			if m:
+				self.pripid = m.group(1)
+			self.result_json_dict = {}
+			print self.pripid
+			def qyInfo():
+				data = {'method':'qyInfo', 'maent.pripid':self.pripid, 'czmk':'czmk1', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'基本信息', u'股东信息', u'变更信息')
+			def baInfo():
+				data = {'method':'baInfo', 'maent.pripid':self.pripid, 'czmk':'czmk2', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'主要人员信息', u'分支机构信息', u'清算信息')
+			def dcdyInfo():
+				data = {'method':'dcdyInfo', 'maent.pripid':self.pripid, 'czmk':'czmk4', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'动产抵押登记信息')
+			def gqczxxInfo():
+				data = {'method':'gqczxxInfo', 'maent.pripid':self.pripid, 'czmk':'czmk4', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'股权出质登记信息')
+			def jyycInfo():
+				data = {'method':'jyycInfo', 'maent.pripid':self.pripid, 'czmk':'czmk6', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'经营异常信息')
+			def yzwfInfo():
+				data = {'method':'yzwfInfo', 'maent.pripid':self.pripid, 'czmk':'czmk14', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'严重违法信息')
+			def cfInfo():
+				data = {'method':'cfInfo', 'maent.pripid':self.pripid, 'czmk':'czmk3', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政处罚信息')
+			def ccjcInfo():
+				data = {'method':'ccjcInfo', 'maent.pripid':self.pripid, 'czmk':'czmk7', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'抽查检查信息')
+			def qygsInfo():
+				data = {'method':'qygsInfo', 'maent.pripid':self.pripid, 'czmk':'czmk8', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'企业年报')
+			def qygsForTzrxxInfo():
+				data = {'method':'qygsForTzrxxInfo', 'maent.pripid':self.pripid, 'czmk':'czmk12', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'股东及出资信息', u'变更信息')
+			def cqygsForTzrbgxxInfo():
+				data = {'method':'cqygsForTzrbgxxInfo', 'maent.pripid':self.pripid, 'czmk':'czmk15', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'股权变更信息')
+			def qygsForXzxkInfo():
+				data = {'method':'qygsForXzxkInfo', 'maent.pripid':self.pripid, 'czmk':'czmk10', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政许可信息')
+			def qygsForZzcqInfo():
+				data = {'method':'qygsForZzcqInfo', 'maent.pripid':self.pripid, 'czmk':'czmk11', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'知识产权出质登记信息')
+			def qygsForXzcfInfo():
+				data = {'method':'qygsForXzcfInfo', 'maent.pripid':self.pripid, 'czmk':'czmk13', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政处罚信息')
+			def qtgsInfo():
+				data = {'method':'qtgsInfo', 'maent.pripid':self.pripid, 'czmk':'czmk9', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.three_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政许可信息')
+			def qtgsForCfInfo():
+				data = {'method':'qtgsForCfInfo', 'maent.pripid':self.pripid, 'czmk':'czmk16', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.three_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政处罚信息')
+			def sfgsInfo():
+				data = {'method':'sfgsInfo', 'maent.pripid':self.pripid, 'czmk':'czmk17', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.four_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'司法股权冻结信息')
+			def sfgsbgInfo():
+				data = {'method':'sfgsbgInfo', 'maent.pripid':self.pripid, 'czmk':'czmk18', 'random':self.cur_time}
+				resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = self.timeout)
+				self.get_json_one(self.four_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'司法股东变更登记信息')
+			threads = []
+			threads.append(gevent.spawn(qyInfo) )
+			threads.append(gevent.spawn(baInfo) )
+			threads.append(gevent.spawn(dcdyInfo) )
+			threads.append(gevent.spawn(gqczxxInfo))
+			threads.append(gevent.spawn(jyycInfo))
+			threads.append(gevent.spawn(yzwfInfo))
+			threads.append(gevent.spawn(cfInfo))
+			threads.append(gevent.spawn(ccjcInfo))
+			threads.append(gevent.spawn(qygsInfo))
+			threads.append(gevent.spawn(qygsForTzrxxInfo))
+			threads.append(gevent.spawn(cqygsForTzrbgxxInfo))
+			threads.append(gevent.spawn(qygsForXzxkInfo))
+			threads.append(gevent.spawn(qygsForZzcqInfo))
+			threads.append(gevent.spawn(qygsForXzcfInfo))
+			threads.append(gevent.spawn(qtgsInfo))
+			threads.append(gevent.spawn(qtgsForCfInfo))
+			threads.append(gevent.spawn(sfgsInfo))
+			threads.append(gevent.spawn(sfgsbgInfo))
 
+			gevent.joinall(threads)
+			self.result_json_dict['ind_comm_pub_reg_basic'] = self.result_json_dict['ind_comm_pub_reg_basic'][0]
+			if 'ind_comm_pub_arch_liquidation' in self.result_json_dict.keys() and len(self.result_json_dict['ind_comm_pub_arch_liquidation']) > 0:
+				self.result_json_dict['ind_comm_pub_arch_liquidation'] = self.result_json_dict['ind_comm_pub_arch_liquidation'][0]
+			sub_json_list.append({ent : self.result_json_dict})
+		return sub_json_list
 	def run(self, findCode):
-
-		self.ent_number = str(findCode)
+		print self.__class__.__name__
+		logging.error('crawl %s .', self.__class__.__name__)
+		self.ent_num = str(findCode)
 		if not os.path.exists(self.html_restore_path):
 			os.makedirs(self.html_restore_path)
 
-		self.pripid = self.get_id_num(findCode)
-		if self.pripid is None:
-			return json.dumps({self.ent_number:{}})
-		# print findCode, self.pripid
-		self.result_json_dict = {}
+		if not self.get_id_num(self.ent_num):
+			return json.dumps([{self.ent_num:None}])
 
-		data = {'method':'qyInfo', 'maent.pripid':self.pripid, 'czmk':'czmk1', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		# print BeautifulSoup(resp.content).prettify
-		self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'基本信息', u'股东信息', u'变更信息')
-
-		data = {'method':'baInfo', 'maent.pripid':self.pripid, 'czmk':'czmk2', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'主要人员信息', u'分支机构信息', u'清算信息')
-
-		data = {'method':'dcdyInfo', 'maent.pripid':self.pripid, 'czmk':'czmk4', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout =120)
-		self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'动产抵押登记信息')
-
-		data = {'method':'gqczxxInfo', 'maent.pripid':self.pripid, 'czmk':'czmk4', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'股权出质登记信息')
-
-		data = {'method':'jyycInfo', 'maent.pripid':self.pripid, 'czmk':'czmk6', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'经营异常信息')
-
-		data = {'method':'yzwfInfo', 'maent.pripid':self.pripid, 'czmk':'czmk14', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'严重违法信息')
-
-		data = {'method':'cfInfo', 'maent.pripid':self.pripid, 'czmk':'czmk3', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政处罚信息')
-
-		data = {'method':'ccjcInfo', 'maent.pripid':self.pripid, 'czmk':'czmk7', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.one_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'抽查检查信息')
-
-
-
-
-		data = {'method':'qygsInfo', 'maent.pripid':self.pripid, 'czmk':'czmk8', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'企业年报')
-
-		data = {'method':'qygsForTzrxxInfo', 'maent.pripid':self.pripid, 'czmk':'czmk12', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'股东及出资信息', u'变更信息')
-
-		data = {'method':'cqygsForTzrbgxxInfo', 'maent.pripid':self.pripid, 'czmk':'czmk15', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'股权变更信息')
-
-		data = {'method':'qygsForXzxkInfo', 'maent.pripid':self.pripid, 'czmk':'czmk10', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政许可信息')
-
-		data = {'method':'qygsForZzcqInfo', 'maent.pripid':self.pripid, 'czmk':'czmk11', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'知识产权出质登记信息')
-
-		data = {'method':'qygsForXzcfInfo', 'maent.pripid':self.pripid, 'czmk':'czmk13', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.two_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政处罚信息')
-
-
-
-		data = {'method':'qtgsInfo', 'maent.pripid':self.pripid, 'czmk':'czmk9', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.three_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政许可信息')
-
-		data = {'method':'qtgsForCfInfo', 'maent.pripid':self.pripid, 'czmk':'czmk16', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.three_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'行政处罚信息')
-
-
-
-
-		data = {'method':'sfgsInfo', 'maent.pripid':self.pripid, 'czmk':'czmk17', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.four_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'司法股权冻结信息')
-
-		data = {'method':'sfgsbgInfo', 'maent.pripid':self.pripid, 'czmk':'czmk18', 'random':self.cur_time}
-		resp = self.reqst.post('http://gsxt.scaic.gov.cn/ztxy.do', data=data, timeout = 180)
-		self.get_json_one(self.four_dict, BeautifulSoup(resp.content, 'html.parser').find_all('table'), u'司法股东变更登记信息')
-
-		self.result_json_dict['ind_comm_pub_reg_basic'] = self.result_json_dict['ind_comm_pub_reg_basic'][0]
-		if 'ind_comm_pub_arch_liquidation' in self.result_json_dict.keys() and len(self.result_json_dict['ind_comm_pub_arch_liquidation']) > 0:
-			self.result_json_dict['ind_comm_pub_arch_liquidation'] = self.result_json_dict['ind_comm_pub_arch_liquidation'][0]
-		return json.dumps({self.ent_number: self.result_json_dict})
-		# CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.result_json_dict})
-"""
-if __name__ == '__main__':
-	sichuan = SichuanCrawler('./enterprise_crawler/sichuan.json')
-	sichuan.run('510181000035008')
-	# sichuan.run('511000000000753')
-	# sichuan.run('510300000004462')
-	# f = open('enterprise_list/sichuan.txt', 'r')
-	# for line in f.readlines():
-	# 	print line.split(',')[2].strip()
-	# 	sichuan.run(str(line.split(',')[2]).strip())
-	# f.close()
-"""
+		data = self.main_page()
+		return json.dumps( data)

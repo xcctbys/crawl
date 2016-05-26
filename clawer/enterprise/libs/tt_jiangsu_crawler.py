@@ -39,7 +39,7 @@ class InitInfo(object):
 		self.code_cracker = CaptchaRecognition('jiangsu')
 		#多线程爬取时往最后的json文件中写时的加锁保护
 		self.write_file_mutex = threading.Lock()
-		
+
 		self.urls = {'host': 'www.jsgsj.gov.cn',
 				'official_site': 'http://www.jsgsj.gov.cn:58888/province/',
 				'get_checkcode': 'http://www.jsgsj.gov.cn:58888/province/rand_img.jsp?type=7',
@@ -86,7 +86,7 @@ class CrackCheckcode(object):
 		self.info.write_file_mutex.release()
 		print ckcode
 		return ckcode
-		
+
 	def crawl_check_page(self, *args, **kwargs):
 		"""爬取验证码页面，包括下载验证码图片以及破解验证码
 		:return true or false
@@ -116,7 +116,7 @@ class CrackCheckcode(object):
 				logging.error("crawl post check page failed! count number = %d\n"%(count))
 			time.sleep(random.uniform(5, 8))
 		return False
-	
+
 	def parse_post_check_page(self, page):
 		"""解析提交验证码之后的页面，提取所需要的信息，比如corp id等
 		Args:
@@ -222,7 +222,7 @@ class MyCrawler(Crawler):
 			proxy = Proxy()
 			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='jiangsu')),
 						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='jiangsu'))}
-		print 'self.proxies:', self.proxies		
+		print 'self.proxies:', self.proxies
 		# self.proxies = []
 		self.reqst = requests.Session()
 		self.reqst.headers.update({
@@ -396,7 +396,7 @@ class IndustrialPubliction(object):
 		# tds = []
 		# self.info.result_json = self.parser.get_result_json_for_classic_dict_info(json.loads(page).get('items'), ths=ths, tds=tds)
 		# print self.info.result_json
-		
+
 
 	# 动产抵押登记信息
 	def get_movable_property_register_info(self, *args, **kwargs):
@@ -484,12 +484,12 @@ class EnterprisePubliction(object):
 		tds = []
 		self.info.result_json['ind_comm_pub_reg_shareholder_detail'] = self.parser.get_result_json_for_corporate_annual_reports_info(json.loads(page), ths=ths, tds=tds)
 		# print self.info.result_json
-		
+
 	# 股东及出资信息
 	def get_shareholder_contribution_info(self, *args, **kwargs):
 		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/nbServlet.json?nbEnter=true',data=self.info.enterprise_shorehold_and_give_info_post_data)
 		# print page
-		
+
 
 	# 股权变更信息
 	def get_equity_change_info(self, *args, **kwargs):
@@ -535,7 +535,7 @@ class EnterprisePubliction(object):
 		self.get_intellectual_property_rights_pledge_registration_info()
 		self.get_administrative_punishment_info()
 		pass
-		
+
 # 爬取其他部门公示信息类
 class OtherDepartmentsPubliction(object):
 	def __init__(self, info=None, crawler=None, parser=None, *args, **kwargs):
@@ -544,7 +544,7 @@ class OtherDepartmentsPubliction(object):
 		self.parser = parser
 	# 行政许可信息
 	def get_administrative_licensing_info(self, *args, **kwargs):
-		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/manyCommonFnQueryServlet.json?query_xingzhengxuke=true', 
+		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/manyCommonFnQueryServlet.json?query_xingzhengxuke=true',
 													data=self.info.other_administrative_licensing_info_past_data)
 		# print page
 		ths = [u'序号', u'行政文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'许可机关', u'许可内容', u'登记状态', u'项目名称', u'详情']
@@ -553,7 +553,7 @@ class OtherDepartmentsPubliction(object):
 		# print self.info.result_json
 	# 行政处罚信息
 	def get_administrative_punishment_info(self, *args, **kwargs):
-		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/manyCommonFnQueryServlet.json?query_xingzhengchufa=true', 
+		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/manyCommonFnQueryServlet.json?query_xingzhengchufa=true',
 													data=self.info.other_administrative_licensing_info_past_data)
 		# print page
 		ths = [u'序号', u'处罚决定书文号', u'违法行为类型', u'处罚种类', u'处罚事由', u'处罚机关', u'处罚决定书签发日期', u'登记状态']
@@ -561,7 +561,7 @@ class OtherDepartmentsPubliction(object):
 		self.info.result_json['other_dept_pub_administration_sanction'] = self.parser.get_result_json_for_classic_dict_info(json.loads(page).get('items'), ths=ths, tds=tds)
 		# print self.info.result_json
 	def get_major_tax_list_info(self, *args, **kwargs):
-		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/manyCommonFnQueryServlet.json?majorTaxList=true', 
+		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/manyCommonFnQueryServlet.json?majorTaxList=true',
 													data=self.info.other_administrative_licensing_info_past_data)
 		# print page
 		ths = [u'序号', u'案件性质', u'主要违法事实', u'实施检查的单位', u'详情']
@@ -573,7 +573,7 @@ class OtherDepartmentsPubliction(object):
 		self.get_administrative_licensing_info()
 		self.get_administrative_punishment_info()
 		pass
-		
+
 # 爬取司法协助公示信息类
 class JudicialAssistancePubliction(object):
 	def __init__(self, info=None, crawler=None, parser=None, *args, **kwargs):
@@ -583,7 +583,7 @@ class JudicialAssistancePubliction(object):
 	# 股权冻结信息
 	def get_equity_freeze_info(self, *args, **kwargs):
 		self.info.industrial_change_info_post_data['propertiesName']="gqdjList"
-		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true', 
+		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true',
 													data=self.info.industrial_change_info_post_data)
 		# print page
 		ths = [u'序号', u'被执行人', u'股权数额', u'执行法院', u'协助公示通知书文号', u'状态', u'详情']
@@ -594,7 +594,7 @@ class JudicialAssistancePubliction(object):
 	# 股东变更信息
 	def get_shareholders_change_info(self, *args, **kwargs):
 		self.info.industrial_change_info_post_data['propertiesName']="gdbgList"
-		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true', 
+		page = self.crawler.crawl_page_by_url_post('http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true',
 													data=self.info.industrial_change_info_post_data)
 		# print page
 		ths = [u'序号', u'被执行人', u'股权数额', u'受让人', u'执行法院', u'详情']
@@ -622,7 +622,7 @@ class JiangsuCrawler(object):
 			write_type = 'a'
 		with codecs.open(path, write_type, 'utf-8') as f:
 			f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-	
+
 	def run(self, ent_number=None, *args, **kwargs):
 		start_time = time.time()
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler)
@@ -632,7 +632,7 @@ class JiangsuCrawler(object):
 			return
 		end_time = time.time()
 		print '-------------------------crack_spend_time:%s--------------' % (end_time - start_time)
-		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('a'):
+		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('a')[0:3]:
 			# print item_page
 			print self.info.ent_number
 			self.info.result_json = {}
@@ -651,13 +651,13 @@ class JiangsuCrawler(object):
 			print {self.info.ent_number: self.info.result_json}
 			self.info.result_json_list.append( {self.info.ent_number: self.info.result_json})
 
-		return self.info.result_json_list
+		return json.dumps(self.info.result_json_list)
 
 			# self.json_dump_to_file('jiangsu.json', {self.info.ent_number: self.info.result_json})
-		
+
 
 class TestJiangsuCrawler(unittest.TestCase):
-	
+
 	def setUp(self):
 		self.info = InitInfo()
 		self.crawler = MyCrawler(info=self.info)

@@ -7,39 +7,26 @@ import time
 import re
 import random
 import threading
-import unittest
 from bs4 import BeautifulSoup
-from crawler import Crawler
-from crawler import Parser
-from crawler import CrawlerUtils
-import types
-import urlparse
 import json
-
-from . import settings
-from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
 
+from enterprise.libs.CaptchaRecognition import CaptchaRecognition
+from crawler import Crawler
+from crawler import Parser
+import traceback
 
-class GansuClawer(Crawler):
+from common_func import get_proxy
+
+class GansuCrawler(Crawler):
     """甘肃工商公示信息网页爬虫
     """
-    # html数据的存储路径
-    html_restore_path = settings.json_restore_path + '/gansu/'
-
-    # 验证码图片的存储路径
-    ckcode_image_path = settings.json_restore_path + '/gansu/ckcode.jpg'
-
-    # 验证码文件夹
-    ckcode_image_dir_path = settings.json_restore_path + '/gansu/'
     code_cracker = CaptchaRecognition('gansu')
-    # 查询页面
-    # search_page = html_restore_path + 'search_page.html'
-
     # 多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    urls = {'host': 'http://www.nmgs.gov.cn:7001/aiccips',
+    urls = {'host': 'http://xygs.gsaic.gov.cn/',
+            'main' : "http://xygs.gsaic.gov.cn/gsxygs/main.jsp",
             'get_checkcode': 'http://xygs.gsaic.gov.cn/gsxygs/securitycode.jpg?',
             'post_checkCode': 'http://xygs.gsaic.gov.cn/gsxygs/pub!list.do',
             'post_all_page': 'http://xygs.gsaic.gov.cn/gsxygs/pub!view.do',
@@ -54,88 +41,147 @@ class GansuClawer(Crawler):
              需要在写入文件的时候加锁
         Returns:
         """
-        self.json_restore_path = json_restore_path
-        self.parser = GansuParser(self)
-
+        # super(GansuCrawler, self).__init__()
         self.reqst = requests.Session()
         self.reqst.headers.update({
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+                'Connection':"keep-alive",
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+        self.json_restore_path = json_restore_path
+        # html数据的存储路径
+        self.html_restore_path = self.json_restore_path + '/gansu/'
+
+        # 验证码图片的存储路径
+        self.ckcode_image_path = self.json_restore_path + '/gansu/ckcode.jpg'
+
+        # 验证码文件夹
+        self.ckcode_image_dir_path = self.json_restore_path + '/gansu/'
+        self.parser = GansuParser(self)
+
         self.method = None
         self.pripid = None
-        self.json_dict = {}
         self.ent_number = None
+        self.timeout = (30,20)
+        self.proxies = get_proxy('gansu')
 
-    def run(self, ent_number=0):
-        crawler = GansuClawer('./enterprise_crawler/gansu/gansu.json')
-
-        crawler.ent_number = str(ent_number)
+    def run(self, ent_number):
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
+        self.ent_number = str(ent_number)
         # 对每个企业都指定一个html的存储目录
-        # self.html_restore_path = self.html_restore_path + crawler.ent_number + '/'
-        # if settings.save_html and not os.path.exists(self.html_restore_path):
-        #     CrawlerUtils.make_dir(self.html_restore_path)
+        # self.html_restore_path = self.html_restore_path + self.ent_number + '/'
+        # if self.save_html and not os.path.exists(self.html_restore_path):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
+        if self.proxies:
+            print self.proxies
+            self.reqst.proxies = self.proxies
+        if not self.crawl_check_page():
+            logging.error('crack check code failed, stop to crawl enterprise %s' % self.ent_number)
+            return json.dumps([{self.ent_number: None}])
 
-        crawler.json_dict = {}
+        sub_json_list = []
+        for ent, data in self.ents.items():
+            self.json_dict={}
+            self.regno= data['regno']
+            self.entcate = data['entcate']
+            self.main_page()
+            sub_json_list.append({ent: self.json_dict})
+        return json.dumps(sub_json_list)
 
-        page = crawler.crawl_check_page()
+    def main_page():
+        page = self.crawl_ind_comm_pub_pages()
         if page is None:
-            logging.error(
-                'According to the registration number does not search to the company %s' % self.ent_number)
             return False
-        page = crawler.crawl_ind_comm_pub_pages()
-        if page is None:
+        if not self.parse_search_page(page):
             return False
-        if not crawler.parser.parse_search_page(page):
-            return False
-        crawler.parser.parse_ind_comm_pub_basic_pages(page)
-        crawler.parser.parse_ind_comm_pub_arch_pages(page)
-        crawler.parser.parse_ind_comm_pub_movable_property_reg_pages(page)
-        crawler.parser.parse_ind_comm_pub_equity_ownership_reg_pages(page)
-        crawler.parser.parse_ind_comm_pub_administration_sanction_pages(page)
-        crawler.parser.parse_ind_comm_pub_business_exception_pages(page)
-        crawler.parser.parse_ind_comm_pub_serious_violate_law_pages(page)
-        crawler.parser.parse_ind_comm_pub_spot_check_pages(page)
-        page = crawler.crawl_ent_pub_ent_pages()
-        crawler.parser.parse_ent_pub_shareholder_capital_contribution_pages(page)
-        crawler.parser.parse_ent_pub_ent_annual_report_pages(page)
-        crawler.parser.parse_ent_pub_administration_license_pages(page)
-        crawler.parser.parse_ent_pub_administration_sanction_pages(page)
-        crawler.parser.parse_ent_pub_equity_change_pages(page)
-        crawler.parser.parse_ent_pub_knowledge_property_pages(page)
-        page = crawler.crawl_judical_assist_pub_pages()
-        crawler.parser.parse_judical_assist_pub_equity_freeze_pages(page)
-        crawler.parser.parse_judical_assist_pub_shareholder_modify_pages(page)
+        self.parser.parse_ind_comm_pub_basic_pages(page)
+        self.parser.parse_ind_comm_pub_arch_pages(page)
+        self.parser.parse_ind_comm_pub_movable_property_reg_pages(page)
+        self.parser.parse_ind_comm_pub_equity_ownership_reg_pages(page)
+        self.parser.parse_ind_comm_pub_administration_sanction_pages(page)
+        self.parser.parse_ind_comm_pub_business_exception_pages(page)
+        self.parser.parse_ind_comm_pub_serious_violate_law_pages(page)
+        self.parser.parse_ind_comm_pub_spot_check_pages(page)
+        page = self.crawl_ent_pub_ent_pages()
+        self.parser.parse_ent_pub_shareholder_capital_contribution_pages(page)
+        self.parser.parse_ent_pub_ent_annual_report_pages(page)
+        self.parser.parse_ent_pub_administration_license_pages(page)
+        self.parser.parse_ent_pub_administration_sanction_pages(page)
+        self.parser.parse_ent_pub_equity_change_pages(page)
+        self.parser.parse_ent_pub_knowledge_property_pages(page)
+        page = self.crawl_judical_assist_pub_pages()
+        self.parser.parse_judical_assist_pub_equity_freeze_pages(page)
+        self.parser.parse_judical_assist_pub_shareholder_modify_pages(page)
 
-        return json.dumps({ent_number: crawler.json_dict })
-        # 采用多线程，在写入文件时需要注意加锁
-        # self.write_file_mutex.acquire()
-        # CrawlerUtils.json_dump_to_file(self.json_restore_path, {crawler.ent_number: crawler.json_dict})
-        # self.write_file_mutex.release()
-        # return True
+    def parse_search_page(self, page):
+        soup = BeautifulSoup(page, "html5lib")
+        li_div = soup.find('div', {'id': 'leftTabs'})
+        li = li_div.find_all('li')[2]
+        if li is None:
+            return False
+        url = li.get('onclick')
+        if url is None:
+            return False
+        self.pripid = str(url).split("','")[1]
+        return True
+
+    def analyze_showInfo(self, page):
+        soup = BeautifulSoup(page, "html5lib")
+        divs = soup.find_all('div', attrs={'class':'list'})
+        if divs:
+            count = 0
+            Ent={}
+            for div in divs:
+                count+= 1
+                data={}
+                ent=""
+                link = div.find('li')
+                if link and link.find('a') and link.find('a').has_attr('id'):
+                    data['regno']=link.find('a')['id']
+                if link and link.find('a') and link.find('a').has_attr('_entcate'):
+                    data['entcate'] = link.find('a')['_entcate']
+                profile = link.find_next_sibling()
+                if profile and profile.span:
+                    ent = profile.span.get_text().strip()
+                name = link.find('a').get_text().strip()
+
+                if name == self.ent_number or ent == self.ent_number:
+                    Ent.clear()
+                    Ent[ent] = data
+                    break
+                Ent[ent] = data
+                if count == 3:
+                    break
+            self.ents = Ent
+            return True
+        return False
 
     def crawl_check_page(self):
         """爬取验证码页面，包括下载验证码图片以及破解验证码
         :return true or false
         """
+        self.reqst.get(GansuCrawler.urls['main'], timeout=self.timeout)
+        logging.error(self.reqst.cookies)
         count = 0
-        while count < 30:
-            ck_code = self.crack_check_code()
-            data = {'browse': '', 'loginName': '输入注册号/统一代码点击搜索', 'cerNo': '', 'authCode': '', 'authCodeQuery': ck_code,
+        while count < 5:
+            count += 1
+            ck_code = self.crack_checkcode()
+            # 'browse': '', 'loginName': '输入注册号/统一代码点击搜索', 'cerNo': '', 'authCode': '',
+            data = {'authCodeQuery': ck_code,
                     'queryVal': self.ent_number}
-            resp = self.reqst.post(GansuClawer.urls['post_checkCode'], data=data)
+            resp = self.reqst.post(GansuCrawler.urls['post_checkCode'], data=data,timeout=self.timeout)
 
             if resp.status_code != 200:
                 logging.error("crawl post check page failed!")
-                count += 1
+                time.sleep(random.uniform(1, 3))
                 continue
-            return resp.content
-        return None
+            if self.analyze_showInfo(resp.content):
+                return True
+            time.sleep(random.uniform(1, 3))
+        return False
 
-    def crack_check_code(self):
+    def crack_checkcode(self):
         """破解验证码
         :return 破解后的验证码
         """
@@ -143,31 +189,25 @@ class GansuClawer(Crawler):
         params = {}
         params['v'] = times
 
-        resp = self.reqst.get(GansuClawer.urls['get_checkcode'], params=params)
+        resp = self.reqst.get(GansuCrawler.urls['get_checkcode'], params=params,timeout=self.timeout)
         if resp.status_code != 200:
             logging.error('failed to get get_checkcode')
             return None
-        time.sleep(random.uniform(0.1, 0.2))
+        time.sleep(random.uniform(0.1, 1))
         self.write_file_mutex.acquire()
         if not path.isdir(self.ckcode_image_dir_path):
             os.makedirs(self.ckcode_image_dir_path)
         with open(self.ckcode_image_path, 'wb') as f:
             f.write(resp.content)
-
-        # Test
-        # with open(self.ckcode_image_dir_path + 'image' + str(i) + '.jpg', 'wb') as f:
-        #     f.write(resp.content)
-
         try:
             ckcode = self.code_cracker.predict_result(self.ckcode_image_path)
-            # ckcode = self.code_cracker.predict_result(self.ckcode_image_dir_path + 'image' + str(i) + '.jpg')
         except Exception as e:
             logging.warn('exception occured when crack checkcode')
             ckcode = ('', '')
-        finally:
-            pass
-        self.write_file_mutex.release()
 
+        self.write_file_mutex.release()
+        print ckcode[0].encode('utf8')
+        print ckcode[1]
         return ckcode[1]
 
     def crawl_page_by_post_data(self, data, name='detail.html', url=None):
@@ -175,23 +215,21 @@ class GansuClawer(Crawler):
         通过传入不同的参数获得不同的页面
         """
         if url is None:
-            resp = self.reqst.post(GansuClawer.urls['post_all_page'], data=data)
+            resp = self.reqst.post(GansuCrawler.urls['post_all_page'], data=data,timeout=self.timeout)
         else:
-            resp = self.reqst.post(url, data=data)
+            resp = self.reqst.post(url, data=data,timeout=self.timeout)
         if resp.status_code != 200:
-            logging.error('crawl page by url failed! url = %s' % GansuClawer.urls['post_all_page'])
+            logging.error('crawl page by url failed! url = %s' % GansuCrawler.urls['post_all_page'])
         page = resp.content
         time.sleep(random.uniform(0.1, 0.3))
-        # if saveingtml:
-        #     CrawlerUtils.save_page_to_file(self.html_restore_path + name, page)
         return page
 
     def crawl_ind_comm_pub_pages(self):
         """爬取工商基本公示信息
         """
         data = {}
-        data['regno'] = self.ent_number
-        data['entcate'] = 'compan'
+        data['regno'] = self.regno
+        data['entcate'] = self.entcate
         page = self.crawl_page_by_post_data(data)
         return page
 
@@ -200,9 +238,9 @@ class GansuClawer(Crawler):
             企业年报
         """
         data = {}
-        data['regno'] = self.ent_number
+        data['regno'] = self.regno
         data['pripid'] = self.pripid
-        data['entcate'] = 'compan'
+        data['entcate'] = self.entcate
         url = 'http://xygs.gsaic.gov.cn/gsxygs/pub!viewE.do'
         page = self.crawl_page_by_post_data(data=data, url=url)
         return page
@@ -212,9 +250,9 @@ class GansuClawer(Crawler):
             司法协助-股权冻结
         """
         data = {}
-        data['regno'] = self.ent_number
+        data['regno'] = self.regno
         data['pripid'] = self.pripid
-        data['entcate'] = 'compan'
+        data['entcate'] = self.entcate
         url = 'http://xygs.gsaic.gov.cn/gsxygs/pub!viewS.do'
         page = self.crawl_page_by_post_data(data=data, url=url)
         return page
@@ -227,17 +265,6 @@ class GansuParser(Parser):
     def __init__(self, crawler):
         self.crawler = crawler
 
-    def parse_search_page(self, page):
-        soup = BeautifulSoup(page, "html5lib")
-        li_div = soup.find('div', {'id': 'leftTabs'})
-        li = li_div.find_all('li')[2]
-        if li is None:
-            return False
-        url = li.get('onclick')
-        if url is None:
-            return False
-        self.crawler.pripid = str(url).split("','")[1]
-        return True
 
     def parse_ind_comm_pub_basic_pages(self, page):
         """解析工商基本公示信息-页面
@@ -311,7 +338,7 @@ class GansuParser(Parser):
                     detail_data['pripid'] = self.crawler.pripid
                     detail_data['regno'] = self.crawler.ent_number
                     detail_url = 'http://xygs.gsaic.gov.cn/gsxygs/pub!getDetails.do'
-                    detail_page = self.crawler.reqst.get(detail_url, params=detail_data)
+                    detail_page = self.crawler.reqst.get(detail_url, params=detail_data,timeout=self.timeout)
                     if detail_page.status_code != 200:
                         i += 1
                         continue
@@ -693,7 +720,7 @@ class GansuParser(Parser):
                 detail_data['pripid'] = self.crawler.pripid
                 detail_data['regno'] = self.crawler.ent_number
                 detail_url = 'http://xygs.gsaic.gov.cn/gsxygs/pub!getDetails.do'
-                detail_page = self.crawler.reqst.get(detail_url, params=detail_data)
+                detail_page = self.crawler.reqst.get(detail_url, params=detail_data,timeout=self.timeout)
                 if detail_page.status_code != 200:
                     j += 1
                     continue
@@ -1150,33 +1177,3 @@ class GansuParser(Parser):
                 detail_shareholder_modify_infoes.append(detail_shareholder_modify_info)
                 i += 1
         self.crawler.json_dict['judical_assist_pub_shareholder_modify'] = detail_shareholder_modify_infoes
-
-
-class TestParser(unittest.TestCase):
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        self.crawler = GansuClawer('./enterprise_crawler/gansu.json')
-        self.parser = self.crawler.parser
-        self.crawler.json_dict = {}
-        self.crawler.ent_number = '152704000000508'
-
-    def test_crawl_check_page(self):
-        isOK = self.crawler.crawl_check_page()
-        self.assertEqual(isOK, True)
-
-"""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-
-    run.config_logging()
-    GansuClawer.code_cracker = CaptchaRecognition('gansu')
-    crawler = GansuClawer('./enterprise_crawler/gansu/gansu.json')
-    enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/gansu.txt')
-    i = 0
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        logging.info(
-            '############   Start to crawl enterprise with id %s   ################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""

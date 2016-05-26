@@ -7,33 +7,23 @@ import time
 import re
 import random
 import threading
-import unittest
 from bs4 import BeautifulSoup
 from crawler import Crawler
 from crawler import Parser
-from crawler import CrawlerUtils
 import types
 import urlparse
 import json
-
-from enterprise.libs.proxies import Proxies
-from . import settings
-from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
-from enterprise.libs.proxies import Proxies
 
+from enterprise.libs.CaptchaRecognition import CaptchaRecognition
+from common_func import get_proxy, exe_time
+
+import traceback
 
 class JiangxiCrawler(Crawler):
     """甘肃工商公示信息网页爬虫
     """
-    # html数据的存储路径
-    html_restore_path = settings.json_restore_path + '/jiangxi/'
 
-    # 验证码图片的存储路径
-    ckcode_image_path = settings.json_restore_path + '/jiangxi/ckcode.jpg'
-
-    # 验证码文件夹
-    ckcode_image_dir_path = settings.json_restore_path + '/jiangxi/'
     code_cracker = CaptchaRecognition('jiangxi')
     # 查询页面
     # search_page = html_restore_path + 'search_page.html'
@@ -42,7 +32,8 @@ class JiangxiCrawler(Crawler):
     write_file_mutex = threading.Lock()
     urls = {'host': 'http://gsxt.jxaic.gov.cn',
             'main': 'http://gsxt.jxaic.gov.cn/ECPS/',
-            'get_checkcode': 'http://gsxt.jxaic.gov.cn/ECPS/verificationCode.jsp?',
+            # 'get_checkcode': 'http://gsxt.jxaic.gov.cn/ECPS/verificationCode.jsp?',
+            'get_checkcode': "http://gsxt.jxaic.gov.cn:80/ECPS/common/common_getJjYzmImg.pt?yzmName=searchYzm&imgWidth=180&t=" + str(random.random()),
             'post_checkCode': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_checkVerificationCode.action?',
             'post_checkCode2': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_queryXyxx.action?',
             'ind_comm_pub_reg_basic': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_initQyjbqk.action?',
@@ -86,115 +77,86 @@ class JiangxiCrawler(Crawler):
              需要在写入文件的时候加锁
         Returns:
         """
+        super(JiangxiCrawler, self).__init__()
         self.json_restore_path = json_restore_path
-        self.parser = JiangxiParser(self)
+        # html数据的存储路径
+        self.html_restore_path = self.json_restore_path + '/jiangxi/'
 
-        self.reqst = requests.Session()
-        self.reqst.headers.update({
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
-        self.json_dict = {}
-        p = Proxies()
-        # p.filename = "/Users/princetechs5/crawler/nice-clawer/clawer/enterprise/libs/proxies/1457663081"
-        self.proxies = p.get_proxies()
-        self.timeout = 30
+        # 验证码图片的存储路径
+        self.ckcode_image_path = self.json_restore_path + '/jiangxi/ckcode.jpeg'
+        self.parser = JiangxiParser(self)
+        self.proxies = get_proxy('jiangxi')
+        self.timeout = (30,20)
         self.ent_number = None
         self.results = None
-        p = Proxies()
-        self.proxies = p.get_proxies()
 
-    def run(self, ent_number=0):
-        crawler = JiangxiCrawler('./enterprise_crawler/jiangxi/jiangxi.json')
 
-        crawler.ent_number = str(ent_number)
+    def run(self, ent_number):
+        self.ent_number = str(ent_number)
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
+        if self.proxies:
+            print self.proxies
+            self.reqst.proxies = self.proxies
 
-        crawler.json_dict = {}
         # get main page
-        resp = self.reqst.get(JiangxiCrawler.urls['main'], proxies= self.proxies, timeout= 20)
+        resp = self.reqst.get(JiangxiCrawler.urls['main'], timeout=self.timeout)
         if resp.status_code != 200:
             logging.error('failed to get main page')
             return None
-        page = crawler.crawl_check_page()
-        if page is None:
-            logging.error(
-                'According to the registration number does not search to the company %s' % self.ent_number)
-            return False
-        crawler.results = crawler.parser.parse_search_page(page)
-        if crawler.results is None:
-            return False
-        page = crawler.crawl_ind_comm_pub_reg_basic_pages()
-        crawler.parser.parse_ind_comm_pub_basic_pages(page)
-        page = crawler.crawl_ind_comm_pub_reg_shareholder_pages()
-        crawler.parser.parse_ind_comm_pub_reg_shareholderes_pages(page)
-        page = crawler.crawl_ind_comm_pub_reg_modify_pages()
-        crawler.parser.parse_ind_comm_pub_reg_modify_pages(page)
-        page = crawler.crawl_ind_comm_pub_arch_key_persons_pages()
-        crawler.parser.parse_ind_comm_pub_arch_key_persons_pages(page)
-        page = crawler.crawl_ind_comm_pub_arch_branch_pages()
-        crawler.parser.parse_ind_comm_pub_arch_branch_pages(page)
-        # page = crawler.crawl_ind_comm_pub_arch_liquidation_pages()
-        page = crawler.crawl_ind_comm_pub_movable_property_reg_pages()
-        crawler.parser.parse_ind_comm_pub_movable_property_reg_pages(page)
-        page = crawler.crawl_ind_comm_pub_equity_ownership_reg_pages()
-        crawler.parser.parse_ind_comm_pub_equity_ownership_reg_pages(page)
-        page = crawler.crawl_ind_comm_pub_administration_sanction_pages()
-        crawler.parser.parse_ent_pub_administration_sanction_pages(page)
-        page = crawler.crawl_ind_comm_pub_business_exception_pages()
-        crawler.parser.parse_ind_comm_pub_business_exception_pages(page)
-        page = crawler.crawl_ind_comm_pub_serious_violate_law_pages()
-        crawler.parser.parse_ind_comm_pub_serious_violate_law_pages(page)
-        page = crawler.crawl_ind_comm_pub_spot_check_pages()
-        crawler.parser.parse_ind_comm_pub_spot_check_pages(page)
-        page = crawler.crawl_ent_pub_ent_annual_report_pages()
-        crawler.parser.parse_ent_pub_ent_annual_report_pages(page)
-        page = crawler.crawl_ent_pub_shareholder_capital_contribution_pages()
-        crawler.parser.parse_ent_pub_shareholder_capital_contribution_pages(page)
-        page = crawler.crawl_ent_pub_equity_change_pages()
-        crawler.parser.parse_ent_pub_equity_change_pages(page)
-        page = crawler.crawl_ent_pub_administration_license_pages()
-        crawler.parser.parse_ent_pub_administration_license_pages(page)
-        page = crawler.crawl_ent_pub_knowledge_property_pages()
-        crawler.parser.parse_ent_pub_knowledge_property_pages(page)
-        page = crawler.crawl_ent_pub_administration_sanction_pages()
-        crawler.parser.parse_ent_pub_administration_sanction_pages(page)
-        page = crawler.crawl_ent_pub_reg_modify_pages()
-        crawler.parser.parse_ent_pub_reg_modify_pages(page)
-        page = crawler.crawl_other_dept_pub_administration_license_pages()
-        crawler.parser.parse_other_dept_pub_administration_license_pages(page)
-        page = crawler.crawl_other_dept_pub_administration_sanction_pages()
-        crawler.parser.parse_other_dept_pub_administration_sanction_pages(page)
-        page = crawler.crawl_judical_assist_pub_equity_freeze_pages()
-        crawler.parser.parse_judical_assist_pub_equity_freeze_pages(page)
-        page = crawler.crawl_judical_assist_pub_shareholder_modify_pages()
-        crawler.parser.parse_judical_assist_pub_shareholder_modify_pages(page)
-        return json.dumps({ ent_number: crawler.json_dict})
-        # 采用多线程，在写入文件时需要注意加锁
-        # self.write_file_mutex.acquire()
-        # CrawlerUtils.json_dump_to_file(self.json_restore_path, {crawler.ent_number: crawler.json_dict})
-        # self.write_file_mutex.release()
-        # return True
+        return Crawler.run(self, self.ent_number)
 
-    def crawl_check_page(self):
+
+    def analyze_showInfo(self, page):
+        soup = BeautifulSoup(page, "html5lib")
+        dl = soup.find('dl', attrs={'id':'qyList'})
+        if not dl:
+            return False
+        divs = dl.find_all('div', {'style':'padding-top: 8px; font-size:14px;'})
+        if divs:
+            count = 0
+            Ent={}
+            for div in divs:
+                count+= 1
+                url=""
+                ent=""
+                link = div.find('a')
+                if link and link.has_attr('href'):
+                    url = link.find('a')['href']
+                profile = div.find('span')
+                if profile :
+                    ent = profile.get_text().strip()
+                name = link.get_text().strip()
+                if name == self.ent_number or ent == self.ent_number:
+                    Ent.clear()
+                    Ent[ent] = url
+                    break
+                Ent[ent] = url
+                if count == 3:
+                    break
+            self.ents = Ent
+            return True
+        return False
+
+    def crawl_check_page(self, *args, **kwargs):
         """爬取验证码页面，包括下载验证码图片以及破解验证码
         :return true or false
         """
         count = 0
-        while count < 15:
-            ck_code = self.crack_check_code(count)
+        while count < 5:
+            count += 1
+            ck_code = self.crack_checkcode()
+
             data = {'password': ck_code}
-            resp = self.reqst.post(JiangxiCrawler.urls['post_checkCode'], data=data, proxies = self.proxies, timeout= 20)
+            resp = self.reqst.post(JiangxiCrawler.urls['post_checkCode'], data=data, timeout=self.timeout)
             if resp.status_code != 200:
                 logging.error("crawl post check page failed!")
-                count += 1
                 continue
             message_json = resp.content
             message = json.loads(str(message_json))
             if message.get('message') not in 'ok':
-                count += 1
+                logging.error('message is not ok')
+                time.sleep(random.uniform(1, 3))
                 continue
             search_data = {}
             search_data['isEntRecord'] = ''
@@ -209,14 +171,17 @@ class JiangxiCrawler(Crawler):
             search_data['otherLoginInfo.password'] = ''
             search_data['otherLoginInfo.verificationCode'] = ''
             search_data['selectValue'] = self.ent_number
-            resp = self.reqst.post(JiangxiCrawler.urls['post_checkCode2'], data=search_data, proxies= self.proxies, timeout = 20)
+            resp = self.reqst.post(JiangxiCrawler.urls['post_checkCode2'], data=search_data, timeout=self.timeout)
             if resp.status_code != 200:
-                count -= 1
+                logging.error('message is not ok')
+                time.sleep(random.uniform(1, 3))
                 continue
-            return resp.content
-        return None
+            if self.analyze_showInfo(resp.content):
+                return True
+            time.sleep(random.uniform(1, 3))
+        return False
 
-    def crack_check_code(self, count=None):
+    def crack_checkcode(self, *args, **kwargs):
         """破解验证码
         :return 破解后的验证码
         """
@@ -224,48 +189,94 @@ class JiangxiCrawler(Crawler):
         params = {}
         params['_'] = times
 
-        resp = self.reqst.get(JiangxiCrawler.urls['get_checkcode'], params=params, proxies= self.proxies, timeout= 20)
-        print 'image code', str(resp.status_code)
+        resp = self.reqst.get(JiangxiCrawler.urls['get_checkcode'], params=params, timeout=self.timeout)
         if resp.status_code != 200:
             logging.error('failed to get get_checkcode')
             return None
         time.sleep(random.uniform(0.1, 1))
         self.write_file_mutex.acquire()
-        if not path.isdir(self.ckcode_image_dir_path):
-            os.makedirs(self.ckcode_image_dir_path)
+
         with open(self.ckcode_image_path, 'wb') as f:
             f.write(resp.content)
-        if count is not None:
-            with open(self.ckcode_image_dir_path + 'ckcode' + str(count) + '.jpg', 'wb') as f:
-                f.write(resp.content)
-        # Test
-        # with open(self.ckcode_image_dir_path + 'image' + str(i) + '.jpg', 'wb') as f:
-        #     f.write(resp.content)
 
         try:
             ckcode = self.code_cracker.predict_result(self.ckcode_image_path)
-            # ckcode = self.code_cracker.predict_result(self.ckcode_image_dir_path + 'image' + str(i) + '.jpg')
         except Exception as e:
             logging.warn('exception occured when crack checkcode')
             ckcode = ('', '')
         finally:
             pass
         self.write_file_mutex.release()
-
+        print ckcode
         return ckcode[1]
+
+    def crawl_ind_comm_pub_pages(self, *args, **kwargs):
+        page = self.crawl_ind_comm_pub_reg_basic_pages()
+        self.parser.parse_ind_comm_pub_basic_pages(page)
+        page = self.crawl_ind_comm_pub_reg_shareholder_pages()
+        self.parser.parse_ind_comm_pub_reg_shareholderes_pages(page)
+        page = self.crawl_ind_comm_pub_reg_modify_pages()
+        self.parser.parse_ind_comm_pub_reg_modify_pages(page)
+        page = self.crawl_ind_comm_pub_arch_key_persons_pages()
+        self.parser.parse_ind_comm_pub_arch_key_persons_pages(page)
+        page = self.crawl_ind_comm_pub_arch_branch_pages()
+        self.parser.parse_ind_comm_pub_arch_branch_pages(page)
+        # page = self.crawl_ind_comm_pub_arch_liquidation_pages()
+        page = self.crawl_ind_comm_pub_movable_property_reg_pages()
+        self.parser.parse_ind_comm_pub_movable_property_reg_pages(page)
+        page = self.crawl_ind_comm_pub_equity_ownership_reg_pages()
+        self.parser.parse_ind_comm_pub_equity_ownership_reg_pages(page)
+        page = self.crawl_ind_comm_pub_administration_sanction_pages()
+        self.parser.parse_ent_pub_administration_sanction_pages(page)
+        page = self.crawl_ind_comm_pub_business_exception_pages()
+        self.parser.parse_ind_comm_pub_business_exception_pages(page)
+        page = self.crawl_ind_comm_pub_serious_violate_law_pages()
+        self.parser.parse_ind_comm_pub_serious_violate_law_pages(page)
+        page = self.crawl_ind_comm_pub_spot_check_pages()
+        self.parser.parse_ind_comm_pub_spot_check_pages(page)
+
+    def crawl_ent_pub_pages(self, *args, **kwargs):
+        page = self.crawl_ent_pub_ent_annual_report_pages()
+        self.parser.parse_ent_pub_ent_annual_report_pages(page)
+        page = self.crawl_ent_pub_shareholder_capital_contribution_pages()
+        self.parser.parse_ent_pub_shareholder_capital_contribution_pages(page)
+        page = self.crawl_ent_pub_equity_change_pages()
+        self.parser.parse_ent_pub_equity_change_pages(page)
+        page = self.crawl_ent_pub_administration_license_pages()
+        self.parser.parse_ent_pub_administration_license_pages(page)
+        page = self.crawl_ent_pub_knowledge_property_pages()
+        self.parser.parse_ent_pub_knowledge_property_pages(page)
+        page = self.crawl_ent_pub_administration_sanction_pages()
+        self.parser.parse_ent_pub_administration_sanction_pages(page)
+        page = self.crawl_ent_pub_reg_modify_pages()
+        self.parser.parse_ent_pub_reg_modify_pages(page)
+    #     pass
+
+    def crawl_other_dept_pub_pages(self, *args, **kwargs):
+        page = self.crawl_other_dept_pub_administration_license_pages()
+        self.parser.parse_other_dept_pub_administration_license_pages(page)
+        page = self.crawl_other_dept_pub_administration_sanction_pages()
+        self.parser.parse_other_dept_pub_administration_sanction_pages(page)
+    #     pass
+
+    def crawl_judical_assist_pub_pages(self, *args, **kwargs):
+        page = self.crawl_judical_assist_pub_equity_freeze_pages()
+        self.parser.parse_judical_assist_pub_equity_freeze_pages(page)
+        page = self.crawl_judical_assist_pub_shareholder_modify_pages()
+        self.parser.parse_judical_assist_pub_shareholder_modify_pages(page)
+    #     pass
+
 
     def crawl_page_by_get_params(self, params=None, name='detail.html', url=None):
         """
         通过传入不同的参数获得不同的页面
         """
-        resp = self.reqst.get(url=url, params=params, proxies= self.proxies, timeout= 20)
+        resp = self.reqst.get(url=url, params=params, timeout=self.timeout)
         # print str(resp.status_code)
         if resp.status_code != 200:
             logging.error('crawl page by url failed! url = %s' % url)
         page = resp.content
         time.sleep(random.uniform(0.1, 0.3))
-        # if settings.save_html:
-        #     CrawlerUtils.save_page_to_file(self.html_restore_path + name, page)
         return page
 
     def crawl_ind_comm_pub_reg_basic_pages(self):
@@ -1552,37 +1563,3 @@ class JiangxiParser(Parser):
         self.crawler.json_dict['judical_assist_pub_shareholder_modify'] = detail_shareholder_modify_infoes
 
 
-class TestParser(unittest.TestCase):
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        self.crawler = JiangxiCrawler('./enterprise_crawler/jiangxi.json')
-        self.parser = self.crawler.parser
-        self.crawler.json_dict = {}
-        self.crawler.ent_number = '152704000000508'
-
-    def test_crawl_check_page(self):
-        isOK = self.crawler.crawl_check_page()
-        self.assertEqual(isOK, True)
-
-"""
-if __name__ == '__main__':
-
-    # import sys
-
-    # reload(sys)
-    # sys.setdefaultencoding("utf-8")
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-
-    #
-    run.config_logging()
-    JiangxiCrawler.code_cracker = CaptchaRecognition('ningxia')
-    crawler = JiangxiCrawler('./enterprise_crawler/jiangxi/jiangxi.json')
-    enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/jiangxi.txt')
-    # raw_input('hello')
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        print(
-            '############   Start to crawl enterprise with id %s   ################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""

@@ -80,7 +80,7 @@ class CrackCheckcode(object):
 		finally:
 			pass
 		return ckcode
-		
+
 	def crawl_check_page(self):
 		"""爬取验证码页面，包括获取验证码url，下载验证码图片，破解验证码并提交
 		"""
@@ -151,7 +151,7 @@ class CrackCheckcode(object):
 			self.info.session_token = input_tag.get('value')
 			return True
 		return False
-		
+
 	def run(self, ent_number=None):
 		self.info.ent_number = ent_number
 		print self.info.ent_number
@@ -599,7 +599,7 @@ class ShanghaiCrawler(object):
 			write_type = 'a'
 		with codecs.open(path, write_type, 'utf-8') as f:
 			f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-	
+
 	def run(self, ent_number=None, *args, **kwargs):
 		start_time = time.time()
 		self.crack = CrackCheckcode(info=self.info, crawler=self.crawler, parser=self.parser)
@@ -609,12 +609,12 @@ class ShanghaiCrawler(object):
 			return
 		end_time = time.time()
 		print '------------------------------------crack_spent_time:%s--------------------' % (end_time - start_time)
-		
+
 		self.info.result_json_list = []
 		self.info.result_json = {}
 		# print self.info.after_crack_checkcode_page
 
-		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs={'class':'list-item'}):
+		for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all('div', attrs={'class':'list-item'})[0:3]:
 
 
 			self.crack.parser.parse_post_check_page(str(item_page.find_all('a')[0]))
@@ -657,8 +657,8 @@ class ShanghaiCrawler(object):
 		# 	self.json_dump_to_file('beijing.json',  item )
 			# self.json_dump_to_file('jiangsu.json', {self.info.ent_number: self.info.result_json})
 
-		return self.info.result_json_list
-		
+		return json.dumps(self.info.result_json_list)
+
 
 class TestShanghaiCrawler(unittest.TestCase):
 	def setUp(self):

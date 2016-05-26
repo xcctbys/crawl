@@ -77,7 +77,9 @@ class ZhejiangCrawler(object):
         soup = BeautifulSoup(content, "html5lib")
         dls = soup.find_all("dl", {"class":"list"})
         if dls:
+            count = 0
             for dl in dls:
+                count += 1
                 url = ""
                 ent = ""
                 link = dl.find('dt')
@@ -90,6 +92,8 @@ class ZhejiangCrawler(object):
                 if name == self.ent_num:
                     Ent.clear()
                     Ent[ent] = url
+                    break
+                if count == 3:
                     break
                 Ent[ent] = url
         self.ents = Ent

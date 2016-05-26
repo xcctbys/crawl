@@ -116,13 +116,17 @@ class LiaoningCrawler(Crawler):
                 results = json.loads(js)
                 onclick = "openDetail('%s', '%s', '%s', '%s', '%s', '%s')"
                 Ent={}
+                count = 0
                 for item in results:
+                    count += 1
                     if item['entname'] == self._ent or item['regno']== self._ent:
                         Ent.clear()
                         Ent[item['regno']] = onclick%(item['regno'], item['enttype'], item['pripid'], item['entname'], item['optstate'], 'undefined')
                         break
                     else:
                         Ent[item['regno']] = onclick%(item['regno'], item['enttype'], item['pripid'], item['entname'], item['optstate'], 'undefined')
+                    if count == 3:
+                        break
                 self.ents = Ent
                 return True
             return False
