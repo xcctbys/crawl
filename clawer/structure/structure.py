@@ -94,8 +94,8 @@ class ParserGenerator(StructureGenerator):
         try:
             print data
             print "###########################"
-            print not data and not self.null(data.response_body)
-            if not data and not self.null(data.response_body):
+            print data and not self.null(data.response_body)
+            if data and not self.null(data.response_body):
                 parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args = [data])
                 if parse_job_id == None:
                     return None
