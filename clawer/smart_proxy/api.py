@@ -5,6 +5,7 @@ import requests
 sys.path.append(os.getcwd())
 
 from smart_proxy.models import ProxyIp, IpUser
+from smart_proxy.utils.get_ip_into_my import *
 # from models import ProxyIp
 
 
@@ -157,6 +158,24 @@ class UseProxy(object):
 			# print one_province
 			return one_province[0].is_use_proxy if one_province else None                                                                                                                                               
 
+
+def getproxy_http_to_my():
+    test =PaidProxy(num=100,sortby= 'time',protocol= 'http')
+    ip_list = test.get_ipproxy()
+    read = PutIntoMy()
+    read.readLines(ip_list)
+
+
+def getproxy_https_to_my():
+    test =PaidProxy(num=100,sortby= 'time',protocol= 'https')
+    ip_list = test.get_ipproxy()
+    read = PutIntoMy()
+    read.readLines(ip_list)
+
+def proxyuser_default():
+	userproxy=UseProxy
+	userproxy.set_all_default()
+	change_use_proxy_all_province(is_use_proxy=True)
 
 		
 if __name__ == '__main__':

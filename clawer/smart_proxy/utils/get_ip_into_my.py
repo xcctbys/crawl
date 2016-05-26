@@ -190,7 +190,7 @@ if __name__ == '__main__':
     # test(choices)
     #if DEBUG:
         #unittest.main()
-    #
+    ###
     test =PaidProxy(num=100,sortby= 'time',protocol= 'http')
     ip_list = test.get_ipproxy()
     read = PutIntoMy()
