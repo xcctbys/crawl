@@ -65,10 +65,10 @@ class StructureGenerator(object):
     def get_task_source_data(self, task):
         #print task.to_json()
         task_source_data = CrawlerDownloadData.objects(crawlertask=task).first()
-        if task_source_data is None:
-            pass
-        else:
-            print task_source_data.to_json()
+        # if task_source_data is None:
+        #     pass
+        # else:
+        #     print task_source_data.to_json()
         # task_source_data = CrawlerDownloadData.objects(crawlertask=task).first()
 
         return task_source_data                        #根据uri返回爬虫的下载数据（类型）
@@ -92,6 +92,9 @@ class ParserGenerator(StructureGenerator):
 
     def assign_parse_task(self, priority, parser_function, data):
         try:
+            print data
+            print "###########################"
+            print not data and not self.null(data.response_body)
             if not data and not self.null(data.response_body):
                 parse_job_id = self.queuegenerator.enqueue(priority, parser_function, args = [data])
                 if parse_job_id == None:
