@@ -12,3 +12,6 @@
 
 # extracter
 */1    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_extracter_dispatch
+
+# ip proxy
+*/5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh roundproxyip
