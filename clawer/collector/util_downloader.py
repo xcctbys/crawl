@@ -84,7 +84,7 @@ class Download(object):
                     status=CrawlerDownloadLog.STATUS_SUCCESS,
                     requests_size=sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
                     response_size=sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
-                    failed_reason='download task succeed!',
+                    failed_reason='Download task succeed!',
                     downloads_hostname=hostname,
                     spend_time=spend_time)
                 cdl.save()
@@ -214,11 +214,12 @@ class Download(object):
                                          status=CrawlerDownloadLog.STATUS_FAIL,
                                          requests_size=0,
                                          response_size=0,
-                                         failed_reason=str(e),
+                                         failed_reason=traceback.format_exc(),
                                          downloads_hostname=str(socket.gethostname()),
                                          spend_time=spend_time)
                 cdl.save()
                 print e, 'sentry.excepterror()'
+                print "Trackback:", traceback.format_exc()
                 return
             pass
 
@@ -268,7 +269,7 @@ class Download(object):
                     status=CrawlerDownloadLog.STATUS_SUCCESS,
                     requests_size=sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
                     response_size=sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
-                    failed_reason='None',
+                    failed_reason='Download task succeed!',
                     downloads_hostname=hostname,
                     spend_time=spend_time)
                 cdl.save()
@@ -290,11 +291,12 @@ class Download(object):
                                          status=CrawlerDownloadLog.STATUS_FAIL,
                                          requests_size=0,
                                          response_size=0,
-                                         failed_reason=str(e),
+                                         failed_reason=traceback.format_exc(),
                                          downloads_hostname=str(socket.gethostname()),
                                          spend_time=spend_time)
                 cdl.save()
                 print e, 'sentry.excepterror()'
+                print "Trackback:", traceback.format_exc()
             pass
 
         elif self.crawler_download.types.language == 'curl':
@@ -333,7 +335,7 @@ class Download(object):
                     status=CrawlerDownloadLog.STATUS_SUCCESS,
                     requests_size=sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
                     response_size=sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
-                    failed_reason='None',
+                    failed_reason='Download task succeed!',
                     downloads_hostname=hostname,
                     spend_time=spend_time)
                 cdl.save()
@@ -355,11 +357,12 @@ class Download(object):
                                          status=CrawlerDownloadLog.STATUS_FAIL,
                                          requests_size=0,
                                          response_size=0,
-                                         failed_reason=str(e),
+                                         failed_reason=traceback.format_exc(),
                                          downloads_hostname=str(socket.gethostname()),
                                          spend_time=spend_time)
                 cdl.save()
                 print e, 'sentry.excepterror()'
+                print "Trackback:", traceback.format_exc()
             pass
         else:
             start_time = time.time()
@@ -418,7 +421,7 @@ class Download(object):
                     status=CrawlerDownloadLog.STATUS_SUCCESS,
                     requests_size=sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
                     response_size=sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
-                    failed_reason='None',
+                    failed_reason='Download task succeed!',
                     downloads_hostname=hostname,
                     spend_time=spend_time)
                 cdl.save()
@@ -440,11 +443,12 @@ class Download(object):
                                          status=CrawlerDownloadLog.STATUS_FAIL,
                                          requests_size=0,
                                          response_size=0,
-                                         failed_reason=str(e),
+                                         failed_reason=traceback.format_exc(),
                                          downloads_hostname=str(socket.gethostname()),
                                          spend_time=spend_time)
                 cdl.save()
                 print e, 'sentry.excepterror()'
+                print "Trackback:", traceback.format_exc()
 
 
 def force_exit(download_timeout, task):
