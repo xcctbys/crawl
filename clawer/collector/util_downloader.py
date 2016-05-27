@@ -9,7 +9,13 @@ import socket
 import json
 import threading
 import random
-from collector.models import CrawlerDownloadType, CrawlerTask, Job, CrawlerTaskGenerator, CrawlerDownloadSetting, CrawlerDownload, CrawlerDownloadData, CrawlerDownloadLog
+from collector.models import (
+    CrawlerTask,
+    CrawlerDownloadSetting,
+    CrawlerDownload,
+    CrawlerDownloadData,
+    CrawlerDownloadLog
+)
 from django.conf import settings
 from enterprise.utils import EnterpriseDownload
 
@@ -34,7 +40,8 @@ class Download(object):
         # sys.path.append('/Users/princetechs3/my_code')
         c = compile(commandstr, "", 'exec')
         exec c
-        return result
+        # TODO: Fix it
+        return None
 
     def download_with_enterprise(self):
         print 'i am come in enterprise download'
@@ -227,7 +234,7 @@ class Download(object):
                 # os.system("chmod +x %s" % filename)
                 result = commands.getstatusoutput('sh %s %s' % (filename, self.task.uri))
                 result = dict()
-                # result = json.loads(result) 
+                # result = json.loads(result)
                 # print result
 
                 end_time = time.time()
