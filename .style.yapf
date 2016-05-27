@@ -3,7 +3,3 @@ BASED_ON_STYLE = pep8
 COLUMN_LIMIT=120
 SPACES_BEFORE_COMMENT = 4
 SPLIT_BEFORE_LOGICAL_OPERATOR = true
-
-[options]
-files = baidu_cr_slice.py
-recursive = True
