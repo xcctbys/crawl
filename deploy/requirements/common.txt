@@ -27,7 +27,7 @@ eventlet
 gevent
 django-smtp-ssl
 django-smart-autoregister
-pillow==2.9.0
+Pillow
 
 #storage
 mongoengine

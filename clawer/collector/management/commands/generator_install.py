@@ -1,6 +1,5 @@
 # coding=utf-8
 
-
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.core.management import call_command
@@ -13,11 +12,11 @@ import time
 
 class Command(BaseCommand):
 
-    help =" This command is used to install generator for all jobs."
+    help = " This command is used to install generator for all jobs."
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
-        self.cron = CrawlerCronTab(filename = settings.CRON_FILE)
+        self.cron = CrawlerCronTab(filename=settings.CRON_FILE)
 
     def add_arguments(self, parser):
         # # Positional arguments
@@ -30,11 +29,10 @@ class Command(BaseCommand):
         #     help='Delete poll instead of closing it')
         pass
 
-
     @wrapper_raven
     def handle(self, *args, **options):
         print "Expected output"
         start_time = time.time()
         self.cron.task_generator_install()
         end_time = time.time()
-        print "Run time is %f s!"%(end_time - start_time)
+        print "Run time is %f s!" % (end_time - start_time)
