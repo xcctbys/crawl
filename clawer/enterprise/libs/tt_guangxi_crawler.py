@@ -13,6 +13,7 @@ from crawler import CrawlerUtils
 from bs4 import BeautifulSoup
 import time
 import codecs
+import random
 import settings
 # from . import settings
 from smart_proxy.api import Proxy, UseProxy
@@ -24,7 +25,7 @@ class GuangxiCrawler(object):
 	#html数据的存储路径
 	html_restore_path = settings.json_restore_path + '/guangxi/'
 	ckcode_image_path = settings.json_restore_path + '/guangxi/ckcode.jpg'
-	
+
 	def __init__(self, json_restore_path):
 		# self.cur_time = str(int(time.time()*1000))
 		self.id = None
@@ -51,7 +52,7 @@ class GuangxiCrawler(object):
 			proxy = Proxy()
 			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='guangxi')),
 						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='guangxi'))}
-		print 'self.proxies:', self.proxies		
+		print 'self.proxies:', self.proxies
 		# self.proxies = []
 
 		self.mydict = {'eareName':'http://gxqyxygs.gov.cn',
