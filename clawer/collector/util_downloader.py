@@ -9,6 +9,7 @@ import socket
 import json
 import threading
 import random
+import traceback
 from collector.models import (
     CrawlerTask,
     CrawlerDownloadSetting,
@@ -83,7 +84,7 @@ class Download(object):
                     status=CrawlerDownloadLog.STATUS_SUCCESS,
                     requests_size=sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
                     response_size=sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
-                    failed_reason='None',
+                    failed_reason='download task succeed!',
                     downloads_hostname=hostname,
                     spend_time=spend_time)
                 cdl.save()
@@ -102,7 +103,7 @@ class Download(object):
                                      status=CrawlerDownloadLog.STATUS_FAIL,
                                      requests_size=0,
                                      response_size=0,
-                                     failed_reason=str(e),
+                                     failed_reason=traceback.format_exc(),
                                      downloads_hostname=str(socket.gethostname()),
                                      spend_time=spend_time)
             cdl.save()
@@ -110,6 +111,7 @@ class Download(object):
             self.task.status = CrawlerTask.STATUS_FAIL
             self.task.save()
             print 'ERROR:', e
+            print "Trackback:", traceback.format_exc()
 
     def download(self):
         self.task.status = CrawlerTask.STATUS_PROCESS
@@ -131,7 +133,7 @@ class Download(object):
                                      failed_reason="%s is %s" % (self.crawler_download.types.language,
                                                                  self.crawler_download.types.is_support),
                                      downloads_hostname=str(socket.gethostname()),
-                                     spend_time=spend_time)
+                                     spend_time=-1)
             cdl.save()
 
             # 改变这个任务的状态为下载失败
@@ -188,7 +190,7 @@ class Download(object):
                     status=CrawlerDownloadLog.STATUS_SUCCESS,
                     requests_size=sys.getsizeof(cdd.requests_headers) + sys.getsizeof(cdd.requests_body),
                     response_size=sys.getsizeof(cdd.response_headers) + sys.getsizeof(cdd.response_body),
-                    failed_reason='None',
+                    failed_reason='Download task succeed!',
                     downloads_hostname=hostname,
                     spend_time=spend_time)
                 cdl.save()
