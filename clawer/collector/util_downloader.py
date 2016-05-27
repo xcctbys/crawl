@@ -48,7 +48,10 @@ class Download(object):
 			end_time = time.time()
 			spend_time = end_time - start_time
 			print '----------------json data---------------------'
-			list_result = json.loads(list_result)
+			json_string=json.dumps(list_result)
+			list_result=json.loads(json_string)
+			#json 不支持单引号,python默认字符串单引号
+			#list_result = json.loads(list_result)
 			for result in list_result:
 				# print result
 				requests_headers = result.get('requests_headers', 'None')
