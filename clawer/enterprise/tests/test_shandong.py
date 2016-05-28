@@ -40,7 +40,7 @@ from enterprise.libs.guangdong_crawler import GuangdongCrawler
 #######
 from enterprise.libs.tt_beijing_crawler import BeijingCrawler
 from enterprise.libs.tt_jiangsu_crawler import JiangsuCrawler
-from enterprise.libs.common_func import get_proxy, read_ent_from_file, exe_time,save_to_file
+from enterprise.libs.common_func import get_proxy, read_ent_from_file, exe_time, save_to_file
 
 import gevent
 from gevent import Greenlet
@@ -50,7 +50,9 @@ import urllib
 import gevent.monkey
 
 import re
+
 # gevent.monkey.patch_socket()
+
 
 class TestGuangdong(TestCase):
 
@@ -181,23 +183,23 @@ class TestGuangdong(TestCase):
 
 
 class TestShanghai(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Shanghai')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 海通证券股份有限公司,上海,310000000016182
         ent_str = '310000000016182'
-        start =  time.time()
+        start = time.time()
         Shanghai = ShanghaiCrawler(self.path)
         result = Shanghai.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -286,23 +288,23 @@ class TestShanghai(TestCase):
 
 
 class TestGuangxi(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Guangxi')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 广西金融投资集团有限公司,广西壮族自治区,450000000014798
         ent_str = '450000000014798'
-        start =  time.time()
+        start = time.time()
         Guangxi = GuangxiCrawler(self.path)
         result = Guangxi.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -353,24 +355,25 @@ class TestGuangxi(TestCase):
         """
         pass
 
-class TestAnhui(TestCase):
 
+class TestAnhui(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Anhui')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 华安证券股份有限公司,安徽,340000000002071
         ent_str = '340000000002071'
-        start =  time.time()
+        start = time.time()
         Anhui = AnhuiCrawler(self.path)
         result = Anhui.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -423,23 +426,23 @@ class TestAnhui(TestCase):
 
 
 class TestXinjiang(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Xinjiang')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 新疆众和股份有限公司,新疆,650000040000431
         ent_str = '650000040000431'
-        start =  time.time()
+        start = time.time()
         Xinjiang = XinjiangCrawler(self.path)
         result = Xinjiang.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -492,23 +495,23 @@ class TestXinjiang(TestCase):
 
 
 class TestYunnan(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Yunnan')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 云南云维股份有限公司,云南省,530000000002692
         ent_str = '530000000002692'
-        start =  time.time()
+        start = time.time()
         Yunnan = YunnanCrawler(self.path)
         result = Yunnan.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -562,23 +565,23 @@ class TestYunnan(TestCase):
 
 
 class TestJiangsu(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Jiangsu')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 华泰证券股份有限公司,江苏,320000000000192
         ent_str = '320000000000192'
-        start =  time.time()
+        start = time.time()
         Jiangsu = JiangsuCrawler(self.path)
         result = Jiangsu.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -632,23 +635,23 @@ class TestJiangsu(TestCase):
 
 
 class TestBeijing(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Beijing')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 首创证券有限责任公司,北京,110000007977503
         ent_str = '110000007977503'
-        start =  time.time()
+        start = time.time()
         Beijing = BeijingCrawler(self.path)
         result = Beijing.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -702,23 +705,23 @@ class TestBeijing(TestCase):
 
 
 class TestGuizhou(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Guizhou')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 贵州长征天成控股股份有限公司,贵州省,520000000037463
         ent_str = '520000000037463'
-        start =  time.time()
+        start = time.time()
         Guizhou = GuizhouCrawler(self.path)
         result = Guizhou.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -771,23 +774,23 @@ class TestGuizhou(TestCase):
 
 
 class TestGansu(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Gansu')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 华龙证券股份有限公司,甘肃,620000000001727
         ent_str = '620000000001727'
-        start =  time.time()
+        start = time.time()
         Gansu = GansuCrawler(self.path)
         result = Gansu.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -838,24 +841,25 @@ class TestGansu(TestCase):
         """
         pass
 
-class TestNeimenggu(TestCase):
 
+class TestNeimenggu(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Neimenggu')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 内蒙古包钢钢联股份有限公司,内蒙古,150000000007124
         ent_str = '150000000007124'
-        start =  time.time()
+        start = time.time()
         Neimenggu = NeimengguCrawler(self.path)
         result = Neimenggu.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -905,24 +909,25 @@ class TestNeimenggu(TestCase):
         """
         pass
 
-class TestJiangxi(TestCase):
 
+class TestJiangxi(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Jiangxi')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 中航证券有限公司,江西,360000110000996
         ent_str = '360000110000996'
-        start =  time.time()
+        start = time.time()
         Jiangxi = JiangxiCrawler(self.path)
         result = Jiangxi.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -972,24 +977,25 @@ class TestJiangxi(TestCase):
         """
         pass
 
-class TestNingxia(TestCase):
 
+class TestNingxia(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Ningxia')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 宁夏为民实业有限公司,宁夏,640200200005857
         ent_str = '640200200005857'
-        start =  time.time()
+        start = time.time()
         Ningxia = NingxiaCrawler(self.path)
         result = Ningxia.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -1039,24 +1045,25 @@ class TestNingxia(TestCase):
         """
         pass
 
-class TestChongqing(TestCase):
 
+class TestChongqing(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Chongqing')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 中房地产股份有限公司,重庆市,500000000006873
         ent_str = '500000000006873'
-        start =  time.time()
+        start = time.time()
         Chongqing = ChongqingCrawler(self.path)
         result = Chongqing.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -1106,24 +1113,25 @@ class TestChongqing(TestCase):
         """
         pass
 
-class TestSichuan(TestCase):
 
+class TestSichuan(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Sichuan')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 中信产业投资基金管理有限公司,四川省,510708000002128
         ent_str = '510708000002128'
-        start =  time.time()
+        start = time.time()
         Sichuan = SichuanCrawler(self.path)
         result = Sichuan.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -1173,13 +1181,14 @@ class TestSichuan(TestCase):
         """
         pass
 
-class TestQinghai(TestCase):
 
+class TestQinghai(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Qinghai')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1240,12 +1249,12 @@ class TestQinghai(TestCase):
 
 
 class TestLiaoning(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Liaoning')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1306,12 +1315,12 @@ class TestLiaoning(TestCase):
 
 
 class TestHunan(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Hunan')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1370,13 +1379,14 @@ class TestHunan(TestCase):
         """
         pass
 
-class TestFujian(TestCase):
 
+class TestFujian(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Fujian')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1435,13 +1445,14 @@ class TestFujian(TestCase):
         """
         pass
 
-class TestZongju(TestCase):
 
+class TestZongju(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Zongju')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1502,12 +1513,12 @@ class TestZongju(TestCase):
 
 
 class TestJilin(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Jilin')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1557,9 +1568,8 @@ class TestJilin(TestCase):
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'东北证券股份有限公司')
 
-
     def test_crawl_ent_pub_pages(self):
-        url ="http://218.26.1.108/enterprisePublicity.jspx?id=CBFD78144885003A6DA5369BCB361A48"
+        url = "http://218.26.1.108/enterprisePublicity.jspx?id=CBFD78144885003A6DA5369BCB361A48"
         Jilin = JilinCrawler(self.path)
         # print Jilin.ckcode_image_path
         # print Jilin.proxies
@@ -1576,13 +1586,14 @@ class TestJilin(TestCase):
         """
         pass
 
-class TestHenan(TestCase):
 
+class TestHenan(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Henan')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1644,12 +1655,12 @@ class TestHenan(TestCase):
 
 
 class TestHubei(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Hubei')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1708,13 +1719,14 @@ class TestHubei(TestCase):
         """
         pass
 
-class TestHainan(TestCase):
 
+class TestHainan(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Hainan')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1734,6 +1746,7 @@ class TestHainan(TestCase):
                 self.assertEqual(k, u'91460000742550597A')
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'金元证券股份有限公司')
+
     def test_run_with_multi_results(self):
         # 金元证券股份有限公司,海南省,91460000742550597A
         ent_str = '金元证券股份有限公司'
@@ -1750,7 +1763,6 @@ class TestHainan(TestCase):
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'金元证券股份有限公司')
 
-
     def test_run_with_proxy(self):
         """
             由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
@@ -1761,13 +1773,14 @@ class TestHainan(TestCase):
         """
         pass
 
-class TestShanxi(TestCase):
 
+class TestShanxi(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Shanxi')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1801,6 +1814,7 @@ class TestShanxi(TestCase):
         for item in result:
             for k, v in item.items():
                 self.assertFalse(v)
+
     def test_run_with_multi_results(self):
         #
         ent_str = u'临汾市热力供应有限公司'
@@ -1817,9 +1831,8 @@ class TestShanxi(TestCase):
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'临汾市热力供应有限公司')
                 self.assertTrue(v['ent_pub_administration_license'])
 
-
     def test_crawl_ent_pub_pages(self):
-        url ="http://218.26.1.108/enterprisePublicity.jspx?id=CBFD78144885003A6DA5369BCB361A48"
+        url = "http://218.26.1.108/enterprisePublicity.jspx?id=CBFD78144885003A6DA5369BCB361A48"
         Shanxi = ShanxiCrawler(self.path)
         # print Shanxi.ckcode_image_path
         # print Shanxi.proxies
@@ -1836,13 +1849,14 @@ class TestShanxi(TestCase):
         """
         pass
 
-class TestXizang(TestCase):
 
+class TestXizang(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Xizang')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1862,6 +1876,7 @@ class TestXizang(TestCase):
                 self.assertEqual(k, u'91540000710910420Y')
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'西藏东方财富证券股份有限公司')
+
     def test_run_without_result(self):
         # 西藏东方财富证券股份有限公司,西藏,91540000710910420Y
         ent_str = '91540000710'
@@ -1890,8 +1905,6 @@ class TestXizang(TestCase):
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'西藏东方财富证券股份有限公司')
 
-
-
     def test_run_with_proxy(self):
         """
             由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
@@ -1902,13 +1915,14 @@ class TestXizang(TestCase):
         """
         pass
 
-class TestHeilongjiang(TestCase):
 
+class TestHeilongjiang(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Heilongjiang')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -1974,6 +1988,7 @@ class TestHeilongjiang(TestCase):
         heilongjiang = HeilongjiangClawer(self.path)
         result = heilongjiang.crawl_ent_pub_pages(url)
         self.assertTrue(heilongjiang.json_dict['ent_pub_administration_license'])
+
     def test_run_with_proxy(self):
         """
             由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
@@ -1984,20 +1999,21 @@ class TestHeilongjiang(TestCase):
         """
         pass
 
-class TestShaanxi(TestCase):
 
+class TestShaanxi(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Shaanxi')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_before_main_page(self):
         urls = {
             'host': 'http://xygs.snaic.gov.cn/',
-            'webroot' : 'http://xygs.snaic.gov.cn/',
+            'webroot': 'http://xygs.snaic.gov.cn/',
             'page_search': 'http://xygs.snaic.gov.cn/ztxy.do?method=index&random=%d',
             'page_Captcha': 'http://xygs.snaic.gov.cn/ztxy.do?method=createYzm&dt=%d&random=%d',
             'page_showinfo': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
@@ -2006,13 +2022,14 @@ class TestShaanxi(TestCase):
 
         ent_num = "610000400000319"
         Shaanxi = ShaanxiCrawler(self.path)
-        Shaanxi.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        Shaanxi.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'],
+                                   ent_num)
         self.assertTrue(Shaanxi.ents.has_key('610000400000319'))
         self.assertEqual(Shaanxi.ents['610000400000319'], "openView('610000400000319','21','K')")
 
     def test_main_page(self):
         Shaanxi = ShaanxiCrawler(self.path)
-        Shaanxi.ents={'610000400000319': "openView('610000400000319','21','K')"}
+        Shaanxi.ents = {'610000400000319': "openView('610000400000319','21','K')"}
         data = Shaanxi.crawl_page_main()
 
         self.assertEqual(type(data), list)
@@ -2026,14 +2043,9 @@ class TestShaanxi(TestCase):
         url = "openView('610000400000319','21','K')"
         params = re.findall(r'\'(.*?)\'', url)
         url = "http://xygs.snaic.gov.cn/ztxy.do"
-        pripid, enttype, others= params
+        pripid, enttype, others = params
         self.pripid = pripid
-        data = {
-                    'maent.pripid': pripid,
-                    'maent.entbigtype' : enttype,
-                    'random' : int(time.time()),
-                    'djjg' : "",
-                }
+        data = {'maent.pripid': pripid, 'maent.entbigtype': enttype, 'random': int(time.time()), 'djjg': "", }
         Shaanxi.crawl_ind_comm_pub_pages(url, data)
         data = Shaanxi.json_dict
         print data
@@ -2046,9 +2058,9 @@ class TestShaanxi(TestCase):
         url = "openView('610000400000319','21','K')"
         params = re.findall(r'\'(.*?)\'', url)
         url = "http://xygs.snaic.gov.cn/ztxy.do"
-        pripid, enttype, others= params
+        pripid, enttype, others = params
         Shaanxi.pripid = pripid
-        data = {'maent.pripid': pripid,'random' : int(time.time())}
+        data = {'maent.pripid': pripid, 'random': int(time.time())}
         Shaanxi.crawl_ent_pub_pages(url, data)
         data = Shaanxi.json_dict
         print data
@@ -2091,7 +2103,6 @@ class TestShaanxi(TestCase):
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'陕西省天然气股份有限公司')
 
-
     def test_run_with_proxy():
         """
             由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
@@ -2102,37 +2113,41 @@ class TestShaanxi(TestCase):
         """
         pass
 
-class TestHebei(TestCase):
 
+class TestHebei(TestCase):
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Hebei')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_before_main_page(self):
         urls = {
             'host': 'http://www.hebscztxyxx.gov.cn/notice/',
-            'webroot' : 'http://www.hebscztxyxx.gov.cn/',
+            'webroot': 'http://www.hebscztxyxx.gov.cn/',
             'page_search': 'http://www.hebscztxyxx.gov.cn/notice/',
-            'page_Captcha': 'http://www.hebscztxyxx.gov.cn/notice/captcha?preset=&ra=', # preset 有数字的话，验证码会是字母+数字的组合
+            'page_Captcha': 'http://www.hebscztxyxx.gov.cn/notice/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
             'page_showinfo': 'http://www.hebscztxyxx.gov.cn/notice/search/ent_info_list',
-            'checkcode':'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
+            'checkcode': 'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
         }
 
         ent_num = "130000000021709"
         Hebei = HebeiCrawler(self.path)
-        Hebei.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        Hebei.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'],
+                                 ent_num)
         # print Hebei.ents
         self.assertTrue(Hebei.ents.has_key('130000000021709'))
         # print Hebei.ents['  130000000021709']
-        self.assertEqual(Hebei.ents['130000000021709'], 'http://www.hebscztxyxx.gov.cn/notice/notice/view?uuid=u9Abs75MdJjl94Li4fXsN.dDmlDUrpmY&tab=01')
+        self.assertEqual(
+            Hebei.ents['130000000021709'],
+            'http://www.hebscztxyxx.gov.cn/notice/notice/view?uuid=u9Abs75MdJjl94Li4fXsN.dDmlDUrpmY&tab=01')
 
     def test_main_page(self):
         Hebei = HebeiCrawler(self.path)
-        Hebei.ents={'130000000021709': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
+        Hebei.ents = {'130000000021709': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
         data = Hebei.crawl_page_main()
 
         self.assertEqual(type(data), list)
@@ -2140,9 +2155,9 @@ class TestHebei(TestCase):
 
     def test_ind_comm_pub(self):
         Hebei = HebeiCrawler(self.path)
-        Hebei.ents={'130000000021709': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
+        Hebei.ents = {'130000000021709': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
         url = "http://www.hebscztxyxx.gov.cn/notice/notice/view?uuid=u9Abs75MdJjl94Li4fXsN.dDmlDUrpmY&tab=01"
-        corpid = url[url.rfind('corpid')+7:]
+        corpid = url[url.rfind('corpid') + 7:]
         Hebei.corpid = corpid
         Hebei.crawl_ind_comm_pub_pages(url)
         data = Hebei.json_dict
@@ -2185,7 +2200,7 @@ class TestHebei(TestCase):
         Hebei = HebeiCrawler(self.path)
         result = Hebei.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -2196,7 +2211,6 @@ class TestHebei(TestCase):
                 self.assertEqual(k, u'130000000021709')
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'财达证券有限责任公司')
-
 
     def test_run_with_proxy():
         """
@@ -2210,12 +2224,12 @@ class TestHebei(TestCase):
 
 
 class TestTianjin(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Tianjin')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
@@ -2225,20 +2239,22 @@ class TestTianjin(TestCase):
             'page_search': 'http://tjcredit.gov.cn/platform/saic/index.ftl',
             'page_Captcha': 'http://tjcredit.gov.cn/verifycode',
             'page_showinfo': 'http://tjcredit.gov.cn/platform/saic/search.ftl',
-            'checkcode':'http://tjcredit.gov.cn/platform/saic/search.ftl',
+            'checkcode': 'http://tjcredit.gov.cn/platform/saic/search.ftl',
         }
 
         ent_num = "120000000000165"
         Tianjin = TianjinCrawler(self.path)
-        Tianjin.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        Tianjin.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'],
+                                   ent_num)
         # print Tianjin.ents
         self.assertTrue(Tianjin.ents.has_key('911200001030645762'))
         # print Tianjin.ents['911200001030645762']
-        self.assertEqual(Tianjin.ents['911200001030645762'], '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828')
+        self.assertEqual(Tianjin.ents['911200001030645762'],
+                         '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828')
 
     def test_main_page(self):
         Tianjin = TianjinCrawler(self.path)
-        Tianjin.ents={'911200001030645762': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
+        Tianjin.ents = {'911200001030645762': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
         data = Tianjin.crawl_page_main()
 
         self.assertEqual(type(data), list)
@@ -2246,9 +2262,9 @@ class TestTianjin(TestCase):
 
     def test_ind_comm_pub(self):
         Tianjin = TianjinCrawler(self.path)
-        Tianjin.ents={'911200001030645762': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
+        Tianjin.ents = {'911200001030645762': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
         url = "http://tjcredit.gov.cn/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828"
-        corpid = url[url.rfind('corpid')+7:]
+        corpid = url[url.rfind('corpid') + 7:]
         Tianjin.corpid = corpid
         Tianjin.crawl_ind_comm_pub_pages(url)
         data = Tianjin.json_dict
@@ -2259,9 +2275,9 @@ class TestTianjin(TestCase):
 
     def test_ent_pub(self):
         Tianjin = TianjinCrawler(self.path)
-        Tianjin.ents={'911200001030645762': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
+        Tianjin.ents = {'911200001030645762': '/platform/saic/viewBase.ftl?entId=349DDA405D520231E04400306EF52828'}
         url = "http://gsxt.zjaic.gov.cn/annualreport/doViewAnnualReportIndex.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76"
-        corpid = url[url.rfind('corpid')+7:]
+        corpid = url[url.rfind('corpid') + 7:]
         Tianjin.corpid = corpid
         Tianjin.crawl_ent_pub_pages(url)
         data = Tianjin.json_dict
@@ -2273,7 +2289,6 @@ class TestTianjin(TestCase):
             details = report[u'详情']
             self.assertTrue(details.has_key(u'企业基本信息'))
             self.assertEqual(details[u'企业基本信息'][u'企业名称'], u'万向钱潮股份有限公司')
-
 
     def test_run(self):
         # 渤海证券股份有限公司,天津,120000000000165
@@ -2307,7 +2322,6 @@ class TestTianjin(TestCase):
         # 天津情况比较特殊，在搜索结果后面会有 （内资公司法人）或 （外资公司法人），所以此单元测试不会通过
         self.assertEqual(len(result), 1)
 
-
     def test_run_with_proxy():
         """
             由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
@@ -2320,37 +2334,43 @@ class TestTianjin(TestCase):
 
 
 class TestZhejiang(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'zhejiang')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_before_main_page(self):
         urls = {
             'host': 'http://gsxt.zjaic.gov.cn/',
-            'webroot' : 'http://gsxt.zjaic.gov.cn',
+            'webroot': 'http://gsxt.zjaic.gov.cn',
             'page_search': 'http://gsxt.zjaic.gov.cn/zhejiang.jsp',
             'page_Captcha': 'http://gsxt.zjaic.gov.cn/common/captcha/doReadKaptcha.do',
             'page_showinfo': 'http://gsxt.zjaic.gov.cn/search/doGetAppSearchResult.do',
-            'prefix_url_0':'http://gsxt.zjaic.gov.cn/appbasicinfo/',
-            'checkcode':'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
+            'prefix_url_0': 'http://gsxt.zjaic.gov.cn/appbasicinfo/',
+            'checkcode': 'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
         }
 
         ent_num = "330000000050426"
         Zhejiang = ZhejiangCrawler(self.path)
-        Zhejiang.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        Zhejiang.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'],
+                                    ent_num)
         # print Zhejiang.ents
         self.assertTrue(Zhejiang.ents.has_key('91330000142923441E'))
         # print Zhejiang.ents['91330000142923441E']
-        self.assertEqual(Zhejiang.ents['91330000142923441E'], '/appbasicinfo/doViewAppBasicInfoByLog.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76')
+        self.assertEqual(
+            Zhejiang.ents['91330000142923441E'],
+            '/appbasicinfo/doViewAppBasicInfoByLog.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76')
 
     def test_main_page(self):
         Zhejiang = ZhejiangCrawler(self.path)
-        Zhejiang.ents={'91330000142923441E': '/appbasicinfo/doViewAppBasicInfoByLog.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76'}
+        Zhejiang.ents = {
+            '91330000142923441E':
+            '/appbasicinfo/doViewAppBasicInfoByLog.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76'
+        }
         data = Zhejiang.crawl_page_main()
 
         self.assertEqual(type(data), list)
@@ -2358,9 +2378,12 @@ class TestZhejiang(TestCase):
 
     def test_ind_comm_pub(self):
         Zhejiang = ZhejiangCrawler(self.path)
-        Zhejiang.ents={'91330000142923441E': '/appbasicinfo/doViewAppBasicInfoByLog.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76'}
+        Zhejiang.ents = {
+            '91330000142923441E':
+            '/appbasicinfo/doViewAppBasicInfoByLog.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76'
+        }
         url = "http://gsxt.zjaic.gov.cn/appbasicinfo/doViewAppBasicInfo.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76"
-        corpid = url[url.rfind('corpid')+7:]
+        corpid = url[url.rfind('corpid') + 7:]
         Zhejiang.corpid = corpid
         Zhejiang.crawl_ind_comm_pub_pages(url)
         data = Zhejiang.json_dict
@@ -2371,9 +2394,12 @@ class TestZhejiang(TestCase):
 
     def test_ent_pub(self):
         Zhejiang = ZhejiangCrawler(self.path)
-        Zhejiang.ents={'91330000142923441E': '/appbasicinfo/doViewAppBasicInfoByLog.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76'}
+        Zhejiang.ents = {
+            '91330000142923441E':
+            '/appbasicinfo/doViewAppBasicInfoByLog.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76'
+        }
         url = "http://gsxt.zjaic.gov.cn/annualreport/doViewAnnualReportIndex.do?corpid=1F4389B42BA72D7B087B5FCAA59AF03D8B5C651E18F67383802A4448359EEE76"
-        corpid = url[url.rfind('corpid')+7:]
+        corpid = url[url.rfind('corpid') + 7:]
         Zhejiang.corpid = corpid
         Zhejiang.crawl_ent_pub_pages(url)
         data = Zhejiang.json_dict
@@ -2385,7 +2411,6 @@ class TestZhejiang(TestCase):
             details = report[u'详情']
             self.assertTrue(details.has_key(u'企业基本信息'))
             self.assertEqual(details[u'企业基本信息'][u'企业名称'], u'万向钱潮股份有限公司')
-
 
     def test_run(self):
         # 万向钱潮股份有限公司,浙江省,330000000050426
@@ -2432,34 +2457,37 @@ class TestZhejiang(TestCase):
 
 
 class TestShandong(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Shandong')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_before_main_page(self):
         urls = {
             'host': 'http://218.57.139.24/pub/',
-            'webroot' : 'http://218.57.139.24/',
+            'webroot': 'http://218.57.139.24/',
             'page_search': 'http://218.57.139.24/',
             'page_Captcha': 'http://218.57.139.24/securitycode',
             'page_showinfo': 'http://218.57.139.24/pub/indsearch',
-            'checkcode':'http://218.57.139.24/pub/indsearch',
+            'checkcode': 'http://218.57.139.24/pub/indsearch',
         }
         ent_num = "370000018067809"
         shandong = ShandongCrawler(self.path)
-        shandong.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], ent_num)
+        shandong.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'],
+                                    ent_num)
 
         self.assertTrue(shandong.ents.has_key('91370000729246347A'))
-        self.assertEqual(shandong.ents['91370000729246347A'], 'gsgsdetail/1223/6e0948678bfeed4ac8115d5cafef819ad6951a24f0c0188cd6c047570329c9b6')
+        self.assertEqual(shandong.ents['91370000729246347A'],
+                         'gsgsdetail/1223/6e0948678bfeed4ac8115d5cafef819ad6951a24f0c0188cd6c047570329c9b6')
 
     def test_main_page(self):
         shandong = ShandongCrawler(self.path)
-        shandong.ents={'91370000729246347A': 'gsgsdetail/1223/6e0948678bfeed4ac8115d5cafef819ad6951a24f0c0188cd6c047570329c9b6'}
+        shandong.ents = {'91370000729246347A':
+                         'gsgsdetail/1223/6e0948678bfeed4ac8115d5cafef819ad6951a24f0c0188cd6c047570329c9b6'}
         data = shandong.crawl_page_main()
         self.assertEqual(type(data), list)
         self.assertTrue(data[0].has_key('91370000729246347A'))

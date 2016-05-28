@@ -20,7 +20,6 @@ def wipe_off_newline_and_blank_for_fe(data):
     """
     return wipe_off_newline_and_blank(data)
 
-
 # table 分类:
 # ================
 #        A
@@ -54,8 +53,8 @@ def parse_table_A(table):
     """
     if table is None:
         return None
-    trs = table.find_all('tr')  # 获得表A中所有的 tr
-    if len(trs) < 2:  # 当表中不同是存在标题子标题时 返回空
+    trs = table.find_all('tr')    # 获得表A中所有的 tr
+    if len(trs) < 2:    # 当表中不同是存在标题子标题时 返回空
         return None
     # 获得 标题
     title_th = trs[0].find('th')
@@ -64,11 +63,11 @@ def parse_table_A(table):
     title = wipe_off_newline_and_blank(title_th)
     child_titles = []
     ths = trs[1].find_all('th')
-    for th in ths:  # 取得所有子标题
+    for th in ths:    # 取得所有子标题
         child_title = wipe_off_newline_and_blank(th.get_text())
         child_titles.append(child_title)
 
-    count = 2  # 从2开始
+    count = 2    # 从2开始
     data = []
     while count < len(trs):
         content = {}
