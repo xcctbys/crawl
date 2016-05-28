@@ -52,7 +52,9 @@ class Download(object):
         try:
             #  uri = 'enterprise://%E9%87%8D%E5%BA%86/%E9%87%8D%E5%BA%86%E7%90%86%E5%BF%85%E6%98%93%E6%8A%95%E8%B5%84%E7%AE%A1%E7%90%86%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/500905004651063/'
             downloader = EnterpriseDownload(self.task.uri)
-            list_result = downloader.download()
+            list_res = downloader.download()
+            json_string=json.dumps(list_res)
+            list_result=json.loads(json_string)
             end_time = time.time()
             spend_time = end_time - start_time
             print '----------------json data---------------------'
