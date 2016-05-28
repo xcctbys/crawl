@@ -146,10 +146,11 @@ def _install_project_deps():
 
     # Install all projects deps, such as python-devel, mysql-devel and pip, setuptools ...
     run("yum install -y wget python-devel python-pip mariadb mysql-devel gcc gcc-c++ cmake blas-devel \
-        lapack-devel libxml2 libxml2-devel libxslt libxslt-devel qt-devel PyQt4 pyside-tools")
-    PIP = "pip install --no-index -f pypi"
+        lapack-devel libxml2 libxml2-devel libxslt libxslt-devel qt-devel PyQt4 pyside-tools \
+        libjpeg-devel zlib-devel xorg-x11-server-Xvfb")
+    PIP = "pip install --upgrade --no-index -f pypi"
     with cd("{0}/cr-clawer/deploy".format(REMOTE_PROJECT_PATH)):
-        run("{0} --upgrade pip setuptools".format(PIP))
+        run("{0} pip setuptools".format(PIP))
         run("{0} -r {1}".format(PIP, "requirements/production.txt"))
 
 

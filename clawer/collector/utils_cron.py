@@ -1,4 +1,4 @@
-                                                                                                                                                                                                                                    #
+#
 # Copyright 2015, Martin Owens <doctormo@gmail.com>
 #
 # This library is free software; you can redistribute it and/or
@@ -105,26 +105,37 @@ DEVNULL = ">/dev/null 2>&1"
 
 WEEK_ENUM = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
-MONTH_ENUM = [None, 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug',
-              'sep', 'oct', 'nov', 'dec']
+MONTH_ENUM = [None, 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
-SPECIALS = {"reboot":   '@reboot',
-            "hourly":   '0 * * * *',
-            "daily":    '0 0 * * *',
-            "weekly":   '0 0 * * 0',
-            "monthly":  '0 0 1 * *',
-            "yearly":   '0 0 1 1 *',
+SPECIALS = {"reboot": '@reboot',
+            "hourly": '0 * * * *',
+            "daily": '0 0 * * *',
+            "weekly": '0 0 * * 0',
+            "monthly": '0 0 1 * *',
+            "yearly": '0 0 1 1 *',
             "annually": '0 0 1 1 *',
             "midnight": '0 0 * * *'}
 
 SPECIAL_IGNORE = ['midnight', 'annually']
 
 S_INFO = [
-    {'max': 59, 'min': 0, 'name': 'Minutes'},
-    {'max': 23, 'min': 0, 'name': 'Hours'},
-    {'max': 31, 'min': 1, 'name': 'Day of Month'},
-    {'max': 12, 'min': 1, 'name': 'Month', 'enum': MONTH_ENUM},
-    {'max': 6, 'min': 0, 'name': 'Day of Week', 'enum': WEEK_ENUM},
+    {'max': 59,
+     'min': 0,
+     'name': 'Minutes'},
+    {'max': 23,
+     'min': 0,
+     'name': 'Hours'},
+    {'max': 31,
+     'min': 1,
+     'name': 'Day of Month'},
+    {'max': 12,
+     'min': 1,
+     'name': 'Month',
+     'enum': MONTH_ENUM},
+    {'max': 6,
+     'min': 0,
+     'name': 'Day of Week',
+     'enum': WEEK_ENUM},
 ]
 
 # Detect Python3 and which OS for temperments.
@@ -143,14 +154,17 @@ SHELL = os.environ.get('SHELL', '/bin/sh')
 current_user = lambda: None
 if not WINOS:
     import pwd
+
     def current_user():
         """Returns the username of the current user"""
         return pwd.getpwuid(os.getuid())[0]
+
 
 if PY3:
     # pylint: disable=W0622
     unicode = str
     basestring = str
+
 
 def open_pipe(cmd, *args, **flags):
     """Runs a program and orders the arguments for compatability.
@@ -167,6 +181,7 @@ def open_pipe(cmd, *args, **flags):
             cmd_args += ("--%s=%s" % (key, value)),
     args = tuple(arg for arg in (cmd_args + tuple(args)) if arg)
     return sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE)
+
 
 def _unicode(text):
     """Convert to the best string format for this python version"""
@@ -192,6 +207,7 @@ class CronTab(object):
     log     - Filename for logfile instead of /var/log/syslog
 
     """
+
     def __init__(self, user=None, tab=None, tabfile=None, log=None):
         self.lines = None
         self.crons = None
@@ -455,6 +471,7 @@ class CronItem(object):
     An item which objectifies a single line of a crontab and
     May be considered to be a cron job object.
     """
+
     def __init__(self, line=None, command='', comment='', last_run='', user=None, cron=None):
         self.cron = cron
         self.user = user
@@ -484,7 +501,6 @@ class CronItem(object):
                 elif type(last_run) == datetime:
                     self.last_run = last_run
 
-
     def delete(self):
         """Delete this item and remove it from it's parent"""
         if not self.cron:
@@ -494,7 +510,7 @@ class CronItem(object):
 
     def set_last_run(self, last_run):
         """Set the last run time """
-        if isinstance(last_run , datetime):
+        if isinstance(last_run, datetime):
             self.last_run = last_run
         elif isinstance(last_run, str):
             self.last_run = parse(last_run)
@@ -653,10 +669,11 @@ class CronItem(object):
             from croniter.croniter import croniter
         except ImportError:
             raise ImportError("Croniter not available. Please install croniter"
-                          " python module via pip or your package manager")
+                              " python module via pip or your package manager")
 
         class Croniter(croniter):
             """Same as normal croniter, but always return datetime objects"""
+
             def get_next(self, type_ref=datetime):
                 return croniter.get_next(self, type_ref)
 
@@ -740,8 +757,7 @@ class CronItem(object):
 
     def __unicode__(self):
         if not self.is_valid():
-            raise ValueError('Refusing to render invalid crontab.'
-                             ' Disable to continue.')
+            raise ValueError('Refusing to render invalid crontab.' ' Disable to continue.')
         return self.render()
 
 
@@ -753,16 +769,18 @@ class Every(object):
        Once run all units will be cleared (set to *) then proceeding units
        will be set to '0' and the target unit will be set as every x units.
     """
+
     def __init__(self, item, units):
         self.slices = item
         self.unit = units
-        for (key, name) in enumerate(['minute', 'hour', 'dom', 'month', 'dow',
-                                 'min', 'hour', 'day', 'moon', 'weekday']):
+        for (key,
+             name) in enumerate(['minute', 'hour', 'dom', 'month', 'dow', 'min', 'hour', 'day', 'moon', 'weekday']):
             setattr(self, name, self.set_attr(key % 5))
-            setattr(self, name+'s', self.set_attr(key % 5))
+            setattr(self, name + 's', self.set_attr(key % 5))
 
     def set_attr(self, target):
         """Inner set target, returns function"""
+
         def innercall():
             """Returned inner call for setting slice targets"""
             self.slices.clear()
@@ -770,6 +788,7 @@ class Every(object):
             for key in range(target == 4 and 2 or target):
                 self.slices[key].on('<')
             self.slices[target].every(self.unit)
+
         return innercall
 
     def year(self):
@@ -778,11 +797,13 @@ class Every(object):
             raise ValueError("Invalid value '%s', outside 1 year" % self.unit)
         self.slices.setall('@yearly')
 
+
 class CronSlices(list):
     """Controls a list of five time 'slices' which reprisent:
         minute frequency, hour frequency, day of month frequency,
         month requency and finally day of the week frequency.
      """
+
     def __init__(self, *args):
         super(CronSlices, self).__init__()
         for info in S_INFO:
@@ -794,7 +815,7 @@ class CronSlices(list):
 
     def is_self_valid(self, *args):
         """Object version of is_valid"""
-        args = args or (self,)
+        args = args or (self, )
         return CronSlices.is_valid(*args)
 
     @classmethod
@@ -816,12 +837,12 @@ class CronSlices(list):
             slices = [value.minute, value.hour, '*', '*', '*']
         elif isinstance(value, date):
             slices = [0, 0, value.day, value.month, '*']
-          # It might be possible to later understand timedelta objects
-          # but there's no convincing mathematics to do the conversion yet.
+        # It might be possible to later understand timedelta objects
+        # but there's no convincing mathematics to do the conversion yet.
         elif isinstance(value, list):
             slices = value
         elif slices:
-            slices = (value,) + slices
+            slices = (value, ) + slices
         elif isinstance(value, basestring) and value:
             if value.count(' ') == 4:
                 slices = value.strip().split(' ')
@@ -914,8 +935,10 @@ class SundayError(KeyError):
     """Sunday was specified as 7 instead of 0"""
     pass
 
+
 class Also(object):
     """Link range values together (appending instead of replacing)"""
+
     def __init__(self, obj):
         self.obj = obj
 
@@ -931,8 +954,10 @@ class Also(object):
         """Also during these"""
         return self.obj.during(*a, also=True)
 
+
 class CronSlice(object):
     """Cron slice object which shows a time pattern"""
+
     def __init__(self, info, value=None):
         self.min = info.get('min', None)
         self.max = info.get('max', None)
@@ -1054,8 +1079,7 @@ class CronSlice(object):
             raise SundayError("Detected Sunday as 7 instead of 0!")
 
         if int(out) < self.min or int(out) > self.max:
-            raise ValueError("Invalid value '%s', expected %d-%d for %s" % (
-                str(val), self.min, self.max, self.name))
+            raise ValueError("Invalid value '%s', expected %d-%d for %s" % (str(val), self.min, self.max, self.name))
         return out
 
     def filter_value(self, val):
@@ -1076,6 +1100,7 @@ def get_cronvalue(value, enums):
 
 class CronValue(object):
     """Represent a special value in the cron line"""
+
     def __init__(self, value, enums):
         self.enum = value
         self.value = enums.index(value.lower())
@@ -1111,6 +1136,7 @@ def _render(value, resolve=False):
 
 class CronRange(object):
     """A range between one value and another for a time range."""
+
     def __init__(self, vslice, *vrange):
         self.slice = vslice
         self.cron = None
@@ -1164,7 +1190,7 @@ class CronRange(object):
 
     def range(self):
         """Returns the range of this cron slice as a iterable list"""
-        return range(int(self.vfrom), int(self.vto)+1, self.seq)
+        return range(int(self.vfrom), int(self.vto) + 1, self.seq)
 
     def every(self, value):
         """Set the sequence value for this range."""

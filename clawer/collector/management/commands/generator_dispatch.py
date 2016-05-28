@@ -1,6 +1,5 @@
 # coding=utf-8
 
-
 from django.core.management.base import BaseCommand
 from django.conf import settings
 # from django.core.management import call_command
@@ -12,11 +11,11 @@ import time
 
 class Command(BaseCommand):
 
-    help =" This command is used to dispatch generator from cron.f."
+    help = " This command is used to dispatch generator from cron.f."
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
-        self.cron = CrawlerCronTab(filename = settings.CRON_FILE)
+        self.cron = CrawlerCronTab(filename=settings.CRON_FILE)
 
     # @wrapper_raven
     def handle(self, *args, **options):
@@ -24,4 +23,4 @@ class Command(BaseCommand):
         start_time = time.time()
         self.cron.task_generator_run()
         end_time = time.time()
-        print "Run time is %f s!"%(end_time - start_time)
+        print "Run time is %f s!" % (end_time - start_time)

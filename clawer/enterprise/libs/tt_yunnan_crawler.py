@@ -13,6 +13,7 @@ import json
 
 # from . import settings
 import settings
+import random
 from smart_proxy.api import Proxy, UseProxy
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from collector.models import CrawlerDownloadArgs
@@ -42,7 +43,7 @@ class YunnanCrawler(object):
 			proxy = Proxy()
 			self.proxies = {'http':'http://'+random.choice(proxy.get_proxy(num=5, province='guangxi')),
 						'https':'https://'+random.choice(proxy.get_proxy(num=5, province='guangxi'))}
-		print 'self.proxies:', self.proxies		
+		print 'self.proxies:', self.proxies
 		# self.proxies = []
 
 		self.mydict = {'eareName':'http://www.ahcredit.gov.cn',

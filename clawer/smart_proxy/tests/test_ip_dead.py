@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 import requests
 import time
-
+import datetime
 #proxy = {'http':'http://'}
 
 
@@ -16,10 +16,12 @@ def test_ip_dead(nums,uri_list):
             rest = reqst.get(uri,timeout=60)
             print rest.content
             print rest
-            exp = 120
-            print exp
-            time.sleep(exp)
+            exp = 1200
+            print datetime.datetime.now()
+            #print exp
             print i
+            #time.sleep(exp)
+            #print i
 
 
 if __name__ == "__main__":
@@ -38,5 +40,8 @@ if __name__ == "__main__":
     uri11 ='http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!openEntInfo.dhtml?entId=308F6BA7DA4D46BF81B02745E0E6B133&credit_ticket=82686F809C80EA54D1DCE356A4FDC88D&entNo=110101600395241&timeStamp=1464141392430'
     uri12='http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!openInfo.dhtml?entId=308F6BA7DA4D46BF81B02745E0E6B133&entNo=110101600395241&credit_ticket=82686F809C80EA54D1DCE356A4FDC88D&str=2&timeStamp=1464141479578'
     uri13='http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!openInfo.dhtml?entId=308F6BA7DA4D46BF81B02745E0E6B133&entNo=110101600395241&credit_ticket=82686F809C80EA54D1DCE356A4FDC88D&str=3&timeStamp=1464141513196'
-    uri_list=[uri1,uri3,uri5,uri4,uri12]
-    test_ip_dead(nums,uri_list)
+    uricode='http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!getBjQyList.dhtml'
+    uri_list=[uricode,uri1,uri3,uri5,uri4,uri12]
+    uri_list2=[uricode]
+    #test_ip_dead(nums,uri_list)
+    test_ip_dead(nums,uri_list2)

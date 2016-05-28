@@ -196,7 +196,10 @@ def parser_func(data):
         return None
     data.crawlertask.update(status=7)
     crawler_analyzed_data = CrawlerAnalyzedData.objects(crawler_task=data.crawlertask).first()
-    crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
+    if crawler_analyzed_data:
+        crawler_analyzed_data.update(update_date=datetime.datetime.now(), analyzed_data=data.response_body)
+    else:
+        data.crawlertask.update(status=6)
     return data.crawlertask.id
     '''
     structureconfig = StructureConfig.objects.get(job_copy_id = data.crawlertask.job.id)
@@ -492,12 +495,15 @@ class TestExtracter(object):
     def __init__(self):
         pass
 
+
     def insert_extracter_test_data(self):
 
         config = open('structure/extracters/gs_table_conf.json').read()
-        analyzeddata = open('structure/extracters/guangxi.json')
+        analyzeddata = open('structure/extracters/analyzed_data_csci.json')
 
-        for count in range(20):
+        count = 0
+        for line in analyzeddata:
+            count += 1
             test_job = JobMongoDB("creator", "job_%d" % count, "info", "customer", random.choice(range(1, 3)),
                                   random.choice(range(-1, 6)), datetime.datetime.now())
             test_job.save()
@@ -511,8 +517,10 @@ class TestExtracter(object):
 
             ExtracterStructureConfig(job=test_job, extracter=test_extracter).save()
 
-            CrawlerAnalyzedData(crawler_task=test_crawlertask, analyzed_data=analyzeddata.readline()).save()
-        print "Extracter Test Data Inserted"
+            processed_line = json.loads(line)['analyzed_data']
+
+            CrawlerAnalyzedData(crawler_task=test_crawlertask, analyzed_data=processed_line).save()
+        print "Inserted %s Extracter Test Data " % count
 
     def empty_test_data(self):
 
