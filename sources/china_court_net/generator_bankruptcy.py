@@ -16,7 +16,6 @@ import time
 import requests
 import re
 
-
 DEBUG = False
 if DEBUG:
     level = logging.DEBUG
@@ -27,7 +26,6 @@ logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: 
 
 
 class History(object):
-
     def __init__(self):
         self.page = 1
         self.path = "/tmp/china_court_bankruptcy"
@@ -68,7 +66,12 @@ class Generator(object):
                   "152043560746777802706_1448866417716&start=" + str(self.history.page) + "&limit=16&wd=rmfybulletin" \
                   "&list%5B0%5D=bltntype%3A64&_=" + str(self.timeStamp)
 
-            r = requests.get(url, headers={"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"})
+            r = requests.get(
+                url,
+                headers={
+                    "user-agent":
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
+                })
             if r.status_code != 200:
                 return
             js_content = re.sub(r"^.*?\(", "", r.text)
@@ -84,7 +87,6 @@ class Generator(object):
 
 
 class GeneratorTest(unittest.TestCase):
-
     def setUp(self):
         unittest.TestCase.setUp(self)
 

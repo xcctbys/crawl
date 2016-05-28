@@ -38,8 +38,7 @@ class LiaoningCrawler(Crawler):
 
     urls = {'host': 'http://www.lngs.gov.cn/ecdomain/framework/lngs/index.jsp',
             'get_checkcode': 'http://gsxt.lngs.gov.cn/saicpub/commonsSC/loginDC/securityCode.action?',
-            'post_checkcode': 'http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/lngsSearchFpc.action',
-        }
+            'post_checkcode': 'http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/lngsSearchFpc.action', }
 
     def __init__(self, json_restore_path):
         self.json_restore_path = json_restore_path
@@ -62,10 +61,7 @@ class LiaoningCrawler(Crawler):
             settings.logger.info('crack code = %s, %s' % (ckcode[0], ckcode[1]))
             if ckcode == "":
                 continue
-            post_data = {
-                'authCode': ckcode[1],
-                'solrCondition': self.ent_number,
-             }
+            post_data = {'authCode': ckcode[1], 'solrCondition': self.ent_number, }
 
             next_url = self.urls['post_checkcode']
             resp = self.reqst.post(next_url, data=post_data)
@@ -147,9 +143,11 @@ class LiaoningCrawler(Crawler):
         """
         self.parser.parse_judical_assist_pub_pages()
 
+
 class LiaoningParser(Parser):
     """辽宁工商页面的解析类
     """
+
     def __init__(self, crawler):
         self.crawler = crawler
 
@@ -166,7 +164,7 @@ class LiaoningParser(Parser):
         total = []
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
                 table_save[u"股东类型"] = item["invtypeName"]
                 table_save[u"股东"] = item["inv"]
@@ -175,13 +173,13 @@ class LiaoningParser(Parser):
 
                 url = "http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/getGsgsTzrxxPojoList.action"
                 next_url = url
-                post_data = {'pripid': self.crawler.pripid,'invid': item["invid"]};
+                post_data = {'pripid': self.crawler.pripid, 'invid': item["invid"]}
                 resp = self.crawler.reqst.post(next_url, data=post_data)
                 total1 = []
                 if resp.content:
                     list_m = json.loads(resp.content)
 
-                    for i,item in enumerate(list_m):
+                    for i, item in enumerate(list_m):
                         table_save1 = {}
                         table_save1[u"股东"] = item["tRegTzrxx"]["inv"]
                         table_save1[u"认缴万元"] = str(item["tRegTzrxx"]["lisubconam"])
@@ -217,9 +215,9 @@ class LiaoningParser(Parser):
         total = []
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
-                table_save[u"序号"] = str(i+1)
+                table_save[u"序号"] = str(i + 1)
                 table_save[u"姓名"] = item["name"]
                 table_save[u"职务"] = item["positionName"]
                 total.append(table_save)
@@ -241,7 +239,7 @@ class LiaoningParser(Parser):
         total = []
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
                 table_save[u"变更事项"] = item["altitemName"]
                 table_save[u"变更前内容"] = item["altbe"]
@@ -258,9 +256,9 @@ class LiaoningParser(Parser):
         total = []
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
-                table_save[u"序号"] = str(i+1)
+                table_save[u"序号"] = str(i + 1)
                 table_save[u"统一社会信用代码/注册号"] = item["regno"]
                 table_save[u"名称"] = item["brname"]
                 table_save[u"登记机关"] = item["regorgName"]
@@ -276,13 +274,13 @@ class LiaoningParser(Parser):
 
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
-                table_save[u"序号"] = str(i+1)
+                table_save[u"序号"] = str(i + 1)
                 table_save[u"登记编号"] = item["equityno"]
                 table_save[u"出质人"] = item["pledgor"]
                 table_save[u"出质人_证照/证件号码"] = item["blicno"]
-                table_save[u"出质股权数额"] = item["impam"]+item["pledamunitName"]
+                table_save[u"出质股权数额"] = item["impam"] + item["pledamunitName"]
                 table_save[u"质权人"] = item["imporg"]
                 table_save[u"质权人_证照/证件号码"] = item["impcerno"]
                 table_save[u"股权出质设立登记日期"] = item["regdateStr"]
@@ -306,13 +304,13 @@ class LiaoningParser(Parser):
         total = []
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
-                table_save[u"序号"] = str(i+1)
+                table_save[u"序号"] = str(i + 1)
                 table_save[u"登记编号"] = item["morregcno"]
                 table_save[u"登记日期"] = item["regidateStr"]
                 table_save[u"登记机关"] = item["regorgName"]
-                table_save[u"被担保债权数额"] = item["priclasecam"]+"万元"
+                table_save[u"被担保债权数额"] = item["priclasecam"] + "万元"
                 table_save[u"状态"] = item["typeName"]
                 table_save[u"公示时间"] = item["gstimeStr"]
 
@@ -324,9 +322,9 @@ class LiaoningParser(Parser):
                 dyqr_list = []
                 if dyqr.group(1) != "null":
                     list_dyqr = json.loads(dyqr.group(1))
-                    for i,item in enumerate(list_dyqr):
+                    for i, item in enumerate(list_dyqr):
                         table_dyqr = {}
-                        table_dyqr[u"序号"] = str(i+1)
+                        table_dyqr[u"序号"] = str(i + 1)
                         table_dyqr[u"抵押权人名称"] = item["more"]
                         table_dyqr[u"抵押权人证照/证件类型"] = item["certypeName"]
                         table_dyqr[u"证照/证件号码"] = item["cerno"]
@@ -338,9 +336,9 @@ class LiaoningParser(Parser):
 
                 if dyw.group(1) != "null":
                     list_dyw = json.loads(dyw.group(1))
-                    for i,item in enumerate(list_dyw):
+                    for i, item in enumerate(list_dyw):
                         table_dyw = {}
-                        table_dyw[u"序号"] = str(i+1)
+                        table_dyw[u"序号"] = str(i + 1)
                         table_dyw[u"名称"] = item["guaname"]
                         table_dyw[u"所有权归属"] = item["own"]
                         table_dyw[u"数量、质量、状况、所在地等情况"] = item["guades"]
@@ -349,7 +347,7 @@ class LiaoningParser(Parser):
                 detail[u"抵押物概况"] = dyw_list
 
                 soup = BeautifulSoup(resp.content, "lxml")
-                name_table_map = [u'被担保债权概况',u'动产抵押登记信息']
+                name_table_map = [u'被担保债权概况', u'动产抵押登记信息']
                 for table in soup.find_all('table'):
                     list_table_title = table.find("th")
                     if list_table_title.text in name_table_map:
@@ -432,12 +430,12 @@ class LiaoningParser(Parser):
         # 股东及出资信息
         url = "http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/getTzrxxPojoList.action"
         next_url = url
-        post_data = {'pripid': self.crawler.pripid};
+        post_data = {'pripid': self.crawler.pripid}
         resp = self.crawler.reqst.post(next_url, data=post_data)
         total = []
         list_m = json.loads(resp.content)
 
-        for i,item in enumerate(list_m):
+        for i, item in enumerate(list_m):
             table_save = {}
             table_save[u"股东"] = item["tJsTzrxx"]["inv"]
             table_save[u"认缴万元"] = str(item["tJsTzrxx"]["lisubconam"])
@@ -470,9 +468,9 @@ class LiaoningParser(Parser):
         total = []
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
-                table_save[u"序号"] = str(i+1)
+                table_save[u"序号"] = str(i + 1)
                 table_save[u"变更事项"] = item["alt"]
                 table_save[u"变更日期"] = item["altdateStr"]
                 table_save[u"变更前内容"] = item["altbe"]
@@ -514,9 +512,9 @@ class LiaoningParser(Parser):
         total = []
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
-                table_save[u"序号"] = str(i+1)
+                table_save[u"序号"] = str(i + 1)
                 table_save[u"许可文件编号"] = item["licno"]
                 table_save[u"有效文件名称"] = item["licnamevalue"]
                 table_save[u"有效期自"] = item["valfromStr"]
@@ -526,7 +524,9 @@ class LiaoningParser(Parser):
                 table_save[u"状态"] = item["typename"]
                 table_save[u"公示时间"] = item["gstimeStr"]
 
-                url = "%s%s%s%s" % ("http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/getQygsJsBgxx.action?", self.crawler.pripid, "&refid=", item["id"])
+                url = "%s%s%s%s" % (
+                    "http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/getQygsJsBgxx.action?",
+                    self.crawler.pripid, "&refid=", item["id"])
                 resp = self.crawler.reqst.get(url)
 
                 m = re.search(r'xzxkbgPaging\((\[.*?\])', resp.content)
@@ -617,14 +617,16 @@ class LiaoningParser(Parser):
         total = []
         if m:
             list_m = json.loads(m.group(1))
-            for i,item in enumerate(list_m):
+            for i, item in enumerate(list_m):
                 table_save = {}
-                table_save[u"序号"] = str(i+1)
-                table_save[u"报送年度"] = item["ancheyear"]+"年度报告"
+                table_save[u"序号"] = str(i + 1)
+                table_save[u"报送年度"] = item["ancheyear"] + "年度报告"
                 table_save[u"发布日期"] = item["anchedateStr"]
 
                 detail = {}
-                url = "%s%s%s%s" % ("http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/nbDeatil.action?artId=", item["artid"], "&entType=", self.crawler.type)
+                url = "%s%s%s%s" % (
+                    "http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/nbDeatil.action?artId=",
+                    item["artid"], "&entType=", self.crawler.type)
                 # print url
                 resp = self.crawler.reqst.get(url)
 
@@ -632,7 +634,7 @@ class LiaoningParser(Parser):
                 sw_list = []
                 if m:
                     list_m = json.loads(m.group(1))
-                    for i,item in enumerate(list_m):
+                    for i, item in enumerate(list_m):
                         table_detail = {}
                         table_detail[u"类型"] = item["typofwebName"]
                         table_detail[u"名称"] = item["websitname"]
@@ -644,7 +646,7 @@ class LiaoningParser(Parser):
                 sw_list = []
                 if m:
                     list_m = json.loads(m.group(1))
-                    for i,item in enumerate(list_m):
+                    for i, item in enumerate(list_m):
                         table_detail = {}
                         table_detail[u"股东"] = item["inv"]
                         table_detail[u"认缴出资额（万元）"] = item["lisubconam"]
@@ -661,11 +663,10 @@ class LiaoningParser(Parser):
                 sw_list = []
                 if m:
                     list_m = json.loads(m.group(1))
-                    for i,item in enumerate(list_m):
+                    for i, item in enumerate(list_m):
                         table_detail = {}
                         table_detail[u"投资设立企业或购买股权企业名称 "] = item["inventname"]
                         table_detail[u"统一社会信用代码/注册号"] = item["regno"]
-
 
                         sw_list.append(table_detail)
                 detail[u"对外投资信息"] = sw_list
@@ -700,13 +701,12 @@ class LiaoningParser(Parser):
                 sw_list = []
                 if m:
                     list_m = json.loads(m.group(1))
-                    for i,item in enumerate(list_m):
+                    for i, item in enumerate(list_m):
                         table_detail = {}
                         table_detail[u"股东 "] = item["inv"]
                         table_detail[u"变更前股权比例"] = item["transbmpr"]
                         table_detail[u"变更后股权比例 "] = item["transampr"]
                         table_detail[u"股权变更日期"] = item["altdatelabel"]
-
 
                         sw_list.append(table_detail)
                 detail[u"股权变更信息"] = sw_list
@@ -715,14 +715,13 @@ class LiaoningParser(Parser):
                 sw_list = []
                 if m:
                     list_m = json.loads(m.group(1))
-                    for i,item in enumerate(list_m):
+                    for i, item in enumerate(list_m):
                         table_detail = {}
-                        table_detail[u"序号 "] = str(i+1)
+                        table_detail[u"序号 "] = str(i + 1)
                         table_detail[u"修改事项"] = item["alt"]
                         table_detail[u"修改前 "] = item["altbe"]
                         table_detail[u"修改后"] = item["altaf"]
                         table_detail[u"修改日期"] = item["getAltdatevalue"]
-
 
                         sw_list.append(table_detail)
                 detail[u"修改记录"] = sw_list
@@ -745,20 +744,20 @@ class LiaoningParser(Parser):
     def crawl_other_dept_pub_pages(self):
         next_url = 'http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/sEntDetail.action'
         post_data = {
-                'entname': self.crawler.entname,
-                'enttype': self.crawler.type,
-                'optstate': self.crawler.optstate,
-                'pripid': self.crawler.pripid,
-                'regno': self.crawler.regno,
-                'revdate': 'undefined',
-             }
+            'entname': self.crawler.entname,
+            'enttype': self.crawler.type,
+            'optstate': self.crawler.optstate,
+            'pripid': self.crawler.pripid,
+            'regno': self.crawler.regno,
+            'revdate': 'undefined',
+        }
         resp = self.crawler.reqst.post(next_url, data=post_data)
         soup = BeautifulSoup(resp.content, "lxml")
 
         id_table_map = {
-            's_qt_xzxkxx': 'other_dept_pub_administration_license',  # 行政许可信息
-            's_qt_xzcfxx': 'other_dept_pub_administration_sanction',  # 行政处罚信息
-            's_qt_bgxx': 'other_dept_pub_reg_modify',  # 变更信息
+            's_qt_xzxkxx': 'other_dept_pub_administration_license',    # 行政许可信息
+            's_qt_xzcfxx': 'other_dept_pub_administration_sanction',    # 行政处罚信息
+            's_qt_bgxx': 'other_dept_pub_reg_modify',    # 变更信息
         }
         table_ids = id_table_map.keys()
         for table_id in table_ids:
@@ -854,7 +853,7 @@ class LiaoningParser(Parser):
         table_th = [th for th in table_trs[1].stripped_strings]
         total = []
         for tr in table_trs[2:]:
-            table_td =[]
+            table_td = []
             table_tds = tr.find_all("td")
             for td in table_tds:
                 if 'colspan' in td.attrs:
@@ -882,5 +881,6 @@ if __name__ == '__main__':
     # enterprise_list = ['210200400016720']
     for ent_number in enterprise_list:
         ent_number = ent_number.rstrip('\n')
-        settings.logger.info('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
+        settings.logger.info('###################   Start to crawl enterprise with id %s   ###################\n' %
+                             ent_number)
         crawler.run(ent_number=ent_number)

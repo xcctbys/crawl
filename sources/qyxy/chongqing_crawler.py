@@ -50,31 +50,31 @@ class ChongqingClawer(Crawler):
         'host': 'http://gsxt.cqgs.gov.cn',
         'get_checkcode': 'http://gsxt.cqgs.gov.cn/sc.action?width=130&height=40',
         'repost_checkcode': 'http://gsxt.cqgs.gov.cn/search_research.action',
-        # 获得查询页面
+    # 获得查询页面
         'post_checkcode': 'http://gsxt.cqgs.gov.cn/search.action',
-        # 根据查询页面获得指定公司的数据
+    # 根据查询页面获得指定公司的数据
         'search_ent': 'http://gsxt.cqgs.gov.cn/search_getEnt.action',
-        # 年报
+    # 年报
         'year_report': 'http://gsxt.cqgs.gov.cn/search_getYearReport.action',
-        # 年报详情
+    # 年报详情
         'year_report_detail': 'http://gsxt.cqgs.gov.cn/search_getYearReportDetail.action',
-        # 股权变更
+    # 股权变更
         'year_daily_transinfo': 'http://gsxt.cqgs.gov.cn/search_getDaily.action',
-        # 股东出资信息
+    # 股东出资信息
         'year_daily_invsub': 'http://gsxt.cqgs.gov.cn/search_getDaily.action',
-        # 行政处罚
+    # 行政处罚
         'year_daily_peninfo': 'http://gsxt.cqgs.gov.cn/search_getDaily.action',
-        # 行政许可
+    # 行政许可
         'year_daily_licinfo': 'http://gsxt.cqgs.gov.cn/search_getDaily.action',
-        # 知识产权出质登记
+    # 知识产权出质登记
         'year_daily_pleinfo': 'http://gsxt.cqgs.gov.cn/search_getDaily.action',
-        # 其他行政许可信息
+    # 其他行政许可信息
         'other_qlicinfo': 'http://gsxt.cqgs.gov.cn/search_getOtherSectors.action',
-        # 其他行政处罚
+    # 其他行政处罚
         'other_qpeninfo': 'http://gsxt.cqgs.gov.cn/search_getOtherSectors.action',
-        # 股权冻结信息
+    # 股权冻结信息
         'sfxz_page': 'http://gsxt.cqgs.gov.cn/search_getSFXZ.action',
-        # 股东变更信息
+    # 股东变更信息
         'sfxzgdbg_page': 'http://gsxt.cqgs.gov.cn/search_getSFXZGDBG.action',
     }
     write_file_mutex = threading.Lock()
@@ -112,7 +112,8 @@ class ChongqingClawer(Crawler):
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+        })
 
     def run(self, ent_number=0):
         crawler = ChongqingClawer('./enterprise_crawler/chongqing/chongqing.json')
@@ -137,7 +138,6 @@ class ChongqingClawer(Crawler):
         self.write_file_mutex.release()
         return True
 
-
     def crawl_check_page(self):
         """爬取验证码页面，包括下载验证码图片以及破解验证码
         :return true or false
@@ -145,7 +145,7 @@ class ChongqingClawer(Crawler):
         count = 0
         while count < 30:
             ck_code = self.crack_check_code()
-            data = {'key':self.ent_number,'code':ck_code}
+            data = {'key': self.ent_number, 'code': ck_code}
             resp = self.reqst.post(ChongqingClawer.urls['post_checkcode'], data=data)
             if resp.status_code != 200:
                 settings.logger.error("crawl post check page failed!")
@@ -209,7 +209,7 @@ class ChongqingClawer(Crawler):
 
         return ckcode[1]
 
-    def crawl_page_jsons(self,page):
+    def crawl_page_jsons(self, page):
         """获取所有界面的json数据"""
         data = self.parser.parse_search_results_pages(page)
         if data is not None:
@@ -255,9 +255,9 @@ class ChongqingClawer(Crawler):
         if json.status_code == 200:
             json = json.content
             json = str(json)
-            self.json_ent_info = json[6:]  # 去掉数据中的前六个字符保证数据为完整json格式数据
+            self.json_ent_info = json[6:]    # 去掉数据中的前六个字符保证数据为完整json格式数据
             if self.json_ent_info is None or 'base' not in self.json_ent_info:
-                self.crawl_ent_info_json(data, type=10)  # 有些公司需要传过去的参数为 10
+                self.crawl_ent_info_json(data, type=10)    # 有些公司需要传过去的参数为 10
                 # print(self.json_ent_info)
 
     def crawl_year_report_json(self, data):
@@ -268,7 +268,7 @@ class ChongqingClawer(Crawler):
             json = self.reqst.get(ChongqingClawer.urls['year_report'], params=params)
         json = json.content
         json = str(json)
-        self.json_year_report = json[6:]  # 去掉数据中的前六个字符保证数据为完整json格式数据
+        self.json_year_report = json[6:]    # 去掉数据中的前六个字符保证数据为完整json格式数据
         # print(self.json_year_report)
 
     def crawl_year_report_detail_json(self, data):
@@ -465,7 +465,8 @@ class ChongqingParser(Parser):
         self.crawler.json_dict['ind_comm_pub_business_exception'] = self.ind_comm_pub_business_exception
         self.crawler.json_dict['ind_comm_pub_serious_violate_law'] = self.ind_comm_pub_serious_violate_law
         self.crawler.json_dict['ind_comm_pub_spot_check'] = self.ind_comm_pub_spot_check
-        self.crawler.json_dict['ent_pub_shareholder_capital_contribution'] = self.ent_pub_shareholder_capital_contribution
+        self.crawler.json_dict[
+            'ent_pub_shareholder_capital_contribution'] = self.ent_pub_shareholder_capital_contribution
         self.crawler.json_dict['ent_pub_equity_change'] = self.ent_pub_equity_change
         self.crawler.json_dict['ent_pub_administration_license'] = self.ent_pub_administration_license
         self.crawler.json_dict['ent_pub_knowledge_property'] = self.ent_pub_knowledge_property
@@ -763,10 +764,8 @@ class ChongqingParser(Parser):
             self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '许可文件名称', 'licname')
             self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '许可文件编号', 'licno')
             # 暂时没有确定
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '详情',
-                                     'license_detail')
-            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '许可机关',
-                                     'licanth')
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '详情', 'license_detail')
+            self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '许可机关', 'licanth')
             self.check_key_is_exists(json_other_qlicinfoes[i], administration_license, '有效期自', 'valfrom')
             administration_licenses.append(administration_license)
             i += 1
@@ -798,6 +797,5 @@ if __name__ == '__main__':
     enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/chongqing.txt')
     for ent_number in enterprise_list:
         ent_number = ent_number.rstrip('\n')
-        print(
-                '############   Start to crawl enterprise with id %s   ################\n' % ent_number)
+        print('############   Start to crawl enterprise with id %s   ################\n' % ent_number)
         crawler.run(ent_number=ent_number)

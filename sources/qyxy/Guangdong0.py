@@ -21,18 +21,23 @@ from bs4 import BeautifulSoup
 import CaptchaRecognition as CR
 urls = {
     'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
-    'prefix_url':'http://www.szcredit.com.cn/web/GSZJGSPT/',
+    'prefix_url': 'http://www.szcredit.com.cn/web/GSZJGSPT/',
     'page_search': 'http://gsxt.gdgs.gov.cn/aiccips/index',
     'page_Captcha': 'http://gsxt.gdgs.gov.cn/aiccips/verify.html',
     'page_showinfo': 'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/showInfo.html',
-    'checkcode':'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/checkCode.html',
+    'checkcode': 'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/checkCode.html',
 }
 ##
 
-headers = { 'Connetion': 'Keep-Alive',
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
+headers = {
+    'Connetion': 'Keep-Alive',
+    'Accept': 'text/html, application/xhtml+xml, */*',
+    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+    "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
+}
+
+
 class Crawler(object):
     def __init__(self, analysis):
         self.analysis = analysis
@@ -44,40 +49,45 @@ class Crawler(object):
         self.requests.headers.update(headers)
         self.ents = []
         self.main_host = ""
-        self.json_dict={}
-
+        self.json_dict = {}
 
     def crawl_xingzhengchufa_page(self, url, text):
         data = self.analysis.analyze_xingzhengchufa(text)
-        r = self.requests.post( url, data)
+        r = self.requests.post(url, data)
         if r.status_code != 200:
             return False
         #html_to_file("xingzhengchufa.html",r.text)
         return r.text
+
     def crawl_biangengxinxi_page(self, url, text):
         datas = self.analysis.analyze_biangengxinxi(text)
-        r2 = self.requests.post( url, datas, headers = {'X-Requested-With': 'XMLHttpRequest', 'X-MicrosoftAjax': 'Delta=true', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',})
+        r2 = self.requests.post(url,
+                                datas,
+                                headers={'X-Requested-With': 'XMLHttpRequest',
+                                         'X-MicrosoftAjax': 'Delta=true',
+                                         'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', })
         if r2.status_code != 200:
             return False
         #html_to_file("biangengxinxi.html",r2.text)
         return r2.text
     # 爬取 工商公示信息 页面
     def crawl_ind_comm_pub_pages(self, url):
-        sub_json_dict={}
+        sub_json_dict = {}
         try:
             page = self.crawl_page_by_url(url)['page']
             #html_to_file("pub.html", page)
             page_xingzhengchufa = self.crawl_xingzhengchufa_page(url, page)
             page_biangengxinxi = self.crawl_biangengxinxi_page(url, page_xingzhengchufa)
 
-            dict_jiben = self.analysis.parse_page(page, 'jibenxinxi')  #   基本信息, 投资人信息
+            dict_jiben = self.analysis.parse_page(page, 'jibenxinxi')    #   基本信息, 投资人信息
             sub_json_dict['ind_comm_pub_reg_shareholder'] = dict_jiben[u'投资人信息'] if dict_jiben.has_key(u'投资人信息') else []
-            sub_json_dict['ind_comm_pub_reg_basic']=  dict_jiben[u'基本信息'] if dict_jiben.has_key(u'基本信息') else []
+            sub_json_dict['ind_comm_pub_reg_basic'] = dict_jiben[u'基本信息'] if dict_jiben.has_key(u'基本信息') else []
 
-            dict_beian =  self.analysis.parse_page(page, 'beian')#分支机构信息,经营范围信息,   清算信息, 主要人员信息,
+            dict_beian = self.analysis.parse_page(page, 'beian')    #分支机构信息,经营范围信息,   清算信息, 主要人员信息,
             sub_json_dict['ind_comm_pub_arch_branch'] = dict_beian[u'分支机构信息'] if dict_beian.has_key(u'分支机构信息') else []
             sub_json_dict['ind_comm_pub_arch_liquidation'] = dict_beian[u"清算信息"] if dict_beian.has_key(u'清算信息') else []
-            sub_json_dict['ind_comm_pub_arch_key_persons'] =  dict_beian[u'主要人员信息'] if dict_beian.has_key(u"主要人员信息") else []
+            sub_json_dict['ind_comm_pub_arch_key_persons'] = dict_beian[u'主要人员信息'] if dict_beian.has_key(
+                u"主要人员信息") else []
             bg = self.analysis.parse_page(page_biangengxinxi, 'biangengxinxi')
             sub_json_dict['ind_comm_pub_reg_modify'] = bg[u'变更信息'] if bg.has_key(u'变更信息') else []
             dcdy = self.analysis.parse_page(page, 'dongchandiya')
@@ -93,14 +103,13 @@ class Crawler(object):
             xzcf = self.analysis.parse_page(page_xingzhengchufa, 'xingzhengchufa')
             sub_json_dict['ind_comm_pub_administration_sanction'] = xzcf[u'行政处罚信息'] if xzcf.has_key(u'行政处罚信息') else []
         except Exception as e:
-            settings.logger.debug(u"An error ocurred in crawl_ind_comm_pub_pages: %s"% type(e))
+            settings.logger.debug(u"An error ocurred in crawl_ind_comm_pub_pages: %s" % type(e))
             raise e
         finally:
             return sub_json_dict
         #json_dump_to_file("json_dict.json", self.json_dict)
 
-
-    #爬取 企业公示信息 页面
+        #爬取 企业公示信息 页面
     def crawl_ent_pub_pages(self, url):
         sub_json_dict = {}
         try:
@@ -119,23 +128,25 @@ class Crawler(object):
             p = self.analysis.parse_page(page, 'zhishichanquan')
             sub_json_dict['ent_pub_knowledge_property'] = p[u'知识产权出质登记信息'] if p.has_key(u'知识产权出质登记信息') else []
         except Exception as e:
-            settings.logger.debug(u"An error ocurred in crawl_ent_pub_pages: %s"% type(e))
+            settings.logger.debug(u"An error ocurred in crawl_ent_pub_pages: %s" % type(e))
             raise e
         finally:
             return sub_json_dict
 
     #爬取 其他部门公示信息 页面
     def crawl_other_dept_pub_pages(self, url):
-        sub_json_dict={}
+        sub_json_dict = {}
         try:
             page = self.crawl_page_by_url(url)['page']
             xk = self.analysis.parse_page(page, 'xingzhengxuke')
-            sub_json_dict["other_dept_pub_administration_license"] =  xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []  #行政许可信息
+            sub_json_dict["other_dept_pub_administration_license"] = xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else [
+            ]    #行政许可信息
             xk = self.analysis.parse_page(page, 'xingzhengchufa')
-            sub_json_dict["other_dept_pub_administration_sanction"] = xk[u'行政处罚信息'] if xk.has_key(u'行政处罚信息') else []  # 行政处罚信息
+            sub_json_dict["other_dept_pub_administration_sanction"] = xk[u'行政处罚信息'] if xk.has_key(u'行政处罚信息') else [
+            ]    # 行政处罚信息
 
         except Exception as e:
-            settings.logger.debug(u"An error ocurred in crawl_other_dept_pub_pages: %s"% type(e))
+            settings.logger.debug(u"An error ocurred in crawl_other_dept_pub_pages: %s" % type(e))
             raise e
         finally:
             return sub_json_dict
@@ -145,15 +156,15 @@ class Crawler(object):
         pass
 
     def crawl_page_by_url(self, url):
-        r = self.requests.get( url)
+        r = self.requests.get(url)
         if r.status_code != 200:
-            settings.logger.error(u"Getting page by url:%s\n, return status %s\n"% (url, r.status_code))
+            settings.logger.error(u"Getting page by url:%s\n, return status %s\n" % (url, r.status_code))
             return False
-        return {'page' : r.text, 'url': r.url}
+        return {'page': r.text, 'url': r.url}
 
     def run(self, ent):
-        sub_json_dict= {}
-        rid = ent[ent.index("rid")+4: len(ent)]
+        sub_json_dict = {}
+        rid = ent[ent.index("rid") + 4:len(ent)]
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=" + rid
         sub_json_dict.update(self.crawl_ind_comm_pub_pages(url))
         url = "http://www.szcredit.com.cn/web/GSZJGSPT/QynbDetail.aspx?rid=" + rid
@@ -163,9 +174,11 @@ class Crawler(object):
 
         return sub_json_dict
 
+
 class Analyze(object):
 
     crawler = None
+
     def __init__(self):
         self.Ent = []
         self.json_dict = {}
@@ -176,21 +189,22 @@ class Analyze(object):
         state = soup.find("input", {"id": "__VIEWSTATE"})['value']
 
         data = {
-                '__VIEWSTATEGENERATOR':generator,
-                '__VIEWSTATE': state,
-                '__EVENTTARGET':'Timer1',
-                'ScriptManager1':"xingzhengchufa|Timer1",
-                '__EVENTARGUMENT':'',
-                '__ASYNCPOST':'true',
+            '__VIEWSTATEGENERATOR': generator,
+            '__VIEWSTATE': state,
+            '__EVENTTARGET': 'Timer1',
+            'ScriptManager1': "xingzhengchufa|Timer1",
+            '__EVENTARGUMENT': '',
+            '__ASYNCPOST': 'true',
         }
         return data
+
     def analyze_biangengxinxi(self, text):
         #soup = BeautifulSoup(text, "html5lib")
         pattern = re.compile(r'__VIEWSTATE\|(.*?)\|')
         viewstate_object = pattern.search(text)
         state = ""
         generator = ""
-        if viewstate_object :
+        if viewstate_object:
             state = viewstate_object.group().split('|')[1]
         else:
             print 'None'
@@ -202,37 +216,35 @@ class Analyze(object):
             print "None"
 
         data = {
-                '__VIEWSTATEGENERATOR':generator,
-                '__VIEWSTATE': state,
-                '__EVENTTARGET':'Timer2',
-                'ScriptManager1':"biangengxinxi|Timer2",
-                '__EVENTARGUMENT':'',
-                '__ASYNCPOST':'true',
+            '__VIEWSTATEGENERATOR': generator,
+            '__VIEWSTATE': state,
+            '__EVENTTARGET': 'Timer2',
+            'ScriptManager1': "biangengxinxi|Timer2",
+            '__EVENTARGUMENT': '',
+            '__ASYNCPOST': 'true',
         }
         return data
     #
     def analyze_biangengxinxi_page(self, text):
         soup = BeautifulSoup(text, "html5lib")
         biangengxinxi_div = soup.find("table")
-        trs = biangengxinxi_div.find_all("tr", {"width" : "95%"})
+        trs = biangengxinxi_div.find_all("tr", {"width": "95%"})
         biangengxinxi_name = ""
         titles = []
         results = []
         #print(biangengxinxi_div.prettify())
         for line, tr in enumerate(trs):
-            if line==0:
-                biangengxinxi_name =  tr.get_text().strip()
+            if line == 0:
+                biangengxinxi_name = tr.get_text().strip()
             elif line == 1:
                 ths = tr.find_all("th")
-                titles = [ th.get_text().strip() for th in ths]
+                titles = [th.get_text().strip() for th in ths]
             else:
                 tds_tag = tr.find_all("td")
                 tds = [td.get_text().strip() for td in tds_tag]
                 results.append(dict(zip(titles, tds)))
         self.json_dict[biangengxinxi_name] = results
         #json_dump_to_file("json_dict.json", self.json_dict)
-
-
 
     def get_raw_text_by_tag(self, tag):
         return tag.get_text().strip()
@@ -255,10 +267,11 @@ class Analyze(object):
         for i in range(index, index + count):
             th = tr_tag.find_all('th')[i]
             if not self.sub_column_count(th):
-                columns.append(( self.get_raw_text_by_tag(th), self.get_raw_text_by_tag(th)))
+                columns.append((self.get_raw_text_by_tag(th), self.get_raw_text_by_tag(th)))
             else:
-            #if has sub-sub columns
-                columns.append((self.get_raw_text_by_tag(th), self.get_sub_columns(tr_tag.nextSibling.nextSibling, 0, self.sub_column_count(th))))
+                #if has sub-sub columns
+                columns.append((self.get_raw_text_by_tag(th), self.get_sub_columns(tr_tag.nextSibling.nextSibling, 0,
+                                                                                   self.sub_column_count(th))))
         return columns
 
     #get column data recursively, use recursive because there may be table in table
@@ -272,13 +285,14 @@ class Analyze(object):
                 settings.logger.error('invalid multi_col_tag, multi_col_tag = %s', multi_col_tag)
                 return data
             #数据表中会出现多出一空列的情况，fuck it。 要判断最后一列内容是否为空。
-            tds = multi_col_tag.find_all('td', recursive = False)
+            tds = multi_col_tag.find_all('td', recursive=False)
             len_tds = len(tds)
-            if not tds[len_tds-1].get_text().strip() :
-                len_tds= len_tds - 1
+            if not tds[len_tds - 1].get_text().strip():
+                len_tds = len_tds - 1
 
             if len(columns) != len_tds:
-                settings.logger.error('column head size != column data size, columns head = %s, columns data = %s' % (columns, multi_col_tag.contents))
+                settings.logger.error('column head size != column data size, columns head = %s, columns data = %s' %
+                                      (columns, multi_col_tag.contents))
                 return data
 
             for id, col in enumerate(columns):
@@ -296,7 +310,7 @@ class Analyze(object):
     def get_columns_of_record_table(self, bs_table, page, table_name):
         tbody = None
         if len(bs_table.find_all('tbody')) > 1:
-            tbody= bs_table.find_all('tbody')[1]
+            tbody = bs_table.find_all('tbody')[1]
         else:
             tbody = bs_table.find('tbody') or BeautifulSoup(page, 'html5lib').find('tbody')
 
@@ -313,14 +327,16 @@ class Analyze(object):
         else:
             if len(bs_table.find_all('tr')) <= 1:
                 return None
-            elif bs_table.find_all('tr')[0].find('th') and not bs_table.find_all('tr')[0].find('td') and len(bs_table.find_all('tr')[0].find_all('th')) > 1:
+            elif bs_table.find_all('tr')[0].find('th') and not bs_table.find_all('tr')[0].find('td') and len(
+                    bs_table.find_all('tr')[0].find_all('th')) > 1:
                 tr = bs_table.find_all('tr')[0]
-            elif bs_table.find_all('tr')[1].find('th') and not bs_table.find_all('tr')[1].find('td') and len(bs_table.find_all('tr')[1].find_all('th')) > 1:
+            elif bs_table.find_all('tr')[1].find('th') and not bs_table.find_all('tr')[1].find('td') and len(
+                    bs_table.find_all('tr')[1].find_all('th')) > 1:
                 tr = bs_table.find_all('tr')[1]
         #settings.logger.debug(u"get_columns_of_record_table->tr:%s\n", tr)
-        ret_val=  self.get_record_table_columns_by_tr(tr, table_name)
+        ret_val = self.get_record_table_columns_by_tr(tr, table_name)
         #settings.logger.debug(u"ret_val->%s\n", ret_val)
-        return  ret_val
+        return ret_val
 
     def get_record_table_columns_by_tr(self, tr_tag, table_name):
         columns = []
@@ -328,29 +344,30 @@ class Analyze(object):
             return columns
         try:
             sub_col_index = 0
-            if len(tr_tag.find_all('th'))==0:
-                settings.logger.error(u"The table %s has no columns"% table_name)
+            if len(tr_tag.find_all('th')) == 0:
+                settings.logger.error(u"The table %s has no columns" % table_name)
                 return columns
             count = 0
             for i, th in enumerate(tr_tag.find_all('th')):
                 #settings.logger.debug(u"th in get_record_table_columns_by_tr =\n %s", th)
                 col_name = self.get_raw_text_by_tag(th)
-                if col_name :
-                    if ((col_name, col_name) in columns) :
-                        col_name= col_name+'_'
-                        count+=1
+                if col_name:
+                    if ((col_name, col_name) in columns):
+                        col_name = col_name + '_'
+                        count += 1
                     if not self.sub_column_count(th):
                         columns.append((col_name, col_name))
-                    else: #has sub_columns
-                        columns.append((col_name, self.get_sub_columns(tr_tag.nextSibling.nextSibling, sub_col_index, self.sub_column_count(th))))
+                    else:    #has sub_columns
+                        columns.append((col_name, self.get_sub_columns(tr_tag.nextSibling.nextSibling, sub_col_index,
+                                                                       self.sub_column_count(th))))
                         sub_col_index += self.sub_column_count(th)
-            if count == len(tr_tag.find_all('th'))/2:
-                columns= columns[: len(columns)/2]
+            if count == len(tr_tag.find_all('th')) / 2:
+                columns = columns[:len(columns) / 2]
         except Exception as e:
-            settings.logger.error(u'exception occured in get_table_columns, except_type = %s, table_name = %s' % (type(e), table_name))
+            settings.logger.error(u'exception occured in get_table_columns, except_type = %s, table_name = %s' %
+                                  (type(e), table_name))
         finally:
             return columns
-
 
     # parse main page
     # return params are dicts
@@ -365,7 +382,7 @@ class Analyze(object):
                     table = None
                     if not divs:
                         table = soup.body.find('table')
-                    else :
+                    else:
                         table = divs.find('table')
                     #print table
                     while table:
@@ -391,7 +408,7 @@ class Analyze(object):
 
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             tbody = None
-            if len(bs_table.find_all('tbody'))>1:
+            if len(bs_table.find_all('tbody')) > 1:
                 tbody = bs_table.find_all('tbody')[1]
             else:
                 tbody = bs_table.find('tbody') or BeautifulSoup(page, 'html5lib').find('tbody')
@@ -411,10 +428,11 @@ class Analyze(object):
                     records_tag = tbody
                 for tr in records_tag.find_all('tr'):
 
-                    if tr.find('td') and col_span == column_size and len(tr.find_all('td', recursive=False)) % column_size == 0:
+                    if tr.find('td') and col_span == column_size and len(tr.find_all(
+                            'td', recursive=False)) % column_size == 0:
                         col_count = 0
                         item = {}
-                        for td in tr.find_all('td',recursive=False):
+                        for td in tr.find_all('td', recursive=False):
                             if td.find('a'):
                                 #try to retrieve detail link from page
                                 next_url = self.get_detail_link(td.find('a'))
@@ -424,12 +442,13 @@ class Analyze(object):
                                     #html_to_file("next.html", detail_page['page'])
                                     if table_name == u'企业年报':
                                         #settings.logger.debug(u"next_url = %s, table_name= %s\n", detail_page['url'], table_name)
-                                        page_data = self.parse_ent_pub_annual_report_page(detail_page, table_name + '_detail')
+                                        page_data = self.parse_ent_pub_annual_report_page(detail_page,
+                                                                                          table_name + '_detail')
                                         item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
                                         item[u'详情'] = page_data
                                     else:
                                         page_data = self.parse_page(detail_page['page'], table_name + '_detail')
-                                        item[columns[col_count][0]] = page_data #this may be a detail page data
+                                        item[columns[col_count][0]] = page_data    #this may be a detail page data
                                 else:
                                     #item[columns[col_count]] = CrawlerUtils.get_raw_text_in_bstag(td)
                                     item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
@@ -441,13 +460,14 @@ class Analyze(object):
                                 col_count = 0
                     #this case is for the ind-comm-pub-reg-shareholders----details'table
                     #a fucking dog case!!!!!!
-                    elif tr.find('td') and len(tr.find_all('td', recursive=False)) == col_span and col_span != column_size:
+                    elif tr.find('td') and len(tr.find_all('td',
+                                                           recursive=False)) == col_span and col_span != column_size:
 
                         col_count = 0
                         sub_col_index = 0
                         item = {}
                         sub_item = {}
-                        tds = tr.find_all('td',recursive=False)
+                        tds = tr.find_all('td', recursive=False)
                         for i, td in enumerate(tds):
                             if td.find('a'):
                                 #try to retrieve detail link from page
@@ -460,16 +480,17 @@ class Analyze(object):
                                     if table_name == u'企业年报':
                                         #settings.logger.debug(u"2next_url = %s, table_name= %s\n", next_url, table_name)
 
-                                        page_data = self.parse_ent_pub_annual_report_page(detail_page, table_name + '_detail')
+                                        page_data = self.parse_ent_pub_annual_report_page(detail_page,
+                                                                                          table_name + '_detail')
                                         item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
                                         item[u'详情'] = page_data
                                     else:
                                         page_data = self.parse_page(detail_page['page'], table_name + '_detail')
-                                        item[columns[col_count][0]] = page_data #this may be a detail page data
+                                        item[columns[col_count][0]] = page_data    #this may be a detail page data
                                 else:
                                     #item[columns[col_count]] = CrawlerUtils.get_raw_text_in_bstag(td)
                                     item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
-                            else :
+                            else:
 
                                 if type(columns[col_count][1]) == list:
                                     sub_key = columns[col_count][1][sub_col_index][1]
@@ -487,12 +508,13 @@ class Analyze(object):
                                 item_array.append(item.copy())
                                 col_count = 0
                     # 我给跪了，数据表无缘无故最后的多出一空列
-                    elif tr.find('td') and len(tr.find_all('td', recursive=False)) == col_span+1 and col_span != column_size:
+                    elif tr.find('td') and len(tr.find_all(
+                            'td', recursive=False)) == col_span + 1 and col_span != column_size:
                         col_count = 0
                         sub_col_index = 0
                         item = {}
                         sub_item = {}
-                        tds = tr.find_all('td',recursive=False)[:-1]
+                        tds = tr.find_all('td', recursive=False)[:-1]
                         for i, td in enumerate(tds):
                             if type(columns[col_count][1]) == list:
                                 sub_key = columns[col_count][1][sub_col_index][1]
@@ -509,7 +531,6 @@ class Analyze(object):
                             if col_count == column_size:
                                 item_array.append(item.copy())
                                 col_count = 0
-
 
                 table_dict = item_array
             else:
@@ -537,12 +558,12 @@ class Analyze(object):
         try:
             if table_name == u'基本信息':
                 rowspan_name = ""
-                item={}
-                sub_item= {}
+                item = {}
+                sub_item = {}
                 trs = table.find_all("tr")[1:]
-                i =0
+                i = 0
                 while i < len(trs):
-                    tr  = trs[i]
+                    tr = trs[i]
                     titles = tr.find_all("td", {"align": True})
                     datas = tr.find_all("td", {"align": False})
                     if len(titles) != len(datas):
@@ -550,31 +571,34 @@ class Analyze(object):
                             row_num = int(titles[0]['rowspan'])
                             rowspan_name = titles[0].get_text().strip()
                             sub_item = {}
-                            sub_item.update(dict(zip([ t.get_text().strip() for t in titles[1:]], [d.get_text().strip() for d in datas])))
-                            j=1
+                            sub_item.update(dict(zip([t.get_text().strip() for t in titles[1:]], [d.get_text().strip()
+                                                                                                  for d in datas])))
+                            j = 1
                             while j < row_num:
-                                tr= trs[i + j]
+                                tr = trs[i + j]
                                 titles = tr.find_all("td", {"align": True})
                                 datas = tr.find_all("td", {"align": False})
-                                sub_item.update(dict(zip([t.get_text().strip() for t in titles], [ d.get_text().strip() for d in datas])))
-                                j= j+1
-                            i = i+ row_num-1
+                                sub_item.update(dict(zip([t.get_text().strip() for t in titles], [d.get_text().strip()
+                                                                                                  for d in datas])))
+                                j = j + 1
+                            i = i + row_num - 1
                             item[rowspan_name] = sub_item
                             #json_dump_to_file("sub_item.json", item)
 
                     else:
-                        item.update(dict(zip([t.get_text().strip() for t in titles], [ d.get_text().strip() for d in datas])))
-                    i+=1
+                        item.update(dict(zip([t.get_text().strip() for t in titles], [d.get_text().strip() for d in
+                                                                                      datas])))
+                    i += 1
                 #json_dump_to_file("sub_item.json", item)
 
                 table_dict[table_name] = item
             else:
-                item={}
-                sub_item= []
+                item = {}
+                sub_item = []
                 tables = table.find_all("tr")[1:]
 
                 while tables:
-                    tds =  tables[0].find_all("td")
+                    tds = tables[0].find_all("td")
                     flag = False
                     for td in tds:
                         if not td.has_attr('align'):
@@ -586,17 +610,17 @@ class Analyze(object):
                         item[first_line[0].get_text().strip()] = first_line[1].get_text().strip()
                         tables = tables[1:]
                         continue
-                    columns = [ td.get_text().strip() for td in tables[0].find_all("td")]
+                    columns = [td.get_text().strip() for td in tables[0].find_all("td")]
                     for tr in tables[1:]:
                         data = [td.get_text().strip() for td in tr.find_all("td")]
-                        sub_item.append( dict( zip(columns, data)) )
+                        sub_item.append(dict(zip(columns, data)))
                     item['list'] = sub_item
                     break
 
                 table_dict[table_name] = item
 
         except Exception as e:
-            settings.logger.error(u"parse report table %s failed with exception %s\n"%(table_name, type(e)))
+            settings.logger.error(u"parse report table %s failed with exception %s\n" % (table_name, type(e)))
             raise e
 
         return table_dict
@@ -628,11 +652,11 @@ class Analyze(object):
             try:
                 tables = soup.body.find_all('table')[1:]
                 for table in tables:
-                        table_name = self.get_table_title(table)
-                        page_data[table_name] =self.parse_table(table, table_name, page_dict['page'])
-                        # print page_data[table_name]
+                    table_name = self.get_table_title(table)
+                    page_data[table_name] = self.parse_table(table, table_name, page_dict['page'])
+                    # print page_data[table_name]
             except Exception as e:
-                settings.logger.error(u"fail to parse the rest tables with exception %s" %(type(e)))
+                settings.logger.error(u"fail to parse the rest tables with exception %s" % (type(e)))
         else:
             pass
         return page_data
@@ -723,6 +747,7 @@ class Analyze(object):
         return page_data
 """
 
+
 def html_to_file(path, html):
     write_type = 'w'
     if os.path.exists(path):
@@ -730,22 +755,25 @@ def html_to_file(path, html):
     with codecs.open(path, write_type, 'utf-8') as f:
         f.write(html)
 
+
 def json_dump_to_file(path, json_dict):
     write_type = 'w'
     if os.path.exists(path):
         write_type = 'a'
     with codecs.open(path, write_type, 'utf-8') as f:
-        f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
+        f.write(json.dumps(json_dict, ensure_ascii=False) + '\n')
+
 
 def read_ent_from_file(path):
     read_type = 'r'
     if not os.path.exists(path):
-        settings.logger.error(u"There is no path : %s"% path )
+        settings.logger.error(u"There is no path : %s" % path)
     lines = []
     with codecs.open(path, read_type, 'utf-8') as f:
         lines = f.readlines()
-    lines = [ line.split(',') for line in lines ]
+    lines = [line.split(',') for line in lines]
     return lines
+
 
 def html_from_file(path):
     read_type = 'r'
@@ -756,7 +784,6 @@ def html_from_file(path):
         datas = f.read()
         f.close()
     return datas
-
 
 
 class Guangdong0(object):

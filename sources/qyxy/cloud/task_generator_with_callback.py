@@ -7,7 +7,6 @@ import datetime
 """ example is http://gsxt.saic.gov.cn/
 """
 
-
 import urllib
 import json
 import sys
@@ -24,7 +23,6 @@ import traceback
 import datetime
 import random
 
-
 DEBUG = True
 if DEBUG:
     level = logging.DEBUG
@@ -33,12 +31,11 @@ else:
 
 logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
-
 PROVINCE_NUM = 32
-HOST= '10.100.80.50'
+HOST = '10.100.80.50'
+
 
 class History(object):
-
     def __init__(self):
         self.total_page = [0 for i in range(PROVINCE_NUM)]
         self.current_page = [0 for i in range(PROVINCE_NUM)]
@@ -56,7 +53,6 @@ class History(object):
     def save(self):
         with open(self.path, "w") as f:
             pickle.dump(self, f)
-
 
 
 class Generator(object):
@@ -87,7 +83,11 @@ class Generator(object):
             for _ in range(0, self.step):
                 self.history.current_page[i] += 1
                 # guangdong province id is 6
-                query = urllib.urlencode({'page':self.history.current_page[i], 'rows': 10, 'sort': 'id', 'order': 'asc', 'province': i+1})
+                query = urllib.urlencode({'page': self.history.current_page[i],
+                                          'rows': 10,
+                                          'sort': 'id',
+                                          'order': 'asc',
+                                          'province': i + 1})
 
                 r = requests.get(self.source_url, query)
                 if r.status_code != 200:
@@ -98,7 +98,6 @@ class Generator(object):
                     if e_url:
                         self.enterprise_urls.append(e_url)
 
-
                 if self.history.current_page[i] >= self.history.total_page[i]:
                     self.history.current_page[i] = 0
                     self.history.total_page[i] = 0
@@ -107,15 +106,15 @@ class Generator(object):
             self.history.save()
         random.shuffle(self.enterprise_urls)
 
-
     def callback_enterprises(self):
         end_time = datetime.datetime.now()
-        start_time = end_time - datetime.timedelta(hours = 1)
+        start_time = end_time - datetime.timedelta(hours=1)
         try:
-            conn = MySQLdb.connect(host= HOST, user='cacti', passwd='cacti', db='clawer', port=3306)
+            conn = MySQLdb.connect(host=HOST, user='cacti', passwd='cacti', db='clawer', port=3306)
             cur = conn.cursor()
 
-            sql = 'select t.uri from  clawer_clawertask as t, clawer_clawerdownloadlog as l where  t.id=l.task_id and l.status=1 and t.clawer_id=%d and  l.add_datetime between \"%s\" and \"%s\"' % (7, start_time, end_time)
+            sql = 'select t.uri from  clawer_clawertask as t, clawer_clawerdownloadlog as l where  t.id=l.task_id and l.status=1 and t.clawer_id=%d and  l.add_datetime between \"%s\" and \"%s\"' % (
+                7, start_time, end_time)
             # print sql
             cur.execute(sql)
             results = cur.fetchall()
@@ -124,13 +123,12 @@ class Generator(object):
             cur.close()
             conn.close()
         except MySQLdb.Error, e:
-            print 'Mysql error %d:%s' %(e.args[0], e.args[1])
+            print 'Mysql error %d:%s' % (e.args[0], e.args[1])
         finally:
             random.shuffle(self.enterprise_urls)
 
-
     def _load_total_page(self, province_id):
-        query = urllib.urlencode({'page':1, 'rows': 10, 'sort': 'id', 'order': 'asc', 'province': province_id+1})
+        query = urllib.urlencode({'page': 1, 'rows': 10, 'sort': 'id', 'order': 'asc', 'province': province_id + 1})
         r = requests.get(self.source_url, query)
         self.history.current_page[province_id] = 0
         self.history.total_page[province_id] = r.json()['total_page']
@@ -142,9 +140,7 @@ class Generator(object):
         #return None
 
 
-
 class GeneratorTest(unittest.TestCase):
-
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.generator = Generator()
@@ -154,15 +150,14 @@ class GeneratorTest(unittest.TestCase):
 
         self.generator.obtain_enterprises()
         for uri in self.generator.enterprise_urls:
-            print json.dumps({"uri":uri})
+            print json.dumps({"uri": uri})
         self.assertGreater(len(self.generator.enterprise_urls), 0)
 
     def test_callback_enterprises(self):
         self.generator.callback_enterprises()
         for uri in self.generator.enterprise_urls:
-            print json.dumps({"uri":uri})
+            print json.dumps({"uri": uri})
         self.assertGreater(len(self.generator.enterprise_urls), 0)
-
 
 
 if __name__ == "__main__":
@@ -172,4 +167,4 @@ if __name__ == "__main__":
         generator = Generator()
         generator.obtain_enterprises()
         for uri in generator.enterprise_urls:
-            print json.dumps({"uri":uri})
+            print json.dumps({"uri": uri})

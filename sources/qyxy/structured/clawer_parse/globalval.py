@@ -3,7 +3,6 @@ import os
 
 
 class GlobalVal():
- 
     def __init__(self):
         self.count_parsed = 0
         self.count_all = 0
@@ -38,5 +37,3 @@ class GlobalVal():
     @staticmethod
     def get_count_update():
         return GlobalVal.count_update
-
-  

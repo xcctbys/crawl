@@ -28,11 +28,10 @@ logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: 
 
 
 class History(object):
-
     def __init__(self):
         self.page = 1
         self.current_date = datetime.date.today()
-        self.status = True  # 状态标识值（决定是否爬取）
+        self.status = True    # 状态标识值（决定是否爬取）
         self.path = "/tmp/china_court_byday"
         try:
             pwname = pwd.getpwnam("nginx")
@@ -64,7 +63,7 @@ class History(object):
 
 
 class Generator(object):
-    STEP = 11  # 每次输出生成的url页数步长（每次输出10页的url）
+    STEP = 11    # 每次输出生成的url页数步长（每次输出10页的url）
 
     def __init__(self):
         self.uris = set()
@@ -81,17 +80,22 @@ class Generator(object):
             self.uris.add(url)
             self.history.page += 1
 
-            r = requests.get(url, headers={"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"})
-            if r.status_code != 200:  # 检索状态码是否成功
+            r = requests.get(
+                url,
+                headers={
+                    "user-agent":
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
+                })
+            if r.status_code != 200:    # 检索状态码是否成功
                 return
-            js_content = re.sub(r"^.*?\(", "", r.text)  # 网页源码处理为可解析的json格式
-            js_content = js_content[:-1]  # 网页源码处理为可解析的json格式
-            js_dict = json.loads(js_content)  # 以json格式读取
+            js_content = re.sub(r"^.*?\(", "", r.text)    # 网页源码处理为可解析的json格式
+            js_content = js_content[:-1]    # 网页源码处理为可解析的json格式
+            js_dict = json.loads(js_content)    # 以json格式读取
             js_list = js_dict.get("objs")
             js_article = js_list[1]
-            time = js_article.get("publishdate")  # 获取发布时间
+            time = js_article.get("publishdate")    # 获取发布时间
             time = time.strip()
-            if self.history.current_date.strftime("%Y-%m-%d") != time:  # 判断发布时间与当前时间是否一致
+            if self.history.current_date.strftime("%Y-%m-%d") != time:    # 判断发布时间与当前时间是否一致
                 self.history.status = False
                 self.history.save()
 
@@ -101,7 +105,6 @@ class Generator(object):
 
 
 class GeneratorTest(unittest.TestCase):
-
     def setUp(self):
         unittest.TestCase.setUp(self)
 

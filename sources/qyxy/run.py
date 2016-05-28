@@ -21,7 +21,6 @@ import zlib
 import jinja2
 import importlib
 
-
 from mail import SendMail
 
 from CaptchaRecognition import CaptchaRecognition
@@ -58,16 +57,13 @@ from hainan_crawler import HainanCrawler
 from xizang_crawler import XizangCrawler
 import traceback
 
-
 ENT_CRAWLER_SETTINGS = os.getenv('ENT_CRAWLER_SETTINGS')
 if ENT_CRAWLER_SETTINGS:
     settings = importlib.import_module(ENT_CRAWLER_SETTINGS)
 else:
     import settings
 
-
 TEST = False
-
 
 province_crawler = {
     'beijing': BeijingCrawler,
@@ -77,29 +73,29 @@ province_crawler = {
     'guangdong': GuangdongClawer,
     'heilongjiang': HeilongjiangClawer,
     'anhui': AnhuiCrawler,
-    'yunnan':YunnanCrawler,
-    'tianjin' : TianjinCrawler,
-    'hunan' : HunanCrawler,
-    'fujian' : FujianCrawler,
+    'yunnan': YunnanCrawler,
+    'tianjin': TianjinCrawler,
+    'hunan': HunanCrawler,
+    'fujian': FujianCrawler,
     'sichuan': SichuanCrawler,
-    'shandong' : ShandongCrawler,
-    'hebei' : HebeiCrawler,
-    'neimenggu':NeimengguClawer,
+    'shandong': ShandongCrawler,
+    'hebei': HebeiCrawler,
+    'neimenggu': NeimengguClawer,
     'shaanxi': ShaanxiCrawler,
-    'henan' : HenanCrawler,
-    'xinjiang':XinjiangClawer,
-    'chongqing':ChongqingClawer,
-    'zhejiang' : ZhejiangCrawler,
+    'henan': HenanCrawler,
+    'xinjiang': XinjiangClawer,
+    'chongqing': ChongqingClawer,
+    'zhejiang': ZhejiangCrawler,
     'liaoning': LiaoningCrawler,
-    'gansu':GansuClawer,
+    'gansu': GansuClawer,
     'guangxi': GuangxiCrawler,
-    'shanxi':ShanxiCrawler,
-    'qinghai':QinghaiCrawler,
-    'hubei':HubeiCrawler,
-    'guizhou' : GuizhouCrawler,
-    'jilin' : JilinCrawler,
-    'hainan' : HainanCrawler,
-    'xizang' : XizangCrawler,
+    'shanxi': ShanxiCrawler,
+    'qinghai': QinghaiCrawler,
+    'hubei': HubeiCrawler,
+    'guizhou': GuizhouCrawler,
+    'jilin': JilinCrawler,
+    'hainan': HainanCrawler,
+    'xizang': XizangCrawler,
 }
 
 process_pool = None
@@ -136,7 +132,8 @@ def crawl_work(province, json_restore_path, enterprise_no):
         crawler = province_crawler[province](json_restore_path)
         crawler.run(enterprise_no)
     except Exception as e:
-        settings.logger.error('crawler %s failed to get enterprise(%s), with exception %s' % (province, enterprise_no, e))
+        settings.logger.error('crawler %s failed to get enterprise(%s), with exception %s' %
+                              (province, enterprise_no, e))
         send_sentry_report()
     finally:
         os._exit(0)
@@ -200,17 +197,22 @@ def force_exit():
 class Checker(object):
     """ Is obtain data from province enterprise site today ?
     """
+
     def __init__(self, dt=None):
         self.yesterday = datetime.datetime.now() - datetime.timedelta(1)
         if dt:
             self.yesterday = dt
         self.parent = settings.json_restore_path
-        self.success = [] # {'name':'', "size':0, "rows":0}
-        self.failed = [] # string list
+        self.success = []    # {'name':'', "size':0, "rows":0}
+        self.failed = []    # string list
         self.enterprise_count = 0
         self.done = 0
         self.html_template = os.path.join(os.path.dirname(__file__), "mail.html")
-        self.send_mail = SendMail(settings.EMAIL_HOST, settings.EMAIL_PORT, settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD, ssl=True)
+        self.send_mail = SendMail(settings.EMAIL_HOST,
+                                  settings.EMAIL_PORT,
+                                  settings.EMAIL_HOST_USER,
+                                  settings.EMAIL_HOST_PASSWORD,
+                                  ssl=True)
 
     def run(self):
         for province in sorted(province_crawler.keys()):
@@ -232,9 +234,11 @@ class Checker(object):
             self.done += data["done"]
 
         #output
-        settings.logger.error("success %d, failed %d, enterprise count %d, done %d", len(self.success), len(self.failed), self.enterprise_count, self.done)
+        settings.logger.error("success %d, failed %d, enterprise count %d, done %d", len(self.success),
+                              len(self.failed), self.enterprise_count, self.done)
         for item in self.success:
-            settings.logger.error("\t%s: %d bytes, done %d, enterprise count %d", item['name'], item['size'], item["done"], item["enterprise_count"])
+            settings.logger.error("\t%s: %d bytes, done %d, enterprise count %d", item['name'], item['size'],
+                                  item["done"], item["enterprise_count"])
 
         settings.logger.error("Failed province")
         for item in self.failed:
@@ -285,14 +289,16 @@ class Checker(object):
                                enterprise_count=self.enterprise_count, done=self.done)
 
 
-
 class NoDaemonProcess(multiprocessing.Process):
     # make 'daemon' attribute always return False
     def _get_daemon(self):
         return False
+
     def _set_daemon(self, value):
         pass
+
     daemon = property(_get_daemon, _set_daemon)
+
 
 # We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
 # because the latter is only a wrapper function, not a proper class.
@@ -351,14 +357,12 @@ def main():
             crawl_province(p)
 
 
-
 def send_sentry_report():
     if settings.sentry_client:
         settings.sentry_client.captureException()
 
 
 class TestChecker(unittest.TestCase):
-
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.checker = Checker()
@@ -384,4 +388,3 @@ if __name__ == '__main__':
     except:
         send_sentry_report()
         print traceback.format_exc(10)
-
