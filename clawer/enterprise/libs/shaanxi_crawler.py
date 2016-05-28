@@ -20,19 +20,19 @@ import gevent
 from gevent import Greenlet
 import gevent.monkey
 
-urls = {
-    'host': 'http://xygs.snaic.gov.cn/',
-    'webroot' : 'http://xygs.snaic.gov.cn/',
-    'page_search': 'http://xygs.snaic.gov.cn/ztxy.do?method=index&random=%d',
-    'page_Captcha': 'http://xygs.snaic.gov.cn/ztxy.do?method=createYzm&dt=%d&random=%d',
-    'page_showinfo': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
-    'checkcode': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
-}
 
 
 class ShaanxiCrawler(object):
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
+    urls = {
+        'host': 'http://xygs.snaic.gov.cn/',
+        'webroot' : 'http://xygs.snaic.gov.cn/',
+        'page_search': 'http://xygs.snaic.gov.cn/ztxy.do?method=index&random=%d',
+        'page_Captcha': 'http://xygs.snaic.gov.cn/ztxy.do?method=createYzm&dt=%d&random=%d',
+        'page_showinfo': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
+        'checkcode': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
+    }
 
     def __init__(self, json_restore_path):
         headers = { 'Connetion': 'Keep-Alive',
@@ -54,10 +54,8 @@ class ShaanxiCrawler(object):
         self.path_captcha = self.json_restore_path + '/shaanxi/ckcode.jpeg'
         #html数据的存储路径
         self.html_restore_path = self.json_restore_path + '/shaanxi/'
-        proxies = get_proxy('shaanxi')
-        if proxies:
-            print proxies
-            self.requests.proxies = proxies
+        self.proxies = get_proxy('shaanxi')
+
         self.timeout = (30,20)
 
     def analyze_showInfo(self, page):
@@ -159,7 +157,7 @@ class ShaanxiCrawler(object):
         try:
             for ent,url in self.ents.items():
                 params = re.findall(r'\'(.*?)\'', url)
-                url = "http://xygs.snaic.gov.cn/ztxy.do"
+                url =self.urls['webroot']+ "ztxy.do"
                 pripid, enttype, others= params
                 self.pripid = pripid
                 threads=[]
@@ -430,7 +428,7 @@ class ShaanxiCrawler(object):
             pattern = re.compile(r'http')
             if pattern.search(bs4_tag['href']):
                 return {'method':'GET', 'url':bs4_tag['href']}
-            return {'method':'GET', 'url': urls['webroot'] + bs4_tag['href'] }
+            return {'method':'GET', 'url': self.urls['webroot'] + bs4_tag['href'] }
         elif bs4_tag.has_attr('onclick'):
             #print 'onclick'
             astr = bs4_tag['onclick']
@@ -438,80 +436,80 @@ class ShaanxiCrawler(object):
                 m = re.findall("(\'.*?\')", astr)
                 if m:
                     ryId, nbxh = [s.strip("'") for s in m]
-                    return {'method':'POST', 'url' : urls['host']+"ztxy.do", 'data':{'method':'tzrCzxxDetial', 'maent.xh':ryId, "maent.pripid":nbxh, "random": str(int(time.time())) }}
-                    # return urls['host']+ "ztxy.do?method=tzrCzxxDetial&maent.xh="+ryId+"&maent.pripid="+nbxh+"&random=" + str(int(time.time()))
+                    return {'method':'POST', 'url' : self.urls['host']+"ztxy.do", 'data':{'method':'tzrCzxxDetial', 'maent.xh':ryId, "maent.pripid":nbxh, "random": str(int(time.time())) }}
+                    # return self.urls['host']+ "ztxy.do?method=tzrCzxxDetial&maent.xh="+ryId+"&maent.pripid="+nbxh+"&random=" + str(int(time.time()))
             elif re.compile(r'doNdbg').search(astr):
                 m = re.compile(r'\d+').search(astr)
                 if m:
                     year = eval(m.group())
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'ndbgDetail', 'maent.pripid':self.pripid, "maent.nd":str(year), "random": str(int(time.time())) }}
-                    # return urls['host'] + "ztxy.do?method=ndbgDetail&maent.pripid="+self.pripid+"&maent.nd="+str(year)+"&random="+ str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'ndbgDetail', 'maent.pripid':self.pripid, "maent.nd":str(year), "random": str(int(time.time())) }}
+                    # return self.urls['host'] + "ztxy.do?method=ndbgDetail&maent.pripid="+self.pripid+"&maent.nd="+str(year)+"&random="+ str(int(time.time()))
             elif re.compile(r'doXkxkDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     nbxh, xh, lx = [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'doXkxkDetail', 'maent.pripid':nbxh, "maent.xh":xh,"maent.lx":lx, "random": str(int(time.time())) }}
-                    # return urls['host'] + "ztxy.do?method=doXkxkDetail&maent.pripid="+nbxh+"&maent.xh="+xh+"&maent.lx="+lx+"&random="+ str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'doXkxkDetail', 'maent.pripid':nbxh, "maent.xh":xh,"maent.lx":lx, "random": str(int(time.time())) }}
+                    # return self.urls['host'] + "ztxy.do?method=doXkxkDetail&maent.pripid="+nbxh+"&maent.xh="+xh+"&maent.lx="+lx+"&random="+ str(int(time.time()))
             elif re.compile(r'doZscqDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     xh, lx = [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'zscqDetail', 'maent.pripid':self.pripid, "maent.xh":xh,"maent.lx":lx, "random": str(int(time.time())) }}
-                    # return urls['host']+"ztxy.do?method=zscqDetail&maent.pripid="+self.pripid+"&maent.xh="+xh+"&maent.lx="+lx+"&random="+ str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'zscqDetail', 'maent.pripid':self.pripid, "maent.xh":xh,"maent.lx":lx, "random": str(int(time.time())) }}
+                    # return self.urls['host']+"ztxy.do?method=zscqDetail&maent.pripid="+self.pripid+"&maent.xh="+xh+"&maent.lx="+lx+"&random="+ str(int(time.time()))
             elif re.compile(r'doGqZxDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     licid= [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'gqczxxZxDetail', 'maent.pripid':self.pripid, "maent.lx":'X',"maent.xh":licid, "random": str(int(time.time())) }}
-                    # return urls['host']+"ztxy.do?method=gqczxxZxDetail&maent.pripid="+self.pripid+"&maent.lx=X&maent.xh="+licid+"&random="+str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'gqczxxZxDetail', 'maent.pripid':self.pripid, "maent.lx":'X',"maent.xh":licid, "random": str(int(time.time())) }}
+                    # return self.urls['host']+"ztxy.do?method=gqczxxZxDetail&maent.pripid="+self.pripid+"&maent.lx=X&maent.xh="+licid+"&random="+str(int(time.time()))
             elif re.compile(r'doGqCxDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     licid= [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'gqczxxZxDetail', 'maent.pripid':self.pripid, "maent.lx":'C',"maent.xh":licid, "random": str(int(time.time())) }}
-                    # return urls['host']+"ztxy.do?method=gqczxxZxDetail&maent.pripid="+self.pripid+"&maent.lx=C&maent.xh="+licid+"&random="+str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'gqczxxZxDetail', 'maent.pripid':self.pripid, "maent.lx":'C',"maent.xh":licid, "random": str(int(time.time())) }}
+                    # return self.urls['host']+"ztxy.do?method=gqczxxZxDetail&maent.pripid="+self.pripid+"&maent.lx=C&maent.xh="+licid+"&random="+str(int(time.time()))
             elif re.compile(r'doGqcx').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     licid= [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'gqczxxDetail', 'maent.pripid':self.pripid,"maent.xh":licid, "random": str(int(time.time())) }}
-                    # return urls['host']+ "ztxy.do?method=gqczxxDetail&maent.pripid="+self.pripid+"&maent.xh="+licid+"&random="+ str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'gqczxxDetail', 'maent.pripid':self.pripid,"maent.xh":licid, "random": str(int(time.time())) }}
+                    # return self.urls['host']+ "ztxy.do?method=gqczxxDetail&maent.pripid="+self.pripid+"&maent.xh="+licid+"&random="+ str(int(time.time()))
             elif re.compile(r'doXzfyDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     nbxh,ajbh= [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'doXzfyDetail', 'maent.pripid':nbxh,"maent.xh":ajbh, "random": str(int(time.time())) }}
-                    # return urls['host'] + "ztxy.do?method=doXzfyDetail&maent.pripid="+nbxh+"&maent.xh="+ajbh+"&random=" + str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'doXzfyDetail', 'maent.pripid':nbxh,"maent.xh":ajbh, "random": str(int(time.time())) }}
+                    # return self.urls['host'] + "ztxy.do?method=doXzfyDetail&maent.pripid="+nbxh+"&maent.xh="+ajbh+"&random=" + str(int(time.time()))
             elif re.compile(r'_doSfgqbgDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     ids= [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'doGqdjbgDetail', 'maent.pripid':self.pripid,"maent.xh":ids, "random": str(int(time.time())) }}
-                    # return urls['host']+"ztxy.do?method=doGqdjbgDetail&maent.pripid="+ self.pripid+"&maent.xh="+ids+"&random=" + str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'doGqdjbgDetail', 'maent.pripid':self.pripid,"maent.xh":ids, "random": str(int(time.time())) }}
+                    # return self.urls['host']+"ztxy.do?method=doGqdjbgDetail&maent.pripid="+ self.pripid+"&maent.xh="+ids+"&random=" + str(int(time.time()))
             elif re.compile(r'_doSfgqdjDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     ids= [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'doGqdjDetail', 'maent.pripid':self.pripid,"maent.xh":ids, "random": str(int(time.time())) }}
-                    # return urls['host']+ "ztxy.do?method=doGqdjDetail&maent.pripid="+self.pripid+"&maent.xh="+ids+"&random=" + str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'doGqdjDetail', 'maent.pripid':self.pripid,"maent.xh":ids, "random": str(int(time.time())) }}
+                    # return self.urls['host']+ "ztxy.do?method=doGqdjDetail&maent.pripid="+self.pripid+"&maent.xh="+ids+"&random=" + str(int(time.time()))
             elif re.compile(r'_doXzxkDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     xh = [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'doXzxkDetail', 'maent.pripid':self.pripid,"maent.xh":xh, "random": str(int(time.time())) }}
-                    # return urls['host']+ "ztxy.do?method=doXzxkDetail&maent.pripid="+self.pripid+"&maent.xh="+xh+"&random="+ str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'doXzxkDetail', 'maent.pripid':self.pripid,"maent.xh":xh, "random": str(int(time.time())) }}
+                    # return self.urls['host']+ "ztxy.do?method=doXzxkDetail&maent.pripid="+self.pripid+"&maent.xh="+xh+"&random="+ str(int(time.time()))
             elif re.compile(r'_doXzcfDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     xh = [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'doXzcfDetail', 'maent.pripid':self.pripid,"maent.xh":xh, "random": str(int(time.time())) }}
-                    # return urls['host'] + "ztxy.do?method=doXzcfDetail&maent.pripid="+self.pripid+"&maent.xh="+xh+"&random=" + str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'doXzcfDetail', 'maent.pripid':self.pripid,"maent.xh":xh, "random": str(int(time.time())) }}
+                    # return self.urls['host'] + "ztxy.do?method=doXzcfDetail&maent.pripid="+self.pripid+"&maent.xh="+xh+"&random=" + str(int(time.time()))
             elif re.compile(r'qtgsxxDetail').search(astr):
                 m = re.findall(r'(\'.*?\')', astr)
                 if m:
                     newsid,flag = [s.strip("'") for s in m]
-                    return {'method':'POST','url' : urls['host']+"ztxy.do", 'data':{'method':'qtgsxxDetail', 'newsid':newsid,"flag":flag, "random": str(int(time.time())) }}
-                    # return urls['host']+"ztxy.do?method=qtgsxxDetail&newsid="+newsid+"&flag="+flag+"&random=" + str(int(time.time()))
+                    return {'method':'POST','url' : self.urls['host']+"ztxy.do", 'data':{'method':'qtgsxxDetail', 'newsid':newsid,"flag":flag, "random": str(int(time.time())) }}
+                    # return self.urls['host']+"ztxy.do?method=qtgsxxDetail&newsid="+newsid+"&flag="+flag+"&random=" + str(int(time.time()))
             else:
                 pass
             logging.error(u"onclick attr was found in detail link")
@@ -775,8 +773,11 @@ class ShaanxiCrawler(object):
         logging.error('crawl %s .', self.__class__.__name__)
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
+        if self.proxies:
+            print self.proxies
+            self.requests.proxies = self.proxies
         self.ent_num = str(ent_num)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
+        self.crawl_page_captcha(self.urls['page_search'], self.urls['page_Captcha'], self.urls['checkcode'], self.urls['page_showinfo'], self.ent_num)
         if not self.ents:
             return json.dumps([{self.ent_num:None}])
         data = self.crawl_page_main()

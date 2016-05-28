@@ -21,18 +21,18 @@ from gevent import Greenlet
 import gevent.monkey
 import unittest
 
-urls = {
-    'host': 'http://gsxt.zjaic.gov.cn/',
-    'webroot' : 'http://gsxt.zjaic.gov.cn',
-    'page_search': 'http://gsxt.zjaic.gov.cn/zhejiang.jsp',
-    'page_Captcha': 'http://gsxt.zjaic.gov.cn/common/captcha/doReadKaptcha.do',
-    'page_showinfo': 'http://gsxt.zjaic.gov.cn/search/doGetAppSearchResult.do',
-    'checkcode':'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
-}
 
 
 class ZhejiangCrawler(object):
     """浙江省爬虫代码"""
+    urls = {
+        'host': 'http://gsxt.zjaic.gov.cn/',
+        'webroot' : 'http://gsxt.zjaic.gov.cn',
+        'page_search': 'http://gsxt.zjaic.gov.cn/zhejiang.jsp',
+        'page_Captcha': 'http://gsxt.zjaic.gov.cn/common/captcha/doReadKaptcha.do',
+        'page_showinfo': 'http://gsxt.zjaic.gov.cn/search/doGetAppSearchResult.do',
+        'checkcode':'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
+    }
     def __init__(self, json_restore_path=None):
         headers = { 'Connetion': 'Keep-Alive',
                     'Accept': 'text/html, application/xhtml+xml, */*',
@@ -176,18 +176,18 @@ class ZhejiangCrawler(object):
             for ent, url in self.ents.items():
                 m = re.match('http', url)
                 if m is None:
-                    url = urls['host']+ url
+                    url = self.urls['host']+ url
                 logging.debug(u"ent url:%s\n"% url)
                 corpid = url[url.rfind('corpid')+7:]
                 self.corpid = corpid
                 self.json_dict={}
                 threads = []
                 threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url))
-                url = urls['host']+ "annualreport/doViewAnnualReportIndex.do?corpid="+corpid
+                url = self.urls['host']+ "annualreport/doViewAnnualReportIndex.do?corpid="+corpid
                 threads.append(gevent.spawn(self.crawl_ent_pub_pages, url))
-                url = urls['host'] + "other/doGetOtherInfoAction.do?corpid=" + corpid
+                url = self.urls['host'] + "other/doGetOtherInfoAction.do?corpid=" + corpid
                 threads.append(gevent.spawn(self.crawl_other_dept_pub_pages, url))
-                url = urls['host']+"jsp/client/biz/view/justiceInfoPublic.jsp?corpid=" + corpid
+                url = self.urls['host']+"jsp/client/biz/view/justiceInfoPublic.jsp?corpid=" + corpid
                 threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url))
                 gevent.joinall(threads)
                 sub_json_list.append({ent: self.json_dict})
@@ -207,7 +207,7 @@ class ZhejiangCrawler(object):
             def mainInfo():
                 main_page = self.request_by_method('GET', url, timeout=self.timeout)
             def appBasicInfo():
-                url = urls['host'] + "/appbasicinfo/doReadAppBasicInfo.do?corpid=" + self.corpid
+                url = self.urls['host'] + "/appbasicinfo/doReadAppBasicInfo.do?corpid=" + self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 dj = self.parse_page_jibenxinxi(page) #
@@ -215,7 +215,7 @@ class ZhejiangCrawler(object):
                 sub_json_dict['ind_comm_pub_reg_shareholder'] =dj[u'股东信息'] if dj.has_key(u'股东信息') else []   # 股东信息
                 sub_json_dict['ind_comm_pub_reg_modify'] =  dj[u'变更信息'] if dj.has_key(u'变更信息') else []      # 变更信息
             def filingInfo():
-                url = urls['host']+ "/filinginfo/doViewFilingInfo.do?corpid=" + self.corpid
+                url = self.urls['host']+ "/filinginfo/doViewFilingInfo.do?corpid=" + self.corpid
                 page = self.request_by_method('GET', url , timeout=self.timeout)
                 if not page : return
                 ba = self.parse_page_beian(page)
@@ -223,37 +223,37 @@ class ZhejiangCrawler(object):
                 sub_json_dict['ind_comm_pub_arch_branch'] = ba[u'分支机构信息'] if ba.has_key(u'分支机构信息') else []       # 备案信息-分支机构信息
                 sub_json_dict['ind_comm_pub_arch_liquidation'] = ba[u'清算信息'] if ba.has_key(u'清算信息') else []   # 备案信息-清算信息
             def dcdyApplyInfo():
-                url = urls['host']+ "/dcdyapplyinfo/doReadDcdyApplyinfoList.do?regNo="+self.regNo+"&uniSCID="
+                url = self.urls['host']+ "/dcdyapplyinfo/doReadDcdyApplyinfoList.do?regNo="+self.regNo+"&uniSCID="
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 dcdy = self.parse_page(page, 'dongchandiya')
                 sub_json_dict['ind_comm_pub_movable_property_reg'] = dcdy[u'动产抵押登记信息'] if dcdy.has_key(u'动产抵押登记信息') else []
             def equityAll():
-                url = urls['host']+ "/equityall/doReadEquityAllListFromPV.do?corpid=" + self.corpid
+                url = self.urls['host']+ "/equityall/doReadEquityAllListFromPV.do?corpid=" + self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 gqcz = self.parse_page(page, 'guquanchuzhi')
                 sub_json_dict['ind_comm_pub_equity_ownership_reg'] = gqcz[u'股权出质登记信息'] if gqcz.has_key(u'股权出质登记信息') else []
             def punishment():
-                url = urls['host']+ "/punishment/doViewPunishmentFromPV.do?corpid=" + self.corpid
+                url = self.urls['host']+ "/punishment/doViewPunishmentFromPV.do?corpid=" + self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 xzcf = self.parse_page(page)
                 sub_json_dict['ind_comm_pub_administration_sanction'] = xzcf[u'行政处罚信息'] if xzcf.has_key(u'行政处罚信息') else []
             def catalogApply():
-                url = urls['host']+ "/catalogapply/doReadCatalogApplyList.do?corpid=" + self.corpid
+                url = self.urls['host']+ "/catalogapply/doReadCatalogApplyList.do?corpid=" + self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 jyyc= self.parse_page(page, 'yichangminglu')
                 sub_json_dict['ind_comm_pub_business_exception'] = jyyc[u'经营异常信息'] if jyyc.has_key(u'经营异常信息') else []
             def blacklist():
-                url = urls['host']+ "/blacklist/doViewBlackListInfo.do?corpid=" + self.corpid
+                url = self.urls['host']+ "/blacklist/doViewBlackListInfo.do?corpid=" + self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 yzwf = self.parse_page(page, 'yanzhongweifa')
                 sub_json_dict['ind_comm_pub_serious_violate_law'] = yzwf[u'严重违法信息'] if yzwf.has_key(u'严重违法信息') else []
             def pubCheckResult():
-                url = urls['host']+ "/pubcheckresult/doViewPubCheckResultList.do?corpid=" + self.corpid
+                url = self.urls['host']+ "/pubcheckresult/doViewPubCheckResultList.do?corpid=" + self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 cyjc= self.parse_page(page, 'chouchaxinxi')
@@ -285,13 +285,13 @@ class ZhejiangCrawler(object):
             def mainInfo():
                 main_page = self.request_by_method('GET', url, timeout=self.timeout)
             def pubReportInfo():
-                url = urls['host']+"/pubreportinfo/doReadPubReportInfoList.do?corpid="+self.corpid+"&appConEntTypeCatg=11"
+                url = self.urls['host']+"/pubreportinfo/doReadPubReportInfoList.do?corpid="+self.corpid+"&appConEntTypeCatg=11"
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 nb = self.parse_page(page, 'qynb')
                 sub_json_dict['ent_pub_ent_annual_report'] = nb[u'企业年报'] if nb.has_key(u'企业年报') else []
             def pubFunded():
-                url = urls['host']+"/pubfunded/doReadPubFunded.do?pubFunded.corpid="+ self.corpid
+                url = self.urls['host']+"/pubfunded/doReadPubFunded.do?pubFunded.corpid="+ self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 tzr= self.parse_page_touziren(page)
@@ -299,25 +299,25 @@ class ZhejiangCrawler(object):
                 bg = self.parse_page_biangeng(page)
                 sub_json_dict['ent_pub_reg_modify'] = bg#bg[u'变更信息'] if bg.has_key(u'变更信息') else []
             def pubInstantStock():
-                url = urls['host']+"/pubinstantstock/doReadPubStock.do?pubInstantStock.corpid="+ self.corpid
+                url = self.urls['host']+"/pubinstantstock/doReadPubStock.do?pubInstantStock.corpid="+ self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 gq = self.parse_page_gqbg(page)
                 sub_json_dict['ent_pub_equity_change'] = gq#gq[u'股权变更信息'] if gq.has_key(u'股权变更信息') else []
             def pubLicense():
-                url = urls['host']+"/publicense/doReadPubLicense.do?pubLicense.corpid="+ self.corpid
+                url = self.urls['host']+"/publicense/doReadPubLicense.do?pubLicense.corpid="+ self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 xk = self.parse_page_xzxk(page, 'xingzhengxuke')
                 sub_json_dict['ent_pub_administration_license'] =  xk#xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
             def pubInstantPunish():
-                url = urls['host']+"/pubinstantpunish/doReadPubInstantPunish.do?pubInstantPunish.corpid="+ self.corpid
+                url = self.urls['host']+"/pubinstantpunish/doReadPubInstantPunish.do?pubInstantPunish.corpid="+ self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 cf = self.parse_page_xzcf(page, 'xingzhengchufa')
                 sub_json_dict['ent_pub_administration_sanction'] = cf#cf[u'行政处罚信息'] if cf.has_key(u'行政处罚信息') else []
             def pubInstantIntellectual():
-                url = urls['host']+"/pubinstantintellectual/doReadPubInstantIntellectual.do?pubInstantIntellectual.corpid="+ self.corpid
+                url = self.urls['host']+"/pubinstantintellectual/doReadPubInstantIntellectual.do?pubInstantIntellectual.corpid="+ self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page : return
                 zscq = self.parse_page_zscq(page, 'zhishichanquan')
@@ -341,7 +341,7 @@ class ZhejiangCrawler(object):
         """企业公示信息  知识产权出质登记信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubinstantintellectual/doReadPubInstantIntellectualJSON.do?_id="+"doReadPubInstantintelNo"+str(int(time.time()))
+            url = self.urls['host']+"/pubinstantintellectual/doReadPubInstantIntellectualJSON.do?_id="+"doReadPubInstantintelNo"+str(int(time.time()))
             data = {
                 "intelFlag":"1",
                 "corpid": self.corpid,
@@ -356,9 +356,9 @@ class ZhejiangCrawler(object):
             lists = res["pagination"]["dataList"]
             for i,l in enumerate(lists):
                 if int(l['intelTypeSelect']) == 1:
-                    url = urls['host']+ "/pubinstantintellectual/doEnIntelDetail.do?pubInstantIntellectual.intelNo="+l['intelNo']+"&pubInstantIntellectual.corpid="+ self.corpid
+                    url = self.urls['host']+ "/pubinstantintellectual/doEnIntelDetail.do?pubInstantIntellectual.intelNo="+l['intelNo']+"&pubInstantIntellectual.corpid="+ self.corpid
                 else:
-                    url = urls['host'] + "/pubinstantintellectual/doEnPubIntel.do?pubInstantIntellectual.intelNo=" + l['intelNo']
+                    url = self.urls['host'] + "/pubinstantintellectual/doEnPubIntel.do?pubInstantIntellectual.intelNo=" + l['intelNo']
                 detail_page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not detail_page: continue
                 detail_data = self.parse_page(detail_page)
@@ -377,7 +377,7 @@ class ZhejiangCrawler(object):
         """企业公示信息  行政处罚信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubinstantpunish/doReadPubInstantPunishJSON.do?_id="+"doReadPubInstantPunish"+str(int(time.time()))
+            url = self.urls['host']+"/pubinstantpunish/doReadPubInstantPunishJSON.do?_id="+"doReadPubInstantPunish"+str(int(time.time()))
             data = {
                 "punFlag":"1",
                 "corpid": self.corpid,
@@ -404,7 +404,7 @@ class ZhejiangCrawler(object):
         """企业公示信息  行政许可信息"""
         table_data = []
         try:
-            url = urls['host']+"/publicense/doReadPubLicenseJSON.do?_id="+"doReadPubLicense"+str(int(time.time()))
+            url = self.urls['host']+"/publicense/doReadPubLicenseJSON.do?_id="+"doReadPubLicense"+str(int(time.time()))
             data = {
                 "licFlag": "1",
                 "corpid": self.corpid,
@@ -419,9 +419,9 @@ class ZhejiangCrawler(object):
             lists = res["pagination"]["dataList"]
             for i,l in enumerate(lists):
                 if int(l['licType']) == 1:
-                    url = urls['host'] +'/publicense/doReadDetail.do?pubLicense.licNo='+str(l['licNo'])+'&pubLicense.corpid='+self.corpid
+                    url = self.urls['host'] +'/publicense/doReadDetail.do?pubLicense.licNo='+str(l['licNo'])+'&pubLicense.corpid='+self.corpid
                 else:
-                    url = urls['host']+ '/publicense/doEnPubLic.do?pubLicense.licNo='+ l['licNo']
+                    url = self.urls['host']+ '/publicense/doEnPubLic.do?pubLicense.licNo='+ l['licNo']
                 detail_page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not detail_page: continue
                 detail_data = self.parse_page(detail_page)
@@ -439,7 +439,7 @@ class ZhejiangCrawler(object):
         """企业公示信息  股权变更信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubinstantstock/doReadPubStockJSON.do?_id="+"doReadPubLicense"+str(int(time.time()))
+            url = self.urls['host']+"/pubinstantstock/doReadPubStockJSON.do?_id="+"doReadPubLicense"+str(int(time.time()))
             data = {
                 "stockFlag": "1",
                 "corpid": self.corpid,
@@ -468,7 +468,7 @@ class ZhejiangCrawler(object):
         table_data = []
         try:
             #tables = soup.find_all('table')
-            url = urls['host']+"/pubfunded/doReadPubFundedJSON.do?_id="+"doReadPubFunded"+str(int(time.time()))
+            url = self.urls['host']+"/pubfunded/doReadPubFundedJSON.do?_id="+"doReadPubFunded"+str(int(time.time()))
             data = {
                 "corpid": self.corpid,
                 "fundFlag":"1",
@@ -496,7 +496,7 @@ class ZhejiangCrawler(object):
         """企业公示信息 股东及出资情况-变更信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubreportmodhis/doReadPubReportModHisJSON.do?_id="+"doReadPubReportModHisJSON"+str(int(time.time()))
+            url = self.urls['host']+"/pubreportmodhis/doReadPubReportModHisJSON.do?_id="+"doReadPubReportModHisJSON"+str(int(time.time()))
             data = {
                 "modTable":"PubFunded",
                 "dicColumn":"FUND_FORM",
@@ -547,7 +547,7 @@ class ZhejiangCrawler(object):
             table_name = self.get_table_title(qingsuan_table)
             if table_name:
                 page_data[table_name] = self.parse_table(qingsuan_table, table_name, page)
-            url = urls['host'] + "/filinginfo/doViewFilingInfo.do?corpid=" + self.corpid
+            url = self.urls['host'] + "/filinginfo/doViewFilingInfo.do?corpid=" + self.corpid
             # 主要人员信息；
             people_table = tables[0]
             data_list=[]
@@ -608,7 +608,7 @@ class ZhejiangCrawler(object):
             table_name = self.get_table_title(basic_table)
             if table_name:
                 page_data[table_name] = self.parse_table(basic_table, table_name, page)
-            url = urls['host'] + "/appbasicinfo/doReadAppBasicInfo.do?corpid=" + self.corpid
+            url = self.urls['host'] + "/appbasicinfo/doReadAppBasicInfo.do?corpid=" + self.corpid
             # 股东表
             gudong_table = tables[1]
             data_list=[]
@@ -723,7 +723,7 @@ class ZhejiangCrawler(object):
         """ 企业年报 修改记录"""
         table_data = []
         try:
-            url = urls['host']+"/pubreportmodhis/doReadPubReportModHisJSON.do?_id="+"doReadPubReportModHis"+str(int(time.time()))
+            url = self.urls['host']+"/pubreportmodhis/doReadPubReportModHisJSON.do?_id="+"doReadPubReportModHis"+str(int(time.time()))
             data = {
                 "modReportNo": self.reportNo,
                 "corpid": self.corpid,
@@ -801,7 +801,7 @@ class ZhejiangCrawler(object):
         """ 企业年报 股权变更信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubreportstockinfo/doReadPubReportStockInfoListJSON.do?_id="+"doReadPubReportConInfo"+str(int(time.time()))
+            url = self.urls['host']+"/pubreportstockinfo/doReadPubReportStockInfoListJSON.do?_id="+"doReadPubReportConInfo"+str(int(time.time()))
             data = {
                 "stockReportNo": self.reportNo,
                 "corpid": self.corpid,
@@ -842,7 +842,7 @@ class ZhejiangCrawler(object):
         """ 企业年报 对外提供保证担保信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubreportguaranteeinfo/doReadPubReportGuaranteeInfoListJSON.do?_id="+"doReadPubReportConInfo"+str(int(time.time()))
+            url = self.urls['host']+"/pubreportguaranteeinfo/doReadPubReportGuaranteeInfoListJSON.do?_id="+"doReadPubReportConInfo"+str(int(time.time()))
             data = {
                 "guarReportNo": self.reportNo,
                 "corpid": self.corpid,
@@ -875,7 +875,7 @@ class ZhejiangCrawler(object):
         """ 企业年报 投资信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubreportinvestinfo/doReadPubReportInvestInfoListJSON.do?_id="+"doReadPubReportConInfo"+str(int(time.time()))
+            url = self.urls['host']+"/pubreportinvestinfo/doReadPubReportInvestInfoListJSON.do?_id="+"doReadPubReportConInfo"+str(int(time.time()))
             data = {
                 "investReportNo": self.reportNo,
                 "corpid": self.corpid,
@@ -899,7 +899,7 @@ class ZhejiangCrawler(object):
         """ 企业年报 网站或网店信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubreportbusiweb/doReadPubReportBusiWebListJSON.do?_id="+"doReadPubReportBusiWeb"+str(int(time.time()))
+            url = self.urls['host']+"/pubreportbusiweb/doReadPubReportBusiWebListJSON.do?_id="+"doReadPubReportBusiWeb"+str(int(time.time()))
             data = {
                 "webReportNo": self.reportNo,
                 "corpid": self.corpid,
@@ -923,7 +923,7 @@ class ZhejiangCrawler(object):
         """ 企业年报 查询股东及出资信息"""
         table_data = []
         try:
-            url = urls['host']+"/pubreportconinfo/doReadPubReportConInfoListJSON.do?_id="+"doReadPubReportConInfo"+str(int(time.time()))
+            url = self.urls['host']+"/pubreportconinfo/doReadPubReportConInfoListJSON.do?_id="+"doReadPubReportConInfo"+str(int(time.time()))
             data = {
                 "conReportNo": self.reportNo,
                 "corpid": self.corpid,
@@ -957,13 +957,13 @@ class ZhejiangCrawler(object):
             def mainInfo():
                 main_page = self.request_by_method('GET', url, timeout=self.timeout)
             def pubOtherLicence():
-                url = urls['host'] + "/pubotherlicence/readPubOtherLicenceInfo.do?corpid="+ self.corpid
+                url = self.urls['host'] + "/pubotherlicence/readPubOtherLicenceInfo.do?corpid="+ self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page: return
                 xk = self.parse_page(page, "xingzhengxuke")#行政许可信息
                 sub_json_dict["other_dept_pub_administration_license"] =  xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
             def pubOtherPunish():
-                url = urls['host'] + "/pubotherpunish/readPubOtherPunishInfo.do?corpid=" + self.corpid
+                url = self.urls['host'] + "/pubotherpunish/readPubOtherPunishInfo.do?corpid=" + self.corpid
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page: return
                 cf = self.parse_page(page, "xingzhengchufa")  # 行政处罚信息
@@ -989,13 +989,13 @@ class ZhejiangCrawler(object):
             def mainInfo():
                 main_page = self.request_by_method('GET', url, timeout=self.timeout)
             def readJusticeEquityInfo():
-                url = urls['host'] + "/jsp/client/biz/view/justice/readJusticeEquityInfo.jsp"
+                url = self.urls['host'] + "/jsp/client/biz/view/justice/readJusticeEquityInfo.jsp"
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page: return
                 xz = self.parse_page(page, 'sifaxiezhu')
                 sub_json_dict['judical_assist_pub_equity_freeze'] = xz[u'司法股权冻结信息'] if xz.has_key(u'司法股权冻结信息') else []
             def readJusticeEquityChangeInfo():
-                url = urls['host'] + "/jsp/client/biz/view/justice/readJusticeEquityChangeInfo.jsp"
+                url = self.urls['host'] + "/jsp/client/biz/view/justice/readJusticeEquityChangeInfo.jsp"
                 page = self.request_by_method('GET', url, timeout=self.timeout)
                 if not page: return
                 gd = self.parse_page(page, 'sifagudong')
@@ -1211,7 +1211,7 @@ class ZhejiangCrawler(object):
         if bs4_tag.has_attr('href') and (bs4_tag['href'] != '###' and bs4_tag['href'] != '#' and bs4_tag['href'] != 'javascript:void(0);'):
             if bs4_tag['href'].find('http') != -1 :
                 return bs4_tag['href']
-            return urls['webroot'] + bs4_tag['href']
+            return self.urls['webroot'] + bs4_tag['href']
         elif bs4_tag.has_attr('onclick'):
             pass
         return None
@@ -1295,7 +1295,7 @@ class ZhejiangCrawler(object):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
         self.ent_num = str(ent_num)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
+        self.crawl_page_captcha(self.urls['page_search'], self.urls['page_Captcha'], self.urls['checkcode'], self.urls['page_showinfo'], self.ent_num)
         if not self.ents:
             return json.dumps([{self.ent_num: None}])
         data = self.crawl_page_main()

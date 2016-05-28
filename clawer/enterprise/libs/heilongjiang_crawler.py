@@ -6,12 +6,9 @@ import time
 import re
 import random
 import threading
-import unittest
 from bs4 import BeautifulSoup
 from crawler import Crawler
 from crawler import Parser
-from crawler import CrawlerUtils
-from . import settings
 import logging
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from common_func import get_proxy, exe_time#, json_dump_to_file
@@ -75,6 +72,28 @@ class HeilongjiangClawer(Crawler):
             os.makedirs(self.html_restore_path)
         return Crawler.run(self, _ent)
 
+    def request_by_method(self, method, url, *args, **kwargs):
+        r = None
+        try:
+            r = self.requests.request(method, url, *args, **kwargs)
+        except requests.exceptions.Timeout as err:
+            logging.error(u'Getting url: %s timeout. %s .'%(url, err.message))
+            return False
+        except requests.exceptions.ConnectionError :
+            logging.error(u"Getting url:%s connection error ."%(url))
+            return False
+        except Exception as err:
+            logging.error(u'Getting url: %s exception:%s . %s .'%(url, type(err), err.message))
+            return False
+        if r.status_code == 307:
+            print "I am coming ! 307"
+            r = self.request_by_method(method, url, *args, **kwargs)
+            return r.content
+        if r.status_code != 200:
+            logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
+            return False
+        return r.content
+
     def analyze_showInfo(self, page):
         """ 判断是否成功搜索页面
             分析 展示页面， 获得搜索到的企业列表
@@ -92,6 +111,8 @@ class HeilongjiangClawer(Crawler):
                 link = div.find('li')
                 if link and link.find('a') and link.find('a').has_attr('href'):
                     url = link.find('a')['href']
+                else:
+                    break
                 profile = link.find_next_sibling()
                 if profile and profile.span:
                     ent  =profile.span.get_text().strip()
@@ -134,6 +155,7 @@ class HeilongjiangClawer(Crawler):
             else:
                 logging.error("crawl post check page failed! count = %d ."%(count))
             time.sleep(random.uniform(1, 3))
+            print "crawl post check page failed! count = %d ."%(count)
         return False
 
     def crack_checkcode(self):
@@ -351,7 +373,7 @@ class HeilongjiangParser(Parser):
             args = m.group(1)
             host = self.crawler.urls['annual_report']
             url = '%s%s' % (host, args)
-            rep = requests.get(url)
+            rep = self.crawler.reqst.get(url)
             soup = BeautifulSoup(rep.content, 'html5lib')
 
             tables = soup.find_all("table")
@@ -505,7 +527,7 @@ class HeilongjiangParser(Parser):
                 table_save = []
                 for j in range(1, total_page+1):
                     url = '%s%s%s%s%s' % (self.crawler.urls[table_name], "pno=", j, '&mainId=', self.crawler.company_id)
-                    rep = requests.get(url)
+                    rep = self.crawler.reqst.get(url)
 
                     soup = BeautifulSoup(rep.text.strip('"'), "html5lib")
                     table = soup.find("table")
@@ -620,7 +642,7 @@ class HeilongjiangParser(Parser):
 
         int1 = m.group(1)
         url1 = '%s%s' % (self.crawler.urls["shareholder_detail"], int1)
-        rep1 = requests.get(url1)
+        rep1 = self.crawler.reqst.get(url1)
         soup = BeautifulSoup(rep1.text, "html5lib")
 
         table = soup.find("table")
@@ -648,7 +670,7 @@ class HeilongjiangParser(Parser):
         m = re.search(r'id=(.\d+)', str(link))
         int1 = m.group(1)
         url1 = '%s%s' % (self.crawler.urls['movable_property_reg_detail'], int1)
-        rep1 = requests.get(url1)
+        rep1 = self.crawler.reqst.get(url1)
         soup = BeautifulSoup(rep1.text, "html5lib")
 
         name_table_map1 = [u"抵押权人概况"]
