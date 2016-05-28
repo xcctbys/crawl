@@ -609,11 +609,11 @@ class Analyze(object):
 
 from Guangdong2 import Crawler, Analyze
 
+
 class Guangdong1(object):
-    urls = {
-        'host': 'http://gsxt.gzaic.gov.cn',
-    }
-    def __init__(self, req= None, ent_number= None):
+    urls = {'host': 'http://gsxt.gzaic.gov.cn', }
+
+    def __init__(self, req=None, ent_number=None):
         self.analysis = Analyze()
         self.crawler = Crawler(req)
         self.crawler.analysis = self.analysis

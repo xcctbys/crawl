@@ -39,19 +39,20 @@ class JiangsuCrawler(Crawler):
             'official_site': 'http://www.jsgsj.gov.cn:58888/province/',
             'get_checkcode': 'http://www.jsgsj.gov.cn:58888/province/rand_img.jsp?type=7',
             'post_checkcode': 'http://www.jsgsj.gov.cn:58888/province/infoQueryServlet.json?queryCinfo=true',
-            'ind_comm_pub_skeleton': 'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfor_gsRelease.jsp',
+            'ind_comm_pub_skeleton':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfor_gsRelease.jsp',
             'ent_pub_skeleton': 'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qyRelease.jsp',
-            'other_dept_pub_skeleton': 'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qtbmRelease.jsp',
-            'judical_assist_pub_skeleton': 'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryJudicialAssistance.jsp',
+            'other_dept_pub_skeleton':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qtbmRelease.jsp',
+            'judical_assist_pub_skeleton':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryJudicialAssistance.jsp',
             'annual_report_skeleton': 'http://www.jsgsj.gov.cn:58888/ecipplatform/reportCheck/company/cPublic.jsp',
-
             'ci_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciEnter=true',
             'common_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true',
             'nb_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/nbServlet.json?nbEnter=true',
-            'ci_detail': 'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciDetail=true'
-            }
+            'ci_detail': 'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciDetail=true'}
 
-    def __init__(self, json_restore_path= None):
+    def __init__(self, json_restore_path=None):
         """
         初始化函数
         Args:
@@ -65,10 +66,11 @@ class JiangsuCrawler(Crawler):
         self.parser = JiangsuParser(self)
         self.reqst = requests.Session()
         self.reqst.headers.update({
-                'Accept': 'text/html, application/xhtml+xml, */*',
-                'Accept-Encoding': 'gzip, deflate',
-                'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+            'Accept': 'text/html, application/xhtml+xml, */*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+        })
         self.corp_org = ''
         self.corp_id = ''
         self.corp_seq_id = ''
@@ -76,33 +78,70 @@ class JiangsuCrawler(Crawler):
         self.ci_enter_post_data = {}
         self.nb_enter_post_data = {}
         self.post_info = {
-            'ind_comm_pub_reg_basic': {'url_type': 'ci_enter', 'post_type': 'ci_enter', 'specificQuery': 'basicInfo'},
-            'ind_comm_pub_reg_shareholder': {'url_type': 'ci_enter', 'post_type': 'ci_enter_with_recordline', 'specificQuery': 'investmentInfor'},
-            'ind_comm_pub_reg_modify': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'biangeng'},
-            'ind_comm_pub_arch_key_persons': {'url_type': 'ci_enter', 'post_type': 'ci_enter_with_recordline', 'specificQuery': 'personnelInformation'},
-            'ind_comm_pub_arch_branch': {'url_type': 'ci_enter', 'post_type': 'ci_enter_with_recordline', 'specificQuery': 'branchOfficeInfor'},
-            #'ind_comm_pub_arch_liquadition': {'url_type': 'ci_enter', 'post_type': 'common_enter', 'specificQuery': 'qsfzr'},
-            'ind_comm_pub_movable_property_reg': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'dongchan'},
-            'ind_comm_pub_equity_ownership_reg': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'guquanchuzhi'},
-            'ind_comm_pub_administration_sanction': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'chufa'},
-            'ind_comm_pub_business_exception': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'abnormalInfor'},
-            #'ind_comm_pub_serious_violate_law': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'xxx'},
-            'ind_comm_pub_spot_check': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'checkup'},
-
-            'ind_comm_pub_reg_shareholder_detail': {'url_type': 'ci_detail', 'post_type': 'ci_detail', 'specificQuery': 'investorInfor'},
-
-            'ent_pub_annual_report': {'url_type': 'nb_enter', 'post_type': 'nb_enter', 'propertiesName': 'query_report_list'},
-            'annual_report_detail': {'url_type': 'nb_enter', 'post_type': 'nb_enter'},
-            'ent_pub_shareholder_capital_contribution': {'url_type': 'nb_enter', 'post_type': 'nb_enter', 'propertiesName': 'query_tzcz'},
-            'ent_pub_administrative_license': {'url_type': 'nb_enter', 'post_type': 'nb_enter', 'propertiesName': 'query_xzxk'},
-            'ent_pub_knowledge_property': {'url_type': 'nb_enter', 'post_type': 'nb_enter', 'propertiesName': 'query_zscq'},
-            'ent_pub_administration_sanction': {'url_type': 'nb_enter', 'post_type': 'nb_enter', 'propertiesName': 'query_xzcf'},
-
-            'other_dept_pub_administration_license': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'xingzheng'},
-            'other_dept_pub_administration_sanction': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'xingzhengchufa'},
-
-            'judical_assist_pub_equity_freeze': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'gqdjList'},
-            'judical_assist_pub_shareholder_modify': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'gdbgList'}
+            'ind_comm_pub_reg_basic': {'url_type': 'ci_enter',
+                                       'post_type': 'ci_enter',
+                                       'specificQuery': 'basicInfo'},
+            'ind_comm_pub_reg_shareholder': {'url_type': 'ci_enter',
+                                             'post_type': 'ci_enter_with_recordline',
+                                             'specificQuery': 'investmentInfor'},
+            'ind_comm_pub_reg_modify': {'url_type': 'common_enter',
+                                        'post_type': 'common_enter',
+                                        'propertiesName': 'biangeng'},
+            'ind_comm_pub_arch_key_persons': {'url_type': 'ci_enter',
+                                              'post_type': 'ci_enter_with_recordline',
+                                              'specificQuery': 'personnelInformation'},
+            'ind_comm_pub_arch_branch': {'url_type': 'ci_enter',
+                                         'post_type': 'ci_enter_with_recordline',
+                                         'specificQuery': 'branchOfficeInfor'},
+    #'ind_comm_pub_arch_liquadition': {'url_type': 'ci_enter', 'post_type': 'common_enter', 'specificQuery': 'qsfzr'},
+            'ind_comm_pub_movable_property_reg': {'url_type': 'common_enter',
+                                                  'post_type': 'common_enter',
+                                                  'propertiesName': 'dongchan'},
+            'ind_comm_pub_equity_ownership_reg': {'url_type': 'common_enter',
+                                                  'post_type': 'common_enter',
+                                                  'propertiesName': 'guquanchuzhi'},
+            'ind_comm_pub_administration_sanction': {'url_type': 'common_enter',
+                                                     'post_type': 'common_enter',
+                                                     'propertiesName': 'chufa'},
+            'ind_comm_pub_business_exception': {'url_type': 'common_enter',
+                                                'post_type': 'common_enter',
+                                                'propertiesName': 'abnormalInfor'},
+    #'ind_comm_pub_serious_violate_law': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'xxx'},
+            'ind_comm_pub_spot_check': {'url_type': 'common_enter',
+                                        'post_type': 'common_enter',
+                                        'propertiesName': 'checkup'},
+            'ind_comm_pub_reg_shareholder_detail': {'url_type': 'ci_detail',
+                                                    'post_type': 'ci_detail',
+                                                    'specificQuery': 'investorInfor'},
+            'ent_pub_annual_report': {'url_type': 'nb_enter',
+                                      'post_type': 'nb_enter',
+                                      'propertiesName': 'query_report_list'},
+            'annual_report_detail': {'url_type': 'nb_enter',
+                                     'post_type': 'nb_enter'},
+            'ent_pub_shareholder_capital_contribution': {'url_type': 'nb_enter',
+                                                         'post_type': 'nb_enter',
+                                                         'propertiesName': 'query_tzcz'},
+            'ent_pub_administrative_license': {'url_type': 'nb_enter',
+                                               'post_type': 'nb_enter',
+                                               'propertiesName': 'query_xzxk'},
+            'ent_pub_knowledge_property': {'url_type': 'nb_enter',
+                                           'post_type': 'nb_enter',
+                                           'propertiesName': 'query_zscq'},
+            'ent_pub_administration_sanction': {'url_type': 'nb_enter',
+                                                'post_type': 'nb_enter',
+                                                'propertiesName': 'query_xzcf'},
+            'other_dept_pub_administration_license': {'url_type': 'common_enter',
+                                                      'post_type': 'common_enter',
+                                                      'propertiesName': 'xingzheng'},
+            'other_dept_pub_administration_sanction': {'url_type': 'common_enter',
+                                                       'post_type': 'common_enter',
+                                                       'propertiesName': 'xingzhengchufa'},
+            'judical_assist_pub_equity_freeze': {'url_type': 'common_enter',
+                                                 'post_type': 'common_enter',
+                                                 'propertiesName': 'gqdjList'},
+            'judical_assist_pub_shareholder_modify': {'url_type': 'common_enter',
+                                                      'post_type': 'common_enter',
+                                                      'propertiesName': 'gdbgList'}
         }
 
     def run(self, ent_number=0):
@@ -148,7 +187,7 @@ class JiangsuCrawler(Crawler):
             count += 1
             ckcode = self.crack_checkcode()
             if not ckcode[1]:
-                logging.error("crawl checkcode failed! count number = %d\n"%(count))
+                logging.error("crawl checkcode failed! count number = %d\n" % (count))
                 continue
             data = {'name': self.ent_number, 'verifyCode': ckcode[1]}
             resp = self.crawl_page_by_url_post(self.urls['post_checkcode'], data=data)
@@ -156,7 +195,7 @@ class JiangsuCrawler(Crawler):
             if resp.find("onclick") >= 0 and self.parse_post_check_page(resp):
                 return True
             else:
-                logging.error("crawl post check page failed! count number = %d\n"%(count))
+                logging.error("crawl post check page failed! count number = %d\n" % (count))
             time.sleep(random.uniform(5, 8))
         return False
 
@@ -195,18 +234,18 @@ class JiangsuCrawler(Crawler):
                 return False
             self.parser.parse_page('ind_comm_pub_skeleton', page)
 
-        for item in ('ind_comm_pub_reg_basic',          # 登记信息-基本信息
-                     'ind_comm_pub_reg_shareholder',   # 股东信息
+        for item in ('ind_comm_pub_reg_basic',    # 登记信息-基本信息
+                     'ind_comm_pub_reg_shareholder',    # 股东信息
                      'ind_comm_pub_reg_modify',
-                     'ind_comm_pub_arch_key_persons',  # 备案信息-主要人员信息
-                     'ind_comm_pub_arch_branch',      # 备案信息-分支机构信息
-                     #'ind_comm_pub_arch_liquidation', # 备案信息-清算信息, 网页中没有
-                     'ind_comm_pub_movable_property_reg', # 动产抵押登记信息
-                     #'ind_comm_pub_equity_ownership_reg', # 股权出置登记信息
-                     'ind_comm_pub_administration_sanction', # 行政处罚信息
-                     #'ind_comm_pub_business_exception',  # 经营异常信息 , 网页中不存在
-                     #'ind_comm_pub_serious_violate_law',  # 严重违法信息
-                     'ind_comm_pub_spot_check'):        # 抽查检查信息
+                     'ind_comm_pub_arch_key_persons',    # 备案信息-主要人员信息
+                     'ind_comm_pub_arch_branch',    # 备案信息-分支机构信息
+    #'ind_comm_pub_arch_liquidation', # 备案信息-清算信息, 网页中没有
+                     'ind_comm_pub_movable_property_reg',    # 动产抵押登记信息
+    #'ind_comm_pub_equity_ownership_reg', # 股权出置登记信息
+                     'ind_comm_pub_administration_sanction',    # 行政处罚信息
+    #'ind_comm_pub_business_exception',  # 经营异常信息 , 网页中不存在
+    #'ind_comm_pub_serious_violate_law',  # 严重违法信息
+                     'ind_comm_pub_spot_check'):    # 抽查检查信息
 
             page_data = self.get_page_data(item)
             self.json_dict[item] = self.parser.parse_page(item, page_data)
@@ -229,12 +268,12 @@ class JiangsuCrawler(Crawler):
             self.parser.parse_page('annual_report_skeleton', page)
 
         for item in ('ent_pub_annual_report',
-                    #'ent_pub_shareholder_capital_contribution', #企业投资人出资比例
-                    #'ent_pub_equity_change', #股权变更信息
-                    'ent_pub_administrative_license',#行政许可信息
-                    'ent_pub_knowledge_property', #知识产权出资登记
-                    #'ent_pub_administration_sanction' #行政许可信息
-                    ):
+    #'ent_pub_shareholder_capital_contribution', #企业投资人出资比例
+    #'ent_pub_equity_change', #股权变更信息
+                     'ent_pub_administrative_license',    #行政许可信息
+                     'ent_pub_knowledge_property',    #知识产权出资登记
+    #'ent_pub_administration_sanction' #行政许可信息
+                     ):
             page_data = self.get_page_data(item)
             self.json_dict[item] = self.parser.parse_page(item, page_data)
 
@@ -248,9 +287,9 @@ class JiangsuCrawler(Crawler):
                 return False
             self.parser.parse_page('other_dept_pub_skeleton', page)
 
-        for item in ('other_dept_pub_administration_license',   #行政许可信息
-                    'other_dept_pub_administration_sanction'    #行政处罚信息
-        ):
+        for item in ('other_dept_pub_administration_license',    #行政许可信息
+                     'other_dept_pub_administration_sanction'    #行政处罚信息
+                     ):
             page_data = self.get_page_data(item)
             self.json_dict[item] = self.parser.parse_page(item, page_data)
 
@@ -265,8 +304,8 @@ class JiangsuCrawler(Crawler):
             self.parser.parse_page('judical_assist_pub_skeleton', page)
 
         for item in ('judical_assist_pub_equity_freeze',    #股权冻结信息
-                    'judical_assist_pub_shareholder_modify' #股东变更信息
-        ):
+                     'judical_assist_pub_shareholder_modify'    #股东变更信息
+                     ):
             page_data = self.get_page_data(item)
             self.json_dict[item] = self.parser.parse_page(item, page_data)
 
@@ -286,7 +325,7 @@ class JiangsuCrawler(Crawler):
             if type(json_obj) == dict and json_obj.get('total', None) and int(json_obj.get('total')) > 5:
                 post_data['pageSize'] = json_obj.get('total')
                 resp = self.crawl_page_by_url_post(url, data=post_data)
-                if not resp :
+                if not resp:
                     logging.error('get all pages of a section failed!')
                     return
         return resp
@@ -296,11 +335,15 @@ class JiangsuCrawler(Crawler):
         所有的tab页面中的表格结构都在一个最开始的页面中给出
         """
         url = self.urls[name]
-        post_data = {'org': self.corp_org, 'id': self.corp_id, 'seq_id': self.corp_seq_id,
-                     'reg_no': self.ent_number, 'name': self.ent_number,
-                     'containContextPath': 'ecipplatform', 'corp_name': self.ent_number}
+        post_data = {'org': self.corp_org,
+                     'id': self.corp_id,
+                     'seq_id': self.corp_seq_id,
+                     'reg_no': self.ent_number,
+                     'name': self.ent_number,
+                     'containContextPath': 'ecipplatform',
+                     'corp_name': self.ent_number}
         resp = self.crawl_page_by_url_post(url, data=post_data)
-        if not resp :
+        if not resp:
             logging.error('crawl %s page failed, error code.\n' % (name))
             return False
         return resp
@@ -310,7 +353,8 @@ class JiangsuCrawler(Crawler):
         Args:
             page: 提交验证码之后的页面
         """
-        m = re.search(r'onclick=\\\"\w+\(\'([\w\./]+)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\'\)', page)
+        m = re.search(r'onclick=\\\"\w+\(\'([\w\./]+)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\'\)',
+                      page)
         if m:
             self.corp_org = m.group(2)
             self.corp_id = m.group(3)
@@ -366,7 +410,7 @@ class JiangsuCrawler(Crawler):
         :return 破解后的验证码
         """
         resp = self.crawl_page_by_url(self.urls['get_checkcode'])
-        if not resp :
+        if not resp:
             logging.error('Failed, exception occured when getting checkcode')
             return ('', '')
         time.sleep(random.uniform(2, 4))
@@ -389,7 +433,7 @@ class JiangsuCrawler(Crawler):
         """根据url直接爬取页面
         """
         try:
-            resp = self.reqst.get(url, proxies= self.proxies)
+            resp = self.reqst.get(url, proxies=self.proxies)
             if resp.status_code != 200:
                 logging.error('crawl page by url failed! url = %s' % url)
             page = resp.content
@@ -398,17 +442,17 @@ class JiangsuCrawler(Crawler):
             #     CrawlerUtils.save_page_to_file(self.html_restore_path + 'detail.html', page)
             return page
         except Exception as e:
-            logging.error("crawl page by url exception %s"%(type(e)))
+            logging.error("crawl page by url exception %s" % (type(e)))
 
         return None
 
     def crawl_page_by_url_post(self, url, data):
         """ 根据url和post数据爬取页面
         """
-        r = self.reqst.post(url, data, proxies = self.proxies)
+        r = self.reqst.post(url, data, proxies=self.proxies)
         time.sleep(random.uniform(0.2, 1))
         if r.status_code != 200:
-            logging.error(u"Getting page by url with post:%s\n, return status %s\n"% (url, r.status_code))
+            logging.error(u"Getting page by url with post:%s\n, return status %s\n" % (url, r.status_code))
             return False
         return r.content
 
@@ -454,6 +498,7 @@ class JiangsuCrawler(Crawler):
 
 class JiangsuParser(Parser):
     """江苏页面的解析类"""
+
     def __init__(self, crawler):
         """初始化函数
         Args:
@@ -473,7 +518,8 @@ class JiangsuParser(Parser):
         """解析页面，给外部调用的接口"""
         if not page:
             return {}
-        if name in ('ind_comm_pub_skeleton', 'ent_pub_skeleton', 'other_dept_pub_skeleton', 'judical_assist_pub_skeleton', 'annual_report_skeleton'):
+        if name in ('ind_comm_pub_skeleton', 'ent_pub_skeleton', 'other_dept_pub_skeleton',
+                    'judical_assist_pub_skeleton', 'annual_report_skeleton'):
             return self.parse_skeleton_page(name, page)
         elif name == 'ent_pub_annual_report':
             return self.parse_annual_report_page(page)
@@ -574,7 +620,8 @@ class JiangsuParser(Parser):
             print 'abnormal list table skeleton, table_tag = ', table_tag
             return table_items
         for index, td in enumerate(tds):
-            table_items[CrawlerUtils.get_raw_text_in_bstag(td).strip('{}').replace('PAPERS_', '')] = CrawlerUtils.get_raw_text_in_bstag(ths[index])
+            table_items[CrawlerUtils.get_raw_text_in_bstag(td).strip('{}').replace(
+                'PAPERS_', '')] = CrawlerUtils.get_raw_text_in_bstag(ths[index])
         return table_items
 
     def parse_ind_comm_pub_skeleton(self, page):
@@ -622,7 +669,6 @@ class JiangsuParser(Parser):
         del arch_branch_table_items['NO_']
         arch_branch_table_items['RN'] = changed_value
         self.parse_table_items['ind_comm_pub_arch_branch'] = arch_branch_table_items
-
 
         #归档信息-清算信息
         # table = soup.find('table', attrs={'name': 'qingsuanfuzeren'})
@@ -785,7 +831,7 @@ class JiangsuParser(Parser):
             self.parse_table_items['annual_report_web_info'] = self.get_list_table_items(table)
 
         #股东及出资信息
-        table = soup.find('table', attrs={'id': 'touziren',  'name': 'applicationList4TAB'})
+        table = soup.find('table', attrs={'id': 'touziren', 'name': 'applicationList4TAB'})
         if table:
             shareholder_info_table = {}
 
@@ -814,7 +860,7 @@ class JiangsuParser(Parser):
             self.parse_table_items['annual_report_external_guarantee_info'] = self.get_list_table_items(table)
 
         #股权变更信息
-        table = soup.find('table', attrs={'id': 'guquanchange','name':'applicationList5TAB'})
+        table = soup.find('table', attrs={'id': 'guquanchange', 'name': 'applicationList5TAB'})
         if table:
             self.parse_table_items['annual_report_equity_modify_info'] = self.get_list_table_items(table)
 
@@ -834,7 +880,7 @@ class JiangsuParser(Parser):
         table_list = []
         num = len(json_obj.get('listValue', None))
         for i in range(num):
-            sub_dict={}
+            sub_dict = {}
             if json_obj.get('listValue', None):
                 table_data[u'投资人名称'] = json_obj.get('listValue')[i].get('STOCK_NAME')
                 table_data[u'投资人类型'] = json_obj.get('listValue')[i].get('STOCK_TYPE')
@@ -852,7 +898,7 @@ class JiangsuParser(Parser):
                 sub_dict[u'实缴出资时间'] = json_obj.get('listshijiao')[i].get('REAL_CAPI_DATE')
             table_data['list'] = [sub_dict]
             table_list.append(table_data)
-        return {u'投资人及出资信息':table_list}
+        return {u'投资人及出资信息': table_list}
 
     def parse_annual_report_shareholder_info(self, page):
         """解析年报信息中的投资人信息
@@ -873,7 +919,6 @@ class JiangsuParser(Parser):
                 result[column] = CrawlerUtils.get_raw_text_in_bstag(tds[index])
             shareholder_info.append(result)
         return shareholder_info
-
 
 # class TestParser(unittest.TestCase):
 #     def setUp(self):

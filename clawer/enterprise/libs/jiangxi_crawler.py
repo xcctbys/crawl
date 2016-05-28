@@ -20,6 +20,7 @@ from common_func import get_proxy, exe_time
 
 import traceback
 
+
 class JiangxiCrawler(Crawler):
     """甘肃工商公示信息网页爬虫
     """
@@ -32,8 +33,10 @@ class JiangxiCrawler(Crawler):
     write_file_mutex = threading.Lock()
     urls = {'host': 'http://gsxt.jxaic.gov.cn',
             'main': 'http://gsxt.jxaic.gov.cn/ECPS/',
-            # 'get_checkcode': 'http://gsxt.jxaic.gov.cn/ECPS/verificationCode.jsp?',
-            'get_checkcode': "http://gsxt.jxaic.gov.cn:80/ECPS/common/common_getJjYzmImg.pt?yzmName=searchYzm&imgWidth=180&t=" + str(random.random()),
+    # 'get_checkcode': 'http://gsxt.jxaic.gov.cn/ECPS/verificationCode.jsp?',
+            'get_checkcode':
+            "http://gsxt.jxaic.gov.cn:80/ECPS/common/common_getJjYzmImg.pt?yzmName=searchYzm&imgWidth=180&t=" +
+            str(random.random()),
             'post_checkCode': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_checkVerificationCode.action?',
             'post_checkCode2': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_queryXyxx.action?',
             'ind_comm_pub_reg_basic': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_initQyjbqk.action?',
@@ -56,7 +59,8 @@ class JiangxiCrawler(Crawler):
             'ent_pub_administration_sanction': 'http://gsxt.jxaic.gov.cn/ECPS/qyXzcfxxAction_initXzcfxx.action?',
             'ent_pub_reg_modify': 'http://gsxt.jxaic.gov.cn/ECPS/qyTzrxxAction_init.action?',
             'other_dept_pub_administration_license': 'http://gsxt.jxaic.gov.cn/ECPS/otherZzxkAction_init.action?',
-            'other_dept_pub_administration_sanction': 'http://gsxt.jxaic.gov.cn/ECPS/otherXzcfAction_initXzcfxx.action?',
+            'other_dept_pub_administration_sanction':
+            'http://gsxt.jxaic.gov.cn/ECPS/otherXzcfAction_initXzcfxx.action?',
             'judical_assist_pub_equity_freeze': 'http://gsxt.jxaic.gov.cn/ECPS/sfxzAction_initSfxzMain.action?',
             'judical_assist_pub_shareholder_modify': 'http://gsxt.jxaic.gov.cn/ECPS/sfxzAction_initSfxzMain.action?',
             'report_baseinfo': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_qyjbxx.action?',
@@ -66,8 +70,7 @@ class JiangxiCrawler(Crawler):
             'report_public_of_ent': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_qyzcxx.action?',
             'report_offer_security': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_dwdbxx.action?',
             'report_shareholder_change': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_gqbgxx.action?',
-            'report_record_of_modifies': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_xgjlxx.action?',
-            }
+            'report_record_of_modifies': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_xgjlxx.action?', }
 
     def __init__(self, json_restore_path=None):
         """
@@ -86,10 +89,9 @@ class JiangxiCrawler(Crawler):
         self.ckcode_image_path = self.json_restore_path + '/jiangxi/ckcode.jpeg'
         self.parser = JiangxiParser(self)
         self.proxies = get_proxy('jiangxi')
-        self.timeout = (30,20)
+        self.timeout = (30, 20)
         self.ent_number = None
         self.results = None
-
 
     def run(self, ent_number):
         self.ent_number = str(ent_number)
@@ -106,25 +108,24 @@ class JiangxiCrawler(Crawler):
             return None
         return Crawler.run(self, self.ent_number)
 
-
     def analyze_showInfo(self, page):
         soup = BeautifulSoup(page, "html5lib")
-        dl = soup.find('dl', attrs={'id':'qyList'})
+        dl = soup.find('dl', attrs={'id': 'qyList'})
         if not dl:
             return False
-        divs = dl.find_all('div', {'style':'padding-top: 8px; font-size:14px;'})
+        divs = dl.find_all('div', {'style': 'padding-top: 8px; font-size:14px;'})
         if divs:
             count = 0
-            Ent={}
+            Ent = {}
             for div in divs:
-                count+= 1
-                url=""
-                ent=""
+                count += 1
+                url = ""
+                ent = ""
                 link = div.find('a')
                 if link and link.has_attr('href'):
                     url = link.find('a')['href']
                 profile = div.find('span')
-                if profile :
+                if profile:
                     ent = profile.get_text().strip()
                 name = link.get_text().strip()
                 if name == self.ent_number or ent == self.ent_number:
@@ -265,7 +266,6 @@ class JiangxiCrawler(Crawler):
         page = self.crawl_judical_assist_pub_shareholder_modify_pages()
         self.parser.parse_judical_assist_pub_shareholder_modify_pages(page)
     #     pass
-
 
     def crawl_page_by_get_params(self, params=None, name='detail.html', url=None):
         """
@@ -621,7 +621,7 @@ class JiangxiParser(Parser):
         """解析工商基本公示信息-页面
         """
         page = str(page)
-        soup = BeautifulSoup(page, 'html5lib',from_encoding='utf-8')
+        soup = BeautifulSoup(page, 'html5lib', from_encoding='utf-8')
         # print page
         # 基本信息
         base_info_table = soup.find('table', {'class': 'detailsList'})
@@ -629,32 +629,27 @@ class JiangxiParser(Parser):
         base_trs = base_info_table.find_all('tr')
 
         ind_comm_pub_reg_basic = {}
-        ind_comm_pub_reg_basic[u'统一社会信用代码/注册号'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[1].find_all('td')[0].get_text())
-        ind_comm_pub_reg_basic[u'名称'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[1].find_all('td')[1].get_text())
-        ind_comm_pub_reg_basic[u'类型'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[2].find_all('td')[0].get_text())
-        ind_comm_pub_reg_basic[u'法定代表人'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[2].find_all('td')[1].get_text())
-        ind_comm_pub_reg_basic[u'注册资本'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[3].find_all('td')[0].get_text())
-        ind_comm_pub_reg_basic[u'成立日期'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[3].find_all('td')[1].get_text())
-        ind_comm_pub_reg_basic[u'住所'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[4].find('td').get_text())
-        ind_comm_pub_reg_basic[u'营业期限自'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[5].find_all('td')[0].get_text())
-        ind_comm_pub_reg_basic[u'营业期限至'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[5].find_all('td')[1].get_text())
-        ind_comm_pub_reg_basic[u'经营范围'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[6].find('td').get_text())
-        ind_comm_pub_reg_basic[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[7].find_all('td')[0].get_text())
-        ind_comm_pub_reg_basic[u'核准日期'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[7].find_all('td')[1].get_text())
-        ind_comm_pub_reg_basic[u'登记状态'] = self.wipe_off_newline_and_blank_for_fe(
-            base_trs[8].find('td').get_text())
+        ind_comm_pub_reg_basic[u'统一社会信用代码/注册号'] = self.wipe_off_newline_and_blank_for_fe(base_trs[1].find_all('td')[
+            0].get_text())
+        ind_comm_pub_reg_basic[u'名称'] = self.wipe_off_newline_and_blank_for_fe(base_trs[1].find_all('td')[1].get_text())
+        ind_comm_pub_reg_basic[u'类型'] = self.wipe_off_newline_and_blank_for_fe(base_trs[2].find_all('td')[0].get_text())
+        ind_comm_pub_reg_basic[u'法定代表人'] = self.wipe_off_newline_and_blank_for_fe(base_trs[2].find_all('td')[
+            1].get_text())
+        ind_comm_pub_reg_basic[u'注册资本'] = self.wipe_off_newline_and_blank_for_fe(base_trs[3].find_all('td')[0].get_text(
+        ))
+        ind_comm_pub_reg_basic[u'成立日期'] = self.wipe_off_newline_and_blank_for_fe(base_trs[3].find_all('td')[1].get_text(
+        ))
+        ind_comm_pub_reg_basic[u'住所'] = self.wipe_off_newline_and_blank_for_fe(base_trs[4].find('td').get_text())
+        ind_comm_pub_reg_basic[u'营业期限自'] = self.wipe_off_newline_and_blank_for_fe(base_trs[5].find_all('td')[
+            0].get_text())
+        ind_comm_pub_reg_basic[u'营业期限至'] = self.wipe_off_newline_and_blank_for_fe(base_trs[5].find_all('td')[
+            1].get_text())
+        ind_comm_pub_reg_basic[u'经营范围'] = self.wipe_off_newline_and_blank_for_fe(base_trs[6].find('td').get_text())
+        ind_comm_pub_reg_basic[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(base_trs[7].find_all('td')[0].get_text(
+        ))
+        ind_comm_pub_reg_basic[u'核准日期'] = self.wipe_off_newline_and_blank_for_fe(base_trs[7].find_all('td')[1].get_text(
+        ))
+        ind_comm_pub_reg_basic[u'登记状态'] = self.wipe_off_newline_and_blank_for_fe(base_trs[8].find('td').get_text())
 
         self.crawler.json_dict['ind_comm_pub_reg_basic'] = ind_comm_pub_reg_basic
 
@@ -673,14 +668,10 @@ class JiangxiParser(Parser):
                 while i < len(shareholder_trs):
                     ind_comm_pub_reg_shareholder = {}
                     tds = shareholder_trs[i].find_all('td')
-                    ind_comm_pub_reg_shareholder[u'股东类型'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                    ind_comm_pub_reg_shareholder[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                    ind_comm_pub_reg_shareholder[u'证照/证件类型'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                    ind_comm_pub_reg_shareholder[u'证照/证件号码'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
+                    ind_comm_pub_reg_shareholder[u'股东类型'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                    ind_comm_pub_reg_shareholder[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                    ind_comm_pub_reg_shareholder[u'证照/证件类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                    ind_comm_pub_reg_shareholder[u'证照/证件号码'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
                     i += 1
                     ind_comm_pub_reg_shareholderes.append(ind_comm_pub_reg_shareholder)
 
@@ -741,19 +732,14 @@ class JiangxiParser(Parser):
                 tds = arch_branch_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_arch_branch_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_arch_branch_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_arch_branch_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_arch_branch_info[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
+                detail_arch_branch_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_arch_branch_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_arch_branch_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_arch_branch_info[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
                 detail_arch_branch_infoes.append(detail_arch_branch_info)
                 i += 1
 
         self.crawler.json_dict['ind_comm_pub_arch_branch'] = detail_arch_branch_infoes
-
 
         # 清算信息
 
@@ -771,20 +757,13 @@ class JiangxiParser(Parser):
                 tds = movable_property_reg_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_movable_property_reg_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_movable_property_reg_info[u'登记编号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_movable_property_reg_info[u'登记日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_movable_property_reg_info[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_movable_property_reg_info[u'被担保债权数额'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_movable_property_reg_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
-                detail_movable_property_reg_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
+                detail_movable_property_reg_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_movable_property_reg_info[u'登记编号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_movable_property_reg_info[u'登记日期'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_movable_property_reg_info[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_movable_property_reg_info[u'被担保债权数额'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_movable_property_reg_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_movable_property_reg_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
                 detail_movable_property_reg_infoes.append(detail_movable_property_reg_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_movable_property_reg'] = detail_movable_property_reg_infoes
@@ -832,22 +811,19 @@ class JiangxiParser(Parser):
                 tds = administration_sanction_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
-                detail_administration_sanction_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[6].get_text())
-                detail_administration_sanction_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[6].get_text())
+                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    1].get_text())
+                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                ))
+                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    4].get_text())
+                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    5].get_text())
+                detail_administration_sanction_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
+                detail_administration_sanction_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
                 detail_administration_sanction_infoes.append(detail_administration_sanction_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_administration_sanction'] = detail_administration_sanction_infoes
@@ -867,18 +843,14 @@ class JiangxiParser(Parser):
                 tds = business_exception_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_business_exception_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_business_exception_info[u'列入经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_business_exception_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_business_exception_info[u'移出经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_business_exception_info[u'移出日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_business_exception_info[u'作出决定机关'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
+                detail_business_exception_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_business_exception_info[u'列入经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
+                ))
+                detail_business_exception_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_business_exception_info[u'移出经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                ))
+                detail_business_exception_info[u'移出日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_business_exception_info[u'作出决定机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
                 detail_business_exception_infoes.append(detail_business_exception_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_business_exception'] = detail_business_exception_infoes
@@ -897,12 +869,10 @@ class JiangxiParser(Parser):
                 tds = serious_violate_law_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_serious_violate_law_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_serious_violate_law_info[u'列入严重违法企业名单原因'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_serious_violate_law_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
+                detail_serious_violate_law_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_serious_violate_law_info[u'列入严重违法企业名单原因'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    1].get_text())
+                detail_serious_violate_law_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
 
                 detail_serious_violate_law_infoes.append(detail_serious_violate_law_info)
                 i += 1
@@ -921,16 +891,11 @@ class JiangxiParser(Parser):
                 tds = spot_check_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_spot_check_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_spot_check_info[u'检查实施机关'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_spot_check_info[u'类型'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_spot_check_info[u'日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_spot_check_info[u'结果'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
+                detail_spot_check_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_spot_check_info[u'检查实施机关'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_spot_check_info[u'类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_spot_check_info[u'日期'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_spot_check_info[u'结果'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
                 detail_spot_check_infoes.append(detail_spot_check_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_spot_check'] = detail_spot_check_infoes
@@ -974,16 +939,11 @@ class JiangxiParser(Parser):
                 tds = reg_modify_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_reg_modify_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_reg_modify_info[u'变更事项'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_reg_modify_info[u'变更时间'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_reg_modify_info[u'变更前'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_reg_modify_info[u'变更后'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
+                detail_reg_modify_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_reg_modify_info[u'变更事项'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_reg_modify_info[u'变更时间'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_reg_modify_info[u'变更前'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_reg_modify_info[u'变更后'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
 
                 detail_reg_modify_infoes.append(detail_reg_modify_info)
                 i += 1
@@ -1004,8 +964,8 @@ class JiangxiParser(Parser):
                     break
                 ent_pub_ent_annual_report = {}
                 ent_pub_ent_annual_report[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
-                ent_pub_ent_annual_report[u'报送年度'] = self.wipe_off_newline_and_blank_for_fe(
-                    (str(tds[1].get_text())[1:]))
+                ent_pub_ent_annual_report[u'报送年度'] = self.wipe_off_newline_and_blank_for_fe((str(tds[1].get_text())[1:]
+                                                                                             ))
                 ent_pub_ent_annual_report[u'发布日期'] = self.wipe_off_newline_and_blank_for_fe((tds[2].get_text()))
                 a_link = tds[1].find('a')
                 if a_link is None:
@@ -1020,30 +980,29 @@ class JiangxiParser(Parser):
                 detail = {}
                 detail_base_info = {}
 
-                detail_base_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[1].find_all('td')[0].get_text())
-                detail_base_info[u'企业名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[1].find_all('td')[1].get_text())
-                detail_base_info[u'企业联系电话'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[2].find_all('td')[0].get_text())
-                detail_base_info[u'邮政编码'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[2].find_all('td')[1].get_text())
+                detail_base_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(base_trs[1].find_all('td')[
+                    0].get_text())
+                detail_base_info[u'企业名称'] = self.wipe_off_newline_and_blank_for_fe(base_trs[1].find_all('td')[
+                    1].get_text())
+                detail_base_info[u'企业联系电话'] = self.wipe_off_newline_and_blank_for_fe(base_trs[2].find_all('td')[
+                    0].get_text())
+                detail_base_info[u'邮政编码'] = self.wipe_off_newline_and_blank_for_fe(base_trs[2].find_all('td')[
+                    1].get_text())
 
-                detail_base_info[u'企业通信地址'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[3].find('td').get_text())
+                detail_base_info[u'企业通信地址'] = self.wipe_off_newline_and_blank_for_fe(base_trs[3].find('td').get_text())
 
-                detail_base_info[u'电子邮箱'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[4].find_all('td')[0].get_text())
-                detail_base_info[u'有限责任公司本年度是否发生股东股权转让'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[4].find_all('td')[1].get_text())
-                detail_base_info[u'企业登记状态'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[5].find_all('td')[0].get_text())
-                detail_base_info[u'是否有网站或网店'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[5].find_all('td')[1].get_text())
-                detail_base_info[u'企业是否有投资信息或购买其他公司股权'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[6].find_all('td')[0].get_text())
-                detail_base_info[u'从业人数'] = self.wipe_off_newline_and_blank_for_fe(
-                    base_trs[6].find_all('td')[1].get_text())
+                detail_base_info[u'电子邮箱'] = self.wipe_off_newline_and_blank_for_fe(base_trs[4].find_all('td')[
+                    0].get_text())
+                detail_base_info[u'有限责任公司本年度是否发生股东股权转让'] = self.wipe_off_newline_and_blank_for_fe(base_trs[4].find_all(
+                    'td')[1].get_text())
+                detail_base_info[u'企业登记状态'] = self.wipe_off_newline_and_blank_for_fe(base_trs[5].find_all('td')[
+                    0].get_text())
+                detail_base_info[u'是否有网站或网店'] = self.wipe_off_newline_and_blank_for_fe(base_trs[5].find_all('td')[
+                    1].get_text())
+                detail_base_info[u'企业是否有投资信息或购买其他公司股权'] = self.wipe_off_newline_and_blank_for_fe(base_trs[6].find_all(
+                    'td')[0].get_text())
+                detail_base_info[u'从业人数'] = self.wipe_off_newline_and_blank_for_fe(base_trs[6].find_all('td')[
+                    1].get_text())
 
                 detail[u'企业基本信息'] = detail_base_info
 
@@ -1084,11 +1043,9 @@ class JiangxiParser(Parser):
                         detail_shareholder_capital_contribution_info[u'认缴出资额'] = self.wipe_off_newline_and_blank_for_fe(
                             tds[1].get_text())
                         detail_shareholder_capital_contribution_info[
-                            u'认缴出资时间'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
+                            u'认缴出资时间'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
                         detail_shareholder_capital_contribution_info[
-                            u'认缴出资方式'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
+                            u'认缴出资方式'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
                         detail_shareholder_capital_contribution_info[u'实缴出资额'] = self.wipe_off_newline_and_blank_for_fe(
                             tds[4].get_text())
                         detail_shareholder_capital_contribution_info[u'出资时间'] = self.wipe_off_newline_and_blank_for_fe(
@@ -1114,8 +1071,8 @@ class JiangxiParser(Parser):
                         detail_outbound_investment_info = {}
                         detail_outbound_investment_info[u'投资设立企业或购买股权企业名称'] = self.wipe_off_newline_and_blank_for_fe(
                             tds[0].get_text())
-                        detail_outbound_investment_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
+                        detail_outbound_investment_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                            1].get_text())
                         detail_outbound_investment_infoes.append(detail_outbound_investment_info)
                         i += 1
 
@@ -1127,29 +1084,29 @@ class JiangxiParser(Parser):
                 state_of_enterprise_assets_trs = state_of_enterprise_assets_info.find_all('tr')
                 detail_state_of_enterprise_assets_infoes = {}
                 detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
-                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[1].find_all('td')[0].get_text())
+                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[1].find_all(
+                        'td')[0].get_text())
                 detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
-                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[1].find_all('td')[1].get_text())
+                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[1].find_all(
+                        'td')[1].get_text())
                 detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
-                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[2].find_all('td')[0].get_text())
+                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[2].find_all(
+                        'td')[0].get_text())
                 detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
-                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[2].find_all('td')[1].get_text())
+                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[2].find_all(
+                        'td')[1].get_text())
                 detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
-                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[3].find_all('td')[0].get_text())
+                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[3].find_all(
+                        'td')[0].get_text())
                 detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
-                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[3].find_all('td')[1].get_text())
+                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[3].find_all(
+                        'td')[1].get_text())
                 detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
-                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[4].find_all('td')[0].get_text())
+                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[4].find_all(
+                        'td')[0].get_text())
                 detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
-                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[4].find_all('td')[1].get_text())
+                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[4].find_all(
+                        'td')[1].get_text())
 
                 detail[u'企业资产状况信息'] = detail_state_of_enterprise_assets_infoes
                 report_offer_security = self.crawler.crawl_report_offer_security_pages(reportYear)
@@ -1173,15 +1130,13 @@ class JiangxiParser(Parser):
                         detail_provide_guarantee_to_the_outside_info[u'主债权数额'] = self.wipe_off_newline_and_blank_for_fe(
                             tds[3].get_text())
                         detail_provide_guarantee_to_the_outside_info[
-                            u'履行债务的期限'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[4].get_text())
+                            u'履行债务的期限'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
                         detail_provide_guarantee_to_the_outside_info[u'保证的期间'] = self.wipe_off_newline_and_blank_for_fe(
                             tds[5].get_text())
                         detail_provide_guarantee_to_the_outside_info[u'保证的方式'] = self.wipe_off_newline_and_blank_for_fe(
                             tds[6].get_text())
                         detail_provide_guarantee_to_the_outside_info[
-                            u'保证担保的范围'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[7].get_text())
+                            u'保证担保的范围'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
                         detail_provide_guarantee_to_the_outside_infoes.append(
                             detail_provide_guarantee_to_the_outside_info)
                         i += 1
@@ -1199,14 +1154,14 @@ class JiangxiParser(Parser):
                         tds = ent_pub_equity_change_trs[i].find_all('td')
                         if len(tds) <= 0:
                             break
-                        detail_ent_pub_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                        detail_ent_pub_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
-                        detail_ent_pub_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
-                        detail_ent_pub_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
+                        detail_ent_pub_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                            0].get_text())
+                        detail_ent_pub_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                            1].get_text())
+                        detail_ent_pub_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                            2].get_text())
+                        detail_ent_pub_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                            3].get_text())
                         detail_ent_pub_equity_change_infoes.append(detail_ent_pub_equity_change_info)
                         i += 1
                 detail[u'股权变更信息'] = detail_ent_pub_equity_change_infoes
@@ -1222,16 +1177,11 @@ class JiangxiParser(Parser):
                         tds = change_record_trs[i].find_all('td')
                         if len(tds) <= 0:
                             break
-                        detail_change_record_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                        detail_change_record_info[u'修改事项'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
-                        detail_change_record_info[u'修改前'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
-                        detail_change_record_info[u'修改后'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
-                        detail_change_record_info[u'修改日期'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[4].get_text())
+                        detail_change_record_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                        detail_change_record_info[u'修改事项'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                        detail_change_record_info[u'修改前'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                        detail_change_record_info[u'修改后'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                        detail_change_record_info[u'修改日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
                         detail_change_record_infoes.append(detail_change_record_info)
                         i += 1
                 detail[u'修改记录'] = detail_change_record_infoes
@@ -1279,26 +1229,18 @@ class JiangxiParser(Parser):
                 tds = administration_license_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_license_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_administration_license_info[u'许可文件编号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_administration_license_info[u'许可文件名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_administration_license_info[u'有效期自'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_administration_license_info[u'有效期至'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_administration_license_info[u'许可机关'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
-                detail_administration_license_info[u'许可内容'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[6].get_text())
-                detail_administration_license_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[7].get_text())
-                detail_administration_license_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[8].get_text())
-                detail_administration_license_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[9].get_text())
+                detail_administration_license_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_license_info[u'许可文件编号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
+                ))
+                detail_administration_license_info[u'许可文件名称'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_license_info[u'有效期自'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_administration_license_info[u'有效期至'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_administration_license_info[u'许可机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_administration_license_info[u'许可内容'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
+                detail_administration_license_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
+                detail_administration_license_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(tds[8].get_text())
+                detail_administration_license_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[9].get_text())
                 detail_administration_license_infoes.append(detail_administration_license_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_administration_license'] = detail_administration_license_infoes
@@ -1320,22 +1262,19 @@ class JiangxiParser(Parser):
                 tds = administration_sanction_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_administration_sanction_info[u'行政处罚类型'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
-                detail_administration_sanction_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[6].get_text())
-                detail_administration_sanction_info[u'备注'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[7].get_text())
+                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    1].get_text())
+                detail_administration_sanction_info[u'行政处罚类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                ))
+                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    4].get_text())
+                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    5].get_text())
+                detail_administration_sanction_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
+                detail_administration_sanction_info[u'备注'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
                 detail_administration_sanction_infoes.append(detail_administration_sanction_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_administration_sanction'] = detail_administration_sanction_infoes
@@ -1355,18 +1294,12 @@ class JiangxiParser(Parser):
                 tds = equity_change_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_equity_change_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_equity_change_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
+                detail_equity_change_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_equity_change_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
                 detail_equity_change_infoes.append(detail_equity_change_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_equity_change'] = detail_equity_change_infoes
@@ -1389,26 +1322,16 @@ class JiangxiParser(Parser):
                 tds = knowledge_property_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_knowledge_property_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_knowledge_property_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_knowledge_property_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_knowledge_property_info[u'种类'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_knowledge_property_info[u'出质人名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_knowledge_property_info[u'质权人名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
-                detail_knowledge_property_info[u'质权登记期限'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[6].get_text())
-                detail_knowledge_property_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[7].get_text())
-                detail_knowledge_property_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[8].get_text())
-                detail_knowledge_property_info[u'变化情况'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[9].get_text())
+                detail_knowledge_property_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_knowledge_property_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_knowledge_property_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_knowledge_property_info[u'种类'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_knowledge_property_info[u'出质人名称'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_knowledge_property_info[u'质权人名称'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_knowledge_property_info[u'质权登记期限'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
+                detail_knowledge_property_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
+                detail_knowledge_property_info[u'公示日期'] = self.wipe_off_newline_and_blank_for_fe(tds[8].get_text())
+                detail_knowledge_property_info[u'变化情况'] = self.wipe_off_newline_and_blank_for_fe(tds[9].get_text())
 
                 detail_knowledge_property_infoes.append(detail_knowledge_property_info)
                 i += 1
@@ -1432,24 +1355,17 @@ class JiangxiParser(Parser):
                 tds = administration_license_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_license_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_administration_license_info[u'许可文件编号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_administration_license_info[u'许可文件名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_administration_license_info[u'有效期自'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_administration_license_info[u'有效期至'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_administration_license_info[u'许可机关'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
-                detail_administration_license_info[u'许可内容'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[6].get_text())
-                detail_administration_license_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[7].get_text())
-                detail_administration_license_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[8].get_text())
+                detail_administration_license_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_license_info[u'许可文件编号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
+                ))
+                detail_administration_license_info[u'许可文件名称'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_license_info[u'有效期自'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_administration_license_info[u'有效期至'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_administration_license_info[u'许可机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_administration_license_info[u'许可内容'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
+                detail_administration_license_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
+                detail_administration_license_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[8].get_text())
 
                 detail_administration_license_infoes.append(detail_administration_license_info)
                 i += 1
@@ -1471,18 +1387,17 @@ class JiangxiParser(Parser):
                 tds = administration_sanction_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
+                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    1].get_text())
+                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                ))
+                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    4].get_text())
+                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    5].get_text())
 
                 detail_administration_sanction_infoes.append(detail_administration_sanction_info)
                 i += 1
@@ -1508,20 +1423,13 @@ class JiangxiParser(Parser):
                 tds = equity_freeze_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_equity_freeze_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_equity_freeze_info[u'被执行人'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_equity_freeze_info[u'股权数额'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_equity_freeze_info[u'执行法院'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_equity_freeze_info[u'协助公示通知书文号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_equity_freeze_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
-                detail_equity_freeze_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[6].get_text())
+                detail_equity_freeze_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_equity_freeze_info[u'被执行人'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_equity_freeze_info[u'股权数额'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_equity_freeze_info[u'执行法院'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_equity_freeze_info[u'协助公示通知书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_equity_freeze_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_equity_freeze_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
 
                 detail_equity_freeze_infoes.append(detail_equity_freeze_info)
                 i += 1
@@ -1545,21 +1453,13 @@ class JiangxiParser(Parser):
                 tds = shareholder_modify_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_shareholder_modify_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[0].get_text())
-                detail_shareholder_modify_info[u'被执行人'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[1].get_text())
-                detail_shareholder_modify_info[u'股权数额'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[2].get_text())
-                detail_shareholder_modify_info[u'受让人'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[3].get_text())
-                detail_shareholder_modify_info[u'执行法院'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[4].get_text())
-                detail_shareholder_modify_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                    tds[5].get_text())
+                detail_shareholder_modify_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_shareholder_modify_info[u'被执行人'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_shareholder_modify_info[u'股权数额'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_shareholder_modify_info[u'受让人'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_shareholder_modify_info[u'执行法院'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_shareholder_modify_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
 
                 detail_shareholder_modify_infoes.append(detail_shareholder_modify_info)
                 i += 1
         self.crawler.json_dict['judical_assist_pub_shareholder_modify'] = detail_shareholder_modify_infoes
-
-
