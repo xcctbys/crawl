@@ -7,7 +7,7 @@ import logging
 import unittest
 import re
 import urllib
-
+import time
 
 DEBUG = True
 if DEBUG:
@@ -95,7 +95,7 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=choices, tid='557067352008097',num='10',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=choices, tid=' 559326559297365',num='10',province='',filter= 'off',protocol='http',category='2',delay='3',sortby='time',foreign='none'):
         BaseProxy.__init__(self)
         #self.url = 'http://www.xicidaili.com/nn'          #西刺代理
         self.a_list=[]
@@ -144,6 +144,14 @@ if __name__ == '__main__':
     # test(choices)
     #if DEBUG:
         #unittest.main()
-    test =PaidProxy(num=2,sortby= 'time',protocol= 'https')
-    test.get_ipproxy()
 
+    province_https=['SHANGHAI']
+    province_one=['GUANGDONG','BEIJING','ZHEJIANG','JIANGSU','SHANDONG']
+    province_two=['SICHUAN','FUJIAN','HUBEI','ANHUI','HENAN','HUNAN','HEBEI','TIANJIN','CHONGQING']
+    province_three=['JIANGXI','SHAANXI','SHANXI','HEILONGJIANG','XINJIANG','GUANGXI','JILIN','YUNNAN','NEIMENGGU','GANSU','GUIZHOU','HAINAN','LIAONING','NINGXIA','QINGHAI','XIZANG']
+    province_list=[province_https,province_one,province_two,province_three]
+    for province in province_list:
+        for j in province:
+            test =PaidProxy(tid='559326559297365',num=6,sortby= 'time',protocol= 'http',filter='on')
+            test.get_ipproxy()
+            time.sleep(1.5)

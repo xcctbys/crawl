@@ -10,7 +10,7 @@ import urllib
 import os
 import mysql.connector
 import time
-
+import random
 
 """
 
@@ -127,7 +127,9 @@ class PaidProxy(BaseProxy):
         para_url = urllib.urlencode(self.parameter)
 
         if province:
-            area= prodict.get(province,'北京')
+            area= prodict.get(province,'OTHER')
+            if area = 'OTHER'
+                area = random.choice(["北京","上海","广东","山东","浙江"])
             print area
             print '-----area-----'
             self.urlget= self.url+para_url+'&area='+area
@@ -193,9 +195,20 @@ if __name__ == '__main__':
     # test(choices)
     #if DEBUG:
         #unittest.main()
-    ###
-    test =PaidProxy(num=100,sortby= 'time',protocol= 'http')
-    ip_list = test.get_ipproxy()
-    read = PutIntoMy()
-    read.readLines(ip_list)
+    province_https=['SHANGHAI']
+    province_one=['GUANGDONG','BEIJING','ZHEJIANG','JIANGSU','SHANDONG','OTHER']
+    province_two=['SICHUAN','FUJIAN','HUBEI','ANHUI','HENAN','HUNAN','HEBEI','TIANJIN','CHONGQING']
+    province_three=['JIANGXI','SHAANXI','SHANXI','HEILONGJIANG','XINJIANG','GUANGXI','JILIN','YUNNAN','NEIMENGGU','GANSU','GUIZHOU','HAINAN','LIAONING','NINGXIA','QINGHAI','XIZANG','OTHER']
+    province_list=[province_https,province_one,province_two,province_three]
+    for province_list in province_list_all:
+        for province_name in province_list:
+            print '======province name=====', province_name
+            protocol = 'http'
+            if province_name = 'SHANGHAI':
+                protocol='https'
+            test =PaidProxy(tid='559326559297365',num=6,sortby= 'time',protocol= protocol,filter='on',province= province_name)
+            ip_list=test.get_ipproxy()
+            read.readLines(ip_list,province= province_name)
+            time.sleep(1.5)
+
 

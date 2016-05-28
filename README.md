@@ -59,7 +59,7 @@ Start RQ worker
 
 For example:
 
-    ./run.sh rq clawer download analysis 
+    ./run.sh rq clawer download analysis
 
 
 Start RQ worker for generator
@@ -72,11 +72,11 @@ Start RQ worker for generator
 cd conf
 
     cd cr-clawer/confs/dev
-    
+
 test it
 
-    ./test.sh 
-    
+    ./test.sh
+
 use cmd to show help
 
     ./test.sh -h
