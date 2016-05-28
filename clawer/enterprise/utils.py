@@ -37,7 +37,7 @@ from .libs.hunan_crawler import HunanCrawler
 ##
 from .libs.liaoning_crawler import LiaoningCrawler
 ##
-from .libs.guangdong_crawler import GuangdongClawer
+from .libs.guangdong_crawler import GuangdongCrawler
 from .libs.neimenggu_crawler import NeimengguCrawler
 ##
 from .libs.sichuan_crawler import SichuanCrawler
@@ -102,7 +102,7 @@ class EnterpriseDownload(object):
         {'id': Province.GANSU,
          'class': GansuCrawler},
         {'id': Province.GUANGDONG,
-         'class': GuangdongClawer},
+         'class': GuangdongCrawler},
         {'id': Province.GUANGXI,
          'class': GuangxiCrawler},
         {'id': Province.ANHUI,
@@ -129,6 +129,7 @@ class EnterpriseDownload(object):
          'class': SichuanCrawler},
         {'id': Province.JIANGXI,
          'class': JiangxiCrawler},
+
     ]
 
     def __init__(self, url):

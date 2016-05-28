@@ -176,9 +176,13 @@ class PutIntoMy:
                 i=0
                 list=[]
             i=i+1
-        if i>0:
-            cursor.executemany(sql,list)
-            cnx.commit()
+        #if i>0:
+        #    cursor.executemany(sql,list)
+        #    cnx.commit()
+        sql_delete = "delete from smart_proxy_proxyip limit 100"
+        cursor.execute(sql_delete)
+        print "Delete limit 100 succeed."
+        cnx.commit()
         cnx.close()
         print("ok")
     def listFiles(self):

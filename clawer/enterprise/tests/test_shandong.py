@@ -36,6 +36,7 @@ from enterprise.libs.xinjiang_crawler import XinjiangCrawler
 from enterprise.libs.anhui_crawler import AnhuiCrawler
 from enterprise.libs.guangxi_crawler import GuangxiCrawler
 from enterprise.libs.shanghai_crawler import ShanghaiCrawler
+from enterprise.libs.guangdong_crawler import GuangdongCrawler
 #######
 from enterprise.libs.tt_beijing_crawler import BeijingCrawler
 from enterprise.libs.tt_jiangsu_crawler import JiangsuCrawler
@@ -51,6 +52,134 @@ import gevent.monkey
 import re
 
 # gevent.monkey.patch_socket()
+
+
+class TestGuangdong(TestCase):
+
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Guangdong')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 广发证券股份有限公司,广东,222400000001337
+        ent_str = '310000000016182'
+        start =  time.time()
+        Guangdong = GuangdongCrawler(self.path)
+        result = Guangdong.run(ent_str)
+        ent = time.time()
+        print ent-start
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'310000000016182')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'海通证券股份有限公司')
+    def test_run_2(self):
+        # 广发证券股份有限公司,广东,222400000001337
+        ent_str = '222400000001337'
+        start =  time.time()
+        Guangdong = GuangdongCrawler(self.path)
+        result = Guangdong.run(ent_str)
+        ent = time.time()
+        print ent-start
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91440000126335439C')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'广发证券股份有限公司')
+
+    def test_run_0(self):
+        # 世纪证券有限责任公司,广东,440301102739085
+        ent_str = '440301102739085'
+        start =  time.time()
+        Guangdong = GuangdongCrawler(self.path)
+        result = Guangdong.run(ent_str)
+        ent = time.time()
+        print ent-start
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91440300158263740T')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'世纪证券有限责任公司')
+
+    def test_run_1(self):
+        # 万联证券有限责任公司,广东,440101000017862
+        ent_str = '440101000017862'
+        start =  time.time()
+        Guangdong = GuangdongCrawler(self.path)
+        result = Guangdong.run(ent_str)
+        ent = time.time()
+        print ent-start
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'914401017315412818')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'万联证券有限责任公司')
+
+    def test_run_without_result(self):
+        # 广发证券股份有限公司,广东,222400000001337
+        ent_str = '10000000'
+        Guangdong = GuangdongCrawler(self.path)
+        result = Guangdong.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 广发证券股份有限公司,广东,222400000001337
+        ent_str = u'广发证券股份有限公司'
+        Guangdong = GuangdongCrawler(self.path)
+        result = Guangdong.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 3)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'91440000126335439C')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'广发证券股份有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.guangdong_crawler import GuangdongCrawler
+            Guangdong = GuangdongCrawler('/tmp/')
+            result = Guangdong.run('222400000001337')
+        """
+        pass
 
 
 class TestShanghai(TestCase):
@@ -82,6 +211,42 @@ class TestShanghai(TestCase):
                 self.assertEqual(k, u'310000000016182')
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'海通证券股份有限公司')
+
+    def test_run_ent(self):
+        ent_list=(
+            # u'上海银行股份有限公司虹口支行',
+            u'中国农业银行股份有限公司上海黄路支行',
+            u'招商银行股份有限公司上海闵行支行',
+            # u'上海悦禄资产管理中心(有限合伙)',
+            u'交通银行股份有限公司上海六里支行',
+            u'上海证券有限责任公司嘉定证券营业部',
+            u'中国银行股份有限公司上海市中山北路支行',
+            u'中国银行股份有限公司上海市南京西路第三支行',
+            u'中国建设银行股份有限公司上海航华支行',
+            u'上海国富永钦投资合伙企业(有限合伙)',
+            u'上海亚商创业加速器投资中心(有限合伙)',
+            u'上海浦东发展银行股份有限公司新桥支行',
+            u'上海柏智投资管理中心(有限合伙)',
+            u'上海益琛投资管理中心(有限合伙)',
+            u'中国光大银行股份有限公司上海嘉定支行',
+            u'上海联万投资管理中心(有限合伙)',
+            u'上海秀界投资管理中心(有限合伙)',
+            u'上海复鑫股权投资基金合伙企业(有限合伙)',
+            u'上海琪韵投资管理事务所(普通合伙)',
+            u'上海长鹰创业投资中心(有限合伙)',
+            )
+        Shanghai = ShanghaiCrawler(self.path)
+        for ent in ent_list:
+            result = Shanghai.run(ent)
+            print result
+            result = json.loads(result)
+            for item in result:
+                for k, v in item.items():
+                    self.assertTrue(k)
+                    self.assertTrue(v.get('ind_comm_pub_reg_basic'))
+                    self.assertTrue(v.get('ind_comm_pub_reg_basic').get(u'名称'))
+                    self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], ent)
+
 
     def test_run_without_result(self):
         # 海通证券股份有限公司,上海,310000000016182
