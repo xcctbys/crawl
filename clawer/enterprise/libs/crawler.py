@@ -19,125 +19,6 @@ import gevent
 from gevent import Greenlet
 import gevent.monkey
 
-
-
-class CrawlerUtils(object):
-    """爬虫工具类，封装了一些常用函数
-    """
-    @staticmethod
-    def make_dir(path):
-        try:
-            os.makedirs(path)
-        except OSError as exc: # Python >2.5 (except OSError, exc: for Python <2.5)
-            if exc.errno == errno.EEXIST and os.path.isdir(path):
-                pass
-            else:
-                raise exc
-
-    @staticmethod
-    def set_logging(level):
-        logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
-
-    @staticmethod
-    def set_opener_header(opener, header):
-        tmp_header = []
-        opener.addheaders = []
-        for key, value in header.items():
-            elem = (key, value)
-            tmp_header.append(elem)
-        opener.addheaders = tmp_header
-
-    @staticmethod
-    def add_opener_header(opener, header):
-        for key, value in header.items():
-            elem = (key, value)
-            opener.addheaders.append(elem)
-
-    @staticmethod
-    def make_opener(head = {
-                'Connetion': 'Keep-Alive',
-                'Accept': 'text/html, application/xhtml+xml, */*',
-                'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'}):
-
-        cj = cookielib.CookieJar()
-        pro = urllib2.HTTPCookieProcessor(cj) #Python自动处理cookie
-        opener = urllib2.build_opener(pro)    #用于打开url的opener
-        urllib2.install_opener(opener)
-        CrawlerUtils.set_opener_header(opener, head)
-        return opener
-
-    #在给定的url基础上，添加额外的信息
-    @staticmethod
-    def add_params_to_url(url, args):
-        return url + urllib.urlencode(args)
-
-    @staticmethod
-    def save_page_to_file(path, page):
-        with open(path, 'w') as f:
-            f.write(page)
-
-    @staticmethod
-    def get_enterprise_list(path):
-        result = []
-        with open(path, 'r') as f:
-            for line in f.readlines():
-                sp = line.split(',')
-                if len(sp) >= 3:
-                    result.append(sp[2].strip(' \n\r'))
-        return result
-
-    @staticmethod
-    def display_item(item):
-        if type(item) == list or type(item) == tuple:
-            for i in item:
-                CrawlerUtils.display_item(i)
-        elif type(item) == dict:
-            for k in item:
-                CrawlerUtils.display_item(k)
-                CrawlerUtils.display_item(item[k])
-        elif type(item) in (int, str, float, bool, bs4.element.NavigableString):
-            print item
-        elif type(item) == unicode:
-            print item.encode('utf-8')
-        else:
-            print 'unknown type in CrawlerUtils.display_item, type = %s' % type(item)
-
-    @staticmethod
-    def json_dump_to_file(path, json_dict):
-        write_type = 'wb'
-        if os.path.exists(path):
-            write_type = 'a'
-        with codecs.open(path, write_type, 'utf-8') as f:
-            f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-
-    @staticmethod
-    def get_raw_text_in_bstag(tag):
-        text = tag.string
-        if not text:
-            text = tag.get_text()
-        if not text:
-            return ''
-        return text.strip()
-
-    @staticmethod
-    def get_cur_time():
-        return time.strftime("%Y-%m-%d_%H:%M:%S",time.localtime(time.time()))
-
-    @staticmethod
-    def get_cur_date():
-        return time.strftime("%Y-%m-%d",time.localtime(time.time()))
-
-    @staticmethod
-    def get_random_ms():
-        return random.uniform(0.2, 1)
-
-    @staticmethod
-    def get_cur_y_m_d():
-        cur_date = time.strftime("%Y-%m-%d")
-        return cur_date.split('-')
-
-
 class Crawler(object):
     """爬虫的基类
     """
@@ -496,3 +377,118 @@ class Parser(object):
         data = data.replace(' ','')
         return data.encode(encoding='utf-8')
 
+class CrawlerUtils(object):
+    """爬虫工具类，封装了一些常用函数
+    """
+    @staticmethod
+    def make_dir(path):
+        try:
+            os.makedirs(path)
+        except OSError as exc: # Python >2.5 (except OSError, exc: for Python <2.5)
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise exc
+
+    @staticmethod
+    def set_logging(level):
+        logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
+
+    @staticmethod
+    def set_opener_header(opener, header):
+        tmp_header = []
+        opener.addheaders = []
+        for key, value in header.items():
+            elem = (key, value)
+            tmp_header.append(elem)
+        opener.addheaders = tmp_header
+
+    @staticmethod
+    def add_opener_header(opener, header):
+        for key, value in header.items():
+            elem = (key, value)
+            opener.addheaders.append(elem)
+
+    @staticmethod
+    def make_opener(head = {
+                'Connetion': 'Keep-Alive',
+                'Accept': 'text/html, application/xhtml+xml, */*',
+                'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'}):
+
+        cj = cookielib.CookieJar()
+        pro = urllib2.HTTPCookieProcessor(cj) #Python自动处理cookie
+        opener = urllib2.build_opener(pro)    #用于打开url的opener
+        urllib2.install_opener(opener)
+        CrawlerUtils.set_opener_header(opener, head)
+        return opener
+
+    #在给定的url基础上，添加额外的信息
+    @staticmethod
+    def add_params_to_url(url, args):
+        return url + urllib.urlencode(args)
+
+    @staticmethod
+    def save_page_to_file(path, page):
+        with open(path, 'w') as f:
+            f.write(page)
+
+    @staticmethod
+    def get_enterprise_list(path):
+        result = []
+        with open(path, 'r') as f:
+            for line in f.readlines():
+                sp = line.split(',')
+                if len(sp) >= 3:
+                    result.append(sp[2].strip(' \n\r'))
+        return result
+
+    @staticmethod
+    def display_item(item):
+        if type(item) == list or type(item) == tuple:
+            for i in item:
+                CrawlerUtils.display_item(i)
+        elif type(item) == dict:
+            for k in item:
+                CrawlerUtils.display_item(k)
+                CrawlerUtils.display_item(item[k])
+        elif type(item) in (int, str, float, bool, bs4.element.NavigableString):
+            print item
+        elif type(item) == unicode:
+            print item.encode('utf-8')
+        else:
+            print 'unknown type in CrawlerUtils.display_item, type = %s' % type(item)
+
+    @staticmethod
+    def json_dump_to_file(path, json_dict):
+        write_type = 'wb'
+        if os.path.exists(path):
+            write_type = 'a'
+        with codecs.open(path, write_type, 'utf-8') as f:
+            f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
+
+    @staticmethod
+    def get_raw_text_in_bstag(tag):
+        text = tag.string
+        if not text:
+            text = tag.get_text()
+        if not text:
+            return ''
+        return text.strip()
+
+    @staticmethod
+    def get_cur_time():
+        return time.strftime("%Y-%m-%d_%H:%M:%S",time.localtime(time.time()))
+
+    @staticmethod
+    def get_cur_date():
+        return time.strftime("%Y-%m-%d",time.localtime(time.time()))
+
+    @staticmethod
+    def get_random_ms():
+        return random.uniform(0.2, 1)
+
+    @staticmethod
+    def get_cur_y_m_d():
+        cur_date = time.strftime("%Y-%m-%d")
+        return cur_date.split('-')

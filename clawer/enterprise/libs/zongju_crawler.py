@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #encoding=utf-8
 import os
-import requests
 import time
 import re
 import random
@@ -12,7 +11,6 @@ from crawler import Crawler
 from crawler import Parser
 
 from datetime import datetime, timedelta
-from . import settings
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
 from common_func import get_proxy, exe_time
@@ -108,8 +106,9 @@ class ZongjuCrawler(Crawler):
             if self.parse_post_check_page(resp.content):
                 return True
             logging.error('crack checkcode failed, total fail count = %d' % count)
-
+            print ('crack checkcode failed!count = %d' % (count))
             time.sleep(random.uniform(1,3))
+
         return False
     @exe_time
     def crawl_ind_comm_pub_pages(self, *args, **kwargs):

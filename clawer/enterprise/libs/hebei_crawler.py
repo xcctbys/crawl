@@ -20,19 +20,19 @@ from gevent import Greenlet
 import gevent.monkey
 
 
-urls = {
-    'host': 'http://www.hebscztxyxx.gov.cn/notice/',
-    'webroot' : 'http://www.hebscztxyxx.gov.cn/',
-    'page_search': 'http://www.hebscztxyxx.gov.cn/notice/',
-    'page_Captcha': 'http://www.hebscztxyxx.gov.cn/notice/captcha?preset=&ra=', # preset 有数字的话，验证码会是字母+数字的组合
-    'page_showinfo': 'http://www.hebscztxyxx.gov.cn/notice/search/ent_info_list',
-    'checkcode':'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
-}
-
-
 class HebeiCrawler(object):
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
+
+    urls = {
+        'host': 'http://www.hebscztxyxx.gov.cn/notice/',
+        'webroot' : 'http://www.hebscztxyxx.gov.cn/',
+        'page_search': 'http://www.hebscztxyxx.gov.cn/notice/',
+        'page_Captcha': 'http://www.hebscztxyxx.gov.cn/notice/captcha?preset=&ra=', # preset 有数字的话，验证码会是字母+数字的组合
+        'page_showinfo': 'http://www.hebscztxyxx.gov.cn/notice/search/ent_info_list',
+        'checkcode':'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
+    }
+
 
     def __init__(self, json_restore_path=None):
         headers = { #'Connetion': 'Keep-Alive',
@@ -55,10 +55,8 @@ class HebeiCrawler(object):
         #html数据的存储路径
         self.html_restore_path = self.json_restore_path + '/hebei/'
 
-        proxies = get_proxy('hebei')
-        if proxies:
-            print proxies
-            self.requests.proxies = proxies
+        self.proxies = get_proxy('hebei')
+
         self.timeout = (30,20)
 
     #分析 展示页面， 获得搜索到的企业列表
@@ -161,7 +159,7 @@ class HebeiCrawler(object):
             for ent, url in self.ents.items():
                 m = re.match('http', url)
                 if m is None:
-                    url = urls['host']+ url
+                    url = self.urls['host']+ url
                 logging.info(u"crawl main url:%s"% url)
                 #工商公示信息
                 self.json_dict={}
@@ -350,7 +348,7 @@ class HebeiCrawler(object):
             pattern = re.compile(r'http')
             if pattern.search(bs4_tag['href']):
                 return bs4_tag['href']
-            return urls['webroot'] + bs4_tag['href']
+            return self.urls['webroot'] + bs4_tag['href']
         elif bs4_tag.has_attr('onclick'):
             #print 'onclick'
             logging.error(u"onclick attr was found in detail link")
@@ -678,8 +676,11 @@ class HebeiCrawler(object):
         logging.error('crawl %s .', self.__class__.__name__)
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
+        if self.proxies:
+            print self.proxies
+            self.requests.proxies = self.proxies
         self.ent_num = str(ent_num)
-        self.crawl_page_captcha(urls['page_search'], urls['page_Captcha'], urls['checkcode'], urls['page_showinfo'], self.ent_num)
+        self.crawl_page_captcha(self.urls['page_search'], self.urls['page_Captcha'], self.urls['checkcode'], self.urls['page_showinfo'], self.ent_num)
         if not self.ents:
             return json.dumps([{self.ent_num:None}])
         data = self.crawl_page_main()
