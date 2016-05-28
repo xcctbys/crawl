@@ -15,3 +15,6 @@
 
 # ip proxy
 */5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh roundproxyip
+
+# for get ip
+*/2    *    *    *    * cd /home/webapps/cr-clawer/clawer/smart_proxy/utils;python get_ip_into_my_delete.py
