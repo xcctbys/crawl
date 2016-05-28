@@ -7,7 +7,7 @@ import time
 from django.test import TestCase
 import unittest
 
-from enterprise.libs.guangdong_crawler import GuangdongClawer    #, Crawler, Analyze
+from enterprise.libs.guangdong_crawler import GuangdongCrawler #, Crawler, Analyze
 from enterprise.libs.Guangdong0 import Guangdong0
 from enterprise.libs.Guangdong1 import Guangdong1
 from enterprise.libs.Guangdong2 import Guangdong2
@@ -200,7 +200,7 @@ class TestGuangdong1(TestCase):
 
     def test_run(self):
         ent_str = '440101000017862'
-        guangdong = GuangdongClawer()
+        guangdong = GuangdongCrawler()
         result = guangdong.run(ent_str)
         print result
         self.assertTrue(result)
@@ -249,7 +249,7 @@ class TestGuangdong2(TestCase):
     @unittest.skip("skipping read from file")
     def test_run_with_proxy(self):
         ent_str = '222400000001337'
-        guangdong = GuangdongClawer()
+        guangdong = GuangdongCrawler()
         result = guangdong.run(ent_str)
         print result
         self.assertTrue(result)
@@ -270,7 +270,7 @@ class TestGuangdong(TestCase):
     @pytest.mark.timeout(15)
     def test_guangdong1(self):
         ent_num = "222400000001337"
-        guangdong = GuangdongClawer()
+        guangdong = GuangdongCrawler()
         data = guangdong.run(ent_num)
         print data
         self.assertIsNotNone(data)
@@ -278,7 +278,7 @@ class TestGuangdong(TestCase):
     @pytest.mark.timeout(15)
     def test_guangdong0(self):
         ent_num = "440301112088791"
-        guangdong = GuangdongClawer()
+        guangdong = GuangdongCrawler()
         data = guangdong.run(ent_num)
         print data
         self.assertIsNotNone(data)
@@ -286,7 +286,7 @@ class TestGuangdong(TestCase):
     @pytest.mark.timeout(15)
     def test_guangdong2(self):
         ent_num = "440000000035814"
-        guangdong = GuangdongClawer()
+        guangdong = GuangdongCrawler()
         data = guangdong.run(ent_num)
         print data
         self.assertIsNotNone(data)
@@ -294,14 +294,14 @@ class TestGuangdong(TestCase):
     def test_guangdong(self):
         path = u"/Users/princetechs5/crawler/cr-clawer/sources/qyxy/enterprise_list/guangdong.txt"
         ents = read_ent_from_file(path)
-        guangdong = GuangdongClawer()
+        guangdong = GuangdongCrawler()
         for ent in ents:
             logging.info("%s" % ent[0])
             guangdong.run(ent[2])
 
     def test_run_guangdong0_with_multi_results(self):
         ent_str = '世纪证券有限责任公司'
-        guangdong = GuangdongClawer(self.path)
+        guangdong = GuangdongCrawler(self.path)
         result = guangdong.run(ent_str)
         print result
         self.assertTrue(result)
@@ -318,7 +318,7 @@ class TestGuangdong(TestCase):
 
     def test_run_guangdong0(self):
         ent_str = '440301102739085'
-        guangdong = GuangdongClawer(self.path)
+        guangdong = GuangdongCrawler(self.path)
         result = guangdong.run(ent_str)
         print result
         self.assertTrue(result)
@@ -334,7 +334,7 @@ class TestGuangdong(TestCase):
 
     def test_run_guangdong2(self):
         ent_str = '222400000001337'
-        guangdong = GuangdongClawer(self.path)
+        guangdong = GuangdongCrawler(self.path)
         result = guangdong.run(ent_str)
         print result
         self.assertTrue(result)
@@ -352,8 +352,8 @@ class TestGuangdong(TestCase):
         """
             由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
             python manage.py shell
-            from enterprise.libs.guangdong_crawler import GuangdongClawer
-            shangdong = GuangdongClawer('/tmp/')
+            from enterprise.libs.guangdong_crawler import GuangdongCrawler
+            shangdong = GuangdongCrawler('/tmp/')
             result = shangdong.run('深圳湘粤资产管理有限公司')
         """
         pass
