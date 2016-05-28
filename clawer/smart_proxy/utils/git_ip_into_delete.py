@@ -7,15 +7,9 @@ import logging
 import unittest
 import re
 import urllib
+import os
+import mysql.connector
 import time
-
-DEBUG = True
-if DEBUG:
-    level = logging.DEBUG
-else:
-    level = logging.ERROR
-
-logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
 
 """
@@ -41,7 +35,27 @@ sortby  IP排序	默认最快优先， 传入 speed表示最快优先， time �
  上海使用 protocol='https'
 """
 
-choices = dict([
+#中证配置
+config = {
+  'user': 'plkj',
+  'password': 'Password2016',
+  'host': 'csciwlpc.mysql.rds.aliyuncs.com',
+  'database': 'csciwlpc',
+  'raise_on_warnings': True,
+}
+cnx = mysql.connector.connect(**config)
+
+DEBUG = True
+if DEBUG:
+    level = logging.DEBUG
+else:
+    level = logging.ERROR
+
+logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
+
+
+
+prov_choices = dict([
 ('ANHUI',u'安徽'),
 ('BEIJING',u'北京'),
 ('CHONGQING',u'重庆'),
@@ -74,9 +88,9 @@ choices = dict([
 ('ZHEJIANG',u'浙江'),
 ('XIZANG',u'西藏')])
 
-def test(choices):
-    print type(choices)
-    print choices
+def test(prov_choices):
+    print type(prov_choices)
+    print prov_choices
 
 class BaseProxy(object):
     def __init__(self):
@@ -95,9 +109,8 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=choices, tid=' 559326559297365',num='10',province='',filter= 'off',protocol='http',category='2',delay='3',sortby='time',foreign='none'):
+    def __init__(self, prodict=prov_choices, tid='559326559297365',num='10',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
-        #self.url = 'http://www.xicidaili.com/nn'          #西刺代理
         self.a_list=[]
         self.tid= tid
         self.num = num
@@ -108,9 +121,11 @@ class PaidProxy(BaseProxy):
         self.sortby=sortby
         self.foreign=foreign
 
+
         self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby}
 
         para_url = urllib.urlencode(self.parameter)
+
         if province:
             area= prodict.get(province,'北京')
             print area
@@ -120,7 +135,6 @@ class PaidProxy(BaseProxy):
             self.urlget= self.url+para_url
         print self.urlget
         print '-------urlget-------'
-
 
 
         #parameter_list=[tid,num,operator,area,ports,exclude_ports,filter,protocol,category,delay,sortby]
@@ -135,8 +149,43 @@ class PaidProxy(BaseProxy):
         proxy_list = ip_content
 
         print proxy_list
+        print '----proxy list--------'
         return proxy_list
 
+
+
+class PutIntoMy:
+    def readLines(self,ip_list,province='OTHER'):
+        i=0
+        list=[]
+        for ip in ip_list:
+            timestamp=time.time()
+            tup_time=time.localtime(timestamp)
+            format_time=time.strftime("%Y-%m-%d %H:%M:%S",tup_time)
+            data=(ip,province, '1',format_time,format_time)
+            list.append(data)
+            print list
+            cursor=cnx.cursor()
+            sql = "insert into smart_proxy_proxyip(ip_port,province,is_valid,create_datetime,update_datetime) values(%s,%s,%s,%s,%s)"
+            if i>10:
+                cursor.executemany(sql,list)
+                cnx.commit()
+                print("插入")
+                i=0
+                list=[]
+            i=i+1
+        #if i>0:
+        #    cursor.executemany(sql,list)
+        #    cnx.commit()
+        sql_delete = "delete from smart_proxy_proxyip limit 100"
+        cursor.execute(sql_delete)
+        print "Delete limit 100 succeed."
+        cnx.commit()
+        cnx.close()
+        print("ok")
+    def listFiles(self):
+        d = os.listdir("/root")
+        return d
 
 
 
@@ -144,14 +193,9 @@ if __name__ == '__main__':
     # test(choices)
     #if DEBUG:
         #unittest.main()
+    ###
+    test =PaidProxy(num=100,sortby= 'time',protocol= 'http')
+    ip_list = test.get_ipproxy()
+    read = PutIntoMy()
+    read.readLines(ip_list)
 
-    province_https=['SHANGHAI']
-    province_one=['GUANGDONG','BEIJING','ZHEJIANG','JIANGSU','SHANDONG']
-    province_two=['SICHUAN','FUJIAN','HUBEI','ANHUI','HENAN','HUNAN','HEBEI','TIANJIN','CHONGQING']
-    province_three=['JIANGXI','SHAANXI','SHANXI','HEILONGJIANG','XINJIANG','GUANGXI','JILIN','YUNNAN','NEIMENGGU','GANSU','GUIZHOU','HAINAN','LIAONING','NINGXIA','QINGHAI','XIZANG']
-    province_list=[province_https,province_one,province_two,province_three]
-    for province in province_list:
-        for j in province:
-            test =PaidProxy(tid='559326559297365',num=6,sortby= 'time',protocol= 'http',filter='on')
-            test.get_ipproxy()
-            time.sleep(1.5)

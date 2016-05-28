@@ -11,9 +11,10 @@ from django.contrib.auth.models import User
 from collector.models import Job as JobMongoDB
 from storage.models import Job as JobMySQL
 from collector.models import CrawlerTask, CrawlerDownloadData, CrawlerDownload
-from models import StructureConfig, ExtracterStructureConfig, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo
+from models import StructureConfig, ExtracterStructureConfig, Parser, CrawlerAnalyzedData, Extracter, CrawlerExtracterInfo, ExtractLog
 from django.conf import settings
 import django
+import traceback
 
 from extracters.sql_generator import JsonToSql as SqlGenerator
 
@@ -250,6 +251,7 @@ def parser_func(data):
 class ExtracterGenerator(StructureGenerator):
 
     sqlgenerator = SqlGenerator()    # 用于处理源数据生成sql，并导入关系数据库
+    configure = None
 
     def __init__(self):
         self.queuegenerator = ExtracterQueueGenerator()
@@ -282,10 +284,10 @@ class ExtracterGenerator(StructureGenerator):
             conf = self.get_extracter_conf(data)    # 获取一条与任务相关的导出器配置
             sql_file_name = conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
-
-            # if not os.path.exists(sql_file_name):
-            self.sqlgenerator.test_table(conf, sql_file_name)
-            self.sqlgenerator.test_restore(sql_file_name)
+            if conf != self.configure:  # 如果配置文件发生变化，则重新建表
+                self.configure = conf
+                self.sqlgenerator.test_table(conf, sql_file_name)
+                self.sqlgenerator.test_restore(sql_file_name)
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
@@ -352,17 +354,34 @@ class ExtracterGenerator(StructureGenerator):
         try:
             result = self.extract_fields(conf, data.analyzed_data)    # data.analyzed_data 为一条解析后的JSON源数据
             if result:
-                data.crawler_task.update(status=9)    # status: 9导出成功, 8导出失败
-                # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_SUCCESS
+                data.crawler_task.update(status=CrawlerTask.STATUS_EXTRACT_SUCCESS)    # status: 9导出成功, 8导出失败
                 crawler_extract_info = CrawlerExtracterInfo.objects(extract_task=data.crawler_task).first()
-                crawler_extract_info.update(extracted_status=True, update_date=datetime.datetime.now())    # 更新导出状态信息
+                update_date=datetime.datetime.now()
+                crawler_extract_info.update(extracted_status=True, update_date=update_date)    # 更新导出状态信息
                 logging.info('Extract fields succeed')
+                # 日志写入 mongo
+                ExtractLog(extract_task=data.crawler_task,
+                        job=data.crawler_task.job,
+                        status=CrawlerTask.STATUS_EXTRACT_SUCCESS,
+                        reason='Extract fields succeed', 
+                        add_datetime=update_date).save()
+
             else:
-                data.crawler_task.update(status=8)
-                # data.crawler_task.status = CrawlerTask.STATUS_EXTRACT_FAIL
+                data.crawler_task.update(status=CrawlerTask.STATUS_EXTRACT_FAIL)
                 logging.error('Extract fields failed')
+                ExtractLog(extract_task=data.crawler_task,
+                        job=data.crawler_task.job,
+                        status=CrawlerTask.STATUS_EXTRACT_FAIL,
+                        reason='Extract field failed', 
+                        add_datetime=update_date).save()
         except Exception as e:
             logging.error('Extract fields error %s' % e)
+            data.crawler_task.update(status=CrawlerTask.STATUS_EXTRACT_FAIL)
+            ExtractLog(extract_task=data.crawler_task,
+                    job=data.crawler_task.job,
+                    status=CrawlerTask.STATUS_EXTRACT_FAIL,
+                    reason=traceback.format_exc(), 
+                    add_datetime=update_date).save()
             return False
         return True
 

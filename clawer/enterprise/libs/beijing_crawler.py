@@ -8,7 +8,6 @@ import random
 import urllib
 import threading
 from datetime import datetime, timedelta
-from . import settings
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
 from bs4 import BeautifulSoup
@@ -16,19 +15,12 @@ from crawler import Crawler
 from crawler import Parser
 from crawler import CrawlerUtils
 
-
 from enterprise.libs.proxies import Proxies
-
 
 
 class BeijingCrawler(Crawler):
     """北京工商爬虫
     """
-    #html数据的存储路径
-    html_restore_path = settings.json_restore_path + '/beijing/'
-
-    #验证码图片的存储路径
-    ckcode_image_path = settings.json_restore_path + '/beijing/ckcode.jpg'
     code_cracker = CaptchaRecognition('beijing')
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
@@ -44,101 +36,73 @@ class BeijingCrawler(Crawler):
             'ind_comm_pub_arch_key_persons': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!zyryFrame.dhtml?',
             'ind_comm_pub_arch_branch': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!fzjgFrame.dhtml?',
             'ind_comm_pub_arch_liquidation': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!qsxxFrame.dhtml?',
-            'ind_comm_pub_movable_property_reg': 'http://qyxy.baic.gov.cn/gjjbjTab/gjjTabQueryCreditAction!dcdyFrame.dhtml?',
+            'ind_comm_pub_movable_property_reg':
+            'http://qyxy.baic.gov.cn/gjjbjTab/gjjTabQueryCreditAction!dcdyFrame.dhtml?',
             'ind_comm_pub_equity_ownership_reg': 'http://qyxy.baic.gov.cn/gdczdj/gdczdjAction!gdczdjFrame.dhtml?',
             'ind_comm_pub_administration_sanction': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list.dhtml?',
             'ind_comm_pub_business_exception': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_jyycxx.dhtml?',
-            'ind_comm_pub_serious_violate_law':   'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_yzwfxx.dhtml?',
-            'ind_comm_pub_spot_check':   'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_ccjcxx.dhtml?',
-            'ent_pub_ent_annual_report':   'http://qyxy.baic.gov.cn/qynb/entinfoAction!qyxx.dhtml?',
-            'ent_pub_shareholder_capital_contribution':   'http://qyxy.baic.gov.cn/gdcz/gdczAction!list_index.dhtml?',
-            'ent_pub_equity_change':   'http://qyxy.baic.gov.cn/gdgq/gdgqAction!gdgqzrxxFrame.dhtml?',
-            'ent_pub_administration_license':   'http://qyxy.baic.gov.cn/xzxk/xzxkAction!list_index.dhtml?',
-            'ent_pub_knowledge_property':   'http://qyxy.baic.gov.cn/zscqczdj/zscqczdjAction!list_index.dhtml?',
-            'ent_pub_administration_sanction':   'http://qyxy.baic.gov.cn/gdgq/gdgqAction!qyxzcfFrame.dhtml?',
-            'other_dept_pub_administration_license':   'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzxk.dhtml?',
-            'other_dept_pub_administration_sanction':   'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzcf.dhtml?',
-            'shareholder_detail': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!touzirenInfo.dhtml?'
-            }
+            'ind_comm_pub_serious_violate_law': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_yzwfxx.dhtml?',
+            'ind_comm_pub_spot_check': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_ccjcxx.dhtml?',
+            'ent_pub_ent_annual_report': 'http://qyxy.baic.gov.cn/qynb/entinfoAction!qyxx.dhtml?',
+            'ent_pub_shareholder_capital_contribution': 'http://qyxy.baic.gov.cn/gdcz/gdczAction!list_index.dhtml?',
+            'ent_pub_equity_change': 'http://qyxy.baic.gov.cn/gdgq/gdgqAction!gdgqzrxxFrame.dhtml?',
+            'ent_pub_administration_license': 'http://qyxy.baic.gov.cn/xzxk/xzxkAction!list_index.dhtml?',
+            'ent_pub_knowledge_property': 'http://qyxy.baic.gov.cn/zscqczdj/zscqczdjAction!list_index.dhtml?',
+            'ent_pub_administration_sanction': 'http://qyxy.baic.gov.cn/gdgq/gdgqAction!qyxzcfFrame.dhtml?',
+            'other_dept_pub_administration_license': 'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzxk.dhtml?',
+            'other_dept_pub_administration_sanction': 'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzcf.dhtml?',
+            'shareholder_detail': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!touzirenInfo.dhtml?'}
 
-    def __init__(self, json_restore_path= None):
+    def __init__(self, json_restore_path=None):
         self.json_restore_path = json_restore_path
+        #html数据的存储路径
+        html_restore_path = self.json_restore_path + '/beijing/'
+
+        #验证码图片的存储路径
+        ckcode_image_path = self.json_restore_path + '/beijing/ckcode.jpg'
         self.parser = BeijingParser(self)
         self.credit_ticket = None
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        # 获得代理
-        p = Proxies()
-        # p.filename = "/Users/princetechs5/crawler/nice-clawer/clawer/enterprise/libs/proxies/1457663081"
-        self.proxies = p.get_proxies()
+
         self.timeout = 20
 
-    def run(self, ent_number=0):
+    def run(self, ent_number):
         """爬取的主函数
         """
         self.ent_id = ''
         return Crawler.run(self, ent_number)
 
-        '''
-        self.ent_number = str(ent_number)
-        self.html_restore_path = BeijingCrawler.html_restore_path + self.ent_number + '/'
-
-        if settings.save_html and os.path.exists(self.html_restore_path):
-            CrawlerUtils.make_dir(self.html_restore_path)
-
-        self.json_dict = {}
-
-        self.reqst = requests.Session()
-        self.reqst.headers.update({
-                'Accept': 'text/html, application/xhtml+xml, */*',
-                'Accept-Encoding': 'gzip, deflate',
-                'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
-
-        if not self.crawl_check_page():
-            settings.logger.error('crack check code failed, stop to crawl enterprise %s' % self.ent_number)
-            return
-
-        self.crawl_ind_comm_pub_pages()
-        self.crawl_ent_pub_pages()
-        self.crawl_other_dept_pub_pages()
-
-        #采用多线程，在写入文件时需要注意加锁
-        self.write_file_mutex.acquire()
-        CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.json_dict})
-        self.write_file_mutex.release()
-        '''
     def crawl_page_by_url(self, url):
         resp = None
         try:
-            resp = self.reqst.get( url, timeout= self.timeout, proxies = self.proxies)
-        except requests.exceptions.ConnectionError :
+            resp = self.reqst.get(url, timeout=self.timeout, proxies=self.proxies)
+        except requests.exceptions.ConnectionError:
             self.proxies = Proxies().get_proxies()
-            logging.error("get method self.proxies changed proxies = %s\n"%(self.proxies))
-            return self.crawl_page_by_url( url)
+            logging.error("get method self.proxies changed proxies = %s\n" % (self.proxies))
+            return self.crawl_page_by_url(url)
         except requests.exceptions.Timeout:
             self.timeout += 5
-            logging.error("get method self.timeout plus timeout = %d, proxies= %s\n"%(self.timeout, self.proxies) )
-            return self.crawl_page_by_url( url)
+            logging.error("get method self.timeout plus timeout = %d, proxies= %s\n" % (self.timeout, self.proxies))
+            return self.crawl_page_by_url(url)
         except Exception as e:
-            logging.error("Other exception occured!type e = %s, proxies=%s\n"%(type(e), self.proxies))
+            logging.error("Other exception occured!type e = %s, proxies=%s\n" % (type(e), self.proxies))
         return resp
-
 
     def crawl_page_by_url_post(self, url, data):
         resp = None
         try:
-            resp = self.reqst.post(url, data, timeout=self.timeout, proxies = self.proxies)
-        except requests.exceptions.ConnectionError :
+            resp = self.reqst.post(url, data, timeout=self.timeout, proxies=self.proxies)
+        except requests.exceptions.ConnectionError:
             self.proxies = Proxies().get_proxies()
-            logging.error("post method self.proxies changed. proxies =  %s\n"%(self.proxies))
-            return self.crawl_page_by_url_post(url ,data)
+            logging.error("post method self.proxies changed. proxies =  %s\n" % (self.proxies))
+            return self.crawl_page_by_url_post(url, data)
         except requests.exceptions.Timeout:
             self.timeout += 5
-            logging.error("post method self.timeout plus, timeout= %d, proxies= %s\n"%(self.timeout, self.proxies))
-            return self.crawl_page_by_url_post(url ,data)
+            logging.error("post method self.timeout plus, timeout= %d, proxies= %s\n" % (self.timeout, self.proxies))
+            return self.crawl_page_by_url_post(url, data)
         except Exception as e:
-            logging.error("Other exception occured!type e = %s, proxies=%s \n"%(type(e), self.proxies))
+            logging.error("Other exception occured!type e = %s, proxies=%s \n" % (type(e), self.proxies))
         return resp
 
     def crawl_check_page(self):
@@ -156,18 +120,21 @@ class BeijingCrawler(Crawler):
                 logging.error('failed to get crackcode result, fail count = %d' % (count))
                 continue
 
-            post_data = {'currentTimeMillis': self.time_stamp, 'credit_ticket': self.credit_ticket, 'checkcode': ckcode[1], 'keyword': self.ent_number};
+            post_data = {'currentTimeMillis': self.time_stamp,
+                         'credit_ticket': self.credit_ticket,
+                         'checkcode': ckcode[1],
+                         'keyword': self.ent_number}
             next_url = self.urls['post_checkcode']
             resp = self.crawl_page_by_url_post(next_url, data=post_data)
             if resp.status_code != 200:
                 logging.error('failed to get crackcode image by url %s, fail count = %d' % (next_url, count))
                 continue
 
-            logging.error('crack code = %s, %s, response =  %s' %(ckcode[0], ckcode[1], resp.content))
+            logging.error('crack code = %s, %s, response =  %s' % (ckcode[0], ckcode[1], resp.content))
 
             if resp.content == 'fail':
                 logging.error('crack checkcode failed, response content = failed, total fail count = %d' % count)
-                time.sleep(random.uniform(0.1,2))
+                time.sleep(random.uniform(0.1, 2))
                 continue
 
             next_url = self.urls['open_info_entry']
@@ -181,47 +148,47 @@ class BeijingCrawler(Crawler):
                 return True
             else:
                 logging.error('crack checkcode failed, total fail count = %d' % count)
-            time.sleep(random.uniform(3,5))
+            time.sleep(random.uniform(3, 5))
         return False
 
     def crawl_ind_comm_pub_pages(self):
         """爬取工商公示信息页面
         """
-        for item in ('ind_comm_pub_reg_basic',          # 登记信息-基本信息
-                     'ind_comm_pub_reg_shareholder',   # 股东信息
+        for item in ('ind_comm_pub_reg_basic',    # 登记信息-基本信息
+                     'ind_comm_pub_reg_shareholder',    # 股东信息
                      'ind_comm_pub_reg_modify',
-                     'ind_comm_pub_arch_key_persons',  # 备案信息-主要人员信息
-                     'ind_comm_pub_arch_branch',      # 备案信息-分支机构信息
-                     'ind_comm_pub_arch_liquidation',  # 备案信息-清算信息
-                     'ind_comm_pub_movable_property_reg',  # 动产抵押登记信息
-                     'ind_comm_pub_equity_ownership_reg',  # 股权出置登记信息
-                     'ind_comm_pub_administration_sanction',  # 行政处罚信息
-                     'ind_comm_pub_business_exception',  # 经营异常信息
-                     'ind_comm_pub_serious_violate_law',  # 严重违法信息
-                     'ind_comm_pub_spot_check'        # 抽查检查信息
-            ):
+                     'ind_comm_pub_arch_key_persons',    # 备案信息-主要人员信息
+                     'ind_comm_pub_arch_branch',    # 备案信息-分支机构信息
+                     'ind_comm_pub_arch_liquidation',    # 备案信息-清算信息
+                     'ind_comm_pub_movable_property_reg',    # 动产抵押登记信息
+                     'ind_comm_pub_equity_ownership_reg',    # 股权出置登记信息
+                     'ind_comm_pub_administration_sanction',    # 行政处罚信息
+                     'ind_comm_pub_business_exception',    # 经营异常信息
+                     'ind_comm_pub_serious_violate_law',    # 严重违法信息
+                     'ind_comm_pub_spot_check'    # 抽查检查信息
+                     ):
             self.get_page_json_data(item, 1)
-        time.sleep(random.uniform(0,3))
+        time.sleep(random.uniform(0, 3))
 
     def crawl_ent_pub_pages(self):
         """爬取企业公示信息页面
         """
         for item in ('ent_pub_ent_annual_report',
-                    'ent_pub_shareholder_capital_contribution', #企业投资人出资比例
-                    'ent_pub_equity_change', #股权变更信息
-                    'ent_pub_administration_license',#行政许可信息
-                    'ent_pub_knowledge_property', #知识产权出资登记
-                    'ent_pub_administration_sanction' #行政许可信息
-                    ):
+                     'ent_pub_shareholder_capital_contribution',    #企业投资人出资比例
+                     'ent_pub_equity_change',    #股权变更信息
+                     'ent_pub_administration_license',    #行政许可信息
+                     'ent_pub_knowledge_property',    #知识产权出资登记
+                     'ent_pub_administration_sanction'    #行政许可信息
+                     ):
             self.get_page_json_data(item, 2)
-        time.sleep(random.uniform(0,3))
+        time.sleep(random.uniform(0, 3))
 
     def crawl_other_dept_pub_pages(self):
         """爬取其他部门公示信息页面
         """
-        for item in ('other_dept_pub_administration_license',#行政许可信息
-                    'other_dept_pub_administration_sanction'#行政处罚信息
-        ):
+        for item in ('other_dept_pub_administration_license',    #行政许可信息
+                     'other_dept_pub_administration_sanction'    #行政处罚信息
+                     ):
             self.get_page_json_data(item, 3)
 
     def crawl_judical_assist_pub_pages(self):
@@ -250,9 +217,9 @@ class BeijingCrawler(Crawler):
                     self.json_dict[page_name] += json_data
 
     def get_checkcode_url(self):
-        count  = 0
+        count = 0
         while count < 5:
-            count+=1
+            count += 1
             resp = self.crawl_page_by_url(self.urls['official_site'])
             time.sleep(random.uniform(1, 5))
             if resp.status_code != 200:
@@ -262,20 +229,19 @@ class BeijingCrawler(Crawler):
             soup = BeautifulSoup(response, 'html.parser')
             ckimg_src = soup.find_all('img', id='MzImgExpPwd')[0].get('src')
             ckimg_src = str(ckimg_src)
-            re_checkcode_captcha=re.compile(r'/([\s\S]*)\?currentTimeMillis')
+            re_checkcode_captcha = re.compile(r'/([\s\S]*)\?currentTimeMillis')
             # re_currenttime_millis=re.compile(r'/CheckCodeCaptcha\?currentTimeMillis=([\s\S]*)')
             checkcode_type = re_checkcode_captcha.findall(ckimg_src)[0]
 
             if checkcode_type == 'CheckCodeCaptcha':
                 #parse the pre check page, get useful information
                 self.parse_pre_check_page(response)
-                checkcode_url= self.urls['get_checkcode'] + ckimg_src
+                checkcode_url = self.urls['get_checkcode'] + ckimg_src
                 return checkcode_url
 
             # elif checkcode_type == 'CheckCodeYunSuan':
-            logging.error('can not get CheckCodeCaptcha type of checkcode img, count times = %d \n'%(count))
+            logging.error('can not get CheckCodeCaptcha type of checkcode img, count times = %d \n' % (count))
         return None
-
 
     def parse_post_check_page(self, page):
         """解析提交验证码之后的页面，获取必要的信息
@@ -315,9 +281,10 @@ class BeijingCrawler(Crawler):
         ckimg_src = soup.find_all('img', id='MzImgExpPwd')[0].get('src')
         ckimg_src = str(ckimg_src)
         re_currenttime_millis = re.compile(r'/CheckCodeCaptcha\?currentTimeMillis=([\s\S]*)')
-        self.credit_ticket = soup.find_all('input',id='credit_ticket')[0].get('value')
+        self.credit_ticket = soup.find_all('input', id='credit_ticket')[0].get('value')
         self.time_stamp = re_currenttime_millis.findall(ckimg_src)[0]
         # self.time_stamp = self.generate_time_stamp()
+
     """
     def crawl_page_by_url(self, url):
         resp = self.crawl_page_by_url(url)
@@ -330,6 +297,7 @@ class BeijingCrawler(Crawler):
         #     CrawlerUtils.save_page_to_file(self.html_restore_path + 'detail.html', page)
         return page
     """
+
     def get_all_pages_of_a_section(self, page, type, url=None):
         """获取页面上含有 上一页、下一页跳转链接的区域的所有的数据
         Args:
@@ -347,7 +315,7 @@ class BeijingCrawler(Crawler):
         pages_data = []
         pages_data.append(page)
         r1 = soup.find_all('input', {'type': 'hidden', 'id': 'pagescount'})
-        r2 = soup.find_all('input', {'type': 'hidden', 'id': 'pageSize', 'name':'pageSize'})
+        r2 = soup.find_all('input', {'type': 'hidden', 'id': 'pageSize', 'name': 'pageSize'})
         if r1 and r2:
             page_count = int(r1[0].get('value'))
             page_size = int(r2[0].get('value'))
@@ -364,7 +332,11 @@ class BeijingCrawler(Crawler):
             next_url = url
 
         for p in range(1, page_count):
-            post_data = {'pageNos': str(p+1), 'clear': '', 'pageNo': str(p), 'pageSize': str(page_size), 'ent_id': self.ent_id}
+            post_data = {'pageNos': str(p + 1),
+                         'clear': '',
+                         'pageNo': str(p),
+                         'pageSize': str(page_size),
+                         'ent_id': self.ent_id}
             try:
                 resp = self.crawl_page_by_url_post(next_url, data=post_data)
                 if resp.status_code != 200:
@@ -373,7 +345,7 @@ class BeijingCrawler(Crawler):
                 page = resp.content
                 time.sleep(random.uniform(0.2, 1))
             except Exception as e:
-                logging.error('open new tab page failed, url = %s, page_num = %d' % (next_url, p+1))
+                logging.error('open new tab page failed, url = %s, page_num = %d' % (next_url, p + 1))
                 page = None
                 raise e
             finally:
@@ -386,17 +358,15 @@ class BeijingCrawler(Crawler):
         Args:
             tab: 访问页面时在url后面所用到的数据。1 工商公示信息， 2 企业公示信息， 3 其他部门公示信息
         """
-        url = CrawlerUtils.add_params_to_url(self.urls[type],
-                                            {'entId':self.ent_id,
-                                             'ent_id':self.ent_id,
-                                             'entid':self.ent_id,
-                                            'credit_ticket':self.credit_ticket,
-                                            'entNo':self.ent_number,
-                                            'entName':'',
-                                            'timeStamp':self.generate_time_stamp(),
-                                            'clear':'true',
-                                            'str':tab
-                                            })
+        url = CrawlerUtils.add_params_to_url(self.urls[type], {'entId': self.ent_id,
+                                                               'ent_id': self.ent_id,
+                                                               'entid': self.ent_id,
+                                                               'credit_ticket': self.credit_ticket,
+                                                               'entNo': self.ent_number,
+                                                               'entName': '',
+                                                               'timeStamp': self.generate_time_stamp(),
+                                                               'clear': 'true',
+                                                               'str': tab})
         logging.error('get %s, url:\n%s\n' % (type, url))
         resp = self.crawl_page_by_url(url)
         if resp.status_code != 200:
@@ -417,7 +387,7 @@ class BeijingCrawler(Crawler):
             logging.error('failed to get checkcode img')
             return ckcode
         page = resp.content
-        time.sleep(random.uniform(1,2))
+        time.sleep(random.uniform(1, 2))
         self.write_file_mutex.acquire()
         with open(self.ckcode_image_path, 'wb') as f:
             f.write(page)
@@ -443,6 +413,7 @@ class BeijingCrawler(Crawler):
 class BeijingParser(Parser):
     """北京工商页面的解析类
     """
+
     def __init__(self, crawler):
         self.crawler = crawler
 
@@ -502,10 +473,10 @@ class BeijingParser(Parser):
                         if table_name == 'ent_pub_ent_annual_report':
                             page_data = self.parse_ent_pub_annual_report_page(detail_page, table_name + '_detail')
                             item[u'报送年度'] = CrawlerUtils.get_raw_text_in_bstag(td)
-                            item[u'详情'] = page_data #this may be a detail page data
+                            item[u'详情'] = page_data    #this may be a detail page data
                         else:
                             page_data = self.parse_page(detail_page, table_name + '_detail')
-                            item[columns[col_count][0]] = page_data #this may be a detail page data
+                            item[columns[col_count][0]] = page_data    #this may be a detail page data
                     else:
                         #item[columns[col_count]] = CrawlerUtils.get_raw_text_in_bstag(td)
                         item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
@@ -520,6 +491,7 @@ class BeijingParser(Parser):
     def parse_ent_pub_annual_report_page(self, base_page, page_type):
         """解析企业年报页面，该页面需要单独处理
         """
+
         def get_year_of_annual_report(page):
             soup = BeautifulSoup(page, 'html.parser')
             t = soup.body.find('table')
@@ -543,8 +515,10 @@ class BeijingParser(Parser):
             pass
 
         year = get_year_of_annual_report(base_page)
-        report_items = {'wzFrame': 'website_info', 'gdczFrame': 'shareholder_contribute_info',
-                        'dwdbFrame': 'external_guarantee_info', 'xgFrame': 'modify_record_info'}
+        report_items = {'wzFrame': 'website_info',
+                        'gdczFrame': 'shareholder_contribute_info',
+                        'dwdbFrame': 'external_guarantee_info',
+                        'xgFrame': 'modify_record_info'}
         for item in report_items.items():
             pat = re.compile(r'<iframe +id="%s" +src=\'(/entPub/entPubAction!.+)\'' % item[0])
             m = pat.search(base_page)
@@ -569,7 +543,7 @@ class BeijingParser(Parser):
                         for p in pages:
                             table_data += self.parse_page(p, table_name)
                 except Exception as e:
-                    logging.error('fail to parse page with exception %s'%e)
+                    logging.error('fail to parse page with exception %s' % e)
                     raise e
                 finally:
                     page_data[table_name] = table_data
@@ -598,10 +572,12 @@ class BeijingParser(Parser):
                                 detail_soup = BeautifulSoup(detail_page, 'html.parser')
                                 before_modify_table = detail_soup.body.find_all('table')[1]
                                 table_data = self.parse_table(before_modify_table, 'before_modify', detail_page)
-                                item[columns[col_count][0]] = self.parse_table(before_modify_table, 'before_modify', detail_page)
+                                item[columns[col_count][0]] = self.parse_table(before_modify_table, 'before_modify',
+                                                                               detail_page)
                                 col_count += 1
                                 after_modify_table = detail_soup.body.find_all('table')[2]
-                                item[columns[col_count][0]] = self.parse_table(after_modify_table, 'after_modify', detail_page)
+                                item[columns[col_count][0]] = self.parse_table(after_modify_table, 'after_modify',
+                                                                               detail_page)
                             else:
                                 item[columns[col_count][0]] = CrawlerUtils.get_raw_text_in_bstag(td)
                         else:
@@ -634,13 +610,12 @@ class BeijingParser(Parser):
                 query_key = m1.group(2)
 
                 next_url = CrawlerUtils.add_params_to_url(self.crawler.urls['host'] + addition_url,
-                                                          {query_key:val,
-                                                          'entId':self.crawler.ent_id,
-                                                            'ent_id':self.crawler.ent_id,
-                                                            'entid':self.crawler.ent_id,
-                                                            'credit_ticket':self.crawler.credit_ticket,
-                                                            'entNo':self.crawler.ent_number
-                                            })
+                                                          {query_key: val,
+                                                           'entId': self.crawler.ent_id,
+                                                           'ent_id': self.crawler.ent_id,
+                                                           'entid': self.crawler.ent_id,
+                                                           'credit_ticket': self.crawler.credit_ticket,
+                                                           'entNo': self.crawler.ent_number})
         elif detail_op and pat_show_dialog.search(detail_op):
             #detail link type 2, for example : ind_comm_pub_info --- registration info ---- modify info
             m = pat_show_dialog.search(detail_op)
@@ -651,17 +626,4 @@ class BeijingParser(Parser):
             next_url = self.crawler.urls['host'] + bs4_tag['href']
 
         return next_url
-"""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-    run.config_logging()
-    BeijingCrawler.code_cracker = CaptchaRecognition('beijing')
-    crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-    #enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/beijing.txt')
-    enterprise_list = ['110000005791844'] #'110000005791844', '110000410227029',
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        logging.error('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""
+

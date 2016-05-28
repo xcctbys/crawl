@@ -20,124 +20,6 @@ from gevent import Greenlet
 import gevent.monkey
 
 
-
-class CrawlerUtils(object):
-    """爬虫工具类，封装了一些常用函数
-    """
-    @staticmethod
-    def make_dir(path):
-        try:
-            os.makedirs(path)
-        except OSError as exc: # Python >2.5 (except OSError, exc: for Python <2.5)
-            if exc.errno == errno.EEXIST and os.path.isdir(path):
-                pass
-            else:
-                raise exc
-
-    @staticmethod
-    def set_logging(level):
-        logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
-
-    @staticmethod
-    def set_opener_header(opener, header):
-        tmp_header = []
-        opener.addheaders = []
-        for key, value in header.items():
-            elem = (key, value)
-            tmp_header.append(elem)
-        opener.addheaders = tmp_header
-
-    @staticmethod
-    def add_opener_header(opener, header):
-        for key, value in header.items():
-            elem = (key, value)
-            opener.addheaders.append(elem)
-
-    @staticmethod
-    def make_opener(head = {
-                'Connetion': 'Keep-Alive',
-                'Accept': 'text/html, application/xhtml+xml, */*',
-                'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'}):
-
-        cj = cookielib.CookieJar()
-        pro = urllib2.HTTPCookieProcessor(cj) #Python自动处理cookie
-        opener = urllib2.build_opener(pro)    #用于打开url的opener
-        urllib2.install_opener(opener)
-        CrawlerUtils.set_opener_header(opener, head)
-        return opener
-
-    #在给定的url基础上，添加额外的信息
-    @staticmethod
-    def add_params_to_url(url, args):
-        return url + urllib.urlencode(args)
-
-    @staticmethod
-    def save_page_to_file(path, page):
-        with open(path, 'w') as f:
-            f.write(page)
-
-    @staticmethod
-    def get_enterprise_list(path):
-        result = []
-        with open(path, 'r') as f:
-            for line in f.readlines():
-                sp = line.split(',')
-                if len(sp) >= 3:
-                    result.append(sp[2].strip(' \n\r'))
-        return result
-
-    @staticmethod
-    def display_item(item):
-        if type(item) == list or type(item) == tuple:
-            for i in item:
-                CrawlerUtils.display_item(i)
-        elif type(item) == dict:
-            for k in item:
-                CrawlerUtils.display_item(k)
-                CrawlerUtils.display_item(item[k])
-        elif type(item) in (int, str, float, bool, bs4.element.NavigableString):
-            print item
-        elif type(item) == unicode:
-            print item.encode('utf-8')
-        else:
-            print 'unknown type in CrawlerUtils.display_item, type = %s' % type(item)
-
-    @staticmethod
-    def json_dump_to_file(path, json_dict):
-        write_type = 'wb'
-        if os.path.exists(path):
-            write_type = 'a'
-        with codecs.open(path, write_type, 'utf-8') as f:
-            f.write(json.dumps(json_dict, ensure_ascii=False)+'\n')
-
-    @staticmethod
-    def get_raw_text_in_bstag(tag):
-        text = tag.string
-        if not text:
-            text = tag.get_text()
-        if not text:
-            return ''
-        return text.strip()
-
-    @staticmethod
-    def get_cur_time():
-        return time.strftime("%Y-%m-%d_%H:%M:%S",time.localtime(time.time()))
-
-    @staticmethod
-    def get_cur_date():
-        return time.strftime("%Y-%m-%d",time.localtime(time.time()))
-
-    @staticmethod
-    def get_random_ms():
-        return random.uniform(0.2, 1)
-
-    @staticmethod
-    def get_cur_y_m_d():
-        cur_date = time.strftime("%Y-%m-%d")
-        return cur_date.split('-')
-
-
 class Crawler(object):
     """爬虫的基类
     """
@@ -146,12 +28,13 @@ class Crawler(object):
     def __init__(self):
         self.reqst = requests.Session()
         self.reqst.headers.update({
-                'Connection':"keep-alive",
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Encoding': 'gzip, deflate',
-                'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                'Content-Type' : 'application/x-www-form-urlencoded',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+            'Connection': "keep-alive",
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+        })
         adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
         self.reqst.mount('http://', adapter)
         self.json_dict = {}
@@ -171,7 +54,7 @@ class Crawler(object):
         for ent, url in self.ents.items():
             self.json_dict = {}
             threads = []
-            threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url ))
+            threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url))
             threads.append(gevent.spawn(self.crawl_ent_pub_pages, url))
             threads.append(gevent.spawn(self.crawl_other_dept_pub_pages, url))
             threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url))
@@ -202,6 +85,7 @@ class Parser(object):
     """网页解析的基类
     注意：对记录类型的表列含有子列的情形，暂时只支持处理含有一级子列, 网页中还没有见到过含有二级子列的情形
     """
+
     def __init__(self, crawler):
         self.crawler = crawler
 
@@ -230,9 +114,11 @@ class Parser(object):
         else:
             if len(bs_table.find_all('tr')) <= 1:
                 return None
-            elif bs_table.find_all('tr')[0].find('th') and not bs_table.find_all('tr')[0].find('td') and len(bs_table.find_all('tr')[0].find_all('th')) > 1:
+            elif bs_table.find_all('tr')[0].find('th') and not bs_table.find_all('tr')[0].find('td') and len(
+                    bs_table.find_all('tr')[0].find_all('th')) > 1:
                 tr = bs_table.find_all('tr')[0]
-            elif bs_table.find_all('tr')[1].find('th') and not bs_table.find_all('tr')[1].find('td') and len(bs_table.find_all('tr')[1].find_all('th')) > 1:
+            elif bs_table.find_all('tr')[1].find('th') and not bs_table.find_all('tr')[1].find('td') and len(
+                    bs_table.find_all('tr')[1].find_all('th')) > 1:
                 tr = bs_table.find_all('tr')[1]
         return self.get_record_table_columns_by_tr(tr)
 
@@ -256,8 +142,9 @@ class Parser(object):
             if not self.sub_column_count(th):
                 columns.append((CrawlerUtils.get_raw_text_in_bstag(th), CrawlerUtils.get_raw_text_in_bstag(th)))
             else:
-            #if has sub-sub columns
-                columns.append((CrawlerUtils.get_raw_text_in_bstag(th), self.get_sub_columns(tr_tag.nextSibling.nextSibling, 0, self.sub_column_count(th))))
+                #if has sub-sub columns
+                columns.append((CrawlerUtils.get_raw_text_in_bstag(th), self.get_sub_columns(
+                    tr_tag.nextSibling.nextSibling, 0, self.sub_column_count(th))))
         return columns
 
     def get_table_title(self, table_tag, redundent_title=False):
@@ -283,8 +170,9 @@ class Parser(object):
                 if col_name:
                     if not self.sub_column_count(th):
                         columns.append((col_name, col_name))
-                    else: #has sub_columns
-                        columns.append((col_name, self.get_sub_columns(tr_tag.nextSibling.nextSibling, sub_col_index, self.sub_column_count(th))))
+                    else:    #has sub_columns
+                        columns.append((col_name, self.get_sub_columns(tr_tag.nextSibling.nextSibling, sub_col_index,
+                                                                       self.sub_column_count(th))))
                         sub_col_index += self.sub_column_count(th)
         except Exception as e:
             logging.error('exception occured in get_table_columns, except_type = %s' % type(e))
@@ -308,7 +196,8 @@ class Parser(object):
                 return data
 
             if len(columns) != len(multi_col_tag.find_all('td', recursive=False)):
-                logging.debug('column head size != column data size, columns head = %s, columns data = %s' % (columns, multi_col_tag.contents))
+                logging.debug('column head size != column data size, columns head = %s, columns data = %s' %
+                              (columns, multi_col_tag.contents))
                 return data
 
             for _, col in enumerate(columns):
@@ -337,7 +226,8 @@ class Parser(object):
                 else:
                     for i in range(len(ths)):
                         if CrawlerUtils.get_raw_text_in_bstag(ths[i]):
-                            table_dict[CrawlerUtils.get_raw_text_in_bstag(ths[i])] = CrawlerUtils.get_raw_text_in_bstag(tds[i])
+                            table_dict[CrawlerUtils.get_raw_text_in_bstag(ths[i])] = CrawlerUtils.get_raw_text_in_bstag(
+                                tds[i])
         return table_dict
 
     def parse_list_table_with_sub_list(self, records_tag, table_name, page, columns):
@@ -411,7 +301,7 @@ class Parser(object):
                     if next_url:
                         detail_page = self.crawler.crawl_page_by_url(next_url)
                         page_data = self.parse_page(detail_page, table_name + '_detail')
-                        item[columns[col_count][0]] = page_data #this may be a detail page data
+                        item[columns[col_count][0]] = page_data    #this may be a detail page data
                     else:
                         #item[columns[col_count]] = CrawlerUtils.get_raw_text_in_bstag(td)
                         item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
@@ -450,7 +340,7 @@ class Parser(object):
         if col_span == column_size:
             return self.parse_list_table_without_sub_list(records_tag, table_name, page, columns)
         else:
-        #含有子列的表
+            #含有子列的表
             return self.parse_list_table_with_sub_list(records_tag, table_name, page, columns)
 
     def parse_table(self, bs_table, table_name, page):
@@ -480,7 +370,7 @@ class Parser(object):
         """
         pass
 
-    def wipe_off_newline_and_blank_for_fe(self,data):
+    def wipe_off_newline_and_blank_for_fe(self, data):
         """
         去除字符串首尾中的换行,空格,还有制表符
         """
@@ -491,8 +381,126 @@ class Parser(object):
         去除字符串中所有的换行,空格,制表符
         """
         data = str(data)
-        data = data.replace('\n','')
-        data = data.replace('\t','')
-        data = data.replace(' ','')
+        data = data.replace('\n', '')
+        data = data.replace('\t', '')
+        data = data.replace(' ', '')
         return data.encode(encoding='utf-8')
 
+
+class CrawlerUtils(object):
+    """爬虫工具类，封装了一些常用函数
+    """
+
+    @staticmethod
+    def make_dir(path):
+        try:
+            os.makedirs(path)
+        except OSError as exc:    # Python >2.5 (except OSError, exc: for Python <2.5)
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise exc
+
+    @staticmethod
+    def set_logging(level):
+        logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
+
+    @staticmethod
+    def set_opener_header(opener, header):
+        tmp_header = []
+        opener.addheaders = []
+        for key, value in header.items():
+            elem = (key, value)
+            tmp_header.append(elem)
+        opener.addheaders = tmp_header
+
+    @staticmethod
+    def add_opener_header(opener, header):
+        for key, value in header.items():
+            elem = (key, value)
+            opener.addheaders.append(elem)
+
+    @staticmethod
+    def make_opener(head={
+            'Connetion': 'Keep-Alive',
+            'Accept': 'text/html, application/xhtml+xml, */*',
+            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+    }):
+
+        cj = cookielib.CookieJar()
+        pro = urllib2.HTTPCookieProcessor(cj)    #Python自动处理cookie
+        opener = urllib2.build_opener(pro)    #用于打开url的opener
+        urllib2.install_opener(opener)
+        CrawlerUtils.set_opener_header(opener, head)
+        return opener
+
+    #在给定的url基础上，添加额外的信息
+    @staticmethod
+    def add_params_to_url(url, args):
+        return url + urllib.urlencode(args)
+
+    @staticmethod
+    def save_page_to_file(path, page):
+        with open(path, 'w') as f:
+            f.write(page)
+
+    @staticmethod
+    def get_enterprise_list(path):
+        result = []
+        with open(path, 'r') as f:
+            for line in f.readlines():
+                sp = line.split(',')
+                if len(sp) >= 3:
+                    result.append(sp[2].strip(' \n\r'))
+        return result
+
+    @staticmethod
+    def display_item(item):
+        if type(item) == list or type(item) == tuple:
+            for i in item:
+                CrawlerUtils.display_item(i)
+        elif type(item) == dict:
+            for k in item:
+                CrawlerUtils.display_item(k)
+                CrawlerUtils.display_item(item[k])
+        elif type(item) in (int, str, float, bool, bs4.element.NavigableString):
+            print item
+        elif type(item) == unicode:
+            print item.encode('utf-8')
+        else:
+            print 'unknown type in CrawlerUtils.display_item, type = %s' % type(item)
+
+    @staticmethod
+    def json_dump_to_file(path, json_dict):
+        write_type = 'wb'
+        if os.path.exists(path):
+            write_type = 'a'
+        with codecs.open(path, write_type, 'utf-8') as f:
+            f.write(json.dumps(json_dict, ensure_ascii=False) + '\n')
+
+    @staticmethod
+    def get_raw_text_in_bstag(tag):
+        text = tag.string
+        if not text:
+            text = tag.get_text()
+        if not text:
+            return ''
+        return text.strip()
+
+    @staticmethod
+    def get_cur_time():
+        return time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(time.time()))
+
+    @staticmethod
+    def get_cur_date():
+        return time.strftime("%Y-%m-%d", time.localtime(time.time()))
+
+    @staticmethod
+    def get_random_ms():
+        return random.uniform(0.2, 1)
+
+    @staticmethod
+    def get_cur_y_m_d():
+        cur_date = time.strftime("%Y-%m-%d")
+        return cur_date.split('-')

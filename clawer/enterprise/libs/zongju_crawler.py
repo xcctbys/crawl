@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #encoding=utf-8
 import os
-import requests
 import time
 import re
 import random
@@ -12,7 +11,6 @@ from crawler import Crawler
 from crawler import Parser
 
 from datetime import datetime, timedelta
-from . import settings
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
 from common_func import get_proxy, exe_time
@@ -30,9 +28,9 @@ class ZongjuCrawler(Crawler):
             'official_site': 'http://gsxt.saic.gov.cn/zjgs/',
             'get_checkcode': 'http://gsxt.saic.gov.cn/zjgs/captcha?preset=',
             'post_checkcode': 'http://gsxt.saic.gov.cn/zjgs/security/verify_captcha',
-            'get_info_entry': 'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',  # 获得企业入口
+            'get_info_entry': 'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',    # 获得企业入口
             'open_info_entry': 'http://gsxt.saic.gov.cn/zjgs/notice/view?',
-            # 获得企业信息页面的url，通过指定不同的tab=1-4来选择不同的内容（工商公示，企业公示...）
+    # 获得企业信息页面的url，通过指定不同的tab=1-4来选择不同的内容（工商公示，企业公示...）
             }
 
     def __init__(self, json_restore_path=None):
@@ -46,7 +44,7 @@ class ZongjuCrawler(Crawler):
 
         self.parser = ZongjuParser(self)
         self.proxies = get_proxy('beijing')
-        self.timeout = (30,20)
+        self.timeout = (30, 20)
 
     def run(self, _ent):
         """爬取的主函数
@@ -59,7 +57,6 @@ class ZongjuCrawler(Crawler):
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
         return Crawler.run(self, _ent)
-
 
     def crawl_check_page(self):
         """爬取验证码页面，包括获取验证码url，下载验证码图片，破解验证码并提交
@@ -79,7 +76,7 @@ class ZongjuCrawler(Crawler):
             ckcode = self.crack_checkcode()
             if not ckcode[1]:
                 continue
-            post_data = {'captcha': ckcode[1], 'session.token': self.session_token};
+            post_data = {'captcha': ckcode[1], 'session.token': self.session_token}
             next_url = self.urls['post_checkcode']
             resp = self.reqst.post(next_url, data=post_data, timeout=self.timeout, verify=False)
             if resp.status_code != 200:
@@ -97,7 +94,7 @@ class ZongjuCrawler(Crawler):
                 'captcha': ckcode[1],
                 'session.token': self.session_token,
                 'condition.keyword': self._ent
-             }
+            }
 
             resp = self.reqst.post(next_url, data=post_data, timeout=self.timeout)
 
@@ -108,16 +105,18 @@ class ZongjuCrawler(Crawler):
             if self.parse_post_check_page(resp.content):
                 return True
             logging.error('crack checkcode failed, total fail count = %d' % count)
+            print('crack checkcode failed!count = %d' % (count))
+            time.sleep(random.uniform(1, 3))
 
-            time.sleep(random.uniform(1,3))
         return False
+
     @exe_time
     def crawl_ind_comm_pub_pages(self, *args, **kwargs):
         """爬取工商公示信息页面
         在总局的网站中，工商公示信息在一个页面中返回。页面中包含了多个表格，调用 Parser的 parse_ind_comm_page进行解析
         在 Parser的ind_comm_pub_page 中，访问并设置 crawler中的 json_dict。
         """
-        if not len(args):   return
+        if not len(args): return
         url = args[0]
         m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', url)
         if m:
@@ -128,11 +127,12 @@ class ZongjuCrawler(Crawler):
             logging.error('get ind comm pub info failed!')
             return False
         self.parser.parse_ind_comm_pub_pages(resp.content)
+
     @exe_time
     def crawl_ent_pub_pages(self, *args, **kwargs):
         """爬取企业公示信息页面
         """
-        if not len(args):   return
+        if not len(args): return
         url = args[0]
         m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', url)
         if m:
@@ -143,11 +143,12 @@ class ZongjuCrawler(Crawler):
             logging.error('get ent pub info failed!')
             return False
         self.parser.parse_ent_pub_pages(resp.content)
+
     @exe_time
     def crawl_other_dept_pub_pages(self, *args, **kwargs):
         """爬取其他部门公示信息页面
         """
-        if not len(args):   return
+        if not len(args): return
         url = args[0]
         m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', url)
         if m:
@@ -158,11 +159,12 @@ class ZongjuCrawler(Crawler):
             logging.error('get other dept pub info failed!')
             return False
         self.parser.parse_other_dept_pub_pages(resp.content)
+
     @exe_time
     def crawl_judical_assist_pub_pages(self, *args, **kwargs):
         """爬取司法协助信息页面
         """
-        if not len(args):   return
+        if not len(args): return
         url = args[0]
         m = re.search(r'[/\w\.\?]+=([\w\.=]+)&.+', url)
         if m:
@@ -178,16 +180,16 @@ class ZongjuCrawler(Crawler):
         """解析提交验证码之后的页面，获取必要的信息
         """
         soup = BeautifulSoup(page, 'html5lib')
-        divs = soup.find_all('div', attrs={'class':'list-item'})
+        divs = soup.find_all('div', attrs={'class': 'list-item'})
 
         if divs:
-            Ent={}
+            Ent = {}
             count = 0
             for div in divs:
                 count += 1
-                link = div.find('div', attrs={'class':'link'})
-                profile = div.find('div', attrs={'class':'profile'})
-                url=""
+                link = div.find('div', attrs={'class': 'link'})
+                profile = div.find('div', attrs={'class': 'profile'})
+                url = ""
                 ent = ""
                 if link and link.find('a') and link.find('a').has_attr('href'):
                     url = link.find('a')['href']
@@ -273,6 +275,7 @@ class ZongjuCrawler(Crawler):
 class ZongjuParser(Parser):
     """北京工商页面的解析类
     """
+
     def __init__(self, crawler):
         self.crawler = crawler
 
@@ -281,15 +284,15 @@ class ZongjuParser(Parser):
         """
         soup = BeautifulSoup(page, 'html5lib')
         id_table_map = {
-            'branchTable': 'ind_comm_pub_arch_branch',      # 分支机构信息
-            'punishTable': 'ind_comm_pub_administration_sanction',      # 行政处罚信息
-            'spotcheckTable': 'ind_comm_pub_spot_check',        # 抽查检查信息
-            # 'memberTable': 'ind_comm_pub_arch_key_persons',     # 备案信息-主要人员信息
-            'pledgeTable': 'ind_comm_pub_equity_ownership_reg',     # 股权出质登记信息
-            'mortageTable': 'ind_comm_pub_movable_property_reg',        # 动产抵押登记信息
-            'exceptTable': 'ind_comm_pub_business_exception',       # 经营异常信息
-            'investorTable': 'ind_comm_pub_reg_shareholder',        # 股东信息
-            'alterTable': 'ind_comm_pub_reg_modify',        # 登记信息-变更信息
+            'branchTable': 'ind_comm_pub_arch_branch',    # 分支机构信息
+            'punishTable': 'ind_comm_pub_administration_sanction',    # 行政处罚信息
+            'spotcheckTable': 'ind_comm_pub_spot_check',    # 抽查检查信息
+    # 'memberTable': 'ind_comm_pub_arch_key_persons',     # 备案信息-主要人员信息
+            'pledgeTable': 'ind_comm_pub_equity_ownership_reg',    # 股权出质登记信息
+            'mortageTable': 'ind_comm_pub_movable_property_reg',    # 动产抵押登记信息
+            'exceptTable': 'ind_comm_pub_business_exception',    # 经营异常信息
+            'investorTable': 'ind_comm_pub_reg_shareholder',    # 股东信息
+            'alterTable': 'ind_comm_pub_reg_modify',    # 登记信息-变更信息
         }
         for table_id in id_table_map.keys():
             table = soup.find('table', attrs={'id': table_id})
@@ -297,10 +300,7 @@ class ZongjuParser(Parser):
                 table_name = id_table_map.get(table_id)
                 self.crawler.json_dict[table_name] = self.parse_table(table, table_name, page)
 
-        name_table_map = {
-            u'基本信息': 'ind_comm_pub_reg_basic',
-            u'清算信息': 'ind_comm_pub_arch_liquidation',
-        }
+        name_table_map = {u'基本信息': 'ind_comm_pub_reg_basic', u'清算信息': 'ind_comm_pub_arch_liquidation', }
 
         for table in soup.find_all('table'):
             table_title = self.get_table_title(table)
@@ -368,9 +368,7 @@ class ZongjuParser(Parser):
         """解析司法协助信息
         """
         soup = BeautifulSoup(page, 'html5lib')
-        name_table_map = {
-            u'司法股权冻结信息': 'judical_assist_pub_equity_freeze'
-        }
+        name_table_map = {u'司法股权冻结信息': 'judical_assist_pub_equity_freeze'}
         for table in soup.find_all('table'):
             table_title = self.get_table_title(table)
             table_name = name_table_map.get(table_title, None)
@@ -430,13 +428,13 @@ class ZongjuParser(Parser):
                         if table_name == 'ent_pub_ent_annual_report':
                             page_data = self.parse_ent_pub_annual_report_page(detail_page)
                             item[u'报送年度'] = CrawlerUtils.get_raw_text_in_bstag(td)
-                            item[u'详情'] = page_data  # this may be a detail page data
+                            item[u'详情'] = page_data    # this may be a detail page data
                         elif table_name == 'ind_comm_pub_reg_shareholder':
                             page_data = self.parse_ind_comm_pub_shareholder_detail_page(detail_page)
-                            item[u'详情'] = {u"投资人及出资信息" : page_data}
+                            item[u'详情'] = {u"投资人及出资信息": page_data}
                         else:
                             page_data = self.parse_page(detail_page, table_name + '_detail')
-                            item[columns[col_count][0]] = page_data  # this may be a detail page data
+                            item[columns[col_count][0]] = page_data    # this may be a detail page data
                     else:
                         # item[columns[col_count]] = CrawlerUtils.get_raw_text_in_bstag(td)
                         item[columns[col_count][0]] = self.get_column_data(columns[col_count][1], td)
@@ -495,8 +493,7 @@ class ZongjuParser(Parser):
         """解析企业年报页面，该页面需要单独处理
         """
         soup = BeautifulSoup(page, 'html5lib')
-        table_names = (u'企业基本信息', u'网站或网店信息', u'股东及出资信息', u'对外投资信息',
-                       u'企业资产状况信息', u'对外提供保证担保信息', u'股权变更信息', u'修改记录')
+        table_names = (u'企业基本信息', u'网站或网店信息', u'股东及出资信息', u'对外投资信息', u'企业资产状况信息', u'对外提供保证担保信息', u'股权变更信息', u'修改记录')
         annual_report_dict = {}
         for index, table in enumerate(soup.body.find_all('table')):
             table_name = table_names[index]

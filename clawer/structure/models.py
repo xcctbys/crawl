@@ -32,21 +32,30 @@ class CrawlerAnalyzedData(Document):
     retry_times = IntField(default=0)
     meta = {"db_alias": "structure"}
 
-
+# 导出器id 和配置文件
 class Extracter(Document):
     extracter_id = IntField()
     extracter_config = StringField()
     meta = {"db_alias": "structure"}
 
-
+# 导出器job
 class ExtracterStructureConfig(Document):
     job = ReferenceField(JobMongoDB)
     extracter = ReferenceField(Extracter)
     meta = {"db_alias": "structure"}
 
-
+# 导出器任务结果信息
 class CrawlerExtracterInfo(Document):
     extract_task = ReferenceField(CrawlerTask)
     update_date = DateTimeField(default=datetime.datetime.now())
     extracted_status = BooleanField(default=False)
     meta = {"db_alias": "structure"}
+
+# 导出器日志
+class ExtractLog(Document):
+    job = ReferenceField(JobMongoDB)
+    extract_task = ReferenceField(CrawlerTask)
+    status = IntField(default=0, choices=CrawlerTask.STATUS_CHOICES) # status 8 为失败,９为成功
+    reason = StringField(max_length=10240, required=False)
+    add_datetime = DateTimeField(default=datetime.datetime.now)
+    meta = {"db_alias": "log"}    

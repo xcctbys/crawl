@@ -10,7 +10,7 @@ import urllib
 import os
 import mysql.connector
 import time
-
+import random
 
 """
 
@@ -109,7 +109,7 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=prov_choices, tid='557067352008097',num='10',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=prov_choices, tid='559326559297365',num='10',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         self.a_list=[]
         self.tid= tid
@@ -127,7 +127,9 @@ class PaidProxy(BaseProxy):
         para_url = urllib.urlencode(self.parameter)
 
         if province:
-            area= prodict.get(province,'北京')
+            area= prodict.get(province,'OTHER')
+            if area == 'OTHER':
+                area = random.choice(["北京","上海","广东","山东","浙江"])
             print area
             print '-----area-----'
             self.urlget= self.url+para_url+'&area='+area
@@ -167,18 +169,21 @@ class PutIntoMy:
             print list
             cursor=cnx.cursor()
             sql = "insert into smart_proxy_proxyip(ip_port,province,is_valid,create_datetime,update_datetime) values(%s,%s,%s,%s,%s)"
-            if i>10:
+            if i>5:
                 cursor.executemany(sql,list)
                 cnx.commit()
                 print("插入")
                 i=0
                 list=[]
             i=i+1
-        if i>0:
-            cursor.executemany(sql,list)
-            cnx.commit()
+        #if i>0:
+        #    cursor.executemany(sql,list)
+        #    cnx.commit()
+        sql_delete = "delete from smart_proxy_proxyip limit 100"
+        cursor.execute(sql_delete)
+        print "Delete limit 100 succeed."
+        cnx.commit()
         cnx.close()
-        f.close()
         print("ok")
     def listFiles(self):
         d = os.listdir("/root")
@@ -190,9 +195,22 @@ if __name__ == '__main__':
     # test(choices)
     #if DEBUG:
         #unittest.main()
-    ###
-    test =PaidProxy(num=100,sortby= 'time',protocol= 'http')
-    ip_list = test.get_ipproxy()
+    province_https=['SHANGHAI']
+    province_one=['GUANGDONG','BEIJING','ZHEJIANG','JIANGSU','SHANDONG','OTHER']
+    province_two=['SICHUAN','FUJIAN','HUBEI','ANHUI','HENAN','HUNAN','HEBEI','TIANJIN','CHONGQING']
+    province_three=['JIANGXI','SHAANXI','SHANXI','HEILONGJIANG','XINJIANG','GUANGXI','JILIN','YUNNAN','NEIMENGGU','GANSU','GUIZHOU','HAINAN','LIAONING','NINGXIA','QINGHAI','XIZANG','OTHER']
+    province_list_all=[province_https,province_one,province_two,province_three]
     read = PutIntoMy()
-    read.readLines(ip_list)
+    for province_list in province_list_all:
+        for province_name in province_list:
+            print '======province name=====', province_name
+            prot = 'http'
+            if province_name == 'SHANGHAI':
+                prot='https'
+            test =PaidProxy(tid='559326559297365',num=11,sortby= 'time',protocol= prot,filter='on',province= province_name)
+            ip_list=test.get_ipproxy()
+            #read.readLines(ip_list,province= province_name)
+            read.readLines(ip_list)
+            time.sleep(1.5)
+
 

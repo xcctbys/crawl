@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import time
+import json
+import pymongo
+
+
+def print_province_error():
+    # 最多打印前多少类错误
+    MAX_ERROR_LENGTH = 10
+    succeed_count, failed_count, analyzed_province_report, _, _, _ = analyze_logs()
+    sorted_reasons = sorted(analyzed_province_report, key=lambda k: len(analyzed_province_report[k]), reverse=True)
+    print "总共下载{0}次".format(succeed_count + failed_count)
+    for reason in sorted_reasons[1:MAX_ERROR_LENGTH]:
+        company_names = analyzed_province_report[reason]
+        company_names2 = set(company_names)
+        print "#########################"
+        print "#########################"
+        print "-------------------------"
+        print "{0}, 共计{1}次".format(reason, len(company_names))
+        print "-------------------------"
+        for company_name in company_names2:
+            print company_name.encode("utf8")
+
+
+def print_company_error():
+    # 最多打印前多少类错误
+    MAX_ERROR_LENGTH = 10
+    # 最多打印出现该类错误公司次数
+    MAX_COMPANY_LENGTH = 20
+    succeed_count, failed_count, _, analyzed_company_report, _, _ = analyze_logs()
+    sorted_reasons = sorted(analyzed_company_report, key=lambda k: len(analyzed_company_report[k]), reverse=True)
+    print "总共下载失败{0}次".format(succeed_count + failed_count)
+    for reason in sorted_reasons[1:MAX_ERROR_LENGTH]:
+        company_names = list(set(analyzed_company_report[reason]))
+        print "#########################"
+        print "#########################"
+        print "-------------------------"
+        print "{0}, 共计{1}次".format(reason, len(company_names))
+        print "-------------------------"
+        for company_name in company_names[0:MAX_COMPANY_LENGTH]:
+            print company_name.encode("utf8")
+
+
+def print_avg_time():
+    succeed_count, failed_count, _, _, succeed_spend_time, failed_spend_time = analyze_logs()
+    total = succeed_count + failed_count
+    succeed_avg_time = sum(succeed_spend_time) / succeed_count
+    failed_avg_time = sum(failed_spend_time) / failed_count
+    avg_time = (sum(succeed_spend_time) + sum(failed_spend_time)) / total
+    print "总共下载{0}次，成功{1}次, 失败{2}次，成功率{3:.2f}%！".format(total, succeed_count, failed_count, float(succeed_count)/total*100)
+    print "成功：花费{0}s/条".format(succeed_avg_time)
+    print "失败：花费{0}s/条".format(failed_avg_time)
+    print "全部：花费{0}s/条".format(avg_time)
+
+
+def analyze_logs():
+    analyzed_province_report = {}
+    analyzed_company_report = {}
+    succeed_spend_time = []
+    failed_spend_time = []
+    SUCCEED = 2
+    FAILED = 1
+    log_db = connect(database='log')
+    source_db = connect(database='source')
+    succeed_count = 0
+    failed_count = 0
+    for log in log_db.crawler_download_log.find({}):
+        task_id = log[u'task']
+        status = log[u'status']
+        spend_time = log[u'spend_time']
+        reason = log[u'failed_reason']
+
+        if status == SUCCEED:
+            succeed_spend_time.append(spend_time)
+            succeed_count += 1
+        elif status == FAILED:
+            failed_spend_time.append(spend_time)
+            failed_count += 1
+
+        task_uri = source_db.crawler_task.find_one({"_id": task_id})['uri']
+        province, company_name, _ = analyze_uri(task_uri)
+        if reason in analyzed_province_report:
+            analyzed_province_report[reason].append(province)
+            analyzed_company_report[reason].append(company_name)
+        else:
+            analyzed_province_report[reason] = [province]
+            analyzed_company_report[reason] = [company_name]
+
+    return (succeed_count, failed_count, analyzed_province_report, analyzed_company_report,  succeed_spend_time, failed_spend_time)
+
+
+def connect(database='default'):
+    client = pymongo.MongoClient("mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/{0}?replicaSet=mgset-1160325".format(database))
+    return client[database]
+
+
+def analyze_uri(uri):
+    l = uri.split('/')
+    province = l[3]
+    company_name = l[4]
+    registered_no = l[5]
+    return (province, company_name, registered_no)
+
+
+if __name__ == '__main__':
+    print_avg_time()
+    print_province_error()
+    print_company_error()

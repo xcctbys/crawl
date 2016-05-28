@@ -14,29 +14,24 @@ from html5helper.utils import wrapper_raven
 from enterprise.models import Enterprise
 
 
-
-
-
-
-
 class Command(BaseCommand):
     args = ""
     help = "Remove multiple enterprise"
-    
+
     def __init__(self):
         pass
-    
+
     @wrapper_raven
     def handle(self, *args, **options):
         self._remove_multiple()
-    
+
     def _remove_multiple(self):
         step = 1000
         offset = 0
         multiple = 0
-        
+
         while True:
-            enterprises = Enterprise.objects.all()[offset:offset+step]
+            enterprises = Enterprise.objects.all()[offset:offset + step]
             if len(enterprises) <= 0:
                 break
             offset += step
@@ -45,8 +40,5 @@ class Command(BaseCommand):
                 if qs.count() > 0:
                     qs.delete()
                     multiple += 1
-                    
+
         print "Remove multiple %d" % multiple
-                    
-        
-        
