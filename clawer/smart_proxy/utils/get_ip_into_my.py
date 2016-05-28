@@ -128,7 +128,7 @@ class PaidProxy(BaseProxy):
 
         if province:
             area= prodict.get(province,'OTHER')
-            if area = 'OTHER'
+            if area == 'OTHER':
                 area = random.choice(["北京","上海","广东","山东","浙江"])
             print area
             print '-----area-----'
@@ -169,7 +169,7 @@ class PutIntoMy:
             print list
             cursor=cnx.cursor()
             sql = "insert into smart_proxy_proxyip(ip_port,province,is_valid,create_datetime,update_datetime) values(%s,%s,%s,%s,%s)"
-            if i>10:
+            if i>5:
                 cursor.executemany(sql,list)
                 cnx.commit()
                 print("插入")
@@ -199,16 +199,18 @@ if __name__ == '__main__':
     province_one=['GUANGDONG','BEIJING','ZHEJIANG','JIANGSU','SHANDONG','OTHER']
     province_two=['SICHUAN','FUJIAN','HUBEI','ANHUI','HENAN','HUNAN','HEBEI','TIANJIN','CHONGQING']
     province_three=['JIANGXI','SHAANXI','SHANXI','HEILONGJIANG','XINJIANG','GUANGXI','JILIN','YUNNAN','NEIMENGGU','GANSU','GUIZHOU','HAINAN','LIAONING','NINGXIA','QINGHAI','XIZANG','OTHER']
-    province_list=[province_https,province_one,province_two,province_three]
+    province_list_all=[province_https,province_one,province_two,province_three]
+    read = PutIntoMy()
     for province_list in province_list_all:
         for province_name in province_list:
             print '======province name=====', province_name
-            protocol = 'http'
-            if province_name = 'SHANGHAI':
-                protocol='https'
-            test =PaidProxy(tid='559326559297365',num=6,sortby= 'time',protocol= protocol,filter='on',province= province_name)
+            prot = 'http'
+            if province_name == 'SHANGHAI':
+                prot='https'
+            test =PaidProxy(tid='559326559297365',num=11,sortby= 'time',protocol= prot,filter='on',province= province_name)
             ip_list=test.get_ipproxy()
-            read.readLines(ip_list,province= province_name)
+            #read.readLines(ip_list,province= province_name)
+            read.readLines(ip_list)
             time.sleep(1.5)
 
 
