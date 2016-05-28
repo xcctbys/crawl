@@ -32,7 +32,7 @@ headers = { 'Connetion': 'Keep-Alive',
 
 HOSTS =["www.szcredit.com.cn", "gsxt.gzaic.gov.cn", "gsxt.gdgs.gov.cn/aiccips"]
 
-class GuangdongClawer(object):
+class GuangdongCrawler(object):
 
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
@@ -214,10 +214,10 @@ class GuangdongClawer(object):
                         # gsxt.gzaic.gov.cn
                         elif i==1:
                             logging.error(u"This %s enterprise is type 1"%(self.ent_num))
-                            # guangdong = Guangdong1(self.requests)
+                            guangdong = Guangdong1(self.requests)
                             print url
-                            # data =guangdong.run_asyn(url)
-                            # sub_json_list.append({ent: data})
+                            data =guangdong.run_asyn(url)
+                            sub_json_list.append({ent: data})
                         # gsxt.gdgs.gov.cn/aiccips
                         elif i==2:
                             logging.error(u"This %s enterprise is type 2"%(self.ent_num))

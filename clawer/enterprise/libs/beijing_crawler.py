@@ -8,7 +8,6 @@ import random
 import urllib
 import threading
 from datetime import datetime, timedelta
-from . import settings
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
 from bs4 import BeautifulSoup
@@ -24,11 +23,6 @@ from enterprise.libs.proxies import Proxies
 class BeijingCrawler(Crawler):
     """北京工商爬虫
     """
-    #html数据的存储路径
-    html_restore_path = settings.json_restore_path + '/beijing/'
-
-    #验证码图片的存储路径
-    ckcode_image_path = settings.json_restore_path + '/beijing/ckcode.jpg'
     code_cracker = CaptchaRecognition('beijing')
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
@@ -63,51 +57,24 @@ class BeijingCrawler(Crawler):
 
     def __init__(self, json_restore_path= None):
         self.json_restore_path = json_restore_path
+        #html数据的存储路径
+        html_restore_path = self.json_restore_path + '/beijing/'
+
+        #验证码图片的存储路径
+        ckcode_image_path = self.json_restore_path + '/beijing/ckcode.jpg'
         self.parser = BeijingParser(self)
         self.credit_ticket = None
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
-        # 获得代理
-        p = Proxies()
-        # p.filename = "/Users/princetechs5/crawler/nice-clawer/clawer/enterprise/libs/proxies/1457663081"
-        self.proxies = p.get_proxies()
+
         self.timeout = 20
 
-    def run(self, ent_number=0):
+    def run(self, ent_number):
         """爬取的主函数
         """
-        self.ent_id = ''
+
         return Crawler.run(self, ent_number)
 
-        '''
-        self.ent_number = str(ent_number)
-        self.html_restore_path = BeijingCrawler.html_restore_path + self.ent_number + '/'
-
-        if settings.save_html and os.path.exists(self.html_restore_path):
-            CrawlerUtils.make_dir(self.html_restore_path)
-
-        self.json_dict = {}
-
-        self.reqst = requests.Session()
-        self.reqst.headers.update({
-                'Accept': 'text/html, application/xhtml+xml, */*',
-                'Accept-Encoding': 'gzip, deflate',
-                'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
-
-        if not self.crawl_check_page():
-            settings.logger.error('crack check code failed, stop to crawl enterprise %s' % self.ent_number)
-            return
-
-        self.crawl_ind_comm_pub_pages()
-        self.crawl_ent_pub_pages()
-        self.crawl_other_dept_pub_pages()
-
-        #采用多线程，在写入文件时需要注意加锁
-        self.write_file_mutex.acquire()
-        CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.json_dict})
-        self.write_file_mutex.release()
-        '''
     def crawl_page_by_url(self, url):
         resp = None
         try:
@@ -651,17 +618,4 @@ class BeijingParser(Parser):
             next_url = self.crawler.urls['host'] + bs4_tag['href']
 
         return next_url
-"""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-    run.config_logging()
-    BeijingCrawler.code_cracker = CaptchaRecognition('beijing')
-    crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-    #enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/beijing.txt')
-    enterprise_list = ['110000005791844'] #'110000005791844', '110000410227029',
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        logging.error('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""
+
