@@ -26,10 +26,10 @@ class CaptchaRecognition(object):
 
     '''
 
-    image_start = 30  # start postion of first number
-    image_width = 30  # width of each number
-    image_height = 47  # end postion from top
-    image_top = 3  # start postion of top
+    image_start = 30    # start postion of first number
+    image_width = 30    # width of each number
+    image_height = 47    # end postion from top
+    image_top = 3    # start postion of top
     image_gap = 0
     width = 0
     height = 0
@@ -72,35 +72,30 @@ class CaptchaRecognition(object):
         '''
         parent = os.path.dirname(__file__)
 
-
         captcha_type = captcha_type.lower()
-        if captcha_type not in ["jiangsu", "beijing", "zongju", "liaoning", "guangdong", "hubei", "tianjin",
-                                "qinghai", "shanxi", "henan", "guangxi", "xizang", "heilongjiang", "anhui", "shaanxi",
-                               "chongqing", "sichuan", "hunan", "gansu", "xinjiang", "guizhou", "shandong",
-                                "neimenggu", "zhejiang", "heibei", "jilin", "yunnan", "fujian", "hebei", "shanghai","jiangxi", "ningxia"]:
+        if captcha_type not in ["jiangsu", "beijing", "zongju", "liaoning", "guangdong", "hubei", "tianjin", "qinghai",
+                                "shanxi", "henan", "guangxi", "xizang", "heilongjiang", "anhui", "shaanxi", "chongqing",
+                                "sichuan", "hunan", "gansu", "xinjiang", "guizhou", "shandong", "neimenggu", "zhejiang",
+                                "heibei", "jilin", "yunnan", "fujian", "hebei", "shanghai", "jiangxi", "ningxia"]:
             raise Exception("unknown province %s" % captcha_type)
         elif captcha_type in ["jiangsu", "beijing", "liaoning"]:
-            self.label_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-                               "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
-                               "a", "s", "d", "f", "g", "h", "j", "k", "l", "z",
-                               "x", "c", "v", "b", "n", "m",
-                               "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P",
-                               "A", "S", "D", "F", "G", "H", "J", "K", "L",
-                               "Z", "X", "C", "V", "B", "N", "M"]
+            self.label_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "q", "w", "e", "r", "t", "y", "u", "i",
+                               "o", "p", "a", "s", "d", "f", "g", "h", "j", "k", "l", "z", "x", "c", "v", "b", "n", "m",
+                               "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "A", "S", "D", "F", "G", "H", "J", "K",
+                               "L", "Z", "X", "C", "V", "B", "N", "M"]
             self.to_denoise = True
             self.masker = 255
         elif captcha_type in ["guangdong", "hubei", "shanghai", "zongju", "tianjin", "qinghai", "shanxi", "henan",
-                              "guangxi", "xizang",
-                              "heilongjiang", "anhui", "shaanxi", "chongqing", "sichuan", "hunan", "gansu",
-                              "xinjiang", "guizhou", "shandong", "hebei", "neimenggu", "zhejiang", "jilin", "yunnan",
-                              "fujian","jiangxi", "ningxia"]:
+                              "guangxi", "xizang", "heilongjiang", "anhui", "shaanxi", "chongqing", "sichuan", "hunan",
+                              "gansu", "xinjiang", "guizhou", "shandong", "hebei", "neimenggu", "zhejiang", "jilin",
+                              "yunnan", "fujian", "jiangxi", "ningxia"]:
             self.to_denoise = True
             self.masker = 255
             self.to_calculate = True
             self.label_list = [u"零", u"壹", u"贰", u"叁", u"肆", u"伍", u"陆", u"柒", u"捌", u"玖", u"拾", u"加", u"减", u"乘", u"除",
                                u"等", u"于", u"以", u"上", u"去", u"?", u"0", u"1", u"2", u"3", u"4", u"5", u"6", u"7", u"8",
-                               u"9", u"的", u"一", u"二", u"三", u"四", u"五", u"六", u"七", u"八", u"九", u"十", u"〇", u"是",
-                               u"=", u"*", u"+"]
+                               u"9", u"的", u"一", u"二", u"三", u"四", u"五", u"六", u"七", u"八", u"九", u"十", u"〇", u"是", u"=",
+                               u"*", u"+"]
         if captcha_type == "jiangsu":
             self.image_label_count = 6
             self.image_start = 0
@@ -476,7 +471,11 @@ class CaptchaRecognition(object):
                 print u"数据集已完成:", round(float(i) / len(image_label_pair), 4) * 100, "%", u"所用时间:", end_time - start_time
                 start_time = datetime.datetime.now()
         print u"数据集已生成 共用时", datetime.datetime.now() - start, u"开始建模"
-        rbm = BernoulliRBM(random_state=0, verbose=True, learning_rate=0.02, n_iter=400, n_components=650,
+        rbm = BernoulliRBM(random_state=0,
+                           verbose=True,
+                           learning_rate=0.02,
+                           n_iter=400,
+                           n_components=650,
                            batch_size=12)
         svm = SVC(kernel="linear", tol=5e-14, class_weight="balanced")
         classifier = Pipeline(steps=[("rbm", rbm), ("svm", svm)])
@@ -485,7 +484,17 @@ class CaptchaRecognition(object):
         return True
 
     def __convert_to_number__(self, number):
-        digits = {u"零": 0, u"〇": 0, u"壹": 1, u"贰": 2, u"叁": 3, u"肆": 4, u"伍": 5, u"陆": 6, u"柒": 7, u"捌": 8, u"玖": 9,
+        digits = {u"零": 0,
+                  u"〇": 0,
+                  u"壹": 1,
+                  u"贰": 2,
+                  u"叁": 3,
+                  u"肆": 4,
+                  u"伍": 5,
+                  u"陆": 6,
+                  u"柒": 7,
+                  u"捌": 8,
+                  u"玖": 9,
                   u"拾": 10}
         number_in_digit = ""
         for n in number:

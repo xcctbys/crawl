@@ -13,13 +13,15 @@ from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 from Guangdong2 import Crawler, Analyze
-from common_func import get_proxy,json_dump_to_file
+from common_func import get_proxy, json_dump_to_file
 
-
-headers = { 'Connetion': 'Keep-Alive',
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"}
+headers = {
+    'Connetion': 'Keep-Alive',
+    'Accept': 'text/html, application/xhtml+xml, */*',
+    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+    "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
+}
 
 
 class NeimengguCrawler(object):
@@ -30,10 +32,11 @@ class NeimengguCrawler(object):
         'page_search': 'http://www.nmgs.gov.cn:7001/aiccips/index',
         'page_captcha': 'http://www.nmgs.gov.cn:7001/aiccips/verify.html',
         'page_showinfo': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/showInfo.html',
-        'checkcode':'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/checkCode.html',
+        'checkcode': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/checkCode.html',
     }
     write_file_mutex = threading.Lock()
-    def __init__(self, json_restore_path= None):
+
+    def __init__(self, json_restore_path=None):
         self.html_showInfo = None
         self.Captcha = None
         self.CR = CaptchaRecognition("guangdong")
@@ -63,7 +66,7 @@ class NeimengguCrawler(object):
         return r.text
     #获得搜索结果展示页面
     def get_page_showInfo(self, url, datas):
-        r = self.request_by_method('POST', url, data = datas, timeout= self.timeout)
+        r = self.request_by_method('POST', url, data=datas, timeout=self.timeout)
         if not r:
             logging.error(u"Something wrong when posting the url:%s , status_code=%d", url, r.status_code)
             return False
@@ -76,13 +79,13 @@ class NeimengguCrawler(object):
             return
         Ent = {}
         soup = BeautifulSoup(self.html_showInfo, "html5lib")
-        divs = soup.find_all("div", {"class":"list"})
+        divs = soup.find_all("div", {"class": "list"})
         if divs:
             count = 0
             for div in divs:
                 count += 1
                 link = div.find('li')
-                url =""
+                url = ""
                 ent = ""
                 if link and link.find('a').has_attr('href'):
                     url = link.find('a')['href']
@@ -100,25 +103,27 @@ class NeimengguCrawler(object):
         self.ents = Ent
 
     # 破解验证码页面
-    def crawl_page_captcha(self, url_page_search ,url_captcha, url_CheckCode,url_showInfo,  textfield= '440301102739085'):
+    def crawl_page_captcha(self,
+                           url_page_search,
+                           url_captcha,
+                           url_CheckCode,
+                           url_showInfo,
+                           textfield='440301102739085'):
         html = self.crawl_page_search(url_page_search)
         count = 0
         while count < 20:
-            count+= 1
-            r = self.request_by_method('GET', url_captcha, timeout= self.timeout)
+            count += 1
+            r = self.request_by_method('GET', url_captcha, timeout=self.timeout)
             if not r:
                 logging.error(u"Something wrong when getting the Captcha url:%s .", url_captcha)
                 continue
             if self.save_captcha(r.content):
                 result = self.crack_captcha()
                 #print result
-                datas= {
-                        'textfield': textfield,
-                        'code': result,
-                }
-                response = self.request_by_method('POST', url_CheckCode, data = datas, timeout= self.timeout)
+                datas = {'textfield': textfield, 'code': result, }
+                response = self.request_by_method('POST', url_CheckCode, data=datas, timeout=self.timeout)
                 if not response:
-                    logging.error(u"crack ID: %s Captcha failed, the %d time(s)"%(self.ent_number ,count))
+                    logging.error(u"crack ID: %s Captcha failed, the %d time(s)" % (self.ent_number, count))
                     continue
                 response = response.json()
                 # print  response
@@ -128,9 +133,9 @@ class NeimengguCrawler(object):
                     self.get_page_showInfo(url_showInfo, datas_showInfo)
                     break
                 else:
-                    logging.error(u"crack ID: %s Captcha failed, the %d time(s)"%(self.ent_number ,count))
+                    logging.error(u"crack ID: %s Captcha failed, the %d time(s)" % (self.ent_number, count))
                     if count > 15:
-                        logging.error(u"ID: %s, crack Captcha failed after the %d times of trial" %( textfield,count))
+                        logging.error(u"ID: %s, crack Captcha failed after the %d times of trial" % (textfield, count))
                         break
             time.sleep(random.uniform(1, 4))
         return
@@ -160,23 +165,24 @@ class NeimengguCrawler(object):
         self.write_file_mutex.release()
         return True
 
-    def request_by_method(self,method, url, *args, **kwargs):
+    def request_by_method(self, method, url, *args, **kwargs):
         r = None
         try:
             r = self.requests.request(method, url, *args, **kwargs)
         except requests.Timeout as err:
-            logging.error(u'Getting url: %s timeout. %s .'%(url, err.message))
+            logging.error(u'Getting url: %s timeout. %s .' % (url, err.message))
             return False
         except Exception as err:
-            logging.error(u'Getting url: %s exception:%s . %s .'%(url, type(err), err.message))
+            logging.error(u'Getting url: %s exception:%s . %s .' % (url, type(err), err.message))
             return False
         if r.status_code != 200:
             logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
             return False
         return r
-    def crawl_page_main(self ):
 
-        sub_json_list= []
+    def crawl_page_main(self):
+
+        sub_json_list = []
         if not self.ents:
             logging.error(u"Get no search result\n")
         try:
@@ -186,14 +192,14 @@ class NeimengguCrawler(object):
 
                 m = re.match('http', url)
                 if m is None:
-                    url = self.urls['host']+ url[3:]
-                logging.error(u"main url:%s\n"% url)
-                neimenggu = Neimenggu(req=self.requests, ent_number = self.ent_number)
+                    url = self.urls['host'] + url[3:]
+                logging.error(u"main url:%s\n" % url)
+                neimenggu = Neimenggu(req=self.requests, ent_number=self.ent_number)
                 data = neimenggu.run_asyn(url)
                 sub_json_list.append({ent: data})
 
         except Exception as e:
-            logging.error(u"An error ocurred when getting the main page, error: %s"% type(e))
+            logging.error(u"An error ocurred when getting the main page, error: %s" % type(e))
             raise e
         finally:
             return sub_json_list
@@ -201,13 +207,14 @@ class NeimengguCrawler(object):
     def run(self, ent_number):
         print self.__class__.__name__
         logging.error('crawl %s .', self.__class__.__name__)
-        if not os.path.exists( self.dir_restore_path ):
+        if not os.path.exists(self.dir_restore_path):
             os.makedirs(self.dir_restore_path)
 
         self.ent_number = str(ent_number)
 
-        logging.error('crawl ID: %s\n'% self.ent_number)
-        self.crawl_page_captcha(self.urls['page_search'], self.urls['page_captcha'], self.urls['checkcode'], self.urls['page_showinfo'], self.ent_number)
+        logging.error('crawl ID: %s\n' % self.ent_number)
+        self.crawl_page_captcha(self.urls['page_search'], self.urls['page_captcha'], self.urls['checkcode'],
+                                self.urls['page_showinfo'], self.ent_number)
         self.analyze_showInfo()
         if not self.ents:
             return json.dumps([{self.ent_number: None}])
@@ -218,10 +225,9 @@ class NeimengguCrawler(object):
 
 
 class Neimenggu(object):
-    urls = {
-        'host': 'http://www.nmgs.gov.cn:7001',
-    }
-    def __init__(self, req= None, ent_number= None):
+    urls = {'host': 'http://www.nmgs.gov.cn:7001', }
+
+    def __init__(self, req=None, ent_number=None):
         self.analysis = Analyze()
         self.crawler = Crawler(req)
         self.crawler.analysis = self.analysis

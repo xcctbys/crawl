@@ -13,73 +13,64 @@ class Configs(object):
     DEFAULT_ENTER_ID = 0
     DEFAULT_VERSION = 1
 
-    PROVINCES = (
-        "anhui",
-        "beijing",
-        "chongqing",
-        "fujian",
-        "gansu",
-        "guangdong",
-        "guangxi",
-        "guizhou",
-        "hebei",
-        "heilongjiang",
-        "hehan",
-        "hubei",
-        "hunan",
-        "jiangsu",
-        "jilin",
-        "liaoning",
-        "neimenggu",
-        "qinghai",
-        "shaanxi",
-        "shandong",
-        "shanghai",
-        "shanxi",
-        "sichuan",
-        "tianjin",
-        "xinjiang",
-        "yunnan",
-        "zhejiang",
-        "zongju",
-    )
+    PROVINCES = ("anhui",
+                 "beijing",
+                 "chongqing",
+                 "fujian",
+                 "gansu",
+                 "guangdong",
+                 "guangxi",
+                 "guizhou",
+                 "hebei",
+                 "heilongjiang",
+                 "hehan",
+                 "hubei",
+                 "hunan",
+                 "jiangsu",
+                 "jilin",
+                 "liaoning",
+                 "neimenggu",
+                 "qinghai",
+                 "shaanxi",
+                 "shandong",
+                 "shanghai",
+                 "shanxi",
+                 "sichuan",
+                 "tianjin",
+                 "xinjiang",
+                 "yunnan",
+                 "zhejiang",
+                 "zongju", )
 
-    keys = (
-        "ind_comm_pub_reg_basic",
-        "ind_comm_pub_reg_shareholder",
-        "ind_comm_pub_reg_modify",
-        "ind_comm_pub_arch_key_persons",
-        "ind_comm_pub_arch_branch",
-        "ind_comm_pub_arch_liquidation",
-        "ind_comm_pub_movable_property_reg",
-        "ind_comm_pub_equity_ownership_reg",
-        "ind_comm_pub_administration_sanction",
-        "ind_comm_pub_business_exception",
-        "ind_comm_pub_serious_violate_law",
-        "ind_comm_pub_spot_check",
-        "ent_pub_ent_annual_report",
-        "ent_pub_shareholder_capital_contribution",
-        "ent_pub_equity_change",
-        "ent_pub_administration_license",
-        "ent_pub_knowledge_property",
-        "ent_pub_administration_sanction",
-        "ent_pub_shareholder_modify",
-        "other_dept_pub_administration_license",
-        "other_dept_pub_administration_sanction",
-        "judical_assist_pub_equity_freeze",
-        "judical_assist_pub_shareholder_modify",
-    )
+    keys = ("ind_comm_pub_reg_basic",
+            "ind_comm_pub_reg_shareholder",
+            "ind_comm_pub_reg_modify",
+            "ind_comm_pub_arch_key_persons",
+            "ind_comm_pub_arch_branch",
+            "ind_comm_pub_arch_liquidation",
+            "ind_comm_pub_movable_property_reg",
+            "ind_comm_pub_equity_ownership_reg",
+            "ind_comm_pub_administration_sanction",
+            "ind_comm_pub_business_exception",
+            "ind_comm_pub_serious_violate_law",
+            "ind_comm_pub_spot_check",
+            "ent_pub_ent_annual_report",
+            "ent_pub_shareholder_capital_contribution",
+            "ent_pub_equity_change",
+            "ent_pub_administration_license",
+            "ent_pub_knowledge_property",
+            "ent_pub_administration_sanction",
+            "ent_pub_shareholder_modify",
+            "other_dept_pub_administration_license",
+            "other_dept_pub_administration_sanction",
+            "judical_assist_pub_equity_freeze",
+            "judical_assist_pub_shareholder_modify", )
 
-    special_parse_keys = (
-        "ent_pub_ent_annual_report",
-        "ind_comm_pub_reg_shareholder",
-        "ent_pub_administration_license",
-    )
+    special_parse_keys = ("ent_pub_ent_annual_report",
+                          "ind_comm_pub_reg_shareholder",
+                          "ent_pub_administration_license", )
 
-    special_tables = (
-        "basic",
-        "industry_commerce_clear",
-    )
+    special_tables = ("basic", "industry_commerce_clear", )
 
     keys_to_tables = {}
     keys_to_tables["ind_comm_pub_reg_shareholder"] = "industry_commerce_shareholders"
@@ -113,60 +104,56 @@ class Configs(object):
     keys_to_tables[u"企业基本信息"] = "year_report_basic"
     keys_to_tables[u"信息更正声明"] = "year_report_correct"
 
-    type_date = (
-        "check_date",
-        "subscription_date",
-        "paid_date",
-        "modify_date",
-        "sharechange_register_date",
-        "penalty_publicit_date",
-        "penalty_decision_date",
-        "list_on_date",
-        "list_out_date",
-        "sharechange_publicity_date",
-        "share_change_date",
-        "license_end_date",
-        "license_begin_date",
-        "mortgage_register_date",
-        "decision_date",
-        "time_start",
-        "time_end",
-        "publicity_time",
-        "license_publicity_time",
-        "publicity_date",
-        "paid_time",
-        "subscription_time",
-        "license_register_time",
-        "license_change_time",
-    )
+    type_date = ("check_date",
+                 "subscription_date",
+                 "paid_date",
+                 "modify_date",
+                 "sharechange_register_date",
+                 "penalty_publicit_date",
+                 "penalty_decision_date",
+                 "list_on_date",
+                 "list_out_date",
+                 "sharechange_publicity_date",
+                 "share_change_date",
+                 "license_end_date",
+                 "license_begin_date",
+                 "mortgage_register_date",
+                 "decision_date",
+                 "time_start",
+                 "time_end",
+                 "publicity_time",
+                 "license_publicity_time",
+                 "publicity_date",
+                 "paid_time",
+                 "subscription_time",
+                 "license_register_time",
+                 "license_change_time", )
 
-    type_float = (
-        "register_capital",
-        "guarantee_debt_amount",
-        "amount",
-        "subscription_amount",
-        "paid_amount",
-        "subscription_money_amount",
-        "paid_money_amount",
-        "share_pledge_num",
-        "share_ratio_before",
-        "share_ratio_after",
-        "share_num",
-        "notice_num",
-        "report_year",
-        "asset_all",
-        "owner_asset",
-        "business_income",
-        "profit",
-        "main_business_income",
-        "net_income",
-        "tax",
-        "debts",
-        "staff_number",
-        "main_creditor_right_amount",
-        "shares_before",
-        "shares_after",
-    )
+    type_float = ("register_capital",
+                  "guarantee_debt_amount",
+                  "amount",
+                  "subscription_amount",
+                  "paid_amount",
+                  "subscription_money_amount",
+                  "paid_money_amount",
+                  "share_pledge_num",
+                  "share_ratio_before",
+                  "share_ratio_after",
+                  "share_num",
+                  "notice_num",
+                  "report_year",
+                  "asset_all",
+                  "owner_asset",
+                  "business_income",
+                  "profit",
+                  "main_business_income",
+                  "net_income",
+                  "tax",
+                  "debts",
+                  "staff_number",
+                  "main_creditor_right_amount",
+                  "shares_before",
+                  "shares_after", )
 
     mappings = {}
 
@@ -212,11 +199,7 @@ class Configs(object):
         u"变更前内容": "modify_before",
     }
 
-    mappings["ind_comm_pub_arch_key_persons"] = {
-        u"序号": "bas_id",
-        u"姓名": "name",
-        u"职务": "position",
-    }
+    mappings["ind_comm_pub_arch_key_persons"] = {u"序号": "bas_id", u"姓名": "name", u"职务": "position", }
 
     mappings["ind_comm_pub_arch_branch"] = {
         u"序号": "bas_id",
@@ -225,10 +208,7 @@ class Configs(object):
         u"名称": "branch_name",
     }
 
-    mappings["ind_comm_pub_arch_liquidation"] = {
-        u"清算组成员": "persons",
-        u"清算组负责人": "person_in_change",
-    }
+    mappings["ind_comm_pub_arch_liquidation"] = {u"清算组成员": "persons", u"清算组负责人": "person_in_change", }
 
     mappings["ind_comm_pub_movable_property_reg"] = {
         u"状态": "status",
@@ -481,8 +461,7 @@ class Configs(object):
         u"发布日期": "publicity_date",
     }
 
-    mappings["ent_pub_shareholder_modify"] = {
-    }
+    mappings["ent_pub_shareholder_modify"] = {}
 
 
 class Parse(object):
@@ -549,8 +528,7 @@ class Parse(object):
 
     def write_log(self, register_num):
         logger = logging.getLogger(__name__)
-        title = (u"❌  === 省份: %s === 公司ID: %s 解析错误: ❌ "
-                 % (self.prinvince, register_num.encode('utf-8')))
+        title = (u"❌  === 省份: %s === 公司ID: %s 解析错误: ❌ " % (self.prinvince, register_num.encode('utf-8')))
         error = traceback.format_exc()
         logger.error(title + error)
 
@@ -850,13 +828,7 @@ class Parse(object):
 
 
 def trans_time(s):
-    time_format = [
-        '%Y年%m月%d日',
-        '%Y-%m-%d',
-        '%Y.%m.%d',
-        '%Y-%m-%d %l:%M:%S',
-        '%Y-%m-%d %H:%M:%S'
-    ]
+    time_format = ['%Y年%m月%d日', '%Y-%m-%d', '%Y.%m.%d', '%Y-%m-%d %l:%M:%S', '%Y-%m-%d %H:%M:%S']
 
     for time_in in time_format:
         try:

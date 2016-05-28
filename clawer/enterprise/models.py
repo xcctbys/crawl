@@ -38,42 +38,40 @@ class Province(object):
      YUNNAN,
      ZHEJIANG,
      ZONGJU,
-     XIZANG,) = range(1, 33)
+     XIZANG, ) = range(1, 33)
 
-    choices = (
-        (ANHUI, u"安徽"),
-        (BEIJING, u"北京"),
-        (CHONGQING, u"重庆"),
-        (FUJIAN, u"福建"),
-        (GANSU, u"甘肃"),
-        (GUANGDONG, u"广东"),
-        (GUANGXI, u"广西"),
-        (GUIZHOU, u"贵州"),
-        (HAINAN, u"海南"),
-        (HEBEI, u"河北"),
-        (HEILONGJIANG, u"黑龙江"),
-        (HENAN, u"河南"),
-        (HUBEI, u"湖北"),
-        (HUNAN, u"湖南"),
-        (JIANGSU, u"江苏"),
-        (JIANGXI, u"江西"),
-        (JILIN, u"吉林"),
-        (LIAONING, u"辽宁"),
-        (NEIMENGGU, u"内蒙古"),
-        (NINGXIA, u"宁夏"),
-        (QINGHAI, u"青海"),
-        (SHAANXI, u"陕西"),
-        (SHANDONG, u"山东"),
-        (SHANGHAI, u"上海"),
-        (SHANXI, u"山西"),
-        (SICHUAN, u"四川"),
-        (TIANJIN, u"天津"),
-        (XINJIANG, u"新疆"),
-        (YUNNAN, u"云南"),
-        (ZHEJIANG, u'浙江'),
-        (ZONGJU, u"总局"),
-        (XIZANG, u"西藏"),
-    )
+    choices = ((ANHUI, u"安徽"),
+               (BEIJING, u"北京"),
+               (CHONGQING, u"重庆"),
+               (FUJIAN, u"福建"),
+               (GANSU, u"甘肃"),
+               (GUANGDONG, u"广东"),
+               (GUANGXI, u"广西"),
+               (GUIZHOU, u"贵州"),
+               (HAINAN, u"海南"),
+               (HEBEI, u"河北"),
+               (HEILONGJIANG, u"黑龙江"),
+               (HENAN, u"河南"),
+               (HUBEI, u"湖北"),
+               (HUNAN, u"湖南"),
+               (JIANGSU, u"江苏"),
+               (JIANGXI, u"江西"),
+               (JILIN, u"吉林"),
+               (LIAONING, u"辽宁"),
+               (NEIMENGGU, u"内蒙古"),
+               (NINGXIA, u"宁夏"),
+               (QINGHAI, u"青海"),
+               (SHAANXI, u"陕西"),
+               (SHANDONG, u"山东"),
+               (SHANGHAI, u"上海"),
+               (SHANXI, u"山西"),
+               (SICHUAN, u"四川"),
+               (TIANJIN, u"天津"),
+               (XINJIANG, u"新疆"),
+               (YUNNAN, u"云南"),
+               (ZHEJIANG, u'浙江'),
+               (ZONGJU, u"总局"),
+               (XIZANG, u"西藏"), )
 
     @classmethod
     def to_name(cls, province):
@@ -96,7 +94,7 @@ class Enterprise(models.Model):
     name = models.CharField(max_length=128)
     province = models.IntegerField(choices=Province.choices)
     register_no = models.CharField(max_length=128)
-    slice =  models.IntegerField(default=0)
+    slice = models.IntegerField(default=0)
     add_datetime = models.DateTimeField(auto_now_add=True)
 
     def as_json(self):
@@ -187,8 +185,7 @@ class Operation(object):
         data = self.data
         clear = Configs.special_tables[1]
 
-        model.objects.filter(enter_id=enter_id,
-                             invalidation=False).update(invalidation=True)
+        model.objects.filter(enter_id=enter_id, invalidation=False).update(invalidation=True)
 
         if data.get(name) is not None:
             for row in data[name]:
@@ -224,48 +221,46 @@ class Operation(object):
             del query
 
     def get_structured_models(self):
-        models = (
-            Basic,
-            IndustryCommerceAdminiPenalty,
-            IndustryCommerceBranch,
-            IndustryCommerceChange,
-            IndustryCommerceCheck,
-            IndustryCommerceClear,
-            IndustryCommerceDetailGuarantee,
-            IndustryCommerceException,
-            IndustryCommerceIllegal,
-            IndustryCommerceMainperson,
-            IndustryCommerceMortgage,
-            IndustryCommerceMortgageChange,
-            IndustryCommerceMortgageGuarantee,
-            IndustryCommerceMortgageGuaranty,
-            IndustryCommerceRevoke,
-            IndustryCommerceShareholders,
-            IndustryCommerceSharepledge,
-            IndustryMortgageDetailMortgagee,
-            EnterAdministrativeLicense,
-            EnterAdministrativePenalty,
-            EnterAnnualReport,
-            EnterIntellectualPropertyPledge,
-            EnterModification,
-            EnterSharechange,
-            EnterShareholder,
-            JudicialShareFreeze,
-            JudicialShareholderChange,
-            OtherAdministrativeChange,
-            OtherAdministrativeLicense,
-            OtherAdministrativePenalty,
-            OtherProductionSecurity,
-            YearReportAssets,
-            YearReportBasic,
-            YearReportCorrect,
-            YearReportInvestment,
-            YearReportModification,
-            YearReportOnline,
-            YearReportSharechange,
-            YearReportShareholder,
-            YearReportWarrandice,
-        )
+        models = (Basic,
+                  IndustryCommerceAdminiPenalty,
+                  IndustryCommerceBranch,
+                  IndustryCommerceChange,
+                  IndustryCommerceCheck,
+                  IndustryCommerceClear,
+                  IndustryCommerceDetailGuarantee,
+                  IndustryCommerceException,
+                  IndustryCommerceIllegal,
+                  IndustryCommerceMainperson,
+                  IndustryCommerceMortgage,
+                  IndustryCommerceMortgageChange,
+                  IndustryCommerceMortgageGuarantee,
+                  IndustryCommerceMortgageGuaranty,
+                  IndustryCommerceRevoke,
+                  IndustryCommerceShareholders,
+                  IndustryCommerceSharepledge,
+                  IndustryMortgageDetailMortgagee,
+                  EnterAdministrativeLicense,
+                  EnterAdministrativePenalty,
+                  EnterAnnualReport,
+                  EnterIntellectualPropertyPledge,
+                  EnterModification,
+                  EnterSharechange,
+                  EnterShareholder,
+                  JudicialShareFreeze,
+                  JudicialShareholderChange,
+                  OtherAdministrativeChange,
+                  OtherAdministrativeLicense,
+                  OtherAdministrativePenalty,
+                  OtherProductionSecurity,
+                  YearReportAssets,
+                  YearReportBasic,
+                  YearReportCorrect,
+                  YearReportInvestment,
+                  YearReportModification,
+                  YearReportOnline,
+                  YearReportSharechange,
+                  YearReportShareholder,
+                  YearReportWarrandice, )
 
         return models
 
