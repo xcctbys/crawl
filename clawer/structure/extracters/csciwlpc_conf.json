@@ -1157,11 +1157,6 @@
         "option": ""
       },
       {
-        "dest_field": "check_date",
-        "datatype": "CHAR(20)",
-        "option": ""
-      },
-      {
         "dest_field": "check_result",
         "datatype": "CHAR(100)",
         "option": ""
@@ -1284,11 +1279,6 @@
       },
       {
         "dest_field": "license_end_date",
-        "datatype": "CHAR(20)",
-        "option": ""
-      },
-      {
-        "dest_field": "license_publicity_time",
         "datatype": "CHAR(20)",
         "option": ""
       },
