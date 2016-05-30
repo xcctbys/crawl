@@ -234,12 +234,16 @@ if __name__ == '__main__':
             read.readLines(ip_list,province= province_name)
             #read.readLines(ip_list)
             time.sleep(1.1)
-    #cursor=cnx.cursor()
-    #sql_delete = "delete from smart_proxy_proxyip where province!= 'OTHER' limit 100"
-    #cursor.execute(sql_delete)
-    #print "Delete limit 100 succeed."
-    #cnx.commit()
-    #cnx.close()
+    cursor=cnx.cursor()
+    sql_delete = "delete from smart_proxy_proxyip where province!= 'OTHER' limit %(nums)s "
+    print '---sql_delete----'
+    #sql_content = "insert into table(key1,key2,key3) values (%s,%s,%s)"%(value1,value2,value3)
+    data_limit={'nums':num_old}
+
+    cursor.execute(sql_delete,data_limit)
+    print "Delete limit num_limit succeed."
+    cnx.commit()
+    cnx.close()
     t2=time.time()
     timedur  =t2-t1
     print timedur

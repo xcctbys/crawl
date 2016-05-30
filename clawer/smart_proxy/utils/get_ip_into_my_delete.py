@@ -177,8 +177,18 @@ class PutIntoMy:
         #if i>0:
         #    cursor.executemany(sql,list)
         #    cnx.commit()
-        sql_delete = "delete from smart_proxy_proxyip limit 100"
-        cursor.execute(sql_delete)
+        cursor=cnx.cursor()
+        sql_count="select count(*) from smart_proxy_proxyip where province='OTHER'"
+        cursor.execute(sql_count)
+        fetch_list=cursor.fetchall()
+        fetch_tuple=fetch_list[0]
+        num_other_all=fetch_tuple[0]-100
+        print num_other_all
+        print '----other nums----'
+        sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER'  limit %(nums_other)s"
+        data_limit_other ={'nums_other':num_other_all}
+        cursor=cnx.cursor()
+        cursor.execute(sql_delete,data_limit_other)
         print "Delete limit 100 succeed."
         cnx.commit()
         cnx.close()
@@ -198,4 +208,42 @@ if __name__ == '__main__':
     ip_list = test.get_ipproxy()
     read = PutIntoMy()
     read.readLines(ip_list)
+"""   
+    cursor=cnx.cursor()¬
+    sql_count="select count(*) from smart_proxy_proxyip where province!='OTHER'"¬
+    count=cursor.execute(sql_count)¬
+    print count¬
+    print '--count-----'¬
+    fetch_list = cursor.fetchall()¬
+    print fetch_list¬
+    print '------fetchall----'¬
+    fetch_tuple=fetch_list[0]¬
+    num_old=fetch_tuple[0]¬
+    print num_old¬
+    print '----num_old---'¬
+¬
+    print '------------'¬
+    print "fetch all succeed."
 
+
+
+
+
+
+
+
+
+
+    cursor=cnx.cursor()
+    sql_delete = "delete from smart_proxy_proxyip where province!= 'OTHER' limit %(nums)s "
+    print '---sql_delete----'
+    #sql_content = "insert into table(key1,key2,key3) values (%s,%s,%s)"%(value1,value2,value3)
+    data_limit={'nums':num_old}
+    cursor.execute(sql_delete,data_limit)
+    print "Delete limit num_limit succeed."
+    cnx.commit()
+    cnx.close()
+    t2=time.time()
+    timedur  =t2-t1
+    print timedur
+"""
