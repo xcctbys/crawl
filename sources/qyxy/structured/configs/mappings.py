@@ -44,11 +44,7 @@ mappings["ind_comm_pub_reg_modify"] = {
     u"变更前内容": "modify_before",
 }
 
-mappings["ind_comm_pub_arch_key_persons"] = {
-    u"序号": "bas_id",
-    u"姓名": "name",
-    u"职务": "position",
-}
+mappings["ind_comm_pub_arch_key_persons"] = {u"序号": "bas_id", u"姓名": "name", u"职务": "position", }
 
 mappings["ind_comm_pub_arch_branch"] = {
     u"序号": "bas_id",
@@ -57,10 +53,7 @@ mappings["ind_comm_pub_arch_branch"] = {
     u"名称": "branch_name",
 }
 
-mappings["ind_comm_pub_arch_liquidation"] = {
-    u"清算组成员": "persons",
-    u"清算组负责人": "person_in_change",
-}
+mappings["ind_comm_pub_arch_liquidation"] = {u"清算组成员": "persons", u"清算组负责人": "person_in_change", }
 
 mappings["ind_comm_pub_movable_property_reg"] = {
     u"状态": "status",
@@ -159,11 +152,11 @@ mappings["ent_pub_administration_license"] = {
     u"许可机关": "license_authority",
     u"有效期自": "license_begien_date",
     u"公示时间": "license_publicity_time",
-    u"填报时间":"license_register_time",
-    u"变更事项":"license_change_item",
-    u"变更时间":"license_change_time",
-    u"变更前内容":"license_content_before",
-    u"变更后内容":"license_content_after",
+    u"填报时间": "license_register_time",
+    u"变更事项": "license_change_item",
+    u"变更时间": "license_change_time",
+    u"变更前内容": "license_content_before",
+    u"变更后内容": "license_content_after",
 }
 
 mappings["ent_pub_knowledge_property"] = {
@@ -313,5 +306,4 @@ mappings["ent_pub_ent_annual_report"] = {
     u"发布日期": "publicity_date",
 }
 
-mappings["ent_pub_shareholder_modify"] = {
-}
+mappings["ent_pub_shareholder_modify"] = {}

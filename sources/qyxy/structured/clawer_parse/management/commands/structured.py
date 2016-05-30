@@ -17,8 +17,6 @@ from clawer_parse.globalval import GlobalVal
 
 
 class Command(BaseCommand):
-
-
     def handle(self, *args, **options):
         begin = time.time()
         base_url = settings.JSONS_URL
@@ -30,7 +28,7 @@ class Command(BaseCommand):
         globalval.set_count_zero()
 
         config_logging()
-        
+
         if is_first_run():
             if update_by == "hour":
                 first_update_by_hour(is_multiprocess, base_url, suffix)
@@ -50,17 +48,18 @@ class Command(BaseCommand):
 
         end = time.time()
         secs = round(end - begin)
-        cost_time = "✅  Done! Cost " + str(secs) + "s ✅ " 
-        parse_information = " Done_num:" + str(count_parsed) +" All_num:" + str(count_all) + " Update_num:" + str(count_update)
+        cost_time = "✅  Done! Cost " + str(secs) + "s ✅ "
+        parse_information = " Done_num:" + str(count_parsed) + " All_num:" + str(count_all) + " Update_num:" + str(
+            count_update)
         settings.logger.info(cost_time + parse_information)
 
 
 def first_update_by_hour(is_multiprocess, base_url, suffix):
-   # base_url = settings.JSONS_URL
-   # suffix = ".json.gz"
+    # base_url = settings.JSONS_URL
+    # suffix = ".json.gz"
 
     if not is_multiprocess:
-        diff = date.today() - date(2016,2,28)
+        diff = date.today() - date(2016, 2, 28)
         for dec_day in reversed(range(1, diff.days)):
             d = date.today() - timedelta(dec_day)
             d_str = d.strftime("%Y/%m/%d")
@@ -68,7 +67,7 @@ def first_update_by_hour(is_multiprocess, base_url, suffix):
             for hour in range(0, 25):
                 hour_str = "%02d" % hour
                 url = base_url + "/" + d_str + "/" + hour_str + suffix
-                print url 
+                print url
                 json_data = requests_json(url)
                 parse(json_data)
 
@@ -90,9 +89,9 @@ def first_update_by_hour(is_multiprocess, base_url, suffix):
 
 
 def first_update_by_day(is_multiprocess, base_url, suffix):
-   # base_url = settings.JSONS_URL
+    # base_url = settings.JSONS_URL
     provinces = Configs.PROVINCES
-   # suffix = ".json.gz"
+    # suffix = ".json.gz"
 
     if not is_multiprocess:
         diff = date.today - date(2016, 2, 23)
@@ -147,9 +146,9 @@ def update_by_hour(is_multiprocess, base_url, suffix):
 
 
 def update_by_day(is_multiprocess, base_url, suffix):
-   # base_url = settings.JSONS_URL
+    # base_url = settings.JSONS_URL
     provinces = Configs.PROVINCES
-   # suffix = ".json.gz"
+    # suffix = ".json.gz"
     yesterday = date.today() - timedelta(1)
     yesterday_str = yesterday.strftime("%Y/%m/%d")
 

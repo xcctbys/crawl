@@ -55,8 +55,7 @@ class Parse(object):
         content = u"❌  === 省份: %s === 公司ID: %s 解析错误: ❌ \n" % (self.prinvince, register_num.encode('utf-8'))
         content += traceback.format_exc()
         to_admins = [x[1] for x in settings.ADMINS]
-        mail.send_text(settings.EMAIL_HOST_USER, to_admins,
-                       title, content)
+        mail.send_text(settings.EMAIL_HOST_USER, to_admins, title, content)
 
     def write_log(self, register_num):
         logger = settings.logger
@@ -86,7 +85,7 @@ class Parse(object):
                     if max(company[key].values()) == "":
                         logger.info(register_num + " The basic of the company is empty")
                         self.is_parse = False
-        
+
         if self.company_result and self.is_parse:
             if self.company_result.get('credit_code') is None:
                 self.company_result['credit_code'] = register_num

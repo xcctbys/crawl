@@ -2,7 +2,6 @@
 from settings import *
 import logging
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -29,13 +28,10 @@ EMAIL_PORT = 465
 EMAIL_HOST_USER = 'robot@princetechs.com'
 EMAIL_HOST_PASSWORD = 'Robot0023'
 
-ADMINS = (
-    ('admin', 'haijunt@princetechs.com'),
-    ('admin', 'yijiaw@princetechs.com'),
-    ('admin', 'ziyangw@princetechs.com'),
-    ('admin', 'liliw@princetechs.com'),
-)
-
+ADMINS = (('admin', 'haijunt@princetechs.com'),
+          ('admin', 'yijiaw@princetechs.com'),
+          ('admin', 'ziyangw@princetechs.com'),
+          ('admin', 'liliw@princetechs.com'), )
 
 RAVEN_CONFIG = {
     'dsn': 'http://917b2f66b96f46b785f8a1e635712e45:556a6614fe28410dbf074552bd566750@sentry.princetechs.com//2',

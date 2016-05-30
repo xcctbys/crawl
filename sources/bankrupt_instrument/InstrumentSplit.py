@@ -42,8 +42,8 @@ class InstrumentSplit(object):
             else:
                 b = x_b[i]
             product_sum += a * b
-            sum_a += a ** 2
-            sum_b += b ** 2
+            sum_a += a**2
+            sum_b += b**2
         consine = product_sum / (sqrt(sum_a) * sqrt(sum_b))
         return consine
 
@@ -114,7 +114,6 @@ class InstrumentSplit(object):
             i += 1
             if len(sim_content) != 0 and i >= sim_content[0]:
                 break
-
 
         content_split = []
         if len(sim_content) == 0:

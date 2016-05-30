@@ -171,7 +171,7 @@ class CrackCheckcode(object):
             count += 1
             resp = self.crawler.crawl_page_by_url(self.info.urls['official_site'])
             time.sleep(random.uniform(1, 5))
-            if resp.status_code != 200:
+            if not resp or resp.status_code != 200:
                 logging.error('failed to get crackcode url')
                 continue
             response = resp.content
@@ -851,32 +851,29 @@ class BeijingCrawler(object):
         end_time = time.time()
         print '------------------------------------crack_spent_time:%s--------------------' % (end_time - start_time)
         self.info.result_json_list = []
-        for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all(
-                'div',
-                attrs={'class': "list",
-                       'style': "min-height: 400px;"})[0].find_all('ul')[0:3]:
-            # print item_page
-            # print self.info.ent_number
-            self.info.result_json = {}
-            self.crack.parser.parse_post_check_page(item_page)
-            start_time = time.time()
-            industrial = IndustrialPubliction(self.info, self.crawler, self.parser)
-            industrial.run()
-            enterprise = EnterprisePubliction(self.info, self.crawler, self.parser)
-            enterprise.run()
-            other = OtherDepartmentsPubliction(self.info, self.crawler, self.parser)
-            other.run()
-            judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
-            judical.run()
-            end_time = time.time()
-            print '---------------------------------------------spent_time---%s----------------------------' % (
-                end_time - start_time)
-            # print self.info.result_json
-            self.info.result_json_list.append({self.info.ent_number: self.info.result_json})
-
-        # for item in self.info.result_json_list:
-        # 	self.json_dump_to_file('beijing.json',  item )
-
+        try:
+            for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all(
+                    'div',
+                    attrs={'class': "list",
+                           'style': "min-height: 400px;"})[0].find_all('ul')[0:3]:
+                self.info.result_json = {}
+                self.crack.parser.parse_post_check_page(item_page)
+                start_time = time.time()
+                industrial = IndustrialPubliction(self.info, self.crawler, self.parser)
+                industrial.run()
+                enterprise = EnterprisePubliction(self.info, self.crawler, self.parser)
+                enterprise.run()
+                other = OtherDepartmentsPubliction(self.info, self.crawler, self.parser)
+                other.run()
+                judical = JudicialAssistancePubliction(self.info, self.crawler, self.parser)
+                judical.run()
+                end_time = time.time()
+                print '---------------------------------------------spent_time---%s----------------------------' % (
+                    end_time - start_time)
+                # print self.info.result_json
+                self.info.result_json_list.append({self.info.ent_number: self.info.result_json})
+        except:
+            pass
         return json.dumps(self.info.result_json_list)
 
 

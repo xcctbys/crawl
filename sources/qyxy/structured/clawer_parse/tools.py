@@ -10,12 +10,12 @@ import datetime
 
 
 def trans_time(s):
-    time_format = ['%Y年%m月%d日','%Y-%m-%d','%Y.%m.%d','%Y-%m-%d %l:%M:%S','%Y-%m-%d %H:%M:%S']
+    time_format = ['%Y年%m月%d日', '%Y-%m-%d', '%Y.%m.%d', '%Y-%m-%d %l:%M:%S', '%Y-%m-%d %H:%M:%S']
     for time_in in time_format:
         try:
             a = time.strptime(s, time_in)
             time1 = datetime.datetime(*a[:6])
-            return time1 
+            return time1
         except:
             pass
     return None

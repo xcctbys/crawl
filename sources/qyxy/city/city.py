@@ -30,12 +30,13 @@ class Spider(object):
         self.output_path = "enterprise.csv"
         self.unknown_keyword_path = "unknown.csv"
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36',
+            'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36',
         }
         self.keywords = []
         self.output_keywords = []
         self.unknown_keywords = []
-        self.result = []  # {'name':'', 'no':'', 'where':''}
+        self.result = []    # {'name':'', 'no':'', 'where':''}
         self.timeout = 90
 
     def transform(self):
@@ -55,8 +56,8 @@ class Spider(object):
             self._to_csv()
 
     def _to_csv(self):
-        dataset = [(x["name"].encode("utf-8"), x['no'], x["where"].encode("utf-8"), x["fund"].encode("utf-8")) for x in
-                   self.result]
+        dataset = [(x["name"].encode("utf-8"), x['no'], x["where"].encode("utf-8"), x["fund"].encode("utf-8"))
+                   for x in self.result]
         df = pd.DataFrame(data=dataset, columns=["name", "no", "where", "fund"])
         df.to_csv(self.output_path, mode="a", index=False, header=False)
 
@@ -92,7 +93,7 @@ class Spider(object):
             logging.warn("request %s, return code %d", url, r.status_code)
             return
 
-        data = {"name": "", "no": "", "where": "", "fund": "", "legal_person": "", "birthday": "",}
+        data = {"name": "", "no": "", "where": "", "fund": "", "legal_person": "", "birthday": "", }
 
         soup = BeautifulSoup(r.text, "html5lib")
         div = soup.find("div", {"class": "table-text"})
@@ -151,8 +152,7 @@ class No2City(object):
         company_noes = open(self.in_path, "r", )
         company_noes_reader = csv.reader(company_noes, delimiter=' ', quotechar='|')
         result = open(self.out_path, "w")
-        result_writer = csv.writer(result, delimiter=' ',
-                                   quotechar=',', quoting=csv.QUOTE_MINIMAL)
+        result_writer = csv.writer(result, delimiter=' ', quotechar=',', quoting=csv.QUOTE_MINIMAL)
         result_writer.writerow(['公司名', '城市', '地址'])
         for row in company_noes_reader:
             rows = str(row[0]).split(',')
@@ -192,8 +192,7 @@ class TestSpider(unittest.TestCase):
         no2City.transform()
         test_out = open('test_out.csv')
         line = test_out.readline()
-        self.assertGreater(len(line),10)
-
+        self.assertGreater(len(line), 10)
 
 # if __name__ == "__main__":
 #     no2City = No2City('test.csv', 'test_out.csv')

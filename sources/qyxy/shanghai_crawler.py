@@ -13,6 +13,8 @@ else:
 from crawler import CrawlerUtils
 from zongju_crawler import ZongjuCrawler
 from zongju_crawler import ZongjuParser
+
+
 class ShanghaiCrawler(ZongjuCrawler):
     """上海爬虫
     """
@@ -31,8 +33,7 @@ class ShanghaiCrawler(ZongjuCrawler):
             'post_checkcode': 'https://www.sgs.gov.cn/notice/security/verify_captcha',
             'get_info_entry': 'https://www.sgs.gov.cn/notice/search/ent_info_list',
             'open_info_entry': 'https://www.sgs.gov.cn/notice/notice/view?',
-            'open_detail_info_entry': ''
-            }
+            'open_detail_info_entry': ''}
 
     def __init__(self, json_restore_path):
         ZongjuCrawler.__init__(self, json_restore_path)
@@ -56,6 +57,6 @@ if __name__ == '__main__':
     # enterprise_list = ['310000000007622']
     for ent_number in enterprise_list:
         ent_number = ent_number.rstrip('\n')
-        settings.logger.info('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
+        settings.logger.info('###################   Start to crawl enterprise with id %s   ###################\n' %
+                             ent_number)
         crawler.run(ent_number=ent_number)
-

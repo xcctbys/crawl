@@ -27,8 +27,8 @@ class No2Name(object):
             city_no = str(rows[1])[0:2]
             city_name = self._transform_no2name(city_no)
             if city_name is not None:
-                self.out_companes.append(
-                        [city_no, str(rows[0]).strip(" "), str(city_name).strip(' '), str(rows[1]).strip(' ')])
+                self.out_companes.append([city_no, str(rows[0]).strip(" "), str(city_name).strip(' '), str(rows[
+                    1]).strip(' ')])
 
     def _transform_no2name(self, city_no):
         if city_no in self.cities:
@@ -60,11 +60,12 @@ class No2Name(object):
             out_file.write(line)
         out_file.close()
 
-    def out_db(self,db_name):
+    def out_db(self, db_name):
         cx = sqlite3.connect('db_name')
         cx.text_factory = str
         cursor = cx.cursor()
-        cursor.execute("create table if not exists company(id integer primary key,  city_id text not null,name text not null UNIQUE,city text not null, company_id text not null UNIQUE)")
+        cursor.execute(
+            "create table if not exists company(id integer primary key,  city_id text not null,name text not null UNIQUE,city text not null, company_id text not null UNIQUE)")
         for company in self.out_companes:
             try:
                 cursor.execute("insert into company(city_id, name, city, company_id) values(?, ?, ?, ?)", company)
@@ -73,7 +74,7 @@ class No2Name(object):
         cx.commit()
         #生成内存数据库脚本
         str_buffer = StringIO.StringIO()
-        #con.itrdump() dump all sqls 
+        #con.itrdump() dump all sqls
         for line in cx.iterdump():
             str_buffer.write('%s\n' % line)
         cx.close()
@@ -85,7 +86,6 @@ class No2Name(object):
         cur_file.executescript(str_buffer.getvalue())
         #关闭文件数据库
         cur_file.close()
-
 
 # if __name__ = '__main__':
 no2Name = No2Name('company_no.csv', 'company_out.csv')

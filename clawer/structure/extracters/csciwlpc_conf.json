@@ -287,7 +287,6 @@
       "dest_field": {
         "主键": "company_key",
         "检查实施机关": "check_gov",
-        "公示日期": "check_date",
         "结果": "check_result",
         "类型": "check_type",
         "日期": "check_date"
@@ -341,7 +340,6 @@
         "详情": "license_detail",
         "许可机关": "license_authority",
         "有效期自": "license_begien_date",
-        "公示时间": "license_publicity_time",
         "填报时间": "license_register_time",
         "变更事项": "license_change_item",
         "变更时间": "license_change_time",
@@ -1159,11 +1157,6 @@
         "option": ""
       },
       {
-        "dest_field": "check_date",
-        "datatype": "CHAR(20)",
-        "option": ""
-      },
-      {
         "dest_field": "check_result",
         "datatype": "CHAR(100)",
         "option": ""
@@ -1286,11 +1279,6 @@
       },
       {
         "dest_field": "license_end_date",
-        "datatype": "CHAR(20)",
-        "option": ""
-      },
-      {
-        "dest_field": "license_publicity_time",
         "datatype": "CHAR(20)",
         "option": ""
       },

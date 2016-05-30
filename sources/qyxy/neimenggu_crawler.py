@@ -41,52 +41,60 @@ class NeimengguClawer(Crawler):
     # 多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    urls = {'host': 'http://www.nmgs.gov.cn:7001/aiccips',
-            'get_checkcode': 'http://www.nmgs.gov.cn:7001/aiccips/verify.html?random=0.48031352812604344',
-            'post_checkCode': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/checkCode.html',
-            'post_checkCode2': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/showInfo.html',
-            'ind_comm_pub_skeleton': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html',
-            # 工商-备案信息页面
-            'ind_comm_pub_arch_page': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=entCheckInfo',
-            # 工商-动产登记页面
-            'ind_comm_pub_movable_property_reg_page': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=pleInfo',
-            # 工商-股权出质信息页面
-            'ind_comm_pub_equity_ownership_reg_page': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=curStoPleInfo',
-            # 工商-行政处罚
-            'ind_comm_pub_administration_sanction_page': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=cipPenaltyInfo',
-            # 工商经营异常
-            'ind_comm_pub_business_exception_page': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=cipUnuDirInfo',
-            # 严重违法
-            'ind_comm_pub_serious_violate_law_page': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=cipBlackInfo',
-            # 抽查检查
-            'ind_comm_pub_spot_check_page': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=cipSpotCheInfo',
-            # =======================
-            # 企业公示信息
-            # 企业年报
-            'ent_pub_ent_annual_report_page': 'http://www.nmgs.gov.cn:7001/aiccips/BusinessAnnals/BusinessAnnalsList.html',
-            # 企业投资人出资比例
-            'ent_pub_shareholder_capital_contribution_page': 'http://www.nmgs.gov.cn:7001/aiccips/ContributionCapitalMsg.html',
-            # 股权变更信息
-            'ent_pub_equity_change_page': 'http://www.nmgs.gov.cn:7001/aiccips/GDGQTransferMsg/shareholderTransferMsg.html',
-            # 行政许可信息
-            'ent_pub_administration_license_page': 'http://www.nmgs.gov.cn:7001/aiccips/AppPerInformation.html',
-            # 知识产权出资登记
-            'ent_pub_knowledge_property_page': 'http://www.nmgs.gov.cn:7001/aiccips/intPropertyMsg.html',
-            # 行政处罚信息
-            'ent_pub_administration_sanction_page': 'http://www.nmgs.gov.cn:7001/aiccips/XZPunishmentMsg.html',
-            # =======================
-            # 其他部门公示信息
-            # 行政许可信息
-            # 行政处罚信息
-            'other_dept_pub_page': 'http://www.nmgs.gov.cn:7001/aiccips/OtherPublicity/otherDeptInfo.html',
+    urls = {
+        'host': 'http://www.nmgs.gov.cn:7001/aiccips',
+        'get_checkcode': 'http://www.nmgs.gov.cn:7001/aiccips/verify.html?random=0.48031352812604344',
+        'post_checkCode': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/checkCode.html',
+        'post_checkCode2': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/showInfo.html',
+        'ind_comm_pub_skeleton': 'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html',
+    # 工商-备案信息页面
+        'ind_comm_pub_arch_page':
+        'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=entCheckInfo',
+    # 工商-动产登记页面
+        'ind_comm_pub_movable_property_reg_page':
+        'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=pleInfo',
+    # 工商-股权出质信息页面
+        'ind_comm_pub_equity_ownership_reg_page':
+        'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=curStoPleInfo',
+    # 工商-行政处罚
+        'ind_comm_pub_administration_sanction_page':
+        'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=cipPenaltyInfo',
+    # 工商经营异常
+        'ind_comm_pub_business_exception_page':
+        'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=cipUnuDirInfo',
+    # 严重违法
+        'ind_comm_pub_serious_violate_law_page':
+        'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=cipBlackInfo',
+    # 抽查检查
+        'ind_comm_pub_spot_check_page':
+        'http://www.nmgs.gov.cn:7001/aiccips/GSpublicity/GSpublicityList.html?service=cipSpotCheInfo',
+    # =======================
+    # 企业公示信息
+    # 企业年报
+        'ent_pub_ent_annual_report_page': 'http://www.nmgs.gov.cn:7001/aiccips/BusinessAnnals/BusinessAnnalsList.html',
+    # 企业投资人出资比例
+        'ent_pub_shareholder_capital_contribution_page':
+        'http://www.nmgs.gov.cn:7001/aiccips/ContributionCapitalMsg.html',
+    # 股权变更信息
+        'ent_pub_equity_change_page': 'http://www.nmgs.gov.cn:7001/aiccips/GDGQTransferMsg/shareholderTransferMsg.html',
+    # 行政许可信息
+        'ent_pub_administration_license_page': 'http://www.nmgs.gov.cn:7001/aiccips/AppPerInformation.html',
+    # 知识产权出资登记
+        'ent_pub_knowledge_property_page': 'http://www.nmgs.gov.cn:7001/aiccips/intPropertyMsg.html',
+    # 行政处罚信息
+        'ent_pub_administration_sanction_page': 'http://www.nmgs.gov.cn:7001/aiccips/XZPunishmentMsg.html',
+    # =======================
+    # 其他部门公示信息
+    # 行政许可信息
+    # 行政处罚信息
+        'other_dept_pub_page': 'http://www.nmgs.gov.cn:7001/aiccips/OtherPublicity/otherDeptInfo.html',
 
-            # ========================
-            # 司法协助公示信息
-            # 股权冻结信息
-            # 股东变更信息
-            'judical_assist_pub_page': 'http://www.nmgs.gov.cn:7001/aiccips/OtherPublicity/highCourt.html',
-
-            }
+    # ========================
+    # 司法协助公示信息
+    # 股权冻结信息
+    # 股东变更信息
+        'judical_assist_pub_page': 'http://www.nmgs.gov.cn:7001/aiccips/OtherPublicity/highCourt.html',
+    }
 
     def __init__(self, json_restore_path):
         """
@@ -104,7 +112,8 @@ class NeimengguClawer(Crawler):
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+        })
         self.ent_number = None
         self.entNo = None
         self.entType = None
@@ -121,8 +130,8 @@ class NeimengguClawer(Crawler):
             CrawlerUtils.make_dir(self.html_restore_path)
         page = crawler.crawl_check_page()
         if page is None:
-            settings.logger.error(
-                    'According to the registration number does not search to the company %s' % self.ent_number)
+            settings.logger.error('According to the registration number does not search to the company %s' %
+                                  self.ent_number)
             return False
         page = crawler.crawl_ind_comm_pub_basic_pages(page)
         crawler.parser.parse_ind_comm_pub_basic_pages(page)
@@ -249,7 +258,7 @@ class NeimengguClawer(Crawler):
             CrawlerUtils.save_page_to_file(self.html_restore_path + name, page)
         return page
 
-    def crawl_ind_comm_pub_basic_pages(self,page):
+    def crawl_ind_comm_pub_basic_pages(self, page):
         """爬取工商基本公示信息
         """
         url = self.parser.parse_search_page(page)
@@ -268,7 +277,8 @@ class NeimengguClawer(Crawler):
             工商-动产信息页面爬取
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_movable_property_reg_page'], data=data,
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_movable_property_reg_page'],
+                                      data=data,
                                       method='POST')
         return page
 
@@ -277,7 +287,8 @@ class NeimengguClawer(Crawler):
             工商-股权出质
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_equity_ownership_reg_page'], data=data,
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_equity_ownership_reg_page'],
+                                      data=data,
                                       method='POST')
         return page
 
@@ -286,7 +297,8 @@ class NeimengguClawer(Crawler):
             工商-行政处罚
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_administration_sanction_page'], data=data,
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_administration_sanction_page'],
+                                      data=data,
                                       method='POST')
         return page
 
@@ -295,7 +307,8 @@ class NeimengguClawer(Crawler):
             工商-行政处罚
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_business_exception_page'], data=data,
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_business_exception_page'],
+                                      data=data,
                                       method='POST')
         return page
 
@@ -304,7 +317,8 @@ class NeimengguClawer(Crawler):
             工商-严重违法
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_serious_violate_law_page'], data=data,
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_serious_violate_law_page'],
+                                      data=data,
                                       method='POST')
         return page
 
@@ -313,8 +327,7 @@ class NeimengguClawer(Crawler):
             工商-抽查检查
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_spot_check_page'], data=data,
-                                      method='POST')
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ind_comm_pub_spot_check_page'], data=data, method='POST')
         return page
 
     def crawl_ent_pub_ent_annual_report_pages(self):
@@ -322,8 +335,7 @@ class NeimengguClawer(Crawler):
             企业年报
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_ent_annual_report_page'], data=data,
-                                      method='POST')
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_ent_annual_report_page'], data=data, method='POST')
         return page
 
     def crawl_ent_pub_shareholder_capital_contribution_pages(self):
@@ -331,7 +343,8 @@ class NeimengguClawer(Crawler):
             企业-出资人比例
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_shareholder_capital_contribution_page'], data=data,
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_shareholder_capital_contribution_page'],
+                                      data=data,
                                       method='POST')
         return page
 
@@ -340,8 +353,7 @@ class NeimengguClawer(Crawler):
             企业-股权变更信息
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_equity_change_page'], data=data,
-                                      method='POST')
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_equity_change_page'], data=data, method='POST')
         return page
 
     def crawl_ent_pub_administration_license_pages(self):
@@ -349,7 +361,8 @@ class NeimengguClawer(Crawler):
             企业-行政许可
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_administration_license_page'], data=data,
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_administration_license_page'],
+                                      data=data,
                                       method='POST')
         return page
 
@@ -358,7 +371,8 @@ class NeimengguClawer(Crawler):
             企业-行政处罚
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_administration_sanction_page'], data=data,
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_administration_sanction_page'],
+                                      data=data,
                                       method='POST')
         return page
 
@@ -367,8 +381,7 @@ class NeimengguClawer(Crawler):
             企业-知识产权出质
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_knowledge_property_page'], data=data,
-                                      method='POST')
+        page = self.crawl_page_by_url(NeimengguClawer.urls['ent_pub_knowledge_property_page'], data=data, method='POST')
         return page
 
     def crawl_other_dept_pub_pages(self):
@@ -376,8 +389,7 @@ class NeimengguClawer(Crawler):
             其他部门公示信息
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['other_dept_pub_page'], data=data,
-                                      method='POST')
+        page = self.crawl_page_by_url(NeimengguClawer.urls['other_dept_pub_page'], data=data, method='POST')
         return page
 
     def crawl_judical_assist_pub_pages(self):
@@ -385,8 +397,7 @@ class NeimengguClawer(Crawler):
             其他部门公示信息
         """
         data = {'entNo': self.entNo, 'entType': self.entType, 'regOrg': self.regOrg}
-        page = self.crawl_page_by_url(NeimengguClawer.urls['judical_assist_pub_page'], data=data,
-                                      method='POST')
+        page = self.crawl_page_by_url(NeimengguClawer.urls['judical_assist_pub_page'], data=data, method='POST')
         return page
 
 
@@ -422,34 +433,34 @@ class NeimengguParser(Parser):
         base_info = soup.find('table', {'id': 'baseinfo'})
         base_trs = base_info.find_all('tr')
         ind_comm_pub_reg_basic = {}
-        ind_comm_pub_reg_basic[base_trs[1].find('th').get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[1].find('td').get_text())
+        ind_comm_pub_reg_basic[base_trs[1].find('th').get_text()] = self.wipe_off_newline_and_blank_for_fe(base_trs[
+            1].find('td').get_text())
         ind_comm_pub_reg_basic[base_trs[2].find_all('th')[0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[2].find_all('td')[0].get_text())
+            base_trs[2].find_all('td')[0].get_text())
         ind_comm_pub_reg_basic[base_trs[2].find_all('th')[1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[2].find_all('td')[1].get_text())
+            base_trs[2].find_all('td')[1].get_text())
         ind_comm_pub_reg_basic[base_trs[3].find_all('th')[0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[3].find_all('td')[0].get_text())
+            base_trs[3].find_all('td')[0].get_text())
         ind_comm_pub_reg_basic[base_trs[3].find_all('th')[1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[3].find_all('td')[1].get_text())
+            base_trs[3].find_all('td')[1].get_text())
         ind_comm_pub_reg_basic[base_trs[4].find_all('th')[0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[4].find_all('td')[0].get_text())
+            base_trs[4].find_all('td')[0].get_text())
         ind_comm_pub_reg_basic[base_trs[4].find_all('th')[1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[4].find_all('td')[1].get_text())
-        ind_comm_pub_reg_basic[base_trs[5].find('th').get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[5].find('td').get_text())
+            base_trs[4].find_all('td')[1].get_text())
+        ind_comm_pub_reg_basic[base_trs[5].find('th').get_text()] = self.wipe_off_newline_and_blank_for_fe(base_trs[
+            5].find('td').get_text())
         ind_comm_pub_reg_basic[base_trs[6].find_all('th')[0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[6].find_all('td')[0].get_text())
+            base_trs[6].find_all('td')[0].get_text())
         ind_comm_pub_reg_basic[base_trs[6].find_all('th')[1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[6].find_all('td')[1].get_text())
-        ind_comm_pub_reg_basic[base_trs[7].find('th').get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[7].find('td').get_text())
+            base_trs[6].find_all('td')[1].get_text())
+        ind_comm_pub_reg_basic[base_trs[7].find('th').get_text()] = self.wipe_off_newline_and_blank_for_fe(base_trs[
+            7].find('td').get_text())
         ind_comm_pub_reg_basic[base_trs[8].find_all('th')[0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[8].find_all('td')[0].get_text())
+            base_trs[8].find_all('td')[0].get_text())
         ind_comm_pub_reg_basic[base_trs[8].find_all('th')[1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[8].find_all('td')[1].get_text())
-        ind_comm_pub_reg_basic[base_trs[9].find('th').get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                base_trs[9].find('td').get_text())
+            base_trs[8].find_all('td')[1].get_text())
+        ind_comm_pub_reg_basic[base_trs[9].find('th').get_text()] = self.wipe_off_newline_and_blank_for_fe(base_trs[
+            9].find('td').get_text())
         self.crawler.json_dict['ind_comm_pub_reg_basic'] = ind_comm_pub_reg_basic
 
         # 投资人信息
@@ -460,11 +471,10 @@ class NeimengguParser(Parser):
                 pass
             else:
                 touziren_div = soup.find('div', {'id': 'invInfo'})
-                multi_number_string = str(
-                        touziren_div.find_all('table', {'class': 'detailsList'})[1].find('th').get_text()).replace('<',
-                                                                                                                   '').replace(
-                        '>', '').replace('\n', '').replace(' ', '').strip('>').strip('\n').strip('<').strip('>').strip(
-                    ' ')
+                multi_number_string = str(touziren_div.find_all('table', {'class': 'detailsList'})[1].find(
+                    'th').get_text()).replace('<', '').replace(
+                        '>',
+                        '').replace('\n', '').replace(' ', '').strip('>').strip('\n').strip('<').strip('>').strip(' ')
                 multi_number = int(multi_number_string[6:7])
                 ind_comm_pub_arch_key_persons = []
                 if multi_number > 1:
@@ -476,13 +486,13 @@ class NeimengguParser(Parser):
                     list = mutli_json.get('list')
                     for item in list:
                         ind_comm_pub_reg_shareholder = {}
-                        ind_comm_pub_reg_shareholder[u'股东类型'] = self.wipe_off_newline_and_blank_for_fe(
-                                item.get('invType'))
+                        ind_comm_pub_reg_shareholder[u'股东类型'] = self.wipe_off_newline_and_blank_for_fe(item.get(
+                            'invType'))
                         ind_comm_pub_reg_shareholder[u'股东'] = self.wipe_off_newline_and_blank_for_fe(item.get('inv'))
-                        ind_comm_pub_reg_shareholder[u'证照/证件类型'] = self.wipe_off_newline_and_blank_for_fe(
-                                item.get('certName'))
-                        ind_comm_pub_reg_shareholder[u'证照/证件号码'] = self.wipe_off_newline_and_blank_for_fe(
-                                item.get('certNo'))
+                        ind_comm_pub_reg_shareholder[u'证照/证件类型'] = self.wipe_off_newline_and_blank_for_fe(item.get(
+                            'certName'))
+                        ind_comm_pub_reg_shareholder[u'证照/证件号码'] = self.wipe_off_newline_and_blank_for_fe(item.get(
+                            'certNo'))
                         ind_comm_pub_reg_shareholder[u'详情'] = None
                         ind_comm_pub_reg_shareholderes.append(ind_comm_pub_reg_shareholder)
                 else:
@@ -491,14 +501,14 @@ class NeimengguParser(Parser):
                         for i in range(len(shareholder_trs)):
                             ind_comm_pub_reg_shareholder = {}
                             tds = shareholder_trs[i].find_all('td')
-                            ind_comm_pub_reg_shareholder[u'股东类型'] = self.wipe_off_newline_and_blank_for_fe(
-                                    tds[0].get_text())
-                            ind_comm_pub_reg_shareholder[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
-                                    tds[1].get_text())
-                            ind_comm_pub_reg_shareholder[u'证照/证件类型'] = self.wipe_off_newline_and_blank_for_fe(
-                                    tds[2].get_text())
-                            ind_comm_pub_reg_shareholder[u'证照/证件号码'] = self.wipe_off_newline_and_blank_for_fe(
-                                    tds[3].get_text())
+                            ind_comm_pub_reg_shareholder[u'股东类型'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                0].get_text())
+                            ind_comm_pub_reg_shareholder[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                1].get_text())
+                            ind_comm_pub_reg_shareholder[u'证照/证件类型'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                2].get_text())
+                            ind_comm_pub_reg_shareholder[u'证照/证件号码'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                3].get_text())
                             ind_comm_pub_reg_shareholder[u'详情'] = None
                             ind_comm_pub_reg_shareholderes.append(ind_comm_pub_reg_shareholder)
 
@@ -532,10 +542,9 @@ class NeimengguParser(Parser):
         if ck_string in zyry_table.get_text():
             pass
         else:
-            multi_number_string = str(
-                    zyry_div.find_all('table', {'class': 'detailsList'})[1].find('th').get_text()).replace('<',
-                                                                                                           '').replace(
-                    '>', '').replace('\n', '').replace(' ', '').strip('>').strip('\n').strip('<').strip('>').strip(' ')
+            multi_number_string = str(zyry_div.find_all('table', {'class': 'detailsList'})[1].find('th').get_text(
+            )).replace('<', '').replace(
+                '>', '').replace('\n', '').replace(' ', '').strip('>').strip('\n').strip('<').strip('>').strip(' ')
             multi_number = int(multi_number_string[6:7])
             ind_comm_pub_arch_key_persons = []
             key_persons = zyry_table.find_all('td')
@@ -575,9 +584,8 @@ class NeimengguParser(Parser):
         if ck_string in arch_branch_info.get_text():
             pass
         else:
-            multi_number_string = str(
-                    arch_branch_div.find_all('table', {'class': 'detailsList'})[1].find('th').get_text()).replace('<',
-                                                                                                                  '').replace(
+            multi_number_string = str(arch_branch_div.find_all('table', {'class': 'detailsList'})[1].find(
+                'th').get_text()).replace('<', '').replace(
                     '>', '').replace('\n', '').replace(' ', '').strip('>').strip('\n').strip('<').strip('>').strip(' ')
             multi_number = int(multi_number_string[6:7])
             arch_branch_trs = arch_branch_info.find_all('tr')
@@ -589,14 +597,10 @@ class NeimengguParser(Parser):
                         tds = arch_branch_trs[i].find_all('td')
                         if len(tds) <= 0:
                             break
-                        detail_arch_branch_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                                tds[0].get_text())
-                        detail_arch_branch_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(
-                                tds[1].get_text())
-                        detail_arch_branch_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(
-                                tds[2].get_text())
-                        detail_arch_branch_info[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(
-                                tds[3].get_text())
+                        detail_arch_branch_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                        detail_arch_branch_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                        detail_arch_branch_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                        detail_arch_branch_info[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
                         detail_arch_branch_infoes.append(detail_arch_branch_info)
                         i += 1
             else:
@@ -617,7 +621,6 @@ class NeimengguParser(Parser):
 
         self.crawler.json_dict['ind_comm_pub_arch_branch'] = detail_arch_branch_infoes
 
-
         # 清算信息
 
     def parse_ind_comm_pub_movable_property_reg_pages(self, page):
@@ -636,18 +639,12 @@ class NeimengguParser(Parser):
                 tds = movable_property_reg_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_movable_property_reg_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_movable_property_reg_info[u'登记编号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_movable_property_reg_info[u'登记日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_movable_property_reg_info[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_movable_property_reg_info[u'被担保债权数额'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_movable_property_reg_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
+                detail_movable_property_reg_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_movable_property_reg_info[u'登记编号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_movable_property_reg_info[u'登记日期'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_movable_property_reg_info[u'登记机关'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_movable_property_reg_info[u'被担保债权数额'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_movable_property_reg_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
                 detail_movable_property_reg_infoes.append(detail_movable_property_reg_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_movable_property_reg'] = detail_movable_property_reg_infoes
@@ -697,18 +694,17 @@ class NeimengguParser(Parser):
                 tds = administration_sanction_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
+                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    1].get_text())
+                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                ))
+                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    4].get_text())
+                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    5].get_text())
                 detail_administration_sanction_infoes.append(detail_administration_sanction_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_administration_sanction'] = detail_administration_sanction_infoes
@@ -731,18 +727,14 @@ class NeimengguParser(Parser):
                 tds = business_exception_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_business_exception_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_business_exception_info[u'列入经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_business_exception_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_business_exception_info[u'移出经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_business_exception_info[u'移出日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_business_exception_info[u'作出决定机关'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
+                detail_business_exception_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_business_exception_info[u'列入经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
+                ))
+                detail_business_exception_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_business_exception_info[u'移出经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                ))
+                detail_business_exception_info[u'移出日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_business_exception_info[u'作出决定机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
                 detail_business_exception_infoes.append(detail_business_exception_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_business_exception'] = detail_business_exception_infoes
@@ -763,18 +755,14 @@ class NeimengguParser(Parser):
                 tds = serious_violate_law_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_serious_violate_law_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_serious_violate_law_info[u'列入严重违法企业名单原因'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_serious_violate_law_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_serious_violate_law_info[u'移出严重违法企业名单原因'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_serious_violate_law_info[u'移出日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_serious_violate_law_info[u'作出决定机关'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
+                detail_serious_violate_law_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_serious_violate_law_info[u'列入严重违法企业名单原因'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    1].get_text())
+                detail_serious_violate_law_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_serious_violate_law_info[u'移出严重违法企业名单原因'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    3].get_text())
+                detail_serious_violate_law_info[u'移出日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_serious_violate_law_info[u'作出决定机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
                 detail_serious_violate_law_infoes.append(detail_serious_violate_law_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_serious_violate_law'] = detail_serious_violate_law_infoes
@@ -795,16 +783,11 @@ class NeimengguParser(Parser):
                 tds = spot_check_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_spot_check_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_spot_check_info[u'检查实施机关'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_spot_check_info[u'类型'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_spot_check_info[u'日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_spot_check_info[u'结果'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
+                detail_spot_check_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_spot_check_info[u'检查实施机关'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_spot_check_info[u'类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_spot_check_info[u'日期'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_spot_check_info[u'结果'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
                 detail_spot_check_infoes.append(detail_spot_check_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_spot_check'] = detail_spot_check_infoes
@@ -853,16 +836,11 @@ class NeimengguParser(Parser):
                 tds = reg_modify_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_reg_modify_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_reg_modify_info[u'变更事项'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_reg_modify_info[u'变更时间'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_reg_modify_info[u'变更前'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_reg_modify_info[u'变更后'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
+                detail_reg_modify_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_reg_modify_info[u'变更事项'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_reg_modify_info[u'变更时间'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_reg_modify_info[u'变更前'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_reg_modify_info[u'变更后'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
 
                 detail_reg_modify_infoes.append(detail_reg_modify_info)
                 i += 1
@@ -894,29 +872,29 @@ class NeimengguParser(Parser):
             base_trs = base_info[1].find_all('tr')
             detail_base_info = {}
             detail_base_info[base_trs[0].find('th').get_text()] = str(base_trs[0].find('td').get_text()).strip(
-                    '\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[1].find_all('th')[0].get_text()] = str(
-                    base_trs[1].find_all('td')[0].get_text()).strip('\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[1].find_all('th')[1].get_text()] = str(
-                    base_trs[1].find_all('td')[1].get_text()).strip('\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[2].find_all('th')[0].get_text()] = str(
-                    base_trs[2].find_all('td')[0].get_text()).strip('\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[2].find_all('th')[1].get_text()] = str(
-                    base_trs[2].find_all('td')[1].get_text()).strip('\n').strip(' ').strip('\n')
+                '\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[1].find_all('th')[0].get_text()] = str(base_trs[1].find_all('td')[0].get_text(
+            )).strip('\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[1].find_all('th')[1].get_text()] = str(base_trs[1].find_all('td')[1].get_text(
+            )).strip('\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[2].find_all('th')[0].get_text()] = str(base_trs[2].find_all('td')[0].get_text(
+            )).strip('\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[2].find_all('th')[1].get_text()] = str(base_trs[2].find_all('td')[1].get_text(
+            )).strip('\n').strip(' ').strip('\n')
             detail_base_info[base_trs[3].find('th').get_text()] = str(base_trs[3].find('td').get_text()).strip(
-                    '\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[4].find_all('th')[0].get_text()] = str(
-                    base_trs[4].find_all('td')[0].get_text()).strip('\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[4].find_all('th')[1].get_text()] = str(
-                    base_trs[4].find_all('td')[1].get_text()).strip('\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[5].find_all('th')[0].get_text()] = str(
-                    base_trs[5].find_all('td')[0].get_text()).strip('\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[5].find_all('th')[1].get_text()] = str(
-                    base_trs[5].find_all('td')[1].get_text()).strip('\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[6].find_all('th')[0].get_text()] = str(
-                    base_trs[6].find_all('td')[0].get_text()).strip('\n').strip(' ').strip('\n')
-            detail_base_info[base_trs[6].find_all('th')[1].get_text()] = str(
-                    base_trs[6].find_all('td')[1].get_text()).strip('\n').strip(' ').strip('\n')
+                '\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[4].find_all('th')[0].get_text()] = str(base_trs[4].find_all('td')[0].get_text(
+            )).strip('\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[4].find_all('th')[1].get_text()] = str(base_trs[4].find_all('td')[1].get_text(
+            )).strip('\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[5].find_all('th')[0].get_text()] = str(base_trs[5].find_all('td')[0].get_text(
+            )).strip('\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[5].find_all('th')[1].get_text()] = str(base_trs[5].find_all('td')[1].get_text(
+            )).strip('\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[6].find_all('th')[0].get_text()] = str(base_trs[6].find_all('td')[0].get_text(
+            )).strip('\n').strip(' ').strip('\n')
+            detail_base_info[base_trs[6].find_all('th')[1].get_text()] = str(base_trs[6].find_all('td')[1].get_text(
+            )).strip('\n').strip(' ').strip('\n')
             detail[u'企业基本信息'] = detail_base_info
 
             website_info = soup_reoprt.find('table', {'id': 't02'})
@@ -952,20 +930,20 @@ class NeimengguParser(Parser):
                     tds = shareholder_capital_contribution_trs[i].find_all('td')
                     if len(tds) <= 0:
                         break
-                    detail_shareholder_capital_contribution_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                    detail_shareholder_capital_contribution_info[u'认缴出资额'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
+                    detail_shareholder_capital_contribution_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        0].get_text())
+                    detail_shareholder_capital_contribution_info[u'认缴出资额'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        1].get_text())
                     detail_shareholder_capital_contribution_info[u'认缴出资时间'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
+                        tds[2].get_text())
                     detail_shareholder_capital_contribution_info[u'认缴出资方式'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
-                    detail_shareholder_capital_contribution_info[u'实缴出资额'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[4].get_text())
-                    detail_shareholder_capital_contribution_info[u'出资时间'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[5].get_text())
-                    detail_shareholder_capital_contribution_info[u'出资方式'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[6].get_text())
+                        tds[3].get_text())
+                    detail_shareholder_capital_contribution_info[u'实缴出资额'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        4].get_text())
+                    detail_shareholder_capital_contribution_info[u'出资时间'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        5].get_text())
+                    detail_shareholder_capital_contribution_info[u'出资方式'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        6].get_text())
                     detail_shareholder_capital_contribution_infoes.append(detail_shareholder_capital_contribution_info)
                     i += 1
             detail[u'股东及出资信息'] = detail_shareholder_capital_contribution_infoes
@@ -982,8 +960,8 @@ class NeimengguParser(Parser):
                     if len(tds) <= 0:
                         break
                     detail_outbound_investment_info = {}
-                    detail_outbound_investment_info[u'投资设立企业或购买股权企业名称'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
+                    detail_outbound_investment_info[u'投资设立企业或购买股权企业名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        0].get_text())
                     detail_outbound_investment_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
                     detail_outbound_investment_infoes.append(detail_outbound_investment_info)
                     i += 1
@@ -993,30 +971,22 @@ class NeimengguParser(Parser):
             state_of_enterprise_assets_info = soup_reoprt.find('table', {'id': 't05'})
             state_of_enterprise_assets_trs = state_of_enterprise_assets_info.find_all('tr')
             detail_state_of_enterprise_assets_infoes = {}
-            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
-                0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[1].find_all('td')[0].get_text())
-            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
-                1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[1].find_all('td')[1].get_text())
-            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
-                0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[2].find_all('td')[0].get_text())
-            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
-                1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[2].find_all('td')[1].get_text())
-            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
-                0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[3].find_all('td')[0].get_text())
-            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
-                1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[3].find_all('td')[1].get_text())
-            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
-                0].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[4].find_all('td')[0].get_text())
-            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
-                1].get_text()] = self.wipe_off_newline_and_blank_for_fe(
-                    state_of_enterprise_assets_trs[4].find_all('td')[1].get_text())
+            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[0].get_text(
+            )] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[1].find_all('td')[0].get_text())
+            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[1].get_text(
+            )] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[1].find_all('td')[1].get_text())
+            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[0].get_text(
+            )] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[2].find_all('td')[0].get_text())
+            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[1].get_text(
+            )] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[2].find_all('td')[1].get_text())
+            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[0].get_text(
+            )] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[3].find_all('td')[0].get_text())
+            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[1].get_text(
+            )] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[3].find_all('td')[1].get_text())
+            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[0].get_text(
+            )] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[4].find_all('td')[0].get_text())
+            detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[1].get_text(
+            )] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[4].find_all('td')[1].get_text())
 
             detail[u'企业资产状况信息'] = detail_state_of_enterprise_assets_infoes
 
@@ -1032,22 +1002,22 @@ class NeimengguParser(Parser):
                     tds = provide_guarantee_to_the_outside_trs[i].find_all('td')
                     if len(tds) <= 0:
                         break
-                    detail_provide_guarantee_to_the_outside_info[u'债权人'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                    detail_provide_guarantee_to_the_outside_info[u'债务人'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
-                    detail_provide_guarantee_to_the_outside_info[u'主债权种类'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
-                    detail_provide_guarantee_to_the_outside_info[u'主债权数额'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
+                    detail_provide_guarantee_to_the_outside_info[u'债权人'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        0].get_text())
+                    detail_provide_guarantee_to_the_outside_info[u'债务人'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        1].get_text())
+                    detail_provide_guarantee_to_the_outside_info[u'主债权种类'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        2].get_text())
+                    detail_provide_guarantee_to_the_outside_info[u'主债权数额'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        3].get_text())
                     detail_provide_guarantee_to_the_outside_info[u'履行债务的期限'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[4].get_text())
-                    detail_provide_guarantee_to_the_outside_info[u'保证的期间'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[5].get_text())
-                    detail_provide_guarantee_to_the_outside_info[u'保证的方式'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[6].get_text())
+                        tds[4].get_text())
+                    detail_provide_guarantee_to_the_outside_info[u'保证的期间'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        5].get_text())
+                    detail_provide_guarantee_to_the_outside_info[u'保证的方式'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        6].get_text())
                     detail_provide_guarantee_to_the_outside_info[u'保证担保的范围'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[7].get_text())
+                        tds[7].get_text())
                     detail_provide_guarantee_to_the_outside_infoes.append(detail_provide_guarantee_to_the_outside_info)
                     i += 1
             detail[u'对外提供保证担保信息'] = detail_provide_guarantee_to_the_outside_infoes
@@ -1064,14 +1034,13 @@ class NeimengguParser(Parser):
                     tds = ent_pub_equity_change_trs[i].find_all('td')
                     if len(tds) <= 0:
                         break
-                    detail_ent_pub_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                    detail_ent_pub_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
-                    detail_ent_pub_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
-                    detail_ent_pub_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
+                    detail_ent_pub_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                    detail_ent_pub_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        1].get_text())
+                    detail_ent_pub_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        2].get_text())
+                    detail_ent_pub_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        3].get_text())
                     detail_ent_pub_equity_change_infoes.append(detail_ent_pub_equity_change_info)
                     i += 1
             detail[u'股权变更信息'] = detail_ent_pub_equity_change_infoes
@@ -1088,16 +1057,11 @@ class NeimengguParser(Parser):
                     tds = change_record_trs[i].find_all('td')
                     if len(tds) <= 0:
                         break
-                    detail_change_record_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                    detail_change_record_info[u'修改事项'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
-                    detail_change_record_info[u'修改前'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
-                    detail_change_record_info[u'修改后'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
-                    detail_change_record_info[u'修改日期'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[4].get_text())
+                    detail_change_record_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                    detail_change_record_info[u'修改事项'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                    detail_change_record_info[u'修改前'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                    detail_change_record_info[u'修改后'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                    detail_change_record_info[u'修改日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
                     detail_change_record_infoes.append(detail_change_record_info)
                     i += 1
             detail[u'修改记录'] = detail_change_record_infoes
@@ -1114,14 +1078,13 @@ class NeimengguParser(Parser):
                     tds = correction_statement_trs[i].find_all('td')
                     if len(tds) <= 0:
                         break
-                    detail_correction_statement_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                    detail_correction_statement_info[u'更正事项'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
-                    detail_correction_statement_info[u'更正理由'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
-                    detail_correction_statement_info[u'更正时间'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
+                    detail_correction_statement_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                    detail_correction_statement_info[u'更正事项'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
+                    ))
+                    detail_correction_statement_info[u'更正理由'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                    ))
+                    detail_correction_statement_info[u'更正时间'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                    ))
 
                     detail_correction_statement_infoes.append(detail_correction_statement_info)
                     i += 1
@@ -1150,26 +1113,18 @@ class NeimengguParser(Parser):
                 tds = administration_license_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_license_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_administration_license_info[u'许可文件编号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_administration_license_info[u'许可文件名称'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_administration_license_info[u'有效期自'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_administration_license_info[u'有效期至'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_administration_license_info[u'许可机关'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
-                detail_administration_license_info[u'许可内容'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[6].get_text())
-                detail_administration_license_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[7].get_text())
-                detail_administration_license_info[u'填报时间'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[8].get_text())
-                detail_administration_license_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[9].get_text())
+                detail_administration_license_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_license_info[u'许可文件编号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
+                ))
+                detail_administration_license_info[u'许可文件名称'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_license_info[u'有效期自'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_administration_license_info[u'有效期至'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_administration_license_info[u'许可机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_administration_license_info[u'许可内容'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
+                detail_administration_license_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
+                detail_administration_license_info[u'填报时间'] = self.wipe_off_newline_and_blank_for_fe(tds[8].get_text())
+                detail_administration_license_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[9].get_text())
                 detail_administration_license_infoes.append(detail_administration_license_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_administration_license'] = detail_administration_license_infoes
@@ -1192,20 +1147,17 @@ class NeimengguParser(Parser):
                 tds = administration_sanction_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_administration_sanction_info[u'备注'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
-                detail_administration_sanction_info[u'填报时间'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[6].get_text())
+                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    1].get_text())
+                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    3].get_text())
+                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    4].get_text())
+                detail_administration_sanction_info[u'备注'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_administration_sanction_info[u'填报时间'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
                 detail_administration_sanction_infoes.append(detail_administration_sanction_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_administration_sanction'] = detail_administration_sanction_infoes
@@ -1228,18 +1180,12 @@ class NeimengguParser(Parser):
                 tds = equity_change_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_equity_change_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_equity_change_info[u'填报时间'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
+                detail_equity_change_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_equity_change_info[u'填报时间'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
                 detail_equity_change_infoes.append(detail_equity_change_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_equity_change'] = detail_equity_change_infoes
@@ -1262,26 +1208,16 @@ class NeimengguParser(Parser):
                 tds = knowledge_property_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_knowledge_property_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_knowledge_property_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_knowledge_property_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_knowledge_property_info[u'种类'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_knowledge_property_info[u'出质人名称'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_knowledge_property_info[u'质权人名称'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
-                detail_knowledge_property_info[u'质权登记期限'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[6].get_text())
-                detail_knowledge_property_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[7].get_text())
-                detail_knowledge_property_info[u'填报时间'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[8].get_text())
-                detail_knowledge_property_info[u'变化情况'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[9].get_text())
+                detail_knowledge_property_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_knowledge_property_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_knowledge_property_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_knowledge_property_info[u'种类'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_knowledge_property_info[u'出质人名称'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_knowledge_property_info[u'质权人名称'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_knowledge_property_info[u'质权登记期限'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
+                detail_knowledge_property_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
+                detail_knowledge_property_info[u'填报时间'] = self.wipe_off_newline_and_blank_for_fe(tds[8].get_text())
+                detail_knowledge_property_info[u'变化情况'] = self.wipe_off_newline_and_blank_for_fe(tds[9].get_text())
                 detail_knowledge_property_infoes.append(detail_knowledge_property_info)
                 i += 1
         self.crawler.json_dict['ind_comm_pub_knowledge_property'] = detail_knowledge_property_infoes
@@ -1304,20 +1240,15 @@ class NeimengguParser(Parser):
                 tds = administration_license_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_license_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_administration_license_info[u'许可文件编号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_administration_license_info[u'许可文件名称'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_administration_license_info[u'有效期自'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_administration_license_info[u'有效期至'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_administration_license_info[u'许可机关'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
-                detail_administration_license_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[6].get_text())
+                detail_administration_license_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_license_info[u'许可文件编号'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
+                ))
+                detail_administration_license_info[u'许可文件名称'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_license_info[u'有效期自'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_administration_license_info[u'有效期至'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_administration_license_info[u'许可机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_administration_license_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
 
                 detail_administration_license_infoes.append(detail_administration_license_info)
                 i += 1
@@ -1335,18 +1266,17 @@ class NeimengguParser(Parser):
                 tds = administration_sanction_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
+                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    1].get_text())
+                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                ))
+                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                ))
+                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    4].get_text())
+                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                    5].get_text())
 
                 detail_administration_sanction_infoes.append(detail_administration_sanction_info)
                 i += 1
@@ -1370,20 +1300,13 @@ class NeimengguParser(Parser):
                 tds = equity_freeze_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_equity_freeze_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_equity_freeze_info[u'被执行人'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_equity_freeze_info[u'股权数额'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_equity_freeze_info[u'执行法院'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_equity_freeze_info[u'协助公示通知书文号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_equity_freeze_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
-                detail_equity_freeze_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[6].get_text())
+                detail_equity_freeze_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_equity_freeze_info[u'被执行人'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_equity_freeze_info[u'股权数额'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_equity_freeze_info[u'执行法院'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_equity_freeze_info[u'协助公示通知书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_equity_freeze_info[u'状态'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                detail_equity_freeze_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[6].get_text())
 
                 detail_equity_freeze_infoes.append(detail_equity_freeze_info)
                 i += 1
@@ -1401,18 +1324,12 @@ class NeimengguParser(Parser):
                 tds = shareholder_modify_trs[i].find_all('td')
                 if len(tds) <= 0:
                     break
-                detail_shareholder_modify_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[0].get_text())
-                detail_shareholder_modify_info[u'被执行人'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[1].get_text())
-                detail_shareholder_modify_info[u'股权数额'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[2].get_text())
-                detail_shareholder_modify_info[u'受让人'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[3].get_text())
-                detail_shareholder_modify_info[u'执行法院'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[4].get_text())
-                detail_shareholder_modify_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(
-                        tds[5].get_text())
+                detail_shareholder_modify_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                detail_shareholder_modify_info[u'被执行人'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                detail_shareholder_modify_info[u'股权数额'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                detail_shareholder_modify_info[u'受让人'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                detail_shareholder_modify_info[u'执行法院'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                detail_shareholder_modify_info[u'详情'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
 
                 detail_shareholder_modify_infoes.append(detail_shareholder_modify_info)
                 i += 1
@@ -1443,6 +1360,5 @@ if __name__ == '__main__':
 
     for ent_number in enterprise_list:
         ent_number = ent_number.rstrip('\n')
-        settings.logger.info(
-                '############   Start to crawl enterprise with id %s   ################\n' % ent_number)
+        settings.logger.info('############   Start to crawl enterprise with id %s   ################\n' % ent_number)
         crawler.run(ent_number=ent_number)
