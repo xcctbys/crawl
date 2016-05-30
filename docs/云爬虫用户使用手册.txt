@@ -1,0 +1,227 @@
+中证服务器配置说明：
+
+更新时间：2016.5.30
+
+以工商脚本为例
+
+
+流程简介：
+1）导入企业名单数据
+2）导入生成器脚本及配置脚本参数
+3）配置任务解析器，解析下载数据
+4）配置任务导出器，mongo数据导出到mysql
+5）配置系统任务crontab定时参数
+6）查看mongo数据及日志，mysql数据
+
+
+
+一.配置任务数据源
+
+导入工商企业数据源到MySQL数据库
+
+1.登陆本地Linux系统，通过Scp传输文件到阿里云-跳板机，传输目录为 /media/company
+
+	a. 服务器存放目录：/media/company/enterprise-list.csv
+
+	b. scp上传数据源到跳板机，再登陆跳板机上传到生成器。
+
+	代码操作：
+	scp [filename]  root@112.74.184.173:/media/company/[filename]
+	scp [filename]  root@172.16.80.4:/media/company/[filename]
+	
+	代码示例：
+	scp enterprise-list-9p.csv  root@112.74.184.173:/media/company/enterprise-list-9p.csv
+        scp /media/company/enterprise-list.csv root@172.16.80.4:/media/company/enterprise-list.csv
+
+	c. 执行命令，导入csv文件数据,(登陆生成器机器操作)：
+	python /home/webapps/cr-clawer/clawer/manage_production.py import_enterprise_from_file_slice /media/company/[filename]
+
+	d.输出结果示例:	
+
+	line_count = 1000.
+	line_count = 2000.
+	..................
+
+	line_count = 221000.
+	line_count = 222000.
+	{'is_ok': True, 'line_count': 222327, 'multiple': 51, 'success': 222161, 'failed': 166}
+
+	e.参数说明：
+	'is_ok': True           执行完毕，执行结果True为成功，False为失败。
+	'line_count': 222327    文档的数据总数：222327行数据
+	'multiple': 51	        文档中的重复数：51行
+	'success': 222161       数据库导入成功：222161行
+	'failed': 166           数据库导入失败：166行
+
+	f.数据库数据验证（数据保存位置clawer的enterprise_enterprise表中）：
+
+	启动MySQL数据库，终端中输入命令： mysql -uroot -p
+	显示所有数据库： show databases；
+	使用clawer：	use clawer
+	查看数据条数：   select count(*) from enterprise_enterprise；
+	查看详细数据：   select * from enterprise_enterprise limit 100;
+	
+	g.问题及异常：
+
+	Q：数据库中查看数据时，中文为乱码，英文正常。
+	A：数据库编码错误，使用 show variables like 'char%';查看除character_set_filesystem=binary 外是否都为utf8；若不是需要对mysql进行重新设置。
+
+
+二.配置任务生成器脚本
+
+导入脚本到任务数据库，等待任务调度
+
+1.生成器脚本存放目录为/home/webapps/cr-clawer/clawer/collector/script/production
+	
+	a.脚本说明：
+	enterprise_mysql_pro.py	: 工商数据uri生成器脚本
+	baidu_pro.py            : 百度搜索uri生成器脚本
+	simuwang_pro.py         : 私募网uri生成器脚本
+	
+	b.导入任务脚本到任务数据库：
+	登陆生成器服务器，进入/home/webapps/cr-clawer/clawer目录：
+	
+	逐条执行导入代码
+	参数说明：1）'* * * * *'为定时频率，默认为每1分钟执行一次，根据需求进行设定。
+	         2）["enterprise"] 为设定uri格式，设定格式为：
+
+		    ["enterprise"]:工商网站uri格式设定
+		    ["http"]:为百度搜索uri格式设定
+				
+	工商生成器脚本导入代码如下：
+
+	python manage_production.py shell
+	from collector.tests.test_generator import insert_script_without_job
+	file = '/home/webapps/cr-clawer/clawer/collector/script/production/enterprise_mysql_pro.py'
+	script = open(file).read()
+	settings={'cron':'*/10 * * * *' , 'schemes':["enterprise"], 'code_type': 1}
+	insert_script_without_job(script, settings)
+        
+        c.验证生成器任务导入情况：
+	登陆mongodb并选择source数据库，查询任务情况：
+	代码实例：
+	mongo --host dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com --port 3717 --authenticationDatabase admin -u root -p Password123
+	use source
+	db.crawler_download.count()
+	db.crawler_download_setting.count()
+	db.crawler_download_type.count()
+	db.crawler_task_generator.count()
+	db.job.count()
+	
+	根据查询结果，以上collections中各新增了一条任务记录，即任务导入成功。
+
+
+三.配置任务解析器
+
+
+四.配置任务导出器
+	
+
+五.配置系统定时设置启动任务
+
+配置linux Crontab，定时启动生成器，下载器，解析器任务
+
+	a.登陆WebServer服务器，终端中输入crontab -l查看定时任务：
+
+	示例：
+	*/10    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh generator_install
+	*/1     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh generator_dispatch
+	*/5     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh downloader_dispatch
+	*/1     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_parser_dispatch
+	*/1     *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_extracter_dispatch
+	
+	b.参数说明：
+	*/10 * * * * ：设定为每10十分钟执行一次该命令
+	generator_install           ：为任务定时检测，每10分钟定时检测是否有新的任务加入，并初始化任务
+	generator_dispatch          ：为生成器任务定时分发，每1分钟执行一次任务分发（不需要改动）
+	downloader_dispatch         ：为下载器任务定时分发，每5分钟执行一次分发。
+	task_parser_dispatch        ：为解析器任务定时分发，每分钟执行一次分发。
+	task_extracter_dispatch     ：为解析器任务定时导入数据库，每分钟执行一次分发。
+
+	c.根据任务的执行速度，需合理配置定时分发频率。
+	
+	d.输入cronta -e编辑定时任务，保存即可运行。
+
+
+六.查看任务rqworker运行状态
+
+通过rqworker执行任务，通过rq info查看任务运行状态，包括worker数量，状态，队列状态等
+
+1.查看rq info：
+	
+	a.rq info命令及参数说明：
+	
+	rq info  --url redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/1 
+	rq info  --url redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/2
+	rq info  --url redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/3
+	rq info  --url redis://:Password123@13153c2b13894978.m.cnsza.kvstore.aliyuncs.com/5
+
+	尾号1对应生成器状态
+	尾号2对应下载器状态
+	尾号3对应解析器状态
+	尾号5对应导出器状态
+
+2.查看mongodb数据库数据：
+	
+	a.mongodb数据查看
+	在跳板机登陆mongo客户端：
+	登陆命令：
+	mongo --host dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com --port 3717 --authenticationDatabase admin -u root -p Password123
+	
+	b.use source 选择source数据库-
+	查看crawler_download_data集合数据情况，即下载的工商网站源数据。
+
+	c.mongodb数据库结构：
+	
+	source：crawler_download               ：下载器任务
+		crawler_download_data          ：任务下载的源数据
+		crawler_download_setting       ：下载器任务的设置
+		crawler_download_type          ：下载器任务的类型
+		crawler_task                   ：下载器任务的uri源，也是生成器生成的uri数据
+		crawler_task_generator         ：生成器任务
+		job                            ：整体云爬虫的任务job，是下载器，生成器，解析器等识别多个任务的标识。
+					         多个任务之间依靠job的id进行识别，如工商任务，百度任务的识别标识。
+	log    ：crawler_dispatch_alert_log    ：下载器任务分发日志
+		 crawler_download_log          ：下载器下载日志
+		 crawler_generator_alert_log   ：生成器警告日志
+		 crawler_generator_cron_log    ：生成器新任务初始化日志
+		 crawler_generator_dispatch_log：生成器分发日志
+		 crawler_generator_error_log   ：生成器错误日志
+		 crawler_generator_log         ：生成器生成日志
+
+2.查看MySQL数据库数据：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
