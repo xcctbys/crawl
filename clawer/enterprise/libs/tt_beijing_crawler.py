@@ -171,7 +171,7 @@ class CrackCheckcode(object):
             count += 1
             resp = self.crawler.crawl_page_by_url(self.info.urls['official_site'])
             time.sleep(random.uniform(1, 5))
-            if resp.status_code != 200:
+            if not resp or resp.status_code != 200:
                 logging.error('failed to get crackcode url')
                 continue
             response = resp.content
