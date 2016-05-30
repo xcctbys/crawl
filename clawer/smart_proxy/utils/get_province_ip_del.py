@@ -202,6 +202,21 @@ if __name__ == '__main__':
     #if DEBUG:
         #unittest.main()
     t1=time.time()
+    cursor=cnx.cursor()
+    sql_count="select count(*) from smart_proxy_proxyip where province!='OTHER'"
+    count=cursor.execute(sql_count)
+    print count
+    print '--count-----'
+    fetch_list = cursor.fetchall()
+    print fetch_list
+    print '------fetchall----'
+    fetch_tuple=fetch_list[0]
+    num_old=fetch_tuple[0]
+    print num_old
+    print '----num_old---'
+
+    print '------------'
+    print "fetch all succeed."
     province_https=['SHANGHAI']
     province_one=['GUANGDONG','BEIJING','ZHEJIANG','JIANGSU','SHANDONG','OTHER']
     province_two=['SICHUAN','FUJIAN','HUBEI','ANHUI','HENAN','HUNAN','HEBEI','TIANJIN','CHONGQING']
@@ -219,12 +234,12 @@ if __name__ == '__main__':
             read.readLines(ip_list,province= province_name)
             #read.readLines(ip_list)
             time.sleep(1.1)
-    cursor=cnx.cursor()
-    sql_delete = "delete from smart_proxy_proxyip limit 100"
-    cursor.execute(sql_delete)
-    print "Delete limit 100 succeed."
-    cnx.commit()
-    cnx.close()
+    #cursor=cnx.cursor()
+    #sql_delete = "delete from smart_proxy_proxyip where province!= 'OTHER' limit 100"
+    #cursor.execute(sql_delete)
+    #print "Delete limit 100 succeed."
+    #cnx.commit()
+    #cnx.close()
     t2=time.time()
     timedur  =t2-t1
     print timedur
