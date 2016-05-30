@@ -9,18 +9,16 @@ def print_province_error(start_position):
     MAX_ERROR_LENGTH = 10
     succeed_count, failed_count, analyzed_province_report, _, _, _ = analyze_logs(start_position)
     sorted_reasons = sorted(analyzed_province_report, key=lambda k: len(analyzed_province_report[k]), reverse=True)
-    print "总共下载{0}次".format(succeed_count + failed_count)
     for reason in sorted_reasons[1:MAX_ERROR_LENGTH]:
-        company_names = analyzed_province_report[reason]
-        company_names2 = set(company_names)
+        provinces = analyzed_province_report[reason]
+        provinces2 = set(provinces)
         print "#########################"
         print "#########################"
         print "-------------------------"
-        print company_names
-        print "{0}, 共计{1}次".format(reason, len(company_names))
+        print "{0}, 共计{1}次".format(reason, len(provinces))
         print "-------------------------"
-        for company_name in company_names2:
-            print company_name.encode("utf8")
+        for province in provinces2:
+            print province
 
 
 def print_company_error(start_position):
@@ -39,7 +37,7 @@ def print_company_error(start_position):
         print "{0}, 共计{1}次".format(reason, len(company_names))
         print "-------------------------"
         for company_name in company_names[0:MAX_COMPANY_LENGTH]:
-            print company_name.encode("utf8")
+            print company_name
 
 
 def print_avg_time():
@@ -55,7 +53,6 @@ def print_avg_time():
 
 
 def analyze_logs(start_position=0):
-    print start_position
     analyzed_province_report = {}
     analyzed_company_report = {}
     succeed_spend_time = []
@@ -82,14 +79,14 @@ def analyze_logs(start_position=0):
         task_uri = source_db.crawler_task.find_one({"_id": task_id})['uri']
         province, company_name, _ = analyze_uri(task_uri)
         if reason in analyzed_province_report:
-            analyzed_province_report[reason].append(province.encode('utf8'))
+            analyzed_province_report[reason.encode('utf8')].append(province.encode('utf8'))
         else:
-            analyzed_province_report[reason] = [province.encode('utf8')]
+            analyzed_province_report[reason.encode('utf8')] = [province.encode('utf8')]
 
         if reason in analyzed_company_report:
-            analyzed_company_report[reason].append(company_name.encode('utf8'))
+            analyzed_company_report[reason.encode('utf8')].append(company_name.encode('utf8'))
         else:
-            analyzed_company_report[reason] = [company_name.encode('utf8')]
+            analyzed_company_report[reason.encode('utf8')] = [company_name.encode('utf8')]
 
     return (succeed_count, failed_count, analyzed_province_report, analyzed_company_report, succeed_spend_time,
             failed_spend_time)
