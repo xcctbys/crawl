@@ -66,6 +66,7 @@
       "associated_field_source_path": [ "" ],
       "dest_field": {
         "主键": "company_key",
+        "序号": "year_report_id",
         "报送年度": "report_year",
         "发布日期": "publicity_date"
       }
@@ -82,6 +83,7 @@
         "营业总收入": "business_income",
         "营业总收入中主营业务收入": "main_business_income",
         "利润总额": "profit",
+        "净利润": "net_income",
         "纳税总额": "tax",
         "负债总额": "debts"
       }
@@ -118,7 +120,8 @@
         "序号": "year_report_id",
         "主键": "company_key",
         "投资设立企业或购买股权企业名称": "invest_enter_name",
-        "注册号/统一社会信用代码": "ent_code"
+        "注册号/统一社会信用代码": "ent_code",
+        "注册号": "ent_code"
       }
     },
     "YearReportModify": {
@@ -147,7 +150,8 @@
         "主债权数额": "main_creditor_right_amount",
         "履行债务的期限": "fullfill_debt_duration",
         "保证的方式": "guarantee_type",
-        "保证的期间": "warrandice_scope"
+        "保证的期间": "warrandice_scope",
+        "保证担保的范围": "warrandice_scope"
       }
     },
     "YearReportShareholder": {
@@ -175,10 +179,12 @@
         "实缴出资方式": "paid_type",
         "证照/证件类型": "certificate_type",
         "股东类型": "shareholder_type",
+        "股东（发起人）类型": "shareholder_type",
         "认缴出资日期": "subscription_date",
         "实缴额（万元）": "paid_amount",
         "认缴出资方式": "subscription_type",
         "股东": "shareholder_name",
+        "股东（发起人）": "shareholder_name",
         "认缴出资额（万元）": "subscription_money_amount",
         "证照/证件号码": "certificate_number",
         "实缴出资额（万元）": "paid_money_amount",
@@ -561,6 +567,11 @@
         "option": ""
       },
       {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
         "dest_field": "report_year",
         "datatype": "INT",
         "option": ""
@@ -604,6 +615,11 @@
       },
       {
         "dest_field": "profit",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "net_income",
         "datatype": "CHAR(20)",
         "option": ""
       },
@@ -1159,11 +1175,6 @@
         "option": ""
       },
       {
-        "dest_field": "check_date",
-        "datatype": "CHAR(20)",
-        "option": ""
-      },
-      {
         "dest_field": "check_result",
         "datatype": "CHAR(100)",
         "option": ""
@@ -1290,11 +1301,6 @@
         "option": ""
       },
       {
-        "dest_field": "license_publicity_time",
-        "datatype": "CHAR(20)",
-        "option": ""
-      },
-      {
         "dest_field": "license_content",
         "datatype": "CHAR(20)",
         "option": ""
@@ -1331,6 +1337,11 @@
       },
       {
         "dest_field": "license_register_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_change_item",
         "datatype": "CHAR(20)",
         "option": ""
       },

@@ -109,7 +109,7 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=prov_choices, tid='559326559297365',num='10',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=prov_choices, tid='559326559297365',num='20',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         self.a_list=[]
         self.tid= tid
@@ -129,7 +129,7 @@ class PaidProxy(BaseProxy):
         if province:
             area= prodict.get(province,'OTHER')
             if area == 'OTHER':
-                area = random.choice(["北京","上海","广东","山东","浙江"])
+                area = random.choice(["北京"])
             print area
             print '-----area-----'
             self.urlget= self.url+para_url+'&area='+area
@@ -173,14 +173,17 @@ class PutIntoMy:
 			print '-----cursor---------'
 			sql = "insert into smart_proxy_proxyip(ip_port,province,is_valid,create_datetime,update_datetime) values(%s,%s,%s,%s,%s)"
 			print sql
-
-			if i>1:
-				cursor.executemany(sql,list)
-				cnx.commit()
-				print("插入")
-				i=0
-				list=[]
+			print '-----sql---------'
+			#if i>1:
+				#cursor.executemany(sql,list)
+				#cnx.commit()
+				#print("插入")
+				#i=0
+				#list=[]
 			i=i+1
+        if i>1:
+            cursor.executemany(sql,list)
+            cnx.commit()
         #if i>0:
         #    cursor.executemany(sql,list)
         #    cnx.commit()
@@ -215,33 +218,63 @@ if __name__ == '__main__':
     print num_old
     print '----num_old---'
 
+    
+
+    cursor=cnx.cursor()
+    sql_count_all="select count(*) from smart_proxy_proxyip where province='OTHER'"
+    count=cursor.execute(sql_count_all)
+    print count
+    print '--count-----'
+    fetch_list = cursor.fetchall()
+    print fetch_list
+    print '------fetchall----'
+    fetch_tuple=fetch_list[0]
+    num_other=fetch_tuple[0]
+    num_other=num_other-100
+
+
+
+
     print '------------'
     print "fetch all succeed."
     province_https=['SHANGHAI']
     province_one=['GUANGDONG','BEIJING','ZHEJIANG','JIANGSU','SHANDONG','OTHER']
     province_two=['SICHUAN','FUJIAN','HUBEI','ANHUI','HENAN','HUNAN','HEBEI','TIANJIN','CHONGQING']
-    province_three=['JIANGXI','SHAANXI','SHANXI','HEILONGJIANG','XINJIANG','GUANGXI','JILIN','YUNNAN','NEIMENGGU','GANSU','GUIZHOU','HAINAN','LIAONING','NINGXIA','QINGHAI','XIZANG','OTHER']
+    province_three=['JIANGXI','SHAANXI','SHANXI','HEILONGJIANG','XINJIANG','GUANGXI','JILIN','YUNNAN','GANSU','GUIZHOU','HAINAN','LIAONING','QINGHAI','OTHER']
     province_list_all=[province_https,province_one,province_two,province_three]
     read = PutIntoMy()
     for province_list in province_list_all:
         for province_name in province_list:
             print '======province name=====', province_name
             prot = 'http'
+            nums=20
             if province_name == 'SHANGHAI':
                 prot='https'
-            test =PaidProxy(tid='559326559297365',num=11,sortby= 'time',protocol= prot,filter='on',province= province_name)
+            if province_name == 'OTHER':
+                time.sleep(2)
+                nums=100
+            test =PaidProxy(tid='559326559297365',num=nums,sortby= 'time',protocol= prot,filter='on',province= province_name)
             ip_list=test.get_ipproxy()
             read.readLines(ip_list,province= province_name)
             #read.readLines(ip_list)
-            time.sleep(1.1)
+            time.sleep(1.4)
     cursor=cnx.cursor()
-    sql_delete = "delete from smart_proxy_proxyip where province!= 'OTHER' limit %(nums)s "
+    sql_delete = "delete from smart_proxy_proxyip where province!= 'OTHER' order by update_datetime  limit %(nums)s "
     print '---sql_delete----'
     #sql_content = "insert into table(key1,key2,key3) values (%s,%s,%s)"%(value1,value2,value3)
     data_limit={'nums':num_old}
 
     cursor.execute(sql_delete,data_limit)
-    print "Delete limit num_limit succeed."
+    print "Delete province_num succeed."
+    cnx.commit()
+    cursor=cnx.cursor()
+    sql_delete = "delete from smart_proxy_proxyip where province= 'OTHER' order by update_datetime  limit %(nums)s "
+    print '---sql_delete----'
+    #sql_content = "insert into table(key1,key2,key3) values (%s,%s,%s)"%(value1,value2,value3)
+    data_limit={'nums':num_other}
+    cursor.execute(sql_delete,data_limit)
+    print "Delete limit other  succeed."
+    print '--------222------------'
     cnx.commit()
     cnx.close()
     t2=time.time()
