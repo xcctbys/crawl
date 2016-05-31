@@ -4,7 +4,6 @@ import os
 import threading
 import importlib
 
-
 ENT_CRAWLER_SETTINGS = os.getenv('ENT_CRAWLER_SETTINGS')
 if ENT_CRAWLER_SETTINGS:
     settings = importlib.import_module(ENT_CRAWLER_SETTINGS)
@@ -14,6 +13,8 @@ else:
 from crawler import CrawlerUtils
 from zongju_crawler import ZongjuCrawler
 from zongju_crawler import ZongjuParser
+
+
 class FujianCrawler(ZongjuCrawler):
     """福建爬虫
     """
@@ -31,10 +32,9 @@ class FujianCrawler(ZongjuCrawler):
             'get_checkcode': 'http://wsgs.fjaic.gov.cn/creditpub/captcha?preset=math-01',
             'post_checkcode': 'http://wsgs.fjaic.gov.cn/creditpub/security/verify_captcha',
             'get_info_entry': 'http://wsgs.fjaic.gov.cn/creditpub/search/ent_info_list',
-
-            'open_info_entry': 'http://wsgs.fjaic.gov.cn/creditpub/notice/view?',  #获得企业信息页面的url，通过指定不同的tab=1-4来选择不同的内容（工商公示，企业公示...）
-            'open_detail_info_entry': ''
-        }
+            'open_info_entry':
+            'http://wsgs.fjaic.gov.cn/creditpub/notice/view?',    #获得企业信息页面的url，通过指定不同的tab=1-4来选择不同的内容（工商公示，企业公示...）
+            'open_detail_info_entry': ''}
 
     def __init__(self, json_restore_path):
         ZongjuCrawler.__init__(self, json_restore_path)
@@ -58,6 +58,6 @@ if __name__ == '__main__':
     # enterprise_list = ['100000000018305']
     for ent_number in enterprise_list:
         ent_number = ent_number.rstrip('\n')
-        settings.logger.info('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
+        settings.logger.info('###################   Start to crawl enterprise with id %s   ###################\n' %
+                             ent_number)
         crawler.run(ent_number=ent_number)
-

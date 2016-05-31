@@ -7,7 +7,6 @@ from email.mime.text import MIMEText
 
 
 class SendMail(object):
-
     def __init__(self, host, port, username, password, ssl=False):
         self.host = host
         self.port = port

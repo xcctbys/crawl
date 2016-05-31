@@ -187,7 +187,6 @@ class AntiNoise(object):
         x_list += new_x_list
         return y_list, x_list
 
-
 # #
 if __name__ == '__main__':
     image_path = "raw/images/zongju/zongju1_481.png"

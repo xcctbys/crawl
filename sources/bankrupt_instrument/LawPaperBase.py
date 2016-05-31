@@ -1,6 +1,5 @@
 # encoding=utf-8
 
-
 from datetime import datetime
 import re
 import os
@@ -84,15 +83,45 @@ class LawPaperBase(object):
     @staticmethod
     def convert_number(chinese):
         dates_dict_0 = {
-            u"二十一": "21", u"二十二": "22", u"二十三": "23", u"二十四": "24", u"二十五": "25",
-            u"二十六": "26", u"二十七": "27", u"二十八": "28", u"二十九": "29", u"三十": "30", u"三十一": "31",
+            u"二十一": "21",
+            u"二十二": "22",
+            u"二十三": "23",
+            u"二十四": "24",
+            u"二十五": "25",
+            u"二十六": "26",
+            u"二十七": "27",
+            u"二十八": "28",
+            u"二十九": "29",
+            u"三十": "30",
+            u"三十一": "31",
             u"元": "1"
         }
-        dates_dict_1 = {u"十一": "11", u"十二": "12", u"十三": "13", u"十四": "14", u"十五": "15",
-                        u"十六": "16", u"十七": "17", u"十八": "18", u"十九": "19", u"二十": "20",}
-        dates_dict_2 = {u"〇": "0", u"零": "0", u"一": "1", u"二": "2", u"三": "3",
-                        u"四": "4", u"五": "5", u"六": "6", u"七": "7",
-                        u"八": "8", u"九": "9", u"十": "10", u" ": "", "\t": "", "\n": "", u"○": "0"}
+        dates_dict_1 = {u"十一": "11",
+                        u"十二": "12",
+                        u"十三": "13",
+                        u"十四": "14",
+                        u"十五": "15",
+                        u"十六": "16",
+                        u"十七": "17",
+                        u"十八": "18",
+                        u"十九": "19",
+                        u"二十": "20", }
+        dates_dict_2 = {u"〇": "0",
+                        u"零": "0",
+                        u"一": "1",
+                        u"二": "2",
+                        u"三": "3",
+                        u"四": "4",
+                        u"五": "5",
+                        u"六": "6",
+                        u"七": "7",
+                        u"八": "8",
+                        u"九": "9",
+                        u"十": "10",
+                        u" ": "",
+                        "\t": "",
+                        "\n": "",
+                        u"○": "0"}
         for c, n in dates_dict_0.iteritems():
             chinese = chinese.replace(c, n)
         for c, n in dates_dict_1.iteritems():
@@ -229,16 +258,13 @@ class LawPaperBase(object):
         previous_word = None
         previous_flag = None
         is_replaced = False
-        stop_words = [u"符合", u"以其", u"及其", u"等", u"合并", u"自", u"因", u"的债权人",
-                      u"全体债权人", u"享有", u"法定代表", u"清算组", u"不能",
-                      u"债权人", u"企业破产", u"指定", u"破产案", u"担任", u"法院",
-                      u"提出", u"申请", u"进行", u"重整", u"清算", u"（以下", u"管理人",
-                      u"中华人民共和国企业破产法", u"清偿债务", u"中华人民共和国民事诉讼法", u"中华人民共和国",
-                      u"中华人民共和国破产法", u"股东", u"，", u":", u"：", u"。", u"董事会", u"强制", u"纳入", u"【", u"】", u" ", u"\n"]
-        start_words = [u"债务人", u"终结", u"破产人", u"本院认为", u"被申请人", u"受理", u"根据", u"申请",
-                       u"裁定", u"受理了", u"宣告", u"如下", u"受理的", u"立案", u"裁定将", u"批准"]
-        reco_words = [u"对", u"确已", u"或", u"名下的", u"或者", u"债务人", u"被申请人",
-                      u"：", u"申请人", u"下落不明", u"终结", u"破产", u"不足以"]
+        stop_words = [u"符合", u"以其", u"及其", u"等", u"合并", u"自", u"因", u"的债权人", u"全体债权人", u"享有", u"法定代表", u"清算组", u"不能",
+                      u"债权人", u"企业破产", u"指定", u"破产案", u"担任", u"法院", u"提出", u"申请", u"进行", u"重整", u"清算", u"（以下", u"管理人",
+                      u"中华人民共和国企业破产法", u"清偿债务", u"中华人民共和国民事诉讼法", u"中华人民共和国", u"中华人民共和国破产法", u"股东", u"，", u":", u"：",
+                      u"。", u"董事会", u"强制", u"纳入", u"【", u"】", u" ", u"\n"]
+        start_words = [u"债务人", u"终结", u"破产人", u"本院认为", u"被申请人", u"受理", u"根据", u"申请", u"裁定", u"受理了", u"宣告", u"如下",
+                       u"受理的", u"立案", u"裁定将", u"批准"]
+        reco_words = [u"对", u"确已", u"或", u"名下的", u"或者", u"债务人", u"被申请人", u"：", u"申请人", u"下落不明", u"终结", u"破产", u"不足以"]
         great_stop_words = stop_words + start_words + reco_words
         keep_name = None
         replace_name = None
@@ -251,29 +277,26 @@ class LawPaperBase(object):
             else:
                 just_added = False
             if (flag == "ns" and not START and (word not in stop_words) and (previous_flag not in ["ns"])
-                and previous_word not in [u"债权人"]):
+                    and previous_word not in [u"债权人"]):
                 START = True
                 name_list = []
                 name_list.append(word)
                 if is_print:
                     print "-" * 30, "first start"
-            elif ((previous_word in start_words or
-                       (previous_word is not None and
-                                sum([1 if previous_word.__contains__(x) else 0 for x in [u"公司", u"旅馆"]]) > 0)
+            elif ((previous_word in start_words
+                   or (previous_word is not None
+                       and sum([1 if previous_word.__contains__(x) else 0 for x in [u"公司", u"旅馆"]]) > 0)
                    or (previous_word is not None and (previous_word + word) in start_words))
-                  and word not in great_stop_words
-                  and previous_word not in [u"的"]
-                  and not START):
+                  and word not in great_stop_words and previous_word not in [u"的"] and not START):
                 if previous_word + word not in great_stop_words and flag not in ["x", "p"] and word not in start_words:
                     name_list = []
                     name_list.append(word)
                     START = True
                     if is_print:
                         print "-" * 30, "second start"
-            elif (word in great_stop_words or (not flag.__contains__("n") and
-                                                       flag not in ["a", "ag", "j", "b", "d", "i", "t",
-                                                                    "v", "c", "f", "g", "zg", "x",
-                                                                    "l", "s", "k", "p", "m", "q", "vg"])
+            elif (word in great_stop_words or (not flag.__contains__("n")
+                                               and flag not in ["a", "ag", "j", "b", "d", "i", "t", "v", "c", "f", "g",
+                                                                "zg", "x", "l", "s", "k", "p", "m", "q", "vg"])
                   or (previous_word is not None and previous_word + word in great_stop_words)):
                 if START:
                     if previous_word + word in great_stop_words:
@@ -329,7 +352,7 @@ class LawPaperBase(object):
                     name_list.append(word)
 
             if not is_replaced and previous_word is not None and (
-                            previous_word + word in [u"(以下", u"（以下", u"(简称", u"（简称", u"（下称"]):
+                    previous_word + word in [u"(以下", u"（以下", u"(简称", u"（简称", u"（下称"]):
                 addv_pattern = u"简称([\u0000-\uffff]{0,10})）"
                 addv_pattern_1 = u"简称([\u0000-\uffff]{0,10})\)"
                 addv_pattern_2 = u"下称([\u0000-\uffff]{0,10})\）"

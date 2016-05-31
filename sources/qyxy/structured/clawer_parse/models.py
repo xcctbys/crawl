@@ -19,7 +19,7 @@ class Operation(object):
 
     def write_db_by_dict(self):
         models = self.models
-        logger = settings.logger 
+        logger = settings.logger
 
         if self.is_company_in_db():
             GlobalVal.count_parsed_plusone()

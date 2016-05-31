@@ -11,9 +11,9 @@ import mysql.connector
 import sys
 import raven
 
-
 sentry_client = None
 configuration_file = "sys/Configuration.cfg"
+
 
 class InstrumentParsing():
     configuration_file = "sys/Configuration.cfg"
@@ -34,7 +34,7 @@ class InstrumentParsing():
     iszip = False
     pattern_date = u"[\s0-9一二三四五六七八九十零〇]+年[\s0-9一二三四五六七八九十零〇]+月[\s0-9一二三四五六七八九十零〇]+[日]*"
 
-    def __init__(self, conf=None, iszip = False):
+    def __init__(self, conf=None, iszip=False):
         self.iszip = iszip
         print "Start"
 
@@ -57,7 +57,7 @@ class InstrumentParsing():
                 for line in fi:
                     self.last_file.append(line)
         available_file_list = self.get_available_file()
-        
+
         if len(available_file_list) == 0:
             exit(1)
         self.base = LawPaperBase()
@@ -135,7 +135,8 @@ class InstrumentParsing():
             "json_path": conf.get("JSON", "path"),
             "json_host": conf.get("JSON", 'host'),
             "pdf_path": conf.get("PDF", "path"),
-            "pdf_host": conf.get("PDF", 'host')}
+            "pdf_host": conf.get("PDF", 'host')
+        }
         query = ("""UPDATE config SET (json_path = %(json_path)s,
               json_host = %(json_host)s, pdf_path = %(pdf_path)s,
               pdf_host = %(pdf_host)s
@@ -168,9 +169,9 @@ class InstrumentParsing():
             if self.iszip:
                 open_fun = gzip.open
                 # with open(_file, 'rb') as fin:
-            # else:
+                # else:
                 # with
-            # with gzip.open(_file, 'rb') as fin:
+                # with gzip.open(_file, 'rb') as fin:
             with open_fun(_file, 'r') as fin:
                 for line in fin:
                     line_item = json.loads(line, encoding="utf-8")
@@ -205,7 +206,6 @@ class InstrumentParsing():
                                     continue
                             except:
                                 pass
-                            
 
                             try:
                                 law_data = self.event_compulsory(content, url, court, publish_date, pdf_path)
@@ -215,7 +215,6 @@ class InstrumentParsing():
                                     continue
                             except:
                                 pass
-                            
 
                             try:
                                 law_data = self.event_creditors_meeting(content, url, court, publish_date, pdf_path)
@@ -225,7 +224,6 @@ class InstrumentParsing():
                                     continue
                             except:
                                 pass
-                            
 
                             try:
                                 law_data = self.event_declaration(content, url, court, publish_date, pdf_path)
@@ -235,7 +233,6 @@ class InstrumentParsing():
                                     continue
                             except:
                                 pass
-                            
 
                             try:
                                 law_data = self.event_reforming(content, url, court, publish_date, pdf_path)
@@ -245,7 +242,6 @@ class InstrumentParsing():
                                     continue
                             except:
                                 pass
-                            
 
                             try:
                                 law_data = self.event_reforming_plan(content, url, court, publish_date, pdf_path)
@@ -256,7 +252,6 @@ class InstrumentParsing():
                                     continue
                             except:
                                 pass
-                            
 
                             try:
                                 law_data = self.event_application(content, url, court, publish_date, pdf_path)
@@ -266,7 +261,6 @@ class InstrumentParsing():
                                     continue
                             except:
                                 pass
-                            
 
                             try:
                                 law_data = self.event_other(content, url, court, publish_date, pdf_path)
@@ -274,19 +268,16 @@ class InstrumentParsing():
                                     for data in law_data.values():
                                         self.insert_execute(cursor, data)
                                     continue
-                                
+
                             except:
                                 pass
                             print "lost!"
-
 
         cursor.close()
         return completed_files
 
     def get_connection(self):
-        cnx = mysql.connector.connect(user=self.db_user, password=self.db_pwd,
-                                      host=self.db_host,
-                                      database=self.db_name)
+        cnx = mysql.connector.connect(user=self.db_user, password=self.db_pwd, host=self.db_host, database=self.db_name)
         return cnx
 
     def get_available_file(self):
@@ -450,8 +441,8 @@ class InstrumentParsing():
     def event_creditors_meeting(self, content, url, court, publish_date, pdf_path):
         # results = pd.DataFrame(columns=(u"被申请人", u"事件文本", u"事件类型", u"受理法院", u"发布时间" ,u"URL"))
         results = {}
-        if content.__contains__(u"债权人会议") and not content.__contains__(u"终结") and not (
-                    content.__contains__(u"批准") and content.__contains__(u"重整计划")):
+        if content.__contains__(u"债权人会议") and not content.__contains__(u"终结") and not (content.__contains__(u"批准") and
+                                                                                       content.__contains__(u"重整计划")):
             names, _ = self.base.get_enterprise_name(content)
             date = self.base.convert_date(publish_date, True)
             index = 0
@@ -494,8 +485,8 @@ class InstrumentParsing():
         ## 重整程序
         results = {}
 
-        if content.__contains__(u"重整") and not content.__contains__(u"终结") and not (
-                    content.__contains__(u"批准") and content.__contains__(u"重整计划")):
+        if content.__contains__(u"重整") and not content.__contains__(u"终结") and not (content.__contains__(u"批准") and
+                                                                                    content.__contains__(u"重整计划")):
             names, _ = self.base.get_enterprise_name(content)
             date = self.base.convert_date(publish_date, True)
             index = 0
@@ -583,6 +574,7 @@ def send_sentry_report():
     if sentry_client:
         sentry_client.captureException()
 
+
 if __name__ == '__main__':
     args = sys.argv
     configfile = None
@@ -600,13 +592,13 @@ if __name__ == '__main__':
             config.read(configfile)
 
     sentry_dns = config.get("SETTING", "sentry_dns")
-    if sentry_dns is None or sentry_dns== "":
+    if sentry_dns is None or sentry_dns == "":
         sentry_dns = 'http://917b2f66b96f46b785f8a1e635712e45:556a6614fe28410dbf074552bd566750@sentry.princetechs.com//2'
     sentry_client = raven.Client(dsn=sentry_dns)
 
     try:
-        InstrumentParsing(conf = configfile)
+        InstrumentParsing(conf=configfile)
     except:
         send_sentry_report()
-    
+
     print "End"

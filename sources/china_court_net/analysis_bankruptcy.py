@@ -12,7 +12,6 @@ import requests
 import os
 import re
 
-
 DEBUG = False
 if DEBUG:
     level = logging.DEBUG
@@ -23,7 +22,6 @@ logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: 
 
 
 class Analysis(object):
-
     def __init__(self, path, url=None):
         self.pdf_url_host = "http://rmfygg.court.gov.cn/psca/lgnot/bulletin/download/"
         self.path = path
@@ -83,7 +81,6 @@ class Analysis(object):
 
 
 class TestAnalysis(unittest.TestCase):
-
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.path = "test.txt"
@@ -92,8 +89,8 @@ class TestAnalysis(unittest.TestCase):
         """http://rmfygg.court.gov.cn/psca/lgnot/solr/searchBulletinInterface.do?callback=jQuery152043560746777802706_1448866417716&start=17630&limit=16&wd=rmfybulletin&list%5B0%5D=bltntype%3A&_=1448866625744
         """
         self.analysis = Analysis(self.path, "http://rmfygg.court.gov.cn/psca/lgnot/solr/searchBulletinInterface.do?"
-                                            "callback=jQuery152043560746777802706_1448866417716&start=1&limit=16&wd"
-                                            "=rmfybulletin&list%5B0%5D=bltntype%3A&_=1448866625744")
+                                 "callback=jQuery152043560746777802706_1448866417716&start=1&limit=16&wd"
+                                 "=rmfybulletin&list%5B0%5D=bltntype%3A&_=1448866625744")
         self.analysis.parse()
 
         self.assertNotEqual(self.analysis.result, [])

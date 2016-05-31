@@ -12,6 +12,9 @@ DATABASES = {
         "USER": "cacti",
         "PASSWORD": "cacti",
         "HOST": "127.0.0.1",
+        "OPTIONS": {
+            "init_command": "SET storage_engine=MyISAM",
+        },
         'TEST':{
             'CHARSET':"utf8",
             'COLLATION':"utf8_general_ci"
@@ -31,7 +34,7 @@ CACHES = {
     }
 }
 
-PYTHON = "/usr/bin/python"
+PYTHON = "/home/kai/Documents/pyenv/dj18/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE= os.path.join(os.path.dirname(__file__), "cron.f")
 
@@ -98,7 +101,7 @@ for name, db in MongoDBS.iteritems():
 
 
 # Extracter config file path
-EXTRACTER_CONFIG_PATH = 'structure/extracters/gs_table_conf.json'
+EXTRACTER_CONFIG_PATH = 'structure/extracters/conf_csciwlpc_local.json'
 
 """
 RAVEN_CONFIG = {

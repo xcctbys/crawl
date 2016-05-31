@@ -101,7 +101,7 @@ RAVEN_CONFIG = {
 }
 
 # Extracter config file path
-EXTRACTER_CONFIG_PATH = 'structure/extracters/csciwlpc_conf.json'
+EXTRACTER_CONFIG_PATH = 'structure/extracters/conf_csciwlpc.json'
 
 LOGGING = {
     'version': 1,

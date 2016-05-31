@@ -60,8 +60,8 @@ class ZhejiangCrawler(object):
         self.regNo = ""
         self.reportNo = ""
         self.year = ""
-        # proxies = get_proxy('zhejiang')
-        proxies = {'http': 'http://42.85.232.245:8888'}
+        proxies = get_proxy('zhejiang')
+        # proxies = {'http': 'http://42.85.232.245:8888'}
         if proxies:
             print proxies
             self.requests.proxies = proxies

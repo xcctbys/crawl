@@ -24,6 +24,7 @@ from collector.utils_generator import DataPreprocess, GeneratorDispatch, Generat
 from collector.models import CrawlerDownloadType, CrawlerDownload, CrawlerDownloadSetting
 from collector.utils_generator import exec_command, force_exit, dereplicate_uris
 from collector.utils_cron import CronTab
+from structure.models import  Extracter, ExtracterStructureConfig
 from redis import Redis
 from rq import Queue
 import subprocess
@@ -118,6 +119,30 @@ def insert_script_without_job(script, settings ):
     cd1.save()
 
 
+def insert_script_and_config_without_job(script, settings, config=None):
+    name = "This is a script."
+    prior = random.randint(-1, 5)
+
+    onetype = CrawlerDownloadType(language='other', is_support=True)
+    onetype.save()
+    job = Job(name = name, info="", priority= prior)
+    job.save()
+
+    schemes = settings['schemes']
+    cron = settings['cron']
+    code_type = settings['code_type']
+
+    generator = CrawlerTaskGenerator(job = job, code= script, code_type= code_type, schemes=schemes, cron = cron)
+    generator.save()
+    cds1 =CrawlerDownloadSetting(job=job, proxy='122', cookie='22', dispatch_num=50)
+    cds1.save()
+    cd1 =CrawlerDownload(job=job, code='codestr2', types=onetype)
+    cd1.save()
+
+    extracter = Extracter(extracter_id=random.randint(1,5), extracter_config=config)
+    extracter.save()
+    extracter_conf = ExtracterStructureConfig(job=job, extracter=extracter)
+    extracter_conf.save()
 
 # @unittest.skip("showing class skipping")
 class TestGeneratorCommand(TestCase):

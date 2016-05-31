@@ -4,7 +4,6 @@
 import unittest
 from Guangdong0 import Guangdong0
 
-
 # urls ={
 #         "main": "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=4a7c1ee86a544933abed6b502735ad08",
 #         "ind_comm_url" : "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=4a7c1ee86a544933abed6b502735ad08",
@@ -12,12 +11,14 @@ from Guangdong0 import Guangdong0
 #         "other_dept_pub_url": "http://www.szcredit.com.cn/web/GSZJGSPT/QtbmDetail.aspx?rid=4a7c1ee86a544933abed6b502735ad08",
 #         # "judical_assist_url": "http://gsxt.gdgs.gov.cn/aiccips/judiciaryAssist/judiciaryAssistInit.html",
 #         }
-urls ={
-"main": "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=9c245e77c5d8445e85b3915adb317857",
-"ind_comm_url" :"http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=9c245e77c5d8445e85b3915adb317857",
-"ent_pub_url" : "http://www.szcredit.com.cn/web/GSZJGSPT/QynbDetail.aspx?rid=9c245e77c5d8445e85b3915adb317857",
-"other_dept_pub_url" : "http://www.szcredit.com.cn/web/GSZJGSPT/QtbmDetail.aspx?rid=9c245e77c5d8445e85b3915adb317857"
+urls = {
+    "main": "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=9c245e77c5d8445e85b3915adb317857",
+    "ind_comm_url": "http://www.szcredit.com.cn/web/GSZJGSPT/QyxyDetail.aspx?rid=9c245e77c5d8445e85b3915adb317857",
+    "ent_pub_url": "http://www.szcredit.com.cn/web/GSZJGSPT/QynbDetail.aspx?rid=9c245e77c5d8445e85b3915adb317857",
+    "other_dept_pub_url": "http://www.szcredit.com.cn/web/GSZJGSPT/QtbmDetail.aspx?rid=9c245e77c5d8445e85b3915adb317857"
 }
+
+
 class TestGuangdong0(unittest.TestCase):
     def setUp(self):
         self.guangdong = Guangdong0()
@@ -28,8 +29,8 @@ class TestGuangdong0(unittest.TestCase):
     def tearDown(self):
         self.guangdong = None
 
-class TestMain(TestGuangdong0):
 
+class TestMain(TestGuangdong0):
     def test_run_crawl_ind_comm_pub_pages(self):
         data = self.crawler.crawl_ind_comm_pub_pages(urls['ind_comm_url'])
         print data
@@ -48,6 +49,7 @@ class TestMain(TestGuangdong0):
     @unittest.skip("skip judical assist pub page")
     def test_run_crawl_judical_assist_pub_pages(self):
         pass
+
 
 class IndCommPubPages(TestGuangdong0):
     def setUp(self):
@@ -88,10 +90,12 @@ class IndCommPubPages(TestGuangdong0):
         dict_jiben = self.analyser.parse_page(self.page, 'beian')
         self.assertTrue(dict_jiben.has_key(u'主要人员信息'))
         self.assertIsNotNone(dict_jiben[u'主要人员信息'])
+
     def test_table_beian_branch(self):
         dict_jiben = self.analyser.parse_page(self.page, 'beian')
         self.assertTrue(dict_jiben.has_key(u'分支机构信息'))
         self.assertIsNotNone(dict_jiben[u'分支机构信息'])
+
     def test_table_beian_clear(self):
         dict_jiben = self.analyser.parse_page(self.page, 'beian')
         self.assertTrue(dict_jiben.has_key(u'清算信息'))
@@ -131,12 +135,13 @@ class IndCommPubPages(TestGuangdong0):
         self.assertTrue(dict_jiben.has_key(u'抽查检查信息'))
         self.assertIsNotNone(dict_jiben[u'抽查检查信息'])
 
-class EntPubPages(TestGuangdong0):
 
+class EntPubPages(TestGuangdong0):
     def setUp(self):
         TestGuangdong0.setUp(self)
         self.url = urls['ent_pub_url']
         self.page = self.crawler.crawl_page_by_url(self.url)['page']
+
     @unittest.skip("annual table test")
     def test_table_annual_report_function(self):
         aurl = "http://www.szcredit.com.cn/web/GSZJGSPT/NBGSDetai.aspx?Entid=440301001012012102503211&NBYear=2014"
@@ -180,6 +185,7 @@ class EntPubPages(TestGuangdong0):
         self.assertTrue(dict_jiben.has_key(u'知识产权出质登记信息'))
         self.assertIsNotNone(dict_jiben[u'知识产权出质登记信息'])
 
+
 class OtherDepartPages(TestGuangdong0):
     def setUp(self):
         TestGuangdong0.setUp(self)
@@ -195,6 +201,7 @@ class OtherDepartPages(TestGuangdong0):
         dict_jiben = self.analyser.parse_page(self.page, 'xingzhengchufa')
         self.assertTrue(dict_jiben.has_key(u'行政处罚信息'))
         self.assertIsNotNone(dict_jiben[u'行政处罚信息'])
+
 
 def suite_ind_comm_pub_pages():
     suite = unittest.TestSuite()
@@ -213,6 +220,7 @@ def suite_ind_comm_pub_pages():
 
     return suite
 
+
 if __name__ == "__main__":
     # method 1
     # unittest.main()
@@ -225,7 +233,6 @@ if __name__ == "__main__":
     suite1 = unittest.TestLoader().loadTestsFromTestCase(IndCommPubPages)
     suite2 = unittest.TestLoader().loadTestsFromTestCase(EntPubPages)
     suite3 = unittest.TestLoader().loadTestsFromTestCase(OtherDepartPages)
-    suites= unittest.TestSuite([suite1, suite2, suite3])
+    suites = unittest.TestSuite([suite1, suite2, suite3])
     runner = unittest.TextTestRunner()
     runner.run(suites)
-

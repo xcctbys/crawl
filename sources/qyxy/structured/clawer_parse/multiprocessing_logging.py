@@ -9,7 +9,6 @@ import sys
 import threading
 import traceback
 
-
 __version__ = '0.2.2'
 
 
@@ -22,15 +21,13 @@ def install_mp_handler(logger=None):
         logger = logging.getLogger()
 
     for i, orig_handler in enumerate(list(logger.handlers)):
-        handler = MultiProcessingHandler(
-            'mp-handler-{}'.format(i), sub_handler=orig_handler)
+        handler = MultiProcessingHandler('mp-handler-{}'.format(i), sub_handler=orig_handler)
 
         logger.removeHandler(orig_handler)
         logger.addHandler(handler)
 
 
 class MultiProcessingHandler(logging.Handler):
-
     def __init__(self, name, sub_handler=None):
         super(MultiProcessingHandler, self).__init__()
 

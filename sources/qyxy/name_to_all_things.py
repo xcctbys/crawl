@@ -50,7 +50,8 @@ class NameToIDCrawler(Crawler):
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Encoding': '"application/json, text/javascript, */*; q=0.01"',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': '"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0"'})
+            'User-Agent': '"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0"'
+        })
         self.json_dict = {}
         self.ent_name = None
         self.results = None
@@ -143,23 +144,22 @@ def process(count):
     import run
     run.config_logging()
     nametoid_to_json_name = 'nametoid' + str(count) + '.json'
-    crawler = NameToIDCrawler('./enterprise_crawler/nametoid/'+ str(nametoid_to_json_name))
+    crawler = NameToIDCrawler('./enterprise_crawler/nametoid/' + str(nametoid_to_json_name))
     nametoid_name = 'nametoid' + str(count) + '.txt'
     enterprise_list = get_enterprise_list('./enterprise_list/' + str(nametoid_name))
     print(len(enterprise_list))
     for ent_name in enterprise_list:
         ent_name = str(ent_name).rstrip('\n')
-        print(
-            '############   Start to crawl nametoid %d with name %s   ################\n' % (count, ent_name))
+        print('############   Start to crawl nametoid %d with name %s   ################\n' % (count, ent_name))
         crawler.run(ent_name=ent_name)
 
 
 if __name__ == '__main__':
-    pool = multiprocessing.Pool(processes = 4)
-    pool.map(process, (0,1,2,3,))   #维持执行的进程总数为processes，当一个进程执行完毕后会添加新的进程进去
+    pool = multiprocessing.Pool(processes=4)
+    pool.map(process, (0, 1, 2, 3, ))    #维持执行的进程总数为processes，当一个进程执行完毕后会添加新的进程进去
     print "Mark~ Mark~ Mark~~~~~~~~~~~~~~~~~~~~~~"
     pool.close()
-    pool.join()   #调用join之前，先调用close函数，否则会出错。执行完close后不会有新的进程加入到pool,join函数等待所有子进程结束
+    pool.join()    #调用join之前，先调用close函数，否则会出错。执行完close后不会有新的进程加入到pool,join函数等待所有子进程结束
     print "Sub-process(es) done."
     # thread.start_new_thread(process, (0,))
     # thread.start_new_thread(process, (1,))

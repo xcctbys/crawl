@@ -18,7 +18,6 @@ except:
 import traceback
 import datetime
 
-
 DEBUG = False
 if DEBUG:
     level = logging.DEBUG
@@ -30,7 +29,7 @@ logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: 
 
 class History(object):
     def __init__(self):
-        self.current_date =  datetime.date.today()
+        self.current_date = datetime.date.today()
         self.count = 1
         self.path = "/tmp/chinacourt_byday"
         try:
@@ -79,7 +78,7 @@ class Generator(object):
 
     def obtain_urls(self):
         if self.history.count < 8:
-            for page in range(self.history.count, self.history.count+1):
+            for page in range(self.history.count, self.history.count + 1):
                 # print self.history.current_date
                 self.do_obtain(self.history.current_date, page)
             self.history.count += 1
@@ -91,7 +90,12 @@ class Generator(object):
 
     def do_obtain(self, dt, page):
         url = self.page_url(dt, page)
-        r = requests.get(url, headers={"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"})
+        r = requests.get(
+            url,
+            headers={
+                "user-agent":
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
+            })
         if r.status_code != 200:
             return
         soup = BeautifulSoup(r.text, "html5lib")
@@ -108,7 +112,6 @@ class Generator(object):
 
 
 class GeneratorTest(unittest.TestCase):
-
     def setUp(self):
         unittest.TestCase.setUp(self)
 
@@ -122,7 +125,6 @@ class GeneratorTest(unittest.TestCase):
 
 
 class HistoryTest(unittest.TestCase):
-
     def setUp(self):
         unittest.TestCase.setUp(self)
 

@@ -1,0 +1,1599 @@
+{
+    "database": {
+        "source_db":{
+            "dbtype": "mongodb",
+            "host": "dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com",
+            "port": "3717",
+            "username": "root",
+            "password": "Password123",
+            "dbname": ""
+        },
+        "destination_db": {
+            "dbtype": "mysql",
+            "host": "csciwlpc.mysql.rds.aliyuncs.com",
+            "port": "3306",
+            "username": "plkj",
+            "password": "Password2016",
+            "dbname": "csciwlpc_aic"
+        }
+  },
+  "mapping": {
+    "Basic": {
+      "dest_table": "Basic",
+      "source_path": [ "ind_comm_pub_reg_basic" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "注册号/统一社会信用代码": "register_num",
+        "名称": "enter_name",
+        "类型": "enter_type",
+        "注册资本": "register_capital",
+        "成立日期": "establish_date",
+        "住所": "place",
+        "营业期限自": "time_start",
+        "营业期限至": "time_end",
+        "经营范围": "business_scope",
+        "登记机关": "register_gov",
+        "核准日期": "check_date",
+        "登记状态": "check_status"
+      }
+    },
+    "IndustryCommerceMainperson": {
+      "dest_table": "IndustryCommerceMainperson",
+      "source_path": [ "ind_comm_pub_arch_key_persons" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "序号": "id",
+        "姓名": "name",
+        "职务": "position"
+      }
+    },
+    "IndustryCommerceBranch": {
+      "dest_table": "IndustryCommerceBranch",
+      "source_path": [ "ind_comm_pub_arch_branch" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "序号": "id",
+        "主键": "company_key",
+        "名称": "branch_name",
+        "登记机关": "register_gov"
+      }
+    },
+    "EnterAnnualReport": {
+      "dest_table": "EnterAnnualReport",
+      "source_path": [ "ent_pub_ent_annual_report" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "报送年度": "report_year",
+        "发布日期": "publicity_date"
+      }
+    },
+    "YearReportAssets": {
+      "dest_table": "YearReportAssets",
+      "source_path": [ "ent_pub_ent_annual_report", "详情", "企业资产状况信息" ],
+      "associated_field_source_path": [ "", "序号", "" ],
+      "dest_field": {
+        "序号": "year_report_id",
+        "主键": "company_key",
+        "资产总额": "asset_all",
+        "所有者权益合计": "owner_asset",
+        "营业总收入": "business_income",
+        "营业总收入中主营业务收入": "main_business_income",
+        "利润总额": "profit",
+        "纳税总额": "tax",
+        "负债总额": "debts"
+      }
+    },
+    "YearReportSharechange": {
+      "dest_table": "YearReportSharechange",
+      "source_path": [ "ent_pub_ent_annual_report", "详情", "股权变更信息" ],
+      "associated_field_source_path": [ "", "序号", "" ],
+      "dest_field": {
+        "序号": "year_report_id",
+        "主键": "company_key",
+        "股东": "shareholder",
+        "变更前股权比例": "shares_before",
+        "变更后股权比例": "shares_after"
+      }
+    },
+    "YearReportOnline": {
+      "dest_table": "YearReportOnline",
+      "source_path": [ "ent_pub_ent_annual_report", "详情", "网站或网店信息" ],
+      "associated_field_source_path": [ "", "序号", "" ],
+      "dest_field": {
+        "序号": "year_report_id",
+        "主键": "company_key",
+        "类型": "online_type",
+        "名称": "ent_name",
+        "网址": "url"
+      }
+    },
+    "YearReportInvestment": {
+      "dest_table": "YearReportInvestment",
+      "source_path": [ "ent_pub_ent_annual_report", "详情", "对外投资信息" ],
+      "associated_field_source_path": [ "", "序号", "" ],
+      "dest_field": {
+        "序号": "year_report_id",
+        "主键": "company_key",
+        "投资设立企业或购买股权企业名称": "invest_enter_name",
+        "注册号/统一社会信用代码": "ent_code"
+      }
+    },
+    "YearReportModify": {
+      "dest_table": "YearReportModify",
+      "source_path": [ "ent_pub_ent_annual_report", "详情", "修改记录" ],
+      "associated_field_source_path": [ "", "序号", "" ],
+      "dest_field": {
+        "序号": "year_report_id",
+        "主键": "company_key",
+        "修改前": "modify_before",
+        "修改事项": "modify_item",
+        "修改后": "modify_after",
+        "修改日期": "modify_date"
+      }
+    },
+    "YearReportWarrandice": {
+      "dest_table": "YearReportWarrandice",
+      "source_path": [ "ent_pub_ent_annual_report", "详情", "对外提供保证担保信息" ],
+      "associated_field_source_path": [ "", "序号", "" ],
+      "dest_field": {
+        "序号": "year_report_id",
+        "主键": "company_key",
+        "债权人": "creditor",
+        "债务人": "debtor",
+        "主债权种类": "main_creditor_right",
+        "主债权数额": "main_creditor_right_amount",
+        "履行债务的期限": "fullfill_debt_duration",
+        "保证的方式": "guarantee_type",
+        "保证的期间": "warrandice_scope"
+      }
+    },
+    "YearReportShareholder": {
+      "dest_table": "YearReportShareholder",
+      "source_path": [ "ent_pub_ent_annual_report", "详情", "股东及出资信息" ],
+      "associated_field_source_path": [ "", "序号", "" ],
+      "dest_field": {
+        "序号": "year_report_id",
+        "主键": "company_key",
+        "股东": "shareholder",
+        "认缴出资方式": "subscription_type",
+        "认缴出资额（万元）": "subscription_amount",
+        "认缴出资时间": "subscription_time",
+        "出资方式": "paid_type",
+        "出资时间": "paid_time",
+        "实缴出资额（万元）": "paid_money_amount"
+      }
+    },
+    "ind_comm_pub_reg_shareholder": {
+      "dest_table": "ind_comm_pub_reg_shareholder",
+      "source_path": [ "ind_comm_pub_reg_shareholder" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "实缴出资方式": "paid_type",
+        "证照/证件类型": "certificate_type",
+        "股东类型": "shareholder_type",
+        "认缴出资日期": "subscription_date",
+        "实缴额（万元）": "paid_amount",
+        "认缴出资方式": "subscription_type",
+        "股东": "shareholder_name",
+        "认缴出资额（万元）": "subscription_money_amount",
+        "证照/证件号码": "certificate_number",
+        "实缴出资额（万元）": "paid_money_amount",
+        "实缴出资日期": "paid_date",
+        "认缴额（万元）": "subscription_amount"
+      }
+    },
+    "ind_comm_pub_reg_modify": {
+      "dest_table": "ind_comm_pub_reg_modify",
+      "source_path": [ "ind_comm_pub_reg_modify" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "变更事项": "modify_item",
+        "变更日期": "modify_date",
+        "变更后内容": "modify_after",
+        "变更前内容": "modify_before"
+      }
+    },
+    "ind_comm_pub_arch_liquidation": {
+      "dest_table": "ind_comm_pub_arch_liquidation",
+      "source_path": [ "ind_comm_pub_arch_liquidation" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "清算组成员": "persons",
+        "清算组负责人": "person_in_change"
+      }
+    },
+    "ind_comm_pub_movable_property_reg": {
+      "dest_table": "ind_comm_pub_movable_property_reg",
+      "source_path": [ "ind_comm_pub_movable_property_reg" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "状态": "status",
+        "公示日期": "publicity_time",
+        "登记日期": "sharechange_register_date",
+        "登记编号": "register_num",
+        "被担保债权数额": "guarantee_debt_amount",
+        "序号": "bas_id",
+        "登记机关": "register_gov"
+      }
+    },
+    "ind_comm_pub_equity_ownership_reg": {
+      "dest_table": "ind_comm_pub_equity_ownership_reg",
+      "source_path": [ "ind_comm_pub_equity_ownership_reg" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "登记编号": "register_num",
+        "质权人": "mortgagee_name",
+        "证照/证件号码": "pledgor_certificate_code",
+        "出质股权数额": "share_pledge_num",
+        "公示日期": "publicity_time",
+        "状态": "status",
+        "出质人": "pledgor",
+        "变化情况": "change_detail"
+      }
+    },
+    "ind_comm_pub_administration_sanction": {
+      "dest_table": "ind_comm_pub_administration_sanction",
+      "source_path": [ "ind_comm_pub_administration_sanction" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "行政处罚内容": "penalty_content",
+        "公示日期": "penalty_publicit_date",
+        "作出行政处罚决定机关名称": "penalty_decision_gov",
+        "违法行为类型": "illegal_type",
+        "作出行政处罚决定日期": "penalty_decision_date",
+        "详情": "detail",
+        "行政处罚决定书文号": "penalty_decision_num"
+      }
+    },
+    "ind_comm_pub_business_exception": {
+      "dest_table": "ind_comm_pub_business_exception",
+      "source_path": [ "ind_comm_pub_business_exception" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "移出经营异常名录原因": "list_out_reason",
+        "作出决定机关": "list_gov",
+        "列入经营异常名录原因": "list_on_reason",
+        "列入日期": "list_on_date",
+        "移出日期": "list_out_date"
+      }
+    },
+    "ind_comm_pub_serious_violate_law": {
+      "dest_table": "ind_comm_pub_serious_violate_law",
+      "source_path": [ "ind_comm_pub_serious_violate_law" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "移出严重违法企业名单原因": "list_out_reason",
+        "列入严重违法企业名单原因": "list_on_reason",
+        "作出决定机关": "decision_gov",
+        "列入日期": "list_on_date",
+        "移出日期": "list_out_date"
+      }
+    },
+    "ind_comm_pub_spot_check": {
+      "dest_table": "ind_comm_pub_spot_check",
+      "source_path": [ "ind_comm_pub_spot_check" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "检查实施机关": "check_gov",
+        "结果": "check_result",
+        "类型": "check_type",
+        "日期": "check_date"
+      }
+    },
+    "ent_pub_shareholder_capital_contribution": {
+      "dest_table": "ent_pub_shareholder_capital_contribution",
+      "source_path": [ "ent_pub_shareholder_capital_contribution" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "认缴出资日期": "subscription_date",
+        "认缴额（万元）": "subscription_amount",
+        "认缴出资方式": "subscription_type",
+        "认缴出资额（万元）": "subscription_money_amount",
+        "公示日期": "publicity_time",
+        "实缴额（万元）": "paid_amount",
+        "股东（发起人）": "shareholder_name",
+        "股东": "shareholder_name",
+        "实缴出资日期": "paid_date",
+        "实缴出资方式": "paid_type",
+        "实缴出资额（万元）": "paid_money_amount"
+      }
+    },
+    "ent_pub_equity_change": {
+      "dest_table": "ent_pub_equity_change",
+      "source_path": [ "ent_pub_equity_change" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "变更前股权比例": "share_ratio_before",
+        "公示日期": "sharechange_publicity_date",
+        "登记日期": "sharechange_register_date",
+        "股权变更日期": "share_change_date",
+        "变更后股权比例": "share_ratio_after",
+        "股东": "shareholder"
+      }
+    },
+    "ent_pub_administration_license": {
+      "dest_table": "ent_pub_administration_license",
+      "source_path": [ "ent_pub_administration_license" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "状态": "license_status",
+        "有效期至": "license_end_date",
+        "公示日期": "license_publicity_time",
+        "许可内容": "license_content",
+        "许可文件名称": "license_filename",
+        "许可文件编号": "license_num",
+        "详情": "license_detail",
+        "许可机关": "license_authority",
+        "有效期自": "license_begien_date",
+        "填报时间": "license_register_time",
+        "变更事项": "license_change_item",
+        "变更时间": "license_change_time",
+        "变更前内容": "license_content_before",
+        "变更后内容": "license_content_after"
+      }
+    },
+    "ent_pub_knowledge_property": {
+      "dest_table": "ent_pub_knowledge_property",
+      "source_path": [ "ent_pub_knowledge_property" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "状态": "property_status",
+        "公示日期": "property_pledge_publicity_time",
+        "注册号": "credit_code",
+        "质权登记期限": "mortgage_register_date",
+        "出质人名称": "pledgor_name",
+        "变化情况": "property_pledge_change",
+        "质权人名称": "mortgagee_name",
+        "名称": "enter_name",
+        "序号": "property_type"
+      }
+    },
+    "ent_pub_administration_sanction": {
+      "dest_table": "ent_pub_administration_sanction",
+      "source_path": [ "ent_pub_administration_sanction" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "行政处罚内容": "administrative_penalty_content",
+        "公示日期": "penalty_publicity_time",
+        "作出行政处罚决定机关名称": "decision_gov",
+        "违法行为类型": "illegal_type",
+        "作出行政处罚决定日期": "decision_date",
+        "行政处罚决定书文号": "penalty_decision_num",
+        "备注": "penalty_comment",
+        "详情": "detail"
+      }
+    },
+    "other_dept_pub_administration_license": {
+      "dest_table": "other_dept_pub_administration_license",
+      "source_path": [ "other_dept_pub_administration_license" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "状态": "license_status",
+        "有效期至": "license_end_date",
+        "许可内容": "license_content",
+        "许可文件名称": "license_filename",
+        "许可文件编号": "license_file_num",
+        "详情": "license_detail",
+        "许可机关": "license_authority_gov",
+        "有效期自": "license_begin_date"
+      }
+    },
+    "other_dept_pub_administration_sanction": {
+      "dest_table": "other_dept_pub_administration_sanction",
+      "source_path": [ "other_dept_pub_administration_sanction" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "行政处罚内容": "administrative_penalty_content",
+        "作出行政处罚决定机关名称": "decision_gov",
+        "违法行为类型": "illegal_type",
+        "作出行政处罚决定日期": "decision_date",
+        "行政处罚决定书文号": "penalty_decision_num",
+        "详情": "detail"
+      }
+    },
+    "judical_assist_pub_equity_freeze": {
+      "dest_table": "judical_assist_pub_equity_freeze",
+      "source_path": [ "judical_assist_pub_equity_freeze" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "状态": "freeze_status",
+        "被执行人": "been_excute_person",
+        "股权数额": "share_num",
+        "详情": "freeze_detail",
+        "执行法院": "excute_court",
+        "协助公示通知书文号": "notice_num"
+      }
+    },
+    "judical_assist_pub_shareholder_modify": {
+      "dest_table": "judical_assist_pub_shareholder_modify",
+      "source_path": [ "judical_assist_pub_shareholder_modify" ],
+      "associated_field_source_path": [ "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "被执行人": "been_excute_name",
+        "股权数额": "share_num",
+        "详情": "detail",
+        "执行法院": "excute_court",
+        "受让人": "assignee"
+      }
+    }
+
+  },
+  "table": {
+    "Basic": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "register_num",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "enter_name",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "enter_type",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "register_capital",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "establish_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "place",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "time_start",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "time_end",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "register_gov",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "check_status",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "check_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "business_scope",
+        "datatype": "TEXT",
+        "option": ""
+      }
+    ],
+    "IndustryCommerceMainperson": [
+      {
+        "dest_field": "id",
+        "datatype": "INT",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "name",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "position",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+
+    ],
+    "IndustryCommerceBranch": [
+      {
+        "dest_field": "id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "branch_name",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "register_gov",
+        "datatype": "CHAR(50)",
+        "option": ""
+      }
+    ],
+    "EnterAnnualReport": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "report_year",
+        "datatype": "INT",
+        "option": ""
+      },
+      {
+        "dest_field": "publicity_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "YearReportAssets": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "INT",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "asset_all",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "owner_asset",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "business_income",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "main_business_income",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "profit",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "tax",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "debts",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "YearReportShareholder": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "shareholder",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_type",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_money_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_money_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_type",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "YearReportOnline": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "online_type",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "ent_name",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "url",
+        "datatype": "TEXT",
+        "option": ""
+      }
+    ],
+
+    "YearReportSharechange": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "shareholder",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "shares_before",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "shares_after",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "YearReportInvestment": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "invest_enter_name",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "ent_code",
+        "datatype": "CHAR(50)",
+        "option": ""
+      }
+    ],
+    "YearReportModify": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_before",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_item",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_after",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "YearReportWarrandice": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "creditor",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "debtor",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "main_creditor_right",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "main_creditor_right_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "guarantee_duration",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "guarantee_type",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "fullfill_debt_duration",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "warrandice_scope",
+        "datatype": "CHAR(100)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_reg_shareholder": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_type",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "certificate_type",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "shareholder_type",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_amount",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "shareholder_name",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_money_amount",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "certificate_number",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_money_amount",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_date",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_amount",
+        "datatype": "CHAR(30)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_reg_modify": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_item",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_after",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_before",
+        "datatype": "CHAR(100)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_arch_liquidation": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_item",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "persons",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "person_in_change",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "modify_before",
+        "datatype": "CHAR(100)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_movable_property_reg": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "status",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "publicity_time",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "sharechange_register_date",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "register_num",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "guarantee_debt_amount",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "bas_id",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "register_gov",
+        "datatype": "CHAR(100)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_equity_ownership_reg": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "register_num",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "pledgor_certificate_code",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "share_pledge_num",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "publicity_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "status",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "pledgor",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "change_detail",
+        "datatype": "CHAR(100)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_administration_sanction": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_content",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_publicit_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_decision_gov",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "illegal_type",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_decision_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "detail",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_decision_num",
+        "datatype": "CHAR(50)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_business_exception": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_out_reason",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_gov",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_on_reason",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_on_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_out_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_serious_violate_law": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_out_reason",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_on_reason",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "decision_gov",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_on_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "list_out_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "ind_comm_pub_spot_check": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "check_gov",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "check_result",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "check_type",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "check_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "ent_pub_shareholder_capital_contribution": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_type",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_money_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "publicity_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "shareholder_name",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_type",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_money_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "ent_pub_equity_change": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "share_ratio_before",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "sharechange_publicity_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "sharechange_register_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "share_change_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "share_ratio_after",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "shareholder",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "ent_pub_administration_license": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_status",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_end_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_content",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_filename",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_num",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_detail",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_authority",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_begien_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_publicity_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_register_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_change_item",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_change_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_content_before",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_content_after",
+        "datatype": "CHAR(100)",
+        "option": ""
+      }
+    ],
+    "ent_pub_knowledge_property": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "property_status",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "property_pledge_publicity_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "credit_code",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "mortgage_register_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "pledgor_name",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "property_pledge_change",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "mortgagee_name",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "enter_name",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "property_type",
+        "datatype": "CHAR(10)",
+        "option": ""
+      }
+    ],
+    "ent_pub_administration_sanction": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "administrative_penalty_content",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_publicity_time",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "decision_gov",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "illegal_type",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "decision_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_decision_num",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_comment",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "detail",
+        "datatype": "CHAR(100)",
+        "option": ""
+      }
+    ],
+    "other_dept_pub_administration_license": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_status",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_end_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_content",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_filename",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_file_num",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_detail",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_authority_gov",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "license_begin_date",
+        "datatype": "CHAR(10)",
+        "option": ""
+      }
+    ],
+    "other_dept_pub_administration_sanction": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "administrative_penalty_content",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "decision_gov",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "illegal_type",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "decision_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "penalty_decision_num",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "detail",
+        "datatype": "CHAR(100)",
+        "option": ""
+      }
+    ],
+    "judical_assist_pub_equity_freeze": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "freeze_status",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "been_excute_person",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "share_num",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "freeze_detail",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "excute_court",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "notice_num",
+        "datatype": "CHAR(10)",
+        "option": ""
+      }
+    ],
+    "judical_assist_pub_shareholder_modify": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "been_excute_name",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "share_num",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "detail",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "excute_court",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "assignee",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ]
+  }
+}
