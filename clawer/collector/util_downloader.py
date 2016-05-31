@@ -60,6 +60,7 @@ class Download(object):
             print '----------------json data---------------------'
             print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
             print list_result
+            print type(list_result)
             for result in list_result:
                 print result
                 print type(result)
