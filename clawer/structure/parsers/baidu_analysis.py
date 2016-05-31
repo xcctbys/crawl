@@ -2,6 +2,7 @@
 
 # import os
 import json
+import numpy as np
 # import datetime
 # from urllib import unquote
 import re
@@ -19,7 +20,7 @@ class BaiduTextAnalysis(object):
             html = self.remove_script(html)
             html = self.remove_style(html)
             html = html.decode("utf-8")
-            page_title = get_page_title(html)
+            page_title = self.get_page_title(html)
             body = self.get_body(html)
             body = re.sub("<[^>]*>", "", body)
             body = body.replace("\\r", "").replace("\\t", "").replace(
@@ -107,9 +108,9 @@ class BaiduTextAnalysis(object):
         start_index = []
         end_index = []
         if len(get_script_start) == 0:
-            return body
+            return content
         if len(get_script_end) == 0:
-            return body
+            return content
 
         record = ""
         for s in get_script_start:
@@ -149,9 +150,9 @@ class BaiduTextAnalysis(object):
         start_index = []
         end_index = []
         if len(get_script_start) == 0:
-            return body
+            return content
         if len(get_script_end) == 0:
-            return body
+            return content
 
         length_end = len(end_pattern)
         record = ""

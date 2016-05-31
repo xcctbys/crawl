@@ -175,7 +175,7 @@ MAX_PROXY_NUM = 500
 
 
 #### 在下载器中有用到
-MAX_TOTAL_DISPATCH_COUNT_ONCE = 50000 #设置一次分发的数量
+MAX_TOTAL_DISPATCH_COUNT_ONCE = 500000 #设置一次分发的数量
 DISPATCH_USE_POOL_TIMEOUT = 300  #设置在分发过程中使用多进程的时间限制
 DISPATCH_BY_PRIORITY = True or False #设置是只按优先级分发
 DISPATCH_BY_HOSTNAME = True or False  #设置是只按主机分发
