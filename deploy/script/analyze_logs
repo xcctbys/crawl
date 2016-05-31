@@ -40,8 +40,8 @@ def print_company_error(start_position):
             print company_name
 
 
-def print_avg_time():
-    succeed_count, failed_count, _, _, succeed_spend_time, failed_spend_time = analyze_logs()
+def print_avg_time(start_position):
+    succeed_count, failed_count, _, _, succeed_spend_time, failed_spend_time = analyze_logs(start_position)
     total = succeed_count + failed_count
     succeed_avg_time = sum(succeed_spend_time) / succeed_count
     failed_avg_time = sum(failed_spend_time) / failed_count
@@ -112,6 +112,6 @@ if __name__ == '__main__':
         start_position = int(sys.argv[1])
     except:
         start_position = 0
-    print_avg_time()
+    print_avg_time(start_position)
     print_province_error(start_position)
     print_company_error(start_position)

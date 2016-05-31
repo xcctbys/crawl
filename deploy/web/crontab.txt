@@ -14,8 +14,7 @@
 */1    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh task_extracter_dispatch
 
 # for get ip
-*/1    *    *    *    * cd /home/webapps/cr-clawer/clawer/smart_proxy/utils;python  get_province_ip_del.py
-
+*/1    *    *    *    * cd /home/webapps/cr-clawer/clawer/smart_proxy/utils;python  get2_province_ip_del.py
 
 
 
