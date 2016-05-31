@@ -177,7 +177,7 @@ class PutIntoMy:
         #if i>0:
         #    cursor.executemany(sql,list)
         #    cnx.commit()
-        sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' limit 100"
+        sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' order by create_datetime limit 100"
         cursor.execute(sql_delete)
         print "Delete limit 100 succeed."
         cnx.commit()
