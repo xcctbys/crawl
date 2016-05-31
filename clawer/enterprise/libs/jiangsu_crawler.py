@@ -6,31 +6,22 @@ import os
 import time
 import re
 import random
-import urllib
-import unittest
 import threading
 import copy
 from datetime import datetime, timedelta
-from . import settings
+
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
 from bs4 import BeautifulSoup
 from crawler import Crawler
 from crawler import CrawlerUtils
 from crawler import Parser
-from enterprise.libs.proxies import Proxies
+from common_func import get_proxy, exe_time    #, json_dump_to_file
 
 
 class JiangsuCrawler(Crawler):
     """江苏工商公示信息网页爬虫
     """
-    #html数据的存储路径
-    html_restore_path = settings.json_restore_path + '/jiangsu/'
-
-    #验证码图片的存储路径
-    ckcode_image_path = settings.json_restore_path + '/jiangsu/ckcode.jpg'
-    if not os.path.exists(ckcode_image_path):
-        os.makedirs(os.path.dirname(ckcode_image_path))
     code_cracker = CaptchaRecognition('jiangsu')
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
@@ -38,7 +29,7 @@ class JiangsuCrawler(Crawler):
     urls = {'host': 'www.jsgsj.gov.cn',
             'official_site': 'http://www.jsgsj.gov.cn:58888/province/',
             'get_checkcode': 'http://www.jsgsj.gov.cn:58888/province/rand_img.jsp?type=7',
-            'post_checkcode': 'http://www.jsgsj.gov.cn:58888/province/infoQueryServlet.json?queryCinfo=true',
+            'post_checkcode': 'http://www.jsgsj.gov.cn:58888/province/infoQueryServlet.json?query_info=true',
             'ind_comm_pub_skeleton':
             'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfor_gsRelease.jsp',
             'ent_pub_skeleton': 'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qyRelease.jsp',
@@ -60,17 +51,23 @@ class JiangsuCrawler(Crawler):
              需要在写入文件的时候加锁
         Returns:
         """
-        self.proxies = Proxies().get_proxies()
+        super(JiangsuCrawler, self).__init__()
         self.json_restore_path = json_restore_path
+        #html数据的存储路径
+        self.html_restore_path = self.json_restore_path + '/jiangsu/'
 
+        #验证码图片的存储路径
+        self.ckcode_image_path = self.json_restore_path + '/jiangsu/ckcode.jpg'
+
+
+        # self.proxies = {}
+        proxies = get_proxy('jiangsu')
+        if proxies:
+            print proxies
+            self.reqst.proxies = proxies
+        self.timeout = (30, 20)
         self.parser = JiangsuParser(self)
-        self.reqst = requests.Session()
-        self.reqst.headers.update({
-            'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
-        })
+
         self.corp_org = ''
         self.corp_id = ''
         self.corp_seq_id = ''
@@ -144,41 +141,52 @@ class JiangsuCrawler(Crawler):
                                                       'propertiesName': 'gdbgList'}
         }
 
-    def run(self, ent_number=0):
+    def run(self, ent_number):
+        # print self.__class__.__name__
+        # logging.error('crawl %s.', self.__class__.__name__)
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)
+        self.ent_number = ent_number
+        return Crawler.run(self, self.ent_number)
 
-        return Crawler.run(self, ent_number)
-        '''
-        self.ent_number = str(ent_number)
-        #对每个企业都指定一个html的存储目录
-        self.html_restore_path = self.html_restore_path + self.ent_number + '/'
-        if settings.save_html and not os.path.exists(self.html_restore_path):
-            CrawlerUtils.make_dir(self.html_restore_path)
-
-        self.json_dict = {}
-
-        if not self.crawl_check_page():
-            settings.logger.error('crack check code failed, stop to crawl enterprise %s' % self.ent_number)
+    #分析 展示页面， 获得搜索到的企业列表
+    def analyze_showInfo(self, page):
+        Ent = {}
+        soup = BeautifulSoup(page, "html5lib")
+        dts = soup.find_all("dt")
+        dds = soup.find_all('dd')
+        if len(dts) != len(dds):
             return False
+        count = 0
+        for i in xrange(len(dts)):
+            dt = dts[i]
+            profile = dds[i]
+            count += 1
+            url = ""
+            ent = ""
+            name = ""
+            link = dt.find('a')
+            if link and link.has_attr('onclick'):
+                url = link['onclick']
+                name = link.get_text().strip()
 
-        self.crawl_ind_comm_pub_pages()
-        self.crawl_ent_pub_pages()
-        self.crawl_other_dept_pub_pages()
-        self.crawl_judical_assist_pub_pub_pages()
-
-        #采用多线程，在写入文件时需要注意加锁
-        self.write_file_mutex.acquire()
-        CrawlerUtils.json_dump_to_file(self.json_restore_path, {self.ent_number: self.json_dict})
-        self.write_file_mutex.release()
+            if profile and profile.span:
+                ent = profile.span.get_text().strip()
+            if name == self.ent_number:
+                Ent.clear()
+                Ent[ent] = url
+                break
+            if count == 3:
+                break
+            Ent[ent] = url
+        self.ents = Ent
         return True
-        '''
 
     def crawl_check_page(self):
         """爬取验证码页面，包括下载验证码图片以及破解验证码
         :return true or false
         """
-        resp = self.crawl_page_by_url(self.urls['official_site'])
+        resp = self.request_by_method('GET', self.urls['official_site'], timeout=self.timeout)
         if not resp:
             logging.error("crawl the first page page failed!\n")
             return False
@@ -190,13 +198,18 @@ class JiangsuCrawler(Crawler):
                 logging.error("crawl checkcode failed! count number = %d\n" % (count))
                 continue
             data = {'name': self.ent_number, 'verifyCode': ckcode[1]}
-            resp = self.crawl_page_by_url_post(self.urls['post_checkcode'], data=data)
-
-            if resp.find("onclick") >= 0 and self.parse_post_check_page(resp):
-                return True
+            resp = self.request_by_method('POST', self.urls['post_checkcode'], data=data, timeout=self.timeout)
+            print resp
+            results = json.loads(resp)[0]
+            if results['INFO']:
+                if self.analyze_showInfo(results['INFO']):
+                    return True
             else:
+                if results['COUNT'] == '>> 没有符合查询条件的结果 <<':
+                    break
                 logging.error("crawl post check page failed! count number = %d\n" % (count))
-            time.sleep(random.uniform(5, 8))
+            print "crawl post check page failed! count number = %d\n" % (count)
+            time.sleep(random.uniform(3, 5))
         return False
 
     def get_page_data(self, page_name, real_post_data=None):
@@ -224,9 +237,11 @@ class JiangsuCrawler(Crawler):
             post_data = self.nb_enter_post_data
         return self.get_pages(url, post_data)
 
-    def crawl_ind_comm_pub_pages(self):
+    def crawl_ind_comm_pub_pages(self, url):
         """爬取工商公示信息
         """
+        if not self.parse_post_check_page(url):
+            return
         if not self.parser.ind_comm_pub_skeleton_built:
             page = self.crawl_skeleton_page('ind_comm_pub_skeleton')
             if not page:
@@ -250,7 +265,7 @@ class JiangsuCrawler(Crawler):
             page_data = self.get_page_data(item)
             self.json_dict[item] = self.parser.parse_page(item, page_data)
 
-    def crawl_ent_pub_pages(self):
+    def crawl_ent_pub_pages(self, url):
         """爬取企业公示信息
         """
         if not self.parser.ent_pub_skeleton_built:
@@ -277,7 +292,7 @@ class JiangsuCrawler(Crawler):
             page_data = self.get_page_data(item)
             self.json_dict[item] = self.parser.parse_page(item, page_data)
 
-    def crawl_other_dept_pub_pages(self):
+    def crawl_other_dept_pub_pages(self, url):
         """爬取其他部门公示信息
         """
         if not self.parser.other_dept_pub_skeleton_built:
@@ -293,7 +308,7 @@ class JiangsuCrawler(Crawler):
             page_data = self.get_page_data(item)
             self.json_dict[item] = self.parser.parse_page(item, page_data)
 
-    def crawl_judical_assist_pub_pub_pages(self):
+    def crawl_judical_assist_pub_pages(self, url):
         """爬取司法协助信息
         """
         if not self.parser.judical_assist_pub_skeleton_built:
@@ -316,7 +331,7 @@ class JiangsuCrawler(Crawler):
             post_data: post方式获取数据，返回的如果是一个列表，则将列表的所有元素都获得才返回
         Returns:
         """
-        resp = self.crawl_page_by_url_post(url, data=post_data)
+        resp = self.request_by_method('POST', url, data=post_data, timeout=self.timeout)
         if not resp:
             logging.error('get all pages of a section failed!')
             return
@@ -324,7 +339,7 @@ class JiangsuCrawler(Crawler):
             json_obj = json.loads(resp)
             if type(json_obj) == dict and json_obj.get('total', None) and int(json_obj.get('total')) > 5:
                 post_data['pageSize'] = json_obj.get('total')
-                resp = self.crawl_page_by_url_post(url, data=post_data)
+                resp = self.request_by_method('POST', url, data=post_data, timeout=self.timeout)
                 if not resp:
                     logging.error('get all pages of a section failed!')
                     return
@@ -342,23 +357,23 @@ class JiangsuCrawler(Crawler):
                      'name': self.ent_number,
                      'containContextPath': 'ecipplatform',
                      'corp_name': self.ent_number}
-        resp = self.crawl_page_by_url_post(url, data=post_data)
+        resp = self.request_by_method('POST', url, data=post_data, timeout=self.timeout)
         if not resp:
             logging.error('crawl %s page failed, error code.\n' % (name))
             return False
         return resp
 
-    def parse_post_check_page(self, page):
+    def parse_post_check_page(self, link):
         """解析提交验证码之后的页面，提取所需要的信息，比如corp id等
         Args:
             page: 提交验证码之后的页面
         """
-        m = re.search(r'onclick=\\\"\w+\(\'([\w\./]+)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\',\'(\w*)\'\)',
-                      page)
+        m = re.findall(r"\'.*?\'", link)
+        # queryInfor('/ecipplatform/inner_ci/ci_queryCorpInfor_gsRelease.jsp','876','126075','69','320000000000192','','ecipplatform')
         if m:
-            self.corp_org = m.group(2)
-            self.corp_id = m.group(3)
-            self.corp_seq_id = m.group(4)
+            self.corp_org = m[1]
+            self.corp_id = m[2]
+            self.corp_seq_id = m[3]
             self.common_enter_post_data = {
                 'showRecordLine': '1',
                 'specificQuery': 'commonQuery',
@@ -409,7 +424,7 @@ class JiangsuCrawler(Crawler):
         """破解验证码
         :return 破解后的验证码
         """
-        resp = self.crawl_page_by_url(self.urls['get_checkcode'])
+        resp = self.request_by_method('GET', self.urls['get_checkcode'], timeout=self.timeout)
         if not resp:
             logging.error('Failed, exception occured when getting checkcode')
             return ('', '')
@@ -424,35 +439,24 @@ class JiangsuCrawler(Crawler):
         except Exception as e:
             logging.error('exception occured when crack checkcode')
             ckcode = ('', '')
-        finally:
-            pass
         self.write_file_mutex.release()
         return ckcode
 
-    def crawl_page_by_url(self, url):
-        """根据url直接爬取页面
-        """
+    def request_by_method(self, method, url, *args, **kwargs):
+        r = None
         try:
-            resp = self.reqst.get(url, proxies=self.proxies)
-            if resp.status_code != 200:
-                logging.error('crawl page by url failed! url = %s' % url)
-            page = resp.content
-            time.sleep(random.uniform(0.2, 1))
-            # if saveingtml:
-            #     CrawlerUtils.save_page_to_file(self.html_restore_path + 'detail.html', page)
-            return page
-        except Exception as e:
-            logging.error("crawl page by url exception %s" % (type(e)))
-
-        return None
-
-    def crawl_page_by_url_post(self, url, data):
-        """ 根据url和post数据爬取页面
-        """
-        r = self.reqst.post(url, data, proxies=self.proxies)
-        time.sleep(random.uniform(0.2, 1))
+            r = self.reqst.request(method, url, *args, **kwargs)
+        except requests.exceptions.Timeout as err:
+            logging.error(u'Getting url: %s timeout. %s .' % (url, err.message))
+            return False
+        except requests.exceptions.ConnectionError:
+            logging.error(u"Getting url:%s connection error ." % (url))
+            return False
+        except Exception as err:
+            logging.error(u'Getting url: %s exception:%s . %s .' % (url, type(err), err.message))
+            return False
         if r.status_code != 200:
-            logging.error(u"Getting page by url with post:%s\n, return status %s\n" % (url, r.status_code))
+            logging.error(u"Something wrong when getting url:%s , status_code=%d", url, r.status_code)
             return False
         return r.content
 
@@ -586,8 +590,8 @@ class JiangsuParser(Parser):
         """
         json_obj = json.loads(page)
         table_items = self.parse_table_items[name]
+        result = []
         if type(json_obj) == dict and json_obj.get('total', None):
-            result = []
             for record in json_obj.get('items'):
                 result.append(self.get_table_data(name, table_items, record))
         elif type(json_obj) == list and len(json_obj) == 1:
@@ -920,42 +924,3 @@ class JiangsuParser(Parser):
             shareholder_info.append(result)
         return shareholder_info
 
-# class TestParser(unittest.TestCase):
-#     def setUp(self):
-#         unittest.TestCase.setUp(self)
-#         self.crawler = JiangsuCrawler()
-#         self.parser = self.crawler.parser
-#
-#     def test_parse_ind_comm_pub_skeleton(self):
-#         with open('./unittest_data/htmls/ind_comm_pub_skeleton.html') as f:
-#             page = f.read()
-#             self.parser.parse_ind_comm_pub_skeleton(page)
-#
-#     def test_parse_ent_pub_skeleton(self):
-#         with open('./unittest_data/htmls/ent_pub_skeleton.html') as f:
-#             page = f.read()
-#             self.parser.parse_ent_pub_skeleton(page)
-#
-#     def test_parse_other_dept_pub_skeleton(self):
-#         with open('./unittest_data/htmls/other_dept_pub_skeleton.html') as f:
-#             page = f.read()
-#             self.parser.parse_other_dept_pub_skeleton(page)
-#
-#     def test_parse_judical_assist_pub_skeleton(self):
-#         with open('./unittest_data/htmls/judical_assist_pub_skeleton.html') as f:
-#             page = f.read()
-#             self.parser.parse_judical_assist_pub_skeleton(page)
-"""
-if __name__ == '__main__':
-    from CaptchaRecognition import CaptchaRecognition
-    import run
-    run.config_logging()
-    JiangsuCrawler.code_cracker = CaptchaRecognition('jiangsu')
-    crawler = JiangsuCrawler('./enterprise_crawler/Jiangsu.json')
-    enterprise_list = CrawlerUtils.get_enterprise_list('./enterprise_list/jiangsu.txt')
-    #enterprise_list = ['320000000000192']
-    for ent_number in enterprise_list:
-        ent_number = ent_number.rstrip('\n')
-        logging.info('###################   Start to crawl enterprise with id %s   ###################\n' % ent_number)
-        crawler.run(ent_number=ent_number)
-"""

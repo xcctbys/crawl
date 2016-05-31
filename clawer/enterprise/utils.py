@@ -7,12 +7,12 @@ from enterprise.models import Province
 from .libs.tt_beijing_crawler import BeijingCrawler
 # from .libs.yunnan_crawler import YunnanCrawler
 # from .libs.tt_shanghai_crawler import ShanghaiCrawler
-# from .libs.jiangsu_crawler import JiangsuCrawler
-from .libs.tt_jiangsu_crawler import JiangsuCrawler
+# from .libs.tt_jiangsu_crawler import JiangsuCrawler
 # from .libs.tt_guangxi_crawler import GuangxiCrawler
 # from .libs.anhui_crawler import AnhuiCrawler
 
 ##
+from .libs.jiangsu_crawler import JiangsuCrawler
 from .libs.tianjin_crawler import TianjinCrawler
 from .libs.zhejiang_crawler import ZhejiangCrawler
 from .libs.shandong_crawler import ShandongCrawler
