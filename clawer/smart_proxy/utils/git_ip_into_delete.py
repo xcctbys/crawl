@@ -158,6 +158,18 @@ class PutIntoMy:
     def readLines(self,ip_list,province='OTHER'):
         i=0
         list=[]
+        cursor=cnx.cursor()
+        sql_count="select count(*) from smart_proxy_proxyip where province='OTHER'"
+        count=cursor.execute(sql_count)
+        print count
+        print '--count-----'
+        fetch_list = cursor.fetchall()
+        print fetch_list
+        print '------fetchall----'
+        fetch_tuple=fetch_list[0]
+        num_other_old=fetch_tuple[0]
+        print num_other_old
+        print '----num_old---'
         for ip in ip_list:
             timestamp=time.time()
             tup_time=time.localtime(timestamp)
@@ -177,6 +189,9 @@ class PutIntoMy:
         #if i>0:
         #    cursor.executemany(sql,list)
         #    cnx.commit()
+        #sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' order by create_datetime limit %(nums)s"
+        #data_limit={'nums':num_other_old}
+        #cursor.execute(sql_delete,data_limit)
         sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' order by create_datetime limit 100"
         cursor.execute(sql_delete)
         print "Delete limit 100 succeed."
