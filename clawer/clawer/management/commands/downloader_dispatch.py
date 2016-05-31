@@ -80,8 +80,8 @@ def write_dispatch_alter_log(job, reason):
 
 def dispatch_use_pool(task):
     try:
-        dispatch_num = CrawlerDownloadSetting.objects(job=task.job)[
-            0].dispatch_num
+        #dispatch_num = CrawlerDownloadSetting.objects(job=task.job)[0].dispatch_num
+        dispatch_num = 1
         if dispatch_num == 0:
             write_dispatch_alter_log(job=task.job, reason='dispatch_num is 0')
             return
@@ -181,32 +181,30 @@ def force_exit():
 def run():
     # timer = threading.Timer(settings.DISPATCH_USE_POOL_TIMEOUT, force_exit)
     # timer.start()
-    print 'begin'
+    print 'Downloader dispatch start'
     if settings.DISPATCH_BY_PRIORITY:
         total = 0
         pool = Pool()
         jobs = Job.objects(status=Job.STATUS_ON).order_by('+priority')
-        print "jobscount:",jobs.count()
+        print "All jobs Number:", jobs.count()
         for job in jobs:
             total = CrawlerTask.objects(job=job).count()
-            #print '---crawlerTask.objects(job=job).count()
-            print 'total:', total
-            if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
+            print 'This job\'s tasks total number:', total
+
+            #if total > settings.MAX_TOTAL_DISPATCH_COUNT_ONCE:
+            #    break
+
+            dispatch_tasks_num = settings.MAX_TOTAL_DISPATCH_COUNT_ONCE                # 测试每次分发的数量
+            tasks = CrawlerTask.objects(job=job, status=1)[:dispatch_tasks_num]
+            print "Tasks Count:", len(tasks)
+            if len(tasks) > dispatch_tasks_num:
+                print "Downloader dispatch Error: Tasks number over MAX_TOTAL_DISPATCH_COUNT_ONCE：", dispatch_tasks_num
                 break
-            tasks = CrawlerTask.objects(job=job)
-            """
-            print 0000
-            print type(tasks)
-            print 1111
-            print tasks.count()
-            print tasks
-            print '-----------33----------'
-            """
 
-
-
-
+            count = 0
             for task in tasks:
+                print "Downloader task dispatch :", count
+                count += 1
                 dispatch_use_pool(task)
             # pool.map(dispatch_use_pool, tasks)
             # pool.close()
