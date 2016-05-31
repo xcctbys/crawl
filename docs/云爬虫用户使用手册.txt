@@ -88,14 +88,16 @@
 		    ["enterprise"]:工商网站uri格式设定
 		    ["http"]:为百度搜索uri格式设定
 				
-	工商生成器脚本导入代码如下：
+	工商生成器脚本导入代码及导出器导入配置如下：
 
 	python manage_production.py shell
 	from collector.tests.test_generator import insert_script_without_job
+
 	file = '/home/webapps/cr-clawer/clawer/collector/script/production/enterprise_mysql_pro.py'
 	script = open(file).read()
 	settings={'cron':'*/10 * * * *' , 'schemes':["enterprise"], 'code_type': 1}
-	insert_script_without_job(script, settings)
+
+	insert_script_without_job(script, settings, extracter_conf)
         
         c.验证生成器任务导入情况：
 	登陆mongodb并选择source数据库，查询任务情况：
@@ -115,6 +117,26 @@
 
 
 四.配置任务导出器
+    a. 导出器配置文件放置在目录: /home/webapps/cr-clawer/clawer/structure/extracter/
+	b.配置文件说明：
+        工商配置文件已经配置好, 文件名为conf_csciwlpc.json, 后期若需导出其他网站，应参照模板，遵循配置文件的格式进行配置，并放在上文提到的导出器配置文件目录，规则如下:
+        1. 按模板格式修改需自定义的部分, 包括"数据库设置 database", "映射设置 mapping", "数据表设置 table"三个部分
+        2. 关于 database 部分
+         目标数据库现只支持 MySQL
+        3. 关于 mapping 部分: 
+            指定JSON源数据和关系数据库字段的映射关系和中英文表名的对应关系
+        - dest_table 自定义目标数据库表的英文名称
+        - source_path 表名在 JSON 源数据中的路径. 以列表形式呈现, 根据源数据的嵌套层次, 依次写入列表
+        - associated_field_source_path 关联字段的在 JSON 源数据中的路径. 
+        - dest_field 关系数据库表中字段的定义 
+        4. 关于 table 部分:
+        - dest_field 为 mapping 中相应的目的数据库表的字段
+        - option 为字段的选项, 如设置主键, 默认值等
+    c. 配置文件使用限制
+        1. 仅能用于建立基本表
+        2. associated_field_source_path 必须是 source_path 的子集
+        3. 每个表必须设置 associated_field_source_path, 如不必要则填为空串(如 [""])
+        4. 当配置文件改变，如，修改表字段，需要手动备份数据库
 	
 
 五.配置系统定时设置启动任务
