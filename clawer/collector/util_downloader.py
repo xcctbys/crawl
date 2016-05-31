@@ -58,8 +58,9 @@ class Download(object):
             end_time = time.time()
             spend_time = end_time - start_time
             print '----------------json data---------------------'
+            print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+            print list_result
             for result in list_result:
-                print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
                 print result
                 print type(result)
                 requests_headers = result.get('requests_headers', 'None')
