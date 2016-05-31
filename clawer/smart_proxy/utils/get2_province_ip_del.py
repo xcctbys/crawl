@@ -273,6 +273,7 @@ if __name__ == '__main__':
     data_limit={'nums':num_other}
     cursor.execute(sql_delete,data_limit)
     print "Delete limit other  succeed."
+    print '--------222------------'
     cnx.commit()
     cnx.close()
     t2=time.time()
