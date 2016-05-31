@@ -39,7 +39,7 @@ from enterprise.libs.shanghai_crawler import ShanghaiCrawler
 from enterprise.libs.guangdong_crawler import GuangdongCrawler
 #######
 from enterprise.libs.tt_beijing_crawler import BeijingCrawler
-from enterprise.libs.tt_jiangsu_crawler import JiangsuCrawler
+from enterprise.libs.jiangsu_crawler import JiangsuCrawler
 from enterprise.libs.common_func import get_proxy, read_ent_from_file, exe_time, save_to_file
 
 import gevent
@@ -52,6 +52,91 @@ import gevent.monkey
 import re
 
 # gevent.monkey.patch_socket()
+
+class TestJiangsu(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+        self.path = os.path.join(os.getcwd(), 'Jiangsu')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+    def tearDown(self):
+        TestCase.tearDown(self)
+
+    def test_run(self):
+        # 华泰证券股份有限公司,江苏,320000000000192
+        ent_str = '320000000000192'
+        start = time.time()
+        Jiangsu = JiangsuCrawler(self.path)
+        result = Jiangsu.run(ent_str)
+        ent = time.time()
+        print ent - start
+        print result
+        self.assertTrue(result)
+        self.assertEqual(type(result), str)
+        result = json.loads(result)
+
+        self.assertEqual(type(result), list)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'320000000000192')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'华泰证券股份有限公司')
+
+    def test_run_ent(self):
+        ent_list=(
+            u'华泰证券股份有限公司',
+            )
+        Jiangsu = JiangsuCrawler(self.path)
+        for ent in ent_list:
+            result = Jiangsu.run(ent)
+            print result
+            result = json.loads(result)
+            for item in result:
+                for k, v in item.items():
+                    self.assertTrue(k)
+                    self.assertTrue(v.get('ind_comm_pub_reg_basic'))
+                    self.assertTrue(v.get('ind_comm_pub_reg_basic').get(u'名称'))
+                    self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], ent)
+
+
+    def test_run_without_result(self):
+        # 华泰证券股份有限公司,江苏,320000000000192
+        ent_str = '10000000'
+        Jiangsu = JiangsuCrawler(self.path)
+        result = Jiangsu.run(ent_str)
+
+        print result
+        self.assertTrue(result)
+        result = json.loads(result)
+        for item in result:
+            for k, v in item.items():
+                self.assertFalse(v)
+
+    def test_run_with_multi_results(self):
+        # 华泰证券股份有限公司,江苏,320000000000192
+        ent_str = u'华泰证券股份有限公司'
+        Jiangsu = JiangsuCrawler(self.path)
+        result = Jiangsu.run(ent_str)
+
+        self.assertTrue(result)
+        result = json.loads(result)
+        self.assertEqual(len(result), 1)
+        for item in result:
+            for k, v in item.items():
+                self.assertEqual(k, u'320000000000192')
+                self.assertTrue(v['ind_comm_pub_reg_basic'])
+                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'华泰证券股份有限公司')
+
+    def test_run_with_proxy(self):
+        """
+            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
+            python manage.py shell
+            from enterprise.libs.jiangsu_crawler import JiangsuCrawler
+            Jiangsu = JiangsuCrawler('/tmp/')
+            result = Jiangsu.run('320000000000192')
+        """
+        pass
 
 
 class TestGuangdong(TestCase):
@@ -560,76 +645,6 @@ class TestYunnan(TestCase):
             from enterprise.libs.yunnan_crawler import YunnanCrawler
             Yunnan = YunnanCrawler('/tmp/')
             result = Yunnan.run('530000000002692')
-        """
-        pass
-
-
-class TestJiangsu(TestCase):
-    def setUp(self):
-        TestCase.setUp(self)
-        self.path = os.path.join(os.getcwd(), 'Jiangsu')
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-
-    def tearDown(self):
-        TestCase.tearDown(self)
-
-    def test_run(self):
-        # 华泰证券股份有限公司,江苏,320000000000192
-        ent_str = '320000000000192'
-        start = time.time()
-        Jiangsu = JiangsuCrawler(self.path)
-        result = Jiangsu.run(ent_str)
-        ent = time.time()
-        print ent - start
-        print result
-        self.assertTrue(result)
-        self.assertEqual(type(result), str)
-        result = json.loads(result)
-
-        self.assertEqual(type(result), list)
-        for item in result:
-            for k, v in item.items():
-                # self.assertEqual(k, u'91110000710925892P')
-                self.assertEqual(k, u'320000000000192')
-                self.assertTrue(v['ind_comm_pub_reg_basic'])
-                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'华泰证券股份有限公司')
-
-    def test_run_without_result(self):
-        # 华泰证券股份有限公司,江苏,320000000000192
-        ent_str = '10000000'
-        Jiangsu = JiangsuCrawler(self.path)
-        result = Jiangsu.run(ent_str)
-
-        print result
-        self.assertTrue(result)
-        result = json.loads(result)
-        for item in result:
-            for k, v in item.items():
-                self.assertFalse(v)
-
-    def test_run_with_multi_results(self):
-        # 华泰证券股份有限公司,江苏,320000000000192
-        ent_str = u'华泰证券股份有限公司'
-        Jiangsu = JiangsuCrawler(self.path)
-        result = Jiangsu.run(ent_str)
-
-        self.assertTrue(result)
-        result = json.loads(result)
-        self.assertEqual(len(result), 3)
-        for item in result:
-            for k, v in item.items():
-                self.assertEqual(k, u'91110000710925892P')
-                self.assertTrue(v['ind_comm_pub_reg_basic'])
-                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'华泰证券股份有限公司')
-
-    def test_run_with_proxy(self):
-        """
-            由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
-            python manage.py shell
-            from enterprise.libs.jiangsu_crawler import JiangsuCrawler
-            Jiangsu = JiangsuCrawler('/tmp/')
-            result = Jiangsu.run('320000000000192')
         """
         pass
 
