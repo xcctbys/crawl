@@ -315,11 +315,15 @@ class ExtracterGenerator(StructureGenerator):
     def get_extracter_conf(self, data):
         """获取导出器配置
             参数data为一条JSON格式源数据, str类型"""
+
+        # 直接读入配置文件, 仅支持工商
         conf_path = settings.EXTRACTER_CONFIG_PATH
         configure_dict = open(conf_path).read()
         configure_dict = json.loads(configure_dict)
         return configure_dict
+
         """
+        # 从mongo中读入配置, 需在生成器导入脚本的同时将配置入库
         extracterstructureconfig = ExtracterStructureConfig.objects(job=data.crawler_task.job).first() # 获取导出器配置
         if extracterstructureconfig:
             try:
@@ -517,7 +521,7 @@ class TestExtracter(object):
 
     def insert_extracter_test_data(self):
 
-        config = open('structure/extracters/gs_table_conf.json').read()
+        config = open('structure/extracters/conf_csciwlpc_local.json').read()
         analyzeddata = open('structure/extracters/analyzed_data_csci.json')
 
         count = 0
