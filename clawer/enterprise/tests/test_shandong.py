@@ -823,12 +823,8 @@ class TestGansu(TestCase):
 
         self.assertTrue(result)
         result = json.loads(result)
-        self.assertEqual(len(result), 1)
-        for item in result:
-            for k, v in item.items():
-                self.assertEqual(k, u'620000000001727')
-                self.assertTrue(v['ind_comm_pub_reg_basic'])
-                self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'华龙证券股份有限公司')
+        self.assertEqual(len(result), 3)
+
 
     def test_run_with_proxy(self):
         """

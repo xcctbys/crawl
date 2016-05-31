@@ -12,9 +12,9 @@ import json
 import threading
 from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
-from .Guangdong0 import Guangdong0
-from .Guangdong1 import Guangdong1
-from .Guangdong2 import Guangdong2
+from Guangdong0 import Guangdong0
+from Guangdong1 import Guangdong1
+from Guangdong2 import Guangdong2
 from common_func import get_proxy, json_dump_to_file
 
 urls = {
@@ -45,10 +45,10 @@ class GuangdongCrawler(object):
         self.html_showInfo = None
         self.Captcha = None
         self.CR = CaptchaRecognition("guangdong")
-        self.requests = requests.Session()
-        self.requests.headers.update(headers)
+        self.request = requests.Session()
+        self.request.headers.update(headers)
         adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
-        self.requests.mount('http://', adapter)
+        self.request.mount('http://', adapter)
 
         self.ents = {}
         self.json_restore_path = json_restore_path
@@ -59,7 +59,7 @@ class GuangdongCrawler(object):
         proxies = get_proxy('guangdong')
         if proxies:
             print proxies
-            self.requests.proxies = proxies
+            self.request.proxies = proxies
 
     # 破解搜索页面
     def crawl_page_search(self, url):
@@ -172,7 +172,7 @@ class GuangdongCrawler(object):
     def request_by_method(self, method, url, *args, **kwargs):
         r = None
         try:
-            r = self.requests.request(method, url, *args, **kwargs)
+            r = self.request.request(method, url, *args, **kwargs)
         except requests.Timeout as err:
             logging.error(u'Getting url: %s timeout. %s .' % (url, err.message))
             return False
@@ -213,21 +213,21 @@ class GuangdongCrawler(object):
                         #"www.szcredit.com.cn"
                         if i == 0:
                             logging.error(u"This %s enterprise is type 0" % (self.ent_num))
-                            guangdong = Guangdong0(self.requests, self.ent_num)
+                            guangdong = Guangdong0(self.request, self.ent_num)
                             # sub_json_dict =  guangdong.run(url)
                             data = guangdong.run_asyn(url)
                             sub_json_list.append({ent: data})
                         # gsxt.gzaic.gov.cn
                         elif i==1:
                             logging.error(u"This %s enterprise is type 1"%(self.ent_num))
-                            guangdong = Guangdong1(self.requests)
-                            print url
+                            guangdong = Guangdong1(self.request)
                             data =guangdong.run_asyn(url)
+                            print url
                             sub_json_list.append({ent: data})
                         # gsxt.gdgs.gov.cn/aiccips
                         elif i==2:
                             logging.error(u"This %s enterprise is type 2"%(self.ent_num))
-                            guangdong = Guangdong2(self.requests)
+                            guangdong = Guangdong2(self.request)
                             data = guangdong.run_asyn(url)
                             sub_json_list.append({ent: data})
                         else:
