@@ -25,7 +25,10 @@ gevent.monkey.patch_socket()
 requests.packages.urllib3.disable_warnings()
 
 
-'''MySQL，Redis参数设置'''
+"""
+脚本参数部分：
+    MySQL，Redis配置参数设置
+"""
 
 HOST = 'localhost'                                                                 # 全局变量设置MySQL的HOST USER等
 USER = 'cacti'
