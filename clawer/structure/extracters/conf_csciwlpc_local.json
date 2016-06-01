@@ -56,6 +56,8 @@
       "dest_field": {
         "序号": "id",
         "主键": "company_key",
+        "注册号": "enter_code",
+        "注册号/统一社会信用代码": "enter_code",
         "名称": "branch_name",
         "登记机关": "register_gov"
       }
@@ -546,6 +548,11 @@
       },
       {
         "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "enter_code",
         "datatype": "CHAR(50)",
         "option": ""
       },
