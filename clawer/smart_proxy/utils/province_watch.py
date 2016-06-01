@@ -10,7 +10,8 @@ import urllib
 import os
 import mysql.connector
 import time
-
+import datetime
+import random
 
 """
 
@@ -109,7 +110,7 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=prov_choices, tid='559326559297365',num='100',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=prov_choices, tid='559326559297365',num='20',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         self.a_list=[]
         self.tid= tid
@@ -127,7 +128,9 @@ class PaidProxy(BaseProxy):
         para_url = urllib.urlencode(self.parameter)
 
         if province:
-            area= prodict.get(province,'北京')
+            area= prodict.get(province,'OTHER')
+            if area == 'OTHER':
+                area = random.choice(["北京"])
             print area
             print '-----area-----'
             self.urlget= self.url+para_url+'&area='+area
@@ -158,45 +161,39 @@ class PutIntoMy:
     def readLines(self,ip_list,province='OTHER'):
         i=0
         list=[]
-        cursor=cnx.cursor()
-        sql_count="select count(*) from smart_proxy_proxyip where province='OTHER'"
-        count=cursor.execute(sql_count)
-        print count
-        print '--count-----'
-        fetch_list = cursor.fetchall()
-        print fetch_list
-        print '------fetchall----'
-        fetch_tuple=fetch_list[0]
-        num_other_old=fetch_tuple[0]
-        print num_other_old
-        print '----num_old---'
         for ip in ip_list:
-            timestamp=time.time()
-            tup_time=time.localtime(timestamp)
-            format_time=time.strftime("%Y-%m-%d %H:%M:%S",tup_time)
-            data=(ip,province, '1',format_time,format_time)
-            list.append(data)
-            print list
-            cursor=cnx.cursor()
-            sql = "insert into smart_proxy_proxyip(ip_port,province,is_valid,create_datetime,update_datetime) values(%s,%s,%s,%s,%s)"
-            if i>10:
-                cursor.executemany(sql,list)
-                cnx.commit()
-                print("插入")
-                i=0
-                list=[]
-            i=i+1
+			print '------for cycle---------'
+			timestamp=time.time()
+			tup_time=time.localtime(timestamp)
+			format_time=time.strftime("%Y-%m-%d %H:%M:%S",tup_time)
+			data=(ip,province, '1',format_time,format_time)
+			list.append(data)
+			print list
+			print '---- list-----------'
+			cursor=cnx.cursor()
+			print '-----cursor---------'
+			sql = "insert into smart_proxy_proxyip(ip_port,province,is_valid,create_datetime,update_datetime) values(%s,%s,%s,%s,%s)"
+			print sql
+			print '-----sql---------'
+			#if i>1:
+				#cursor.executemany(sql,list)
+				#cnx.commit()
+				#print("插入")
+				#i=0
+				#list=[]
+			i=i+1
+        if i>1:
+            cursor.executemany(sql,list)
+            cnx.commit()
         #if i>0:
         #    cursor.executemany(sql,list)
         #    cnx.commit()
-        #sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' order by create_datetime limit %(nums)s"
-        #data_limit={'nums':num_other_old}
-        #cursor.execute(sql_delete,data_limit)
-        sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' order by create_datetime limit 300"
-        cursor.execute(sql_delete)
+        #sql_delete = "delete from smart_proxy_proxyip limit 100"
+        #print '------deleter finish-------'
+        #cursor.execute(sql_delete)
         print "Delete limit 100 succeed."
-        cnx.commit()
-        cnx.close()
+        #cnx.commit()
+        #cnx.close()
         print("ok")
     def listFiles(self):
         d = os.listdir("/root")
@@ -208,9 +205,35 @@ if __name__ == '__main__':
     # test(choices)
     #if DEBUG:
         #unittest.main()
-    ###
-    test =PaidProxy(num=300,sortby= 'time',protocol= 'http')
-    ip_list = test.get_ipproxy()
-    read = PutIntoMy()
-    read.readLines(ip_list)
+    t1=datetime.datetime.now()
+    print  '==========================================='
+    print t1
+    cursor=cnx.cursor()
+    sql_count ='select count(*) from smart_proxy_proxyip'
+    cursor.execute(sql_count)
+    fetch_list = cursor.fetchall()
+    num_all=fetch_list[0][0]
+    print '-------总数-------------'
+    print num_all
+
+    cursor=cnx.cursor()
+    sql_count="select distinct(province)  from smart_proxy_proxyip"
+    cursor.execute(sql_count)
+    fetch_list = cursor.fetchall()
+    sql_other="select count(*) from smart_proxy_proxyip where province = 'OTHER'"
+    print fetch_list
+    num_old = 0
+    for i in fetch_list:
+        num_old+=1
+    print '--------------省份数-------------'
+    print num_old
+    sql_other="select count(*) from smart_proxy_proxyip where province = 'OTHER'"
+    cursor.execute(sql_other)
+    fetch_list = cursor.fetchall()
+    print fetch_list
+    print '-----------------------'
+    num_other=fetch_list[0][0]
+    print '--------OTHER数量--------------'
+    print num_other
+    cnx.close()
 

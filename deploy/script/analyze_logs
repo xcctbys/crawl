@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
+# import sys
 import pymongo
+import MySQLdb as mdb
 
 
 def print_province_error(start_position):
@@ -92,6 +93,48 @@ def analyze_logs(start_position=0):
             failed_spend_time)
 
 
+def analyze_province_mxb():
+    companies = {}
+    source_db = connect(database='source')
+    for task in source_db.crawler_task.find({}):
+        if "uri" in task:
+            task_uri = task[u"uri"]
+            province, company_name, _ = analyze_uri(task_uri)
+            if province in companies:
+                companies[province].append(company_name)
+            else:
+                companies[province] = [company_name]
+    for province, companies2 in companies.iteritems():
+        count = count_company_in_mysql(companies2)
+        total = len(companies2)
+        content = "{0},{1},{2},{3:.2f}%".format(province.encode('utf8'), count, total, (float(count) / total) * 100)
+        print content
+
+
+def count_company_in_mysql(companies):
+    con = mdb.connect('csciwlpc.mysql.rds.aliyuncs.com', 'plkj', 'Password2016', 'csciwlpc_aic', charset='utf8', use_unicode=True)
+
+    with con:
+        cur = con.cursor()
+        companies = str_companies_for_sql(companies)
+        SQL = "SELECT * FROM basic WHERE enter_name in ({0})".format(companies)
+        return cur.execute(SQL)
+
+
+def str_companies_for_sql(companies):
+    s = ""
+    i = 0
+    for company in companies:
+        company = company.encode('utf8')
+        i = i + 1
+        if i == len(companies):
+            s += "'{0}'".format(company)
+        else:
+            s += "'{0}',".format(company)
+    return s
+
+
+
 def connect(database='default'):
     client = pymongo.MongoClient(
         "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/{0}?replicaSet=mgset-1160325".format(
@@ -108,10 +151,11 @@ def analyze_uri(uri):
 
 
 if __name__ == '__main__':
-    try:
-        start_position = int(sys.argv[1])
-    except:
-        start_position = 0
-    print_avg_time(start_position)
-    print_province_error(start_position)
-    print_company_error(start_position)
+    # try:
+    #     start_position = int(sys.argv[1])
+    # except:
+    #     start_position = 0
+    # print_avg_time(start_position)
+    # print_province_error(start_position)
+    # print_company_error(start_position)
+    analyze_province_mxb()
