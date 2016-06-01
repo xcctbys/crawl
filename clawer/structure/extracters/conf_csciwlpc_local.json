@@ -35,6 +35,7 @@
         "经营范围": "business_scope",
         "登记机关": "register_gov",
         "核准日期": "check_date",
+        "经营状态": "managenment_status",
         "登记状态": "check_status"
       }
     },
@@ -56,6 +57,8 @@
       "dest_field": {
         "序号": "id",
         "主键": "company_key",
+        "注册号": "enter_code",
+        "注册号/统一社会信用代码": "enter_code",
         "名称": "branch_name",
         "登记机关": "register_gov"
       }
@@ -168,6 +171,27 @@
         "出资方式": "paid_type",
         "出资时间": "paid_time",
         "实缴出资额（万元）": "paid_money_amount"
+      }
+    },
+    "YearReportBasic": {
+      "dest_table": "YearReportBasic",
+      "source_path": [ "ent_pub_ent_annual_report", "详情", "企业基本信息" ],
+      "associated_field_source_path": [ "", "序号", "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "企业经营状态": "status",
+        "企业名称": "enter_name",
+        "企业电子邮箱": "email",
+        "从业人数": "staff_number",
+        "企业联系电话": "enter_phone",
+        "企业是否有投资信息或购买其他公司股权": "is_invest",
+        "企业通信地址": "enter_place",
+        "是否有网站或网店": "web_onlinestore",
+        "邮政编码": "zipcode",
+        "有限责任公司本年度是否发生股东股权转让": "shareholder_change",
+        "注册号/统一社会信用代码": "credit_code",
+        "登记编号": "register_num",
+        "是否有对外担保信息": "is_warrandice"
       }
     },
     "ind_comm_pub_reg_shareholder": {
@@ -500,6 +524,11 @@
         "option": ""
       },
       {
+        "dest_field": "management_status",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
         "dest_field": "check_status",
         "datatype": "CHAR(50)",
         "option": ""
@@ -546,6 +575,11 @@
       },
       {
         "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "enter_code",
         "datatype": "CHAR(50)",
         "option": ""
       },
@@ -687,6 +721,78 @@
       },
       {
         "dest_field": "subscription_amount",
+        "datatype": "CHAR(20)",
+        "option": ""
+      }
+    ],
+    "YearReportBasic": [
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "status",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "enter_name",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "email",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "staff_number",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "enter_phone",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "is_invest",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "enter_place",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "web_onlinestore",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "zipcode",
+        "datatype": "CHAR(10)",
+        "option": ""
+      },
+      {
+        "dest_field": "shareholder_change",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "credit_code",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "register_num",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "is_warrandice",
         "datatype": "CHAR(20)",
         "option": ""
       }

@@ -28,19 +28,19 @@ requests.packages.urllib3.disable_warnings()
 
 '''MySQL，Redis参数设置'''
 
-HOST = 'csciwlpc.mysql.rds.aliyuncs.com'                                           # 全局变量设置MySQL的HOST USER等
-USER = 'plkj'
-PASSWD = 'Password2016'
+HOST = 'localhost'                                                                 # 全局变量设置MySQL的HOST USER等
+USER = 'cacti'
+PASSWD = 'cacti'
 PORT = 3306
-MYSQL_DB = 'csciwlpc'
+MYSQL_DB = 'clawer'
 STEP = 1                                                                           # 每个step取10个
 ROWS = 10
 
-REDIS_HOST = '13153c2b13894978.m.cnsza.kvstore.aliyuncs.com'                       # 全局变量，设置Redis的HOST，USER,TABLE
+REDIS_HOST = 'localhost'                                                           # 全局变量，设置Redis的HOST，USER,TABLE
 REDIS_PORT = 6379
-REDIS_DB = 1
+REDIS_DB = 0
 REDIS_USER = ""
-REDIS_PWD = "Password123"
+REDIS_PWD = ""
 REDIS_TABLE = 'History_baidu'
 
 DEBUG = False  # 是否开启DEBUG
@@ -51,7 +51,13 @@ else:
 
 logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
-'''主程序部分'''
+
+
+"""
+主程序部分：
+    负责百度关键词搜索的主要功能，根据公司名搜索结果的抓取uri
+"""
+
 
 # 所需爬取的相应关键词
 KEYWORD = [
@@ -64,8 +70,13 @@ KEYWORD = [
         u'清算'
 ]
 
-# 装饰器
 def exe_time(func):
+    """
+    计时器，通过装饰器调用计算部分功能运行时间
+    :param func:
+    :return:
+    """
+
     def fnc(*args, **kwargs):
         start = datetime.datetime.now()
         # print "call "+ func.__name__ + "()..."
@@ -74,7 +85,6 @@ def exe_time(func):
         end = datetime.datetime.now()
         print func.__name__ +" end :"+ str(end)
     return fnc
-
 
 class History(object):
     """
@@ -94,7 +104,11 @@ class History(object):
         导入分布任务执行记录
         :return:
         """
-        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
+
+        # 阿里云服务器中使用用户密码连接Redis
+        # r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
+
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
         if not r.hgetall(REDIS_TABLE):
             return
         r_dict = r.hgetall(REDIS_TABLE)
@@ -106,7 +120,10 @@ class History(object):
         保存分布任务执行的记录
         :return:
         """
-        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
+        # 阿里云服务器中使用用户密码连接Redis
+        # r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
+
+        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
         r.hset(REDIS_TABLE, 'total_page', self.total_page)
         r.hset(REDIS_TABLE, 'current_page', self.current_page)
         # print r.hgetall(REDIS_TABLE)

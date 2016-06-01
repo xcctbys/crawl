@@ -25,7 +25,10 @@ gevent.monkey.patch_socket()
 requests.packages.urllib3.disable_warnings()
 
 
-'''MySQL，Redis参数设置'''
+"""
+脚本参数部分：
+    MySQL，Redis配置参数设置
+"""
 
 HOST = 'localhost'                                                                 # 全局变量设置MySQL的HOST USER等
 USER = 'cacti'
@@ -38,9 +41,11 @@ ROWS = 10
 REDIS_HOST = 'localhost'                                                           # 全局变量，设置Redis的HOST，USER,TABLE
 REDIS_PORT = 6379
 REDIS_DB = 0
-REDIS_TABLE = 'simuwang'
+REDIS_USER = ""
+REDIS_PWD = ""
+REDIS_TABLE = 'history_simuwang'
 
-DEBUG = True                                                                       # 是否开启DEBUG,True/False
+DEBUG = False                                                                     # 是否开启DEBUG,True/False
 if DEBUG:
     level = logging.DEBUG
 else:
@@ -49,9 +54,19 @@ else:
 logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: %(message)s")
 
 
-'''主程序部分'''
+
+"""
+主程序部分：
+    负责私募网脚本的主要功能，公司名搜索结果的uri抓取
+"""
 
 def exe_time(func):
+    """
+    计时器，通过装饰器调用计算部分功能运行时间
+    :param func:
+    :return:
+    """
+
     def fnc(*args, **kwargs):
         start = datetime.datetime.now()
         # print "call "+ func.__name__ + "()..."
@@ -61,31 +76,48 @@ def exe_time(func):
         print func.__name__ +" end :"+ str(end)
     return fnc
 
-
-class History(object):                                                             # 实现程序的可持续性，每次运行时读取上次
+class History(object):
+    """
+    实现程序的可持续性，每次运行时读取上次运行时保存的参数，跳到相应位置继续执行程序
+    """
 
     def __init__(self):
-        # self.company_num = 0                                                     # 初始化pickle中用作公司名称位置索引值
+        """
+        初始化任务执行记录
+        """
+        # self.company_num = 0
         self.total_page = 0
         self.current_page = 0
 
-    def load(self):                                                                # redis记录的载入
-        r = redis.StrictRedis(host=REDIS_HOST,port=REDIS_PORT,db=REDIS_DB)
+    def load(self):
+        """
+        导入分布任务执行记录
+        :return:
+        """
+
+        #阿里云服务器中使用用户密码连接Redis
+        #r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
+
+        r= redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
         if not r.hgetall(REDIS_TABLE):
             return
         r_dict = r.hgetall(REDIS_TABLE)
         self.total_page = int(r_dict.get("total_page"))
         self.current_page = int(r_dict.get("current_page"))
 
-
     def save(self):
+        """
+        保存分布任务执行的记录
+        :return:
+        """
+
+        # 阿里云服务器中使用用户密码连接Redis
+        # r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
+
         r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
         r.hset(REDIS_TABLE, 'total_page', self.total_page)
         r.hset(REDIS_TABLE, 'current_page', self.current_page)
-        #print r.hgetall(REDIS_TABLE)
-
-        # with open(self.path, "w") as f:
-        #     pickle.dump(self, f)
+        # print r.hgetall(REDIS_TABLE)
 
 class Generator(object):
 
@@ -146,7 +178,7 @@ class Generator(object):
         self.history.total_page = total_page
         self.history.save()
 
-    @exe_time
+    # @exe_time
     def page_url(self, current_company):
 
         for page_num in range(1, 10):                                             # 搜索结果翻页（第一页为0，1）
