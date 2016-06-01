@@ -43,35 +43,35 @@ class JiangxiCrawler(Crawler):
             'ind_comm_pub_reg_modify': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewDjxxBgxx.pt?', #qyid=3600006000054779
 
             'ind_comm_pub_arch_key_persons': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewBaxx.pt?',#qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
-            'ind_comm_pub_arch_branch': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewBaxx.pt?',#qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
-            'ind_comm_pub_arch_liquidation': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewBaxx.pt?',#qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
 
             'ind_comm_pub_movable_property_reg': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewDcdydjxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0&showgdxx=true
             'ind_comm_pub_equity_ownership_reg': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewGqczdjxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
-            'ind_comm_pub_administration_sanction': 'http://gsxt.jxaic.gov.cn/ECPS/xzcfxxAction_initXzcfxx.action?',
-            'ind_comm_pub_business_exception': 'http://gsxt.jxaic.gov.cn/ECPS/jyycxxAction_init.action?',
-            'ind_comm_pub_serious_violate_law': 'http://gsxt.jxaic.gov.cn/ECPS/yzwfxxAction_init.action',
-            'ind_comm_pub_spot_check': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcxxAction_init.action?',
-            'ent_pub_ent_annual_report': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_init.action??',
-            'ent_pub_shareholder_capital_contribution': 'http://gsxt.jxaic.gov.cn/ECPS/qyTzrxxAction_init.action?',
-            'ent_pub_equity_change': 'http://gsxt.jxaic.gov.cn/ECPS/qyGqbgxxAction_init.action?',
-            'ent_pub_administration_license': 'http://gsxt.jxaic.gov.cn/ECPS/qyZzxkxxAction_init.action?',
-            'ent_pub_knowledge_property': 'http://gsxt.jxaic.gov.cn/ECPS/qyZscqczxxAction_init.action?',
-            'ent_pub_administration_sanction': 'http://gsxt.jxaic.gov.cn/ECPS/qyXzcfxxAction_initXzcfxx.action?',
-            'ent_pub_reg_modify': 'http://gsxt.jxaic.gov.cn/ECPS/qyTzrxxAction_init.action?',
-            'other_dept_pub_administration_license': 'http://gsxt.jxaic.gov.cn/ECPS/otherZzxkAction_init.action?',
-            'other_dept_pub_administration_sanction':
-            'http://gsxt.jxaic.gov.cn/ECPS/otherXzcfAction_initXzcfxx.action?',
-            'judical_assist_pub_equity_freeze': 'http://gsxt.jxaic.gov.cn/ECPS/sfxzAction_initSfxzMain.action?',
-            'judical_assist_pub_shareholder_modify': 'http://gsxt.jxaic.gov.cn/ECPS/sfxzAction_initSfxzMain.action?',
-            'report_baseinfo': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_qyjbxx.action?',
-            'report_website': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_wzxx.action?',
-            'report_shareholder': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_initMain.action?',
-            'report_out_invest': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_dwtzxx.action?',
-            'report_public_of_ent': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_qyzcxx.action?',
-            'report_offer_security': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_dwdbxx.action?',
-            'report_shareholder_change': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_gqbgxx.action?',
-            'report_record_of_modifies': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_xgjlxx.action?', }
+            'ind_comm_pub_administration_sanction': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewXzcfxx.pt?',#qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0&showgdxx=true
+            'ind_comm_pub_business_exception': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewJyycxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
+            'ind_comm_pub_serious_violate_law': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewYzwfxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
+            'ind_comm_pub_spot_check': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewCcjcxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
+
+            'ent_pub_ent_annual_report': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/qygs_ViewQynb.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0&showgdxx=true
+            'ent_pub_shareholder_capital_contribution': 'http://gsxt.jxaic.gov.cn/ECPS/qygs/gdjcz_viewGdjcz.pt?', #qyid=3600006000054779&qygsxx=1&showgdxx=true
+            'ent_pub_equity_change': 'http://gsxt.jxaic.gov.cn/ECPS/qygs/gqbg_viewGqbg.pt?', #qyid=3600006000054779&qygsxx=1&showgdxx=true
+            'ent_pub_administration_license': 'http://gsxt.jxaic.gov.cn/ECPS/qygs/xzxk_viewXzxk.pt?', #qyid=3600006000054779&qygsxx=1&zch=913600007419861533&qylx=1190&num=0&qymc=中航证券有限公司&showgdxx=true
+            'ent_pub_knowledge_property': 'http://gsxt.jxaic.gov.cn/ECPS/qygs/zscqczdj_viewZscqczdj.pt?', #qyid=3600006000054779&qygsxx=1&zch=913600007419861533&qylx=1190&num=0&qymc=中航证券有限公司&showgdxx=true
+            'ent_pub_administration_sanction': 'http://gsxt.jxaic.gov.cn/ECPS/qygs/xzcf_viewXzcf.pt?', #qyid=3600006000054779&qygsxx=1&showgdxx=true
+            'ent_pub_reg_modify': 'http://gsxt.jxaic.gov.cn/ECPS/qygs/gdjcz_viewGdjcz.pt?', #qyid=3600006000054779&qygsxx=1&showgdxx=true
+            'other_dept_pub_administration_license': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/qygs_ViewQtbmxzxk.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0
+            'other_dept_pub_administration_sanction': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/qygs_ViewQtbmxzcf.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0'
+
+            'judical_assist_pub_equity_freeze': 'http://gsxt.jxaic.gov.cn/ECPS/sfxz/gqdj_gqdjList.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0
+            'judical_assist_pub_shareholder_modify': 'http://gsxt.jxaic.gov.cn/ECPS/sfxz/gdbg_gdbgList.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0
+            'report_baseinfo': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/qygs_ViewQynbDetail.pt?', #qyid=3600006000054779&zch=360000110000996&qylx=1190&nbnd=2013&num=0
+            # 'report_website': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_wzxx.action?',
+            # 'report_shareholder': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_initMain.action?',
+            # 'report_out_invest': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_dwtzxx.action?',
+            # 'report_public_of_ent': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_qyzcxx.action?',
+            # 'report_offer_security': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_dwdbxx.action?',
+            # 'report_shareholder_change': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_gqbgxx.action?',
+            # 'report_record_of_modifies': 'http://gsxt.jxaic.gov.cn/ECPS/qyNbxxAction_xgjlxx.action?',
+            }
 
     def __init__(self, json_restore_path=None):
         """
@@ -112,7 +112,6 @@ class JiangxiCrawler(Crawler):
     def analyze_showInfo(self, page):
         soup = BeautifulSoup(page, "html5lib")
         dl = soup.find('dl', attrs={'id': 'qyList'})
-        print dl
         if not dl:
             return False
         divs = dl.find_all('div', {'style': 'padding-top: 8px; font-size:14px;'})
@@ -200,18 +199,24 @@ class JiangxiCrawler(Crawler):
         print ckcode
         return ckcode[1]
 
-    def crawl_ind_comm_pub_pages(self, *args, **kwargs):
+    def crawl_ind_comm_pub_pages(self, url):
+        import urlparse
+        parser = urlparse.urlparse(url)
+        # get url's query params
+        self.results = dict(urlparse.parse_qsl(parser.query))
+
         page = self.crawl_ind_comm_pub_reg_basic_pages()
         self.parser.parse_ind_comm_pub_basic_pages(page)
         page = self.crawl_ind_comm_pub_reg_shareholder_pages()
         self.parser.parse_ind_comm_pub_reg_shareholderes_pages(page)
         page = self.crawl_ind_comm_pub_reg_modify_pages()
         self.parser.parse_ind_comm_pub_reg_modify_pages(page)
+
         page = self.crawl_ind_comm_pub_arch_key_persons_pages()
+        print page
         self.parser.parse_ind_comm_pub_arch_key_persons_pages(page)
-        page = self.crawl_ind_comm_pub_arch_branch_pages()
         self.parser.parse_ind_comm_pub_arch_branch_pages(page)
-        # page = self.crawl_ind_comm_pub_arch_liquidation_pages()
+
         page = self.crawl_ind_comm_pub_movable_property_reg_pages()
         self.parser.parse_ind_comm_pub_movable_property_reg_pages(page)
         page = self.crawl_ind_comm_pub_equity_ownership_reg_pages()
@@ -225,8 +230,10 @@ class JiangxiCrawler(Crawler):
         page = self.crawl_ind_comm_pub_spot_check_pages()
         self.parser.parse_ind_comm_pub_spot_check_pages(page)
 
+
     def crawl_ent_pub_pages(self, *args, **kwargs):
         page = self.crawl_ent_pub_ent_annual_report_pages()
+
         self.parser.parse_ent_pub_ent_annual_report_pages(page)
         page = self.crawl_ent_pub_shareholder_capital_contribution_pages()
         self.parser.parse_ent_pub_shareholder_capital_contribution_pages(page)
@@ -272,65 +279,41 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
-        params['qylx'] = self.results[1]
+        params['qylx'] = self.results['qylx']
+        params['qyid'] = self.results['qyid']
+        params['zch'] = self.results['zch']
+        params['showgdxx'] = 'true'
         url = JiangxiCrawler.urls['ind_comm_pub_reg_basic']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
 
     def crawl_ind_comm_pub_reg_shareholder_pages(self):
-        """
-            企业年报
-        """
+        """工商公示-投资人信息明细 """
         params = {}
-        params['nbxh'] = self.results[0]
-        params['qylx'] = self.results[1]
+        params['qyid'] = self.results['qyid']
+        params['zch'] = self.results['zch']
+        params['qylx2'] = 11
         url = JiangxiCrawler.urls['ind_comm_pub_reg_shareholder']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
 
     def crawl_ind_comm_pub_reg_modify_pages(self):
-        """
-            企业年报
-        """
+        """工商公示-企业变更信息 """
         params = {}
-        params['nbxh'] = self.results[0]
-        params['qylx'] = self.results[1]
+        params['qyid'] = self.results['qyid']
         url = JiangxiCrawler.urls['ind_comm_pub_reg_modify']
         page = self.crawl_page_by_get_params(params=params, url=url)
 
         return page
 
     def crawl_ind_comm_pub_arch_key_persons_pages(self):
-        """
-            企业年报
-        """
+        """ 主要人员信息 """
         params = {}
-        params['nbxh'] = self.results[0]
-        params['qylx'] = self.results[1]
+        params['qyid'] = self.results['qyid']
+        params['qylx'] = self.results['qylx']
+        params['zch'] = self.results['zch']
+        params['showgdxx'] = True
         url = JiangxiCrawler.urls['ind_comm_pub_arch_key_persons']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_ind_comm_pub_arch_branch_pages(self):
-        """
-            企业年报
-        """
-        params = {}
-        params['nbxh'] = self.results[0]
-        params['qylx'] = self.results[1]
-        url = JiangxiCrawler.urls['ind_comm_pub_arch_branch']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_ind_comm_pub_arch_liquidation_pages(self):
-        """
-            企业年报
-        """
-        params = {}
-        params['nbxh'] = self.results[0]
-        params['qylx'] = self.results[1]
-        url = JiangxiCrawler.urls['ind_comm_pub_arch_liquidation']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
 
@@ -338,10 +321,14 @@ class JiangxiCrawler(Crawler):
         """
             企业年报
         """
+        #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0&showgdxx=true
         params = {}
-        params['nbxh'] = self.results[0]
-        params['qymc'] = self.results[2]
-        params['zch'] = self.results[3]
+        params['qyid'] = self.results['qyid']
+        params['qylx'] = self.results['qylx']
+        params['zch'] = self.results['zch']
+        params['num'] = 0
+        params['showgdxx']=True
+
         url = JiangxiCrawler.urls['ind_comm_pub_movable_property_reg']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -351,7 +338,10 @@ class JiangxiCrawler(Crawler):
             企业年报
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qylx'] = self.results['qylx']
+        params['zch'] = self.results['zch']
+        params['showgdxx']=True
         url = JiangxiCrawler.urls['ind_comm_pub_equity_ownership_reg']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -361,7 +351,11 @@ class JiangxiCrawler(Crawler):
 
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qylx'] = self.results['qylx']
+        params['zch'] = self.results['zch']
+        params['num'] = 0
+        params['showgdxx']=True
         url = JiangxiCrawler.urls['ind_comm_pub_administration_sanction']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -371,7 +365,10 @@ class JiangxiCrawler(Crawler):
 
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qylx'] = self.results['qylx']
+        params['zch'] = self.results['zch']
+        params['showgdxx']=True
         url = JiangxiCrawler.urls['ind_comm_pub_business_exception']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -381,6 +378,10 @@ class JiangxiCrawler(Crawler):
 
         """
         params = {}
+        params['qyid'] = self.results['qyid']
+        params['qylx'] = self.results['qylx']
+        params['zch'] = self.results['zch']
+        params['showgdxx']=True
         url = JiangxiCrawler.urls['ind_comm_pub_serious_violate_law']
         page = self.crawl_page_by_get_params(url=url)
         return page
@@ -389,7 +390,10 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qylx'] = self.results['qylx']
+        params['zch'] = self.results['zch']
+        params['showgdxx']=True
         url = JiangxiCrawler.urls['ind_comm_pub_spot_check']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -398,9 +402,11 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
-        params['qymc'] = self.results[2]
-        params['zch'] = self.results[3]
+        params['qyid'] = self.results['qyid']
+        params['qylx'] = self.results['qylx']
+        params['zch'] = self.results['zch']
+        params['num'] = 0
+        params['showgdxx']=True
         url = JiangxiCrawler.urls['ent_pub_ent_annual_report']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -409,7 +415,9 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qygsxx'] = 1
+        params['showgdxx'] = True
         url = JiangxiCrawler.urls['ent_pub_shareholder_capital_contribution']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -418,7 +426,10 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qygsxx'] = 1
+        params['showgdxx'] = True
+
         url = JiangxiCrawler.urls['ent_pub_equity_change']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -426,8 +437,15 @@ class JiangxiCrawler(Crawler):
     def crawl_ent_pub_administration_license_pages(self):
         """
         """
+        #qyid=3600006000054779&qygsxx=1&zch=913600007419861533&qylx=1190&num=0&qymc=中航证券有限公司&showgdxx=true
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qygsxx'] = 1
+        params['zch'] = self.results['zch']
+        params['qylx'] = self.results['qylx']
+        params['num'] = 0
+        params['qymc'] = ""
+        params['showgdxx'] = True
         url = JiangxiCrawler.urls['ent_pub_administration_license']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -436,7 +454,13 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qygsxx'] = 1
+        params['zch'] = self.results['zch']
+        params['qylx'] = self.results['qylx']
+        params['num'] = 0
+        params['qymc'] = ""
+        params['showgdxx'] = True
         url = JiangxiCrawler.urls['ent_pub_knowledge_property']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -445,7 +469,9 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qygsxx'] = 1
+        params['showgdxx'] = True
         url = JiangxiCrawler.urls['ent_pub_administration_sanction']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -454,7 +480,9 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['qygsxx'] = 1
+        params['showgdxx'] = True
         url = JiangxiCrawler.urls['ent_pub_reg_modify']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -463,7 +491,10 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['zch'] = self.results['zch']
+        params['qylx'] = self.results['qylx']
+        params['num'] = 0
         url = JiangxiCrawler.urls['other_dept_pub_administration_license']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -472,7 +503,11 @@ class JiangxiCrawler(Crawler):
         """
         """
         params = {}
-        params['nbxh'] = self.results[0]
+        #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0'
+        params['qyid'] = self.results['qyid']
+        params['zch'] = self.results['zch']
+        params['qylx'] = self.results['qylx']
+        params['num'] = 0
         url = JiangxiCrawler.urls['other_dept_pub_administration_sanction']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -480,9 +515,12 @@ class JiangxiCrawler(Crawler):
     def crawl_judical_assist_pub_equity_freeze_pages(self):
         """
         """
+        #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0
         params = {}
-        params['nbxh'] = self.results[0]
-        params['qylxFlag'] = self.results[4]
+        params['qyid'] = self.results['qyid']
+        params['zch'] = self.results['zch']
+        params['qylx'] = self.results['qylx']
+        params['num'] = 0
         url = JiangxiCrawler.urls['judical_assist_pub_equity_freeze']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -490,8 +528,12 @@ class JiangxiCrawler(Crawler):
     def crawl_judical_assist_pub_shareholder_modify_pages(self):
         """
         """
+        #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0
         params = {}
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['zch'] = self.results['zch']
+        params['qylx'] = self.results['qylx']
+        params['num'] = 0
         url = JiangxiCrawler.urls['judical_assist_pub_shareholder_modify']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
@@ -499,88 +541,14 @@ class JiangxiCrawler(Crawler):
     def crawl_report_baseinfo_pages(self, year):
         """
         """
+        # qyid=3600006000054779&zch=360000110000996&qylx=1190&nbnd=2013&num=0
         params = {}
-        params['gsryflag'] = ''
-        params['njnd'] = year
-        params['nbxh'] = self.results[0]
+        params['qyid'] = self.results['qyid']
+        params['zch'] = self.results['zch']
+        params['qylx'] = self.results['qylx']
+        params['nbnd'] = year
+        params['num'] = 0
         url = JiangxiCrawler.urls['report_baseinfo']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_report_website_pages(self, year):
-        """
-        """
-        params = {}
-        params['gsryflag'] = ''
-        params['njnd'] = year
-        params['nbxh'] = self.results[0]
-        url = JiangxiCrawler.urls['report_website']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_report_shareholder_pages(self, year):
-        """
-        """
-        params = {}
-        params['gsryflag'] = ''
-        params['njnd'] = year
-        params['nbxh'] = self.results[0]
-        url = JiangxiCrawler.urls['report_shareholder']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_report_out_invest_pages(self, year):
-        """
-        """
-        params = {}
-        params['gsryflag'] = ''
-        params['njnd'] = year
-        params['nbxh'] = self.results[0]
-        url = JiangxiCrawler.urls['report_out_invest']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_report_public_of_ent_pages(self, year):
-        """
-        """
-        params = {}
-        params['gsryflag'] = ''
-        params['njnd'] = year
-        params['nbxh'] = self.results[0]
-        url = JiangxiCrawler.urls['report_public_of_ent']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_report_offer_security_pages(self, year):
-        """
-        """
-        params = {}
-        params['gsryflag'] = ''
-        params['njnd'] = year
-        params['nbxh'] = self.results[0]
-        url = JiangxiCrawler.urls['report_offer_security']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_report_shareholder_change_pages(self, year):
-        """
-        """
-        params = {}
-        params['gsryflag'] = ''
-        params['njnd'] = year
-        params['nbxh'] = self.results[0]
-        url = JiangxiCrawler.urls['report_shareholder_change']
-        page = self.crawl_page_by_get_params(params=params, url=url)
-        return page
-
-    def crawl_report_record_of_modifies_pages(self, year):
-        """
-        """
-        params = {}
-        params['gsryflag'] = ''
-        params['njnd'] = year
-        params['nbxh'] = self.results[0]
-        url = JiangxiCrawler.urls['report_record_of_modifies']
         page = self.crawl_page_by_get_params(params=params, url=url)
         return page
 
@@ -591,20 +559,6 @@ class JiangxiParser(Parser):
 
     def __init__(self, crawler):
         self.crawler = crawler
-
-    def parse_search_page(self, page):
-        soup = BeautifulSoup(page, "html5lib")
-        a_div = soup.find('div', {'id': 'div0'})
-        dt = a_div.find('dt')
-        if dt is None:
-            return None
-        a_link = dt.find('a')
-        url = a_link.get('onclick')
-        if url is None:
-            return None
-        pattern = re.compile(r"\'(.*?)\'", re.I | re.X)
-        results = pattern.findall(url)
-        return results
 
     def parse_ind_comm_pub_basic_pages(self, page):
         """解析工商基本公示信息-页面
@@ -692,26 +646,27 @@ class JiangxiParser(Parser):
     def parse_ind_comm_pub_arch_key_persons_pages(self, page):
         ck_string = '暂无数据'
         soup = BeautifulSoup(page, "html5lib")
-        zyry_table = soup.find('table', {'class': 'detailsList'})
+        zyry_table = soup.find('table', {'id': 't30'})
         ind_comm_pub_arch_key_persons = []
-        key_persons = zyry_table.find_all('td')
-        i = 0
-        while i < len(key_persons):
-            if len(key_persons) - i >= 3:
-                break
-            ind_comm_pub_arch_key_person = {}
-            ind_comm_pub_arch_key_person[u'序号'] = key_persons[i].get_text()
-            ind_comm_pub_arch_key_person[u'姓名'] = key_persons[i + 1].get_text()
-            ind_comm_pub_arch_key_person[u'职务'] = key_persons[i + 2].get_text()
-            i += 3
-            ind_comm_pub_arch_key_persons.append(ind_comm_pub_arch_key_person)
+        if zyry_table:
+            key_persons = zyry_table.find_all('td')
+            i = 0
+            while i < len(key_persons):
+                if len(key_persons) - i >= 3:
+                    break
+                ind_comm_pub_arch_key_person = {}
+                ind_comm_pub_arch_key_person[u'序号'] = key_persons[i].get_text().strip()
+                ind_comm_pub_arch_key_person[u'姓名'] = key_persons[i + 1].get_text().strip()
+                ind_comm_pub_arch_key_person[u'职务'] = key_persons[i + 2].get_text().strip()
+                i += 3
+                ind_comm_pub_arch_key_persons.append(ind_comm_pub_arch_key_person)
 
         self.crawler.json_dict['ind_comm_pub_arch_key_persons'] = ind_comm_pub_arch_key_persons
         # 分支机构
 
     def parse_ind_comm_pub_arch_branch_pages(self, page):
         soup = BeautifulSoup(page, "html5lib")
-        arch_branch_info = soup.find('table', {'class': 'detailsList'})
+        arch_branch_info = soup.find('table', {'id': 't31'})
         arch_branch_trs = arch_branch_info.find_all('tr')
         detail_arch_branch_infoes = []
         if len(arch_branch_trs) > 2:
@@ -822,26 +777,27 @@ class JiangxiParser(Parser):
             经营异常
             """
         soup = BeautifulSoup(page, 'html5lib')
-        business_exception_info = soup.find('table', {'class': 'detailsList'})
         detail_business_exception_infoes = []
-        business_exception_trs = business_exception_info.find_all('tr')
-        if len(business_exception_trs) > 2:
-            i = 2
-            while i < len(business_exception_trs):
-                detail_business_exception_info = {}
-                tds = business_exception_trs[i].find_all('td')
-                if len(tds) <= 0:
-                    break
-                detail_business_exception_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
-                detail_business_exception_info[u'列入经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
-                ))
-                detail_business_exception_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
-                detail_business_exception_info[u'移出经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
-                ))
-                detail_business_exception_info[u'移出日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
-                detail_business_exception_info[u'作出决定机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
-                detail_business_exception_infoes.append(detail_business_exception_info)
-                i += 1
+        business_exception_info = soup.find('table', {'class': 'detailsList'})
+        if business_exception_info:
+            business_exception_trs = business_exception_info.find_all('tr')
+            if len(business_exception_trs) > 2:
+                i = 2
+                while i < len(business_exception_trs):
+                    detail_business_exception_info = {}
+                    tds = business_exception_trs[i].find_all('td')
+                    if len(tds) <= 0:
+                        break
+                    detail_business_exception_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                    detail_business_exception_info[u'列入经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text(
+                    ))
+                    detail_business_exception_info[u'列入日期'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                    detail_business_exception_info[u'移出经营异常名录原因'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                    ))
+                    detail_business_exception_info[u'移出日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                    detail_business_exception_info[u'作出决定机关'] = self.wipe_off_newline_and_blank_for_fe(tds[5].get_text())
+                    detail_business_exception_infoes.append(detail_business_exception_info)
+                    i += 1
         self.crawler.json_dict['ind_comm_pub_business_exception'] = detail_business_exception_infoes
 
     def parse_ind_comm_pub_serious_violate_law_pages(self, page):
@@ -941,8 +897,10 @@ class JiangxiParser(Parser):
     def parse_ent_pub_ent_annual_report_pages(self, page):
         soup = BeautifulSoup(page, 'html5lib')
         # 企业年报
+        print page
         qiyenianbao_table = soup.find('table', {'class': 'detailsList'})
-
+        if not qiyenianbao_table:
+            return
         report_trs = qiyenianbao_table.find_all('tr')
         ent_pub_ent_annual_reportes = []
         if len(report_trs) > 2:
@@ -963,6 +921,7 @@ class JiangxiParser(Parser):
                 a_click = a_link.get('onclick')
                 reportYear = str(a_click)[8:12]
                 report_base_page = self.crawler.crawl_report_baseinfo_pages(reportYear)
+                print report_base_page
                 soup_base_info = BeautifulSoup(report_base_page, 'html5lib')
                 base_info = soup_base_info.find('table', {'class': 'detailsList'})
                 base_trs = base_info.find_all('tr')
@@ -995,184 +954,180 @@ class JiangxiParser(Parser):
 
                 detail[u'企业基本信息'] = detail_base_info
 
-                website_page = self.crawler.crawl_report_website_pages(reportYear)
-                soup_website = BeautifulSoup(website_page, 'html5lib')
-                website_info = soup_website.find('table', {'class': 'detailsList'})
-                website_trs = website_info.find_all('tr')
+                base_info = soup_base_info.find_all('table', {'class': 'detailsList'})
+                website_info= base_info[1]
                 detail_website_infoes = []
-                if len(website_trs) > 2:
-                    i = 2
-                    while i < len(website_trs):
-                        detail_website_info = {}
-                        tds = website_trs[i].find_all('td')
-                        if len(tds) <= 0:
-                            break
-                        detail_website_info[u'类型'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
-                        detail_website_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
-                        detail_website_info[u'网址'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
-                        detail_website_infoes.append(detail_website_info)
-                        i += 1
+                if website_info:
+                    website_trs = website_info.find_all('tr')
+                    if len(website_trs) > 2:
+                        i = 2
+                        while i < len(website_trs):
+                            detail_website_info = {}
+                            tds = website_trs[i].find_all('td')
+                            if len(tds) <= 0:
+                                break
+                            detail_website_info[u'类型'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                            detail_website_info[u'名称'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                            detail_website_info[u'网址'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                            detail_website_infoes.append(detail_website_info)
+                            i += 1
 
                 detail[u'网站或网店信息'] = detail_website_infoes
 
-                shareholder_page = self.crawler.crawl_report_shareholder_pages(reportYear)
-                soup_shareholder = BeautifulSoup(shareholder_page, 'html5lib')
-                shareholder_capital_contribution_info = soup_shareholder.find('table', {'class': 'detailsList'})
-                shareholder_capital_contribution_trs = shareholder_capital_contribution_info.find_all('tr')
                 detail_shareholder_capital_contribution_infoes = []
-                if len(shareholder_capital_contribution_trs) > 2:
-                    i = 2
-                    while i < len(shareholder_capital_contribution_trs):
-                        detail_shareholder_capital_contribution_info = {}
-                        tds = shareholder_capital_contribution_trs[i].find_all('td')
-                        if len(tds) <= 0:
-                            break
-                        detail_shareholder_capital_contribution_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                        detail_shareholder_capital_contribution_info[u'认缴出资额'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
-                        detail_shareholder_capital_contribution_info[
-                            u'认缴出资时间'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
-                        detail_shareholder_capital_contribution_info[
-                            u'认缴出资方式'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
-                        detail_shareholder_capital_contribution_info[u'实缴出资额'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[4].get_text())
-                        detail_shareholder_capital_contribution_info[u'出资时间'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[5].get_text())
-                        detail_shareholder_capital_contribution_info[u'出资方式'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[6].get_text())
-                        detail_shareholder_capital_contribution_infoes.append(
-                            detail_shareholder_capital_contribution_info)
-                        i += 1
+                shareholder_capital_contribution_info = base_info[2]
+                if shareholder_capital_contribution_info:
+                    shareholder_capital_contribution_trs = shareholder_capital_contribution_info.find_all('tr')
+                    if len(shareholder_capital_contribution_trs) > 2:
+                        i = 2
+                        while i < len(shareholder_capital_contribution_trs):
+                            detail_shareholder_capital_contribution_info = {}
+                            tds = shareholder_capital_contribution_trs[i].find_all('td')
+                            if len(tds) <= 0:
+                                break
+                            detail_shareholder_capital_contribution_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[0].get_text())
+                            detail_shareholder_capital_contribution_info[u'认缴出资额'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[1].get_text())
+                            detail_shareholder_capital_contribution_info[
+                                u'认缴出资时间'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                            detail_shareholder_capital_contribution_info[
+                                u'认缴出资方式'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                            detail_shareholder_capital_contribution_info[u'实缴出资额'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[4].get_text())
+                            detail_shareholder_capital_contribution_info[u'出资时间'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[5].get_text())
+                            detail_shareholder_capital_contribution_info[u'出资方式'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[6].get_text())
+                            detail_shareholder_capital_contribution_infoes.append(
+                                detail_shareholder_capital_contribution_info)
+                            i += 1
                 detail[u'股东及出资信息'] = detail_shareholder_capital_contribution_infoes
 
-                report_out_invest = self.crawler.crawl_report_out_invest_pages(reportYear)
-                soup_out_invest = BeautifulSoup(report_out_invest, 'html5lib')
-                outbound_investment_info = soup_out_invest.find('table', {'class': 'detailsList'})
-                outbound_investment_trs = outbound_investment_info.find_all('tr')
                 detail_outbound_investment_infoes = []
-                if len(outbound_investment_trs) > 2:
-                    i = 2
-                    while i < len(outbound_investment_trs):
-                        tds = outbound_investment_trs[i].find_all('tr')
-                        if len(tds) <= 0:
-                            break
-                        detail_outbound_investment_info = {}
-                        detail_outbound_investment_info[u'投资设立企业或购买股权企业名称'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                        detail_outbound_investment_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(tds[
-                            1].get_text())
-                        detail_outbound_investment_infoes.append(detail_outbound_investment_info)
-                        i += 1
+                outbound_investment_info = base_info[3]
+                if outbound_investment_info:
+                    outbound_investment_trs = outbound_investment_info.find_all('tr')
+                    if len(outbound_investment_trs) > 2:
+                        i = 2
+                        while i < len(outbound_investment_trs):
+                            tds = outbound_investment_trs[i].find_all('tr')
+                            if len(tds) <= 0:
+                                break
+                            detail_outbound_investment_info = {}
+                            detail_outbound_investment_info[u'投资设立企业或购买股权企业名称'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[0].get_text())
+                            detail_outbound_investment_info[u'注册号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                1].get_text())
+                            detail_outbound_investment_infoes.append(detail_outbound_investment_info)
+                            i += 1
 
                 detail[u'对外投资信息'] = detail_outbound_investment_infoes
 
-                report_public_of_ent = self.crawler.crawl_report_public_of_ent_pages(reportYear)
-                soup_public_of_ent = BeautifulSoup(report_public_of_ent, 'html5lib')
-                state_of_enterprise_assets_info = soup_public_of_ent.find('table', {'class': 'detailsList'})
-                state_of_enterprise_assets_trs = state_of_enterprise_assets_info.find_all('tr')
                 detail_state_of_enterprise_assets_infoes = {}
-                detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
-                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[1].find_all(
-                        'td')[0].get_text())
-                detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
-                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[1].find_all(
-                        'td')[1].get_text())
-                detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
-                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[2].find_all(
-                        'td')[0].get_text())
-                detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
-                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[2].find_all(
-                        'td')[1].get_text())
-                detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
-                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[3].find_all(
-                        'td')[0].get_text())
-                detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
-                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[3].find_all(
-                        'td')[1].get_text())
-                detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
-                    0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[4].find_all(
-                        'td')[0].get_text())
-                detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
-                    1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[4].find_all(
-                        'td')[1].get_text())
+                state_of_enterprise_assets_info = base_info[4]
+                if state_of_enterprise_assets_info:
+                    state_of_enterprise_assets_trs = state_of_enterprise_assets_info.find_all('tr')
+                    detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
+                        0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[1].find_all(
+                            'td')[0].get_text())
+                    detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
+                        1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[1].find_all(
+                            'td')[1].get_text())
+                    detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
+                        0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[2].find_all(
+                            'td')[0].get_text())
+                    detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
+                        1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[2].find_all(
+                            'td')[1].get_text())
+                    detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
+                        0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[3].find_all(
+                            'td')[0].get_text())
+                    detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
+                        1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[3].find_all(
+                            'td')[1].get_text())
+                    detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
+                        0].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[4].find_all(
+                            'td')[0].get_text())
+                    detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
+                        1].get_text()] = self.wipe_off_newline_and_blank_for_fe(state_of_enterprise_assets_trs[4].find_all(
+                            'td')[1].get_text())
 
                 detail[u'企业资产状况信息'] = detail_state_of_enterprise_assets_infoes
-                report_offer_security = self.crawler.crawl_report_offer_security_pages(reportYear)
-                soup_offer_security = BeautifulSoup(report_offer_security, 'html5lib')
-                provide_guarantee_to_the_outside_info = soup_offer_security.find('table', {'class': 'detailsList'})
-                provide_guarantee_to_the_outside_trs = provide_guarantee_to_the_outside_info.find_all('tr')
+
                 detail_provide_guarantee_to_the_outside_infoes = []
-                if len(provide_guarantee_to_the_outside_trs) > 2:
-                    i = 2
-                    while i < len(provide_guarantee_to_the_outside_trs):
-                        detail_provide_guarantee_to_the_outside_info = {}
-                        tds = provide_guarantee_to_the_outside_trs[i].find_all('td')
-                        if len(tds) <= 0:
-                            break
-                        detail_provide_guarantee_to_the_outside_info[u'债权人'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[0].get_text())
-                        detail_provide_guarantee_to_the_outside_info[u'债务人'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[1].get_text())
-                        detail_provide_guarantee_to_the_outside_info[u'主债权种类'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[2].get_text())
-                        detail_provide_guarantee_to_the_outside_info[u'主债权数额'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[3].get_text())
-                        detail_provide_guarantee_to_the_outside_info[
-                            u'履行债务的期限'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
-                        detail_provide_guarantee_to_the_outside_info[u'保证的期间'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[5].get_text())
-                        detail_provide_guarantee_to_the_outside_info[u'保证的方式'] = self.wipe_off_newline_and_blank_for_fe(
-                            tds[6].get_text())
-                        detail_provide_guarantee_to_the_outside_info[
-                            u'保证担保的范围'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
-                        detail_provide_guarantee_to_the_outside_infoes.append(
-                            detail_provide_guarantee_to_the_outside_info)
-                        i += 1
+                provide_guarantee_to_the_outside_info = base_info[5]
+                if provide_guarantee_to_the_outside_info:
+                    provide_guarantee_to_the_outside_trs = provide_guarantee_to_the_outside_info.find_all('tr')
+                    if len(provide_guarantee_to_the_outside_trs) > 2:
+                        i = 2
+                        while i < len(provide_guarantee_to_the_outside_trs):
+                            detail_provide_guarantee_to_the_outside_info = {}
+                            tds = provide_guarantee_to_the_outside_trs[i].find_all('td')
+                            if len(tds) <= 0:
+                                break
+                            detail_provide_guarantee_to_the_outside_info[u'债权人'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[0].get_text())
+                            detail_provide_guarantee_to_the_outside_info[u'债务人'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[1].get_text())
+                            detail_provide_guarantee_to_the_outside_info[u'主债权种类'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[2].get_text())
+                            detail_provide_guarantee_to_the_outside_info[u'主债权数额'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[3].get_text())
+                            detail_provide_guarantee_to_the_outside_info[
+                                u'履行债务的期限'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                            detail_provide_guarantee_to_the_outside_info[u'保证的期间'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[5].get_text())
+                            detail_provide_guarantee_to_the_outside_info[u'保证的方式'] = self.wipe_off_newline_and_blank_for_fe(
+                                tds[6].get_text())
+                            detail_provide_guarantee_to_the_outside_info[
+                                u'保证担保的范围'] = self.wipe_off_newline_and_blank_for_fe(tds[7].get_text())
+                            detail_provide_guarantee_to_the_outside_infoes.append(
+                                detail_provide_guarantee_to_the_outside_info)
+                            i += 1
                 detail[u'对外提供保证担保信息'] = detail_provide_guarantee_to_the_outside_infoes
 
-                report_shareholder_change = self.crawler.crawl_report_shareholder_change_pages(reportYear)
-                soup_shareholder_change = BeautifulSoup(report_shareholder_change, 'html5lib')
-                ent_pub_equity_change_info = soup_shareholder_change.find('table', {'class': 'detailsList'})
-                ent_pub_equity_change_trs = ent_pub_equity_change_info.find_all('tr')
                 detail_ent_pub_equity_change_infoes = []
-                if len(ent_pub_equity_change_trs) > 2:
-                    i = 2
-                    while i < len(ent_pub_equity_change_trs):
-                        detail_ent_pub_equity_change_info = {}
-                        tds = ent_pub_equity_change_trs[i].find_all('td')
-                        if len(tds) <= 0:
-                            break
-                        detail_ent_pub_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[
-                            0].get_text())
-                        detail_ent_pub_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[
-                            1].get_text())
-                        detail_ent_pub_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[
-                            2].get_text())
-                        detail_ent_pub_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
-                            3].get_text())
-                        detail_ent_pub_equity_change_infoes.append(detail_ent_pub_equity_change_info)
-                        i += 1
+                ent_pub_equity_change_info = base_info[6]
+                if ent_pub_equity_change_info:
+                    ent_pub_equity_change_trs = ent_pub_equity_change_info.find_all('tr')
+                    if len(ent_pub_equity_change_trs) > 2:
+                        i = 2
+                        while i < len(ent_pub_equity_change_trs):
+                            detail_ent_pub_equity_change_info = {}
+                            tds = ent_pub_equity_change_trs[i].find_all('td')
+                            if len(tds) <= 0:
+                                break
+                            detail_ent_pub_equity_change_info[u'股东'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                0].get_text())
+                            detail_ent_pub_equity_change_info[u'变更前股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                1].get_text())
+                            detail_ent_pub_equity_change_info[u'变更后股权比例'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                2].get_text())
+                            detail_ent_pub_equity_change_info[u'股权变更日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                                3].get_text())
+                            detail_ent_pub_equity_change_infoes.append(detail_ent_pub_equity_change_info)
+                            i += 1
                 detail[u'股权变更信息'] = detail_ent_pub_equity_change_infoes
-                report_record_of_modifies = self.crawler.crawl_report_record_of_modifies_pages(reportYear)
-                soup_record_of_modifies = BeautifulSoup(report_record_of_modifies, 'html5lib')
-                change_record_info = soup_record_of_modifies.find('table', {'class': 'detailsList'})
-                change_record_trs = change_record_info.find_all('tr')
+
+                change_record_info = base_info[7]
                 detail_change_record_infoes = []
-                if len(change_record_trs) > 2:
-                    i = 2
-                    while i < len(change_record_trs):
-                        detail_change_record_info = {}
-                        tds = change_record_trs[i].find_all('td')
-                        if len(tds) <= 0:
-                            break
-                        detail_change_record_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
-                        detail_change_record_info[u'修改事项'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
-                        detail_change_record_info[u'修改前'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
-                        detail_change_record_info[u'修改后'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
-                        detail_change_record_info[u'修改日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
-                        detail_change_record_infoes.append(detail_change_record_info)
-                        i += 1
+                if change_record_info:
+                    change_record_trs = change_record_info.find_all('tr')
+                    if len(change_record_trs) > 2:
+                        i = 2
+                        while i < len(change_record_trs):
+                            detail_change_record_info = {}
+                            tds = change_record_trs[i].find_all('td')
+                            if len(tds) <= 0:
+                                break
+                            detail_change_record_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                            detail_change_record_info[u'修改事项'] = self.wipe_off_newline_and_blank_for_fe(tds[1].get_text())
+                            detail_change_record_info[u'修改前'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text())
+                            detail_change_record_info[u'修改后'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text())
+                            detail_change_record_info[u'修改日期'] = self.wipe_off_newline_and_blank_for_fe(tds[4].get_text())
+                            detail_change_record_infoes.append(detail_change_record_info)
+                            i += 1
                 detail[u'修改记录'] = detail_change_record_infoes
                 ent_pub_ent_annual_report[u'详情'] = detail
                 j += 1
@@ -1366,30 +1321,31 @@ class JiangxiParser(Parser):
         """
         soup = BeautifulSoup(page, 'html5lib')
         administration_sanction_info = soup.find('table', {'class': 'detailsList'})
-        administration_sanction_trs = administration_sanction_info.find_all('tr')
-        detail_administration_sanction_infoes = []
-        if len(administration_sanction_trs) > 2:
-            i = 2
-            while i < len(administration_sanction_trs):
+        if administration_sanction_info:
+            administration_sanction_trs = administration_sanction_info.find_all('tr')
+            detail_administration_sanction_infoes = []
+            if len(administration_sanction_trs) > 2:
+                i = 2
+                while i < len(administration_sanction_trs):
 
-                detail_administration_sanction_info = {}
-                tds = administration_sanction_trs[i].find_all('td')
-                if len(tds) <= 0:
-                    break
-                detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
-                detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[
-                    1].get_text())
-                detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
-                ))
-                detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
-                ))
-                detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
-                    4].get_text())
-                detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
-                    5].get_text())
+                    detail_administration_sanction_info = {}
+                    tds = administration_sanction_trs[i].find_all('td')
+                    if len(tds) <= 0:
+                        break
+                    detail_administration_sanction_info[u'序号'] = self.wipe_off_newline_and_blank_for_fe(tds[0].get_text())
+                    detail_administration_sanction_info[u'行政处罚决定书文号'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        1].get_text())
+                    detail_administration_sanction_info[u'违法行为类型'] = self.wipe_off_newline_and_blank_for_fe(tds[2].get_text(
+                    ))
+                    detail_administration_sanction_info[u'行政处罚内容'] = self.wipe_off_newline_and_blank_for_fe(tds[3].get_text(
+                    ))
+                    detail_administration_sanction_info[u'作出行政处罚决定机关名称'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        4].get_text())
+                    detail_administration_sanction_info[u'作出行政处罚决定日期'] = self.wipe_off_newline_and_blank_for_fe(tds[
+                        5].get_text())
 
-                detail_administration_sanction_infoes.append(detail_administration_sanction_info)
-                i += 1
+                    detail_administration_sanction_infoes.append(detail_administration_sanction_info)
+                    i += 1
         self.crawler.json_dict['other_dept_pub_administration_sanction'] = detail_administration_sanction_infoes
 
     def parse_judical_assist_pub_equity_freeze_pages(self, page):
