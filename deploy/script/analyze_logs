@@ -97,20 +97,42 @@ def analyze_province_mxb():
     companies = {}
     source_db = connect(database='source')
     for task in source_db.crawler_task.find({}):
-        task_uri = task['uri']
-        province, company_name, _ = analyze_uri(task_uri)
-        if province in companies:
-            companies[province].append(company_name)
-        else:
-            companies[province] = [company_name]
+        if "uri" in task:
+            task_uri = task[u"uri"]
+            province, company_name, _ = analyze_uri(task_uri)
+            if province in companies:
+                companies[province].append(company_name)
+            else:
+                companies[province] = [company_name]
+    for province, companies2 in companies.iteritems():
+        count = count_company_in_mysql(companies2)
+        total = len(companies2)
+        content = "{0},{1},{2},{3:.2f}%".format(province.encode('utf8'), count, total, (float(count) / total) * 100)
+        print content
 
 
 def count_company_in_mysql(companies):
-    con = mdb.connect('localhost', 'testuser', 'test623', 'testdb')
+    con = mdb.connect('csciwlpc.mysql.rds.aliyuncs.com', 'plkj', 'Password2016', 'csciwlpc_aic', charset='utf8', use_unicode=True)
 
     with con:
         cur = con.cursor()
-        print cur.execute("SELECT * FROM basic")
+        companies = str_companies_for_sql(companies)
+        SQL = "SELECT * FROM basic WHERE enter_name in ({0})".format(companies)
+        return cur.execute(SQL)
+
+
+def str_companies_for_sql(companies):
+    s = ""
+    i = 0
+    for company in companies:
+        company = company.encode('utf8')
+        i = i + 1
+        if i == len(companies):
+            s += "'{0}'".format(company)
+        else:
+            s += "'{0}',".format(company)
+    return s
+
 
 
 def connect(database='default'):
@@ -136,4 +158,4 @@ if __name__ == '__main__':
     # print_avg_time(start_position)
     # print_province_error(start_position)
     # print_company_error(start_position)
-    pass
+    analyze_province_mxb()
