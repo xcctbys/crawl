@@ -236,6 +236,7 @@
 	YearReportModify			：年报-修改记录
 	YearReportWarrandice		：年报-对外提供保证担保信息
 	YearReportShareholder		：年报-股东及出资信息
+	YearReportBasic				：年报-企业基本信息
 	ind_comm_pub_reg_shareholder	：工商公示-投资人信息明细
 	ind_comm_pub_reg_modify			：工商公示-企业变更信息
 	ind_comm_pub_arch_liquidation	：工商公示-清算信息

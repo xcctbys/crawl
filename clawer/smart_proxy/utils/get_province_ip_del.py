@@ -109,7 +109,7 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=prov_choices, tid='559326559297365',num='20',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=prov_choices, tid='559326559297365',num='100',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         self.a_list=[]
         self.tid= tid
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     print '------fetchall----'
     fetch_tuple=fetch_list[0]
     num_other=fetch_tuple[0]
-    num_other=num_other-100
+    num_other=num_other-300
 
 
 
@@ -247,12 +247,12 @@ if __name__ == '__main__':
         for province_name in province_list:
             print '======province name=====', province_name
             prot = 'http'
-            nums=20
+            nums=100
             if province_name == 'SHANGHAI':
                 prot='https'
             if province_name == 'OTHER':
                 time.sleep(2)
-                nums=100
+                nums=300
             test =PaidProxy(tid='559326559297365',num=nums,sortby= 'time',protocol= prot,filter='on',province= province_name)
             ip_list=test.get_ipproxy()
             read.readLines(ip_list,province= province_name)

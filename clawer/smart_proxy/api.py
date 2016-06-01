@@ -28,7 +28,9 @@ class Proxy(object):
 		if len(ip_list) < num:
 			backup = ['OTHER']
 			if province == 'BEIJING':
-				backup = ['HEBEI','TIANJIN','SHANXI','HENAN','LIAONING','OTHER',]
+				backup = ['HEBEI','OTHER',]
+			if province == 'SHANGHAI':
+				backup = ['JIANGSU','OTHER']
 			for province in backup:
 				temp_list = ProxyIp.objects.filter(province__icontains=province, is_valid=is_valid).order_by('-update_datetime')
 				#temp_list = ProxyIp.objects.filter(province__icontains= province , is_valid=is_valid).order_by('?')
