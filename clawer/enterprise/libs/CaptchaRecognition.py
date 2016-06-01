@@ -8,6 +8,8 @@ import re
 import numpy as np
 from AntiNoise import AntiNoise
 from sklearn.svm import SVC
+# from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import BernoulliRBM
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
@@ -73,6 +75,7 @@ class CaptchaRecognition(object):
         parent = os.path.dirname(__file__)
 
         captcha_type = captcha_type.lower()
+        self.captcha_type = captcha_type
         if captcha_type not in ["jiangsu", "beijing", "zongju", "liaoning", "guangdong", "hubei", "tianjin", "qinghai",
                                 "shanxi", "henan", "guangxi", "xizang", "heilongjiang", "anhui", "shaanxi", "chongqing",
                                 "sichuan", "hunan", "gansu", "xinjiang", "guizhou", "shandong", "neimenggu", "zhejiang",
@@ -95,7 +98,7 @@ class CaptchaRecognition(object):
             self.label_list = [u"零", u"壹", u"贰", u"叁", u"肆", u"伍", u"陆", u"柒", u"捌", u"玖", u"拾", u"加", u"减", u"乘", u"除",
                                u"等", u"于", u"以", u"上", u"去", u"?", u"0", u"1", u"2", u"3", u"4", u"5", u"6", u"7", u"8",
                                u"9", u"的", u"一", u"二", u"三", u"四", u"五", u"六", u"七", u"八", u"九", u"十", u"〇", u"是", u"=",
-                               u"*", u"+"]
+                               u"*", u"+",u"-",u"?"]
         if captcha_type == "jiangsu":
             self.image_label_count = 6
             self.image_start = 0
@@ -114,6 +117,23 @@ class CaptchaRecognition(object):
             self.customized_width = 20
             self.to_binarized = True
             self.masker = 150
+        elif captcha_type == "jiangxi":
+            self.image_label_count = 5
+            self.customized_postisions = True
+            self.position_left = [12, 29, 46, 66, 81, 106]
+            self.position_right = [27, 45, 65, 79, 103, 122]
+            self.image_top = 18
+            self.image_height = 40
+            self.to_denoise = False
+            self.customized_width = 23
+            self.jiangxi_number = [u"?", u"0", u"1", u"2", u"3", u"4", u"5", u"6", u"7", u"8", u"9"]
+            self.jiangxi_symbol = [u"+", u"-"]
+            self.number_index = [0, 2, 4]
+            self.symbol_index = [1]
+            self.to_binarized = True
+            self.masker = 115
+            self.to_summarized = True
+            self.to_calculate = True
         elif captcha_type in ["yunnan", "fujian", "zongju", "shanghai"]:
             self.image_label_count = 3
             self.margin = 8
@@ -265,19 +285,6 @@ class CaptchaRecognition(object):
             self.position_right = [35, 60, 85, 110, 135]
             self.image_top = 7
             self.image_height = 27
-            self.to_denoise = False
-            self.to_calculate = True
-            self.to_binarized = True
-            self.customized_width = 40
-            self.double_denoise = False
-        elif captcha_type == "jiangxi":
-            self.image_label_count = 6
-            self.masker = 100
-            self.customized_postisions = True
-            self.position_left = [15, 40, 70, 89, 126, 144]
-            self.position_right = [40, 72, 89, 126, 144, 160]
-            self.image_top = 0
-            self.image_height = 40
             self.to_denoise = False
             self.to_calculate = True
             self.to_binarized = True
@@ -439,6 +446,9 @@ class CaptchaRecognition(object):
             return _data
 
     def update_model(self, image_path, label_file, train_size):
+        if self.captcha_type == "jiangxi":
+            return self.__update_model_jiangxi__(image_path, label_file, train_size)
+
         if not os.path.isdir(self.model_path):
             os.mkdir(self.model_path)
         if not os.path.isdir(image_path):
@@ -520,6 +530,11 @@ class CaptchaRecognition(object):
         first_num = self.__convert_to_number__(numbers[0])
         second_num = self.__convert_to_number__(numbers[1])
 
+        if results.__contains__(u"?"):
+            if results.__contains__(u"+"):
+                return second_num - first_num
+            elif results.__contains__(u"-") and (results.index("-") < results.index(numbers[0])):
+                return first_num + second_num
         if results.__contains__(u"加") or results.__contains__(u"+"):
             return first_num + second_num
         elif results.__contains__(u"减") or results.__contains__(u"-"):
@@ -599,6 +614,11 @@ class CaptchaRecognition(object):
         If the captcha is in the type of calculation, the second value is a number;
         and if the captcha is the type of letters and/or numbers, the second value is the content.
         '''
+
+        if self.captcha_type == "jiangxi":
+            return self.__predict_result_jiangxi__(image_path)
+
+
         if os.path.isfile(self.model_file):
             self.clf = joblib.load(self.model_file)
         else:
@@ -614,9 +634,7 @@ class CaptchaRecognition(object):
         pixel_matrix = self.__convertPoint__(image_path)
         if pixel_matrix is None:
             return "", ""
-        pixel_matrix = self.__convertPoint__(image_path)
-        if pixel_matrix is None:
-            return "", ""
+
         predict_result = u""
         for feature in pixel_matrix:
             _f = np.array([feature], dtype=np.float)
@@ -629,3 +647,121 @@ class CaptchaRecognition(object):
             return predict_result, self.__calculate__((predict_result))
         else:
             return predict_result, predict_result
+
+    def __predict_result_jiangxi__(self, image_path):
+        parent = os.path.dirname(__file__)
+        # self.model_path = "model/" + self.captcha_type
+        self.model_path = os.path.join(parent, "model", self.captcha_type)
+
+        # number model
+        self.model_file_number = self.model_path + "/number/model.m"
+
+        # symbol model
+        self.model_file_symbol = self.model_path + "/symbol/model.m"
+
+        if os.path.isfile(self.model_file_number):
+            self.clf_number = joblib.load(self.model_file_number)
+        else:
+            raise IOError
+
+        if os.path.isfile(self.model_file_symbol):
+            self.clf_symbol = joblib.load(self.model_file_symbol)
+        else:
+            raise IOError
+
+        try:
+            im = Image.open(image_path)
+        except:
+            return "", ""
+
+        if self.__check_style__(im) == 0:
+            return "", ""
+
+        pixel_matrix = self.__convertPoint__(image_path)
+        if pixel_matrix is None:
+            return "", ""
+
+        predict_result = u""
+        for index in range(len(pixel_matrix)):
+            # print index
+            if (index not in self.number_index) and (index not in self.symbol_index):
+                predict_result += u"="
+            else:
+                feature = pixel_matrix[index]
+                _f = np.array([feature], dtype=np.float)
+                if index in self.number_index:
+                    predict = self.clf_number.predict(_f)[0]
+                    if int(predict) >= len(self.label_list) or int(predict) < 0:
+                        return "", ""
+                    predict_result += unicode(self.jiangxi_number[int(predict)])
+                elif index in self.symbol_index:
+                    predict = self.clf_symbol.predict(_f)[0]
+                    if int(predict) >= len(self.label_list) or int(predict) < 0:
+                        return "", ""
+                    predict_result += unicode(self.jiangxi_symbol[int(predict)])
+
+        if self.to_calculate:
+            return predict_result, self.__calculate__((predict_result))
+        else:
+            return predict_result, predict_result
+
+    def __update_model_jiangxi__(self, image_path, label_file, train_size):
+
+        if not os.path.isdir(self.model_path):
+            os.mkdir(self.model_path)
+
+            if not os.path.isdir(self.model_path + "/number"):
+                os.mkdir(self.model_path + "/number")
+
+            if not os.path.isdir(self.model_path + "/symbol"):
+                os.mkdir(self.model_path + "/symbol")
+
+        if not os.path.isdir(image_path):
+            exit(1)
+
+        image_label_pair = pd.read_csv(label_file, encoding="utf-8")
+        image_label_pair = image_label_pair[:train_size]
+        index = 0
+        x_num = []
+        y_num = []
+        y_num_count = 0
+
+        x_sym = []
+        y_sym = []
+        y_sym_count = 0
+        start = datetime.datetime.now()
+        for i in range(len(image_label_pair)):
+            image = image_path + "/" + str(image_label_pair.iloc[i]["name"])
+            labels = image_label_pair.iloc[i]["value"]
+            if type(labels) == int:
+                labels = str(labels)
+            for num in self.number_index:
+                y_num.append(self.jiangxi_number.index(labels[num]))
+                y_num_count += 1
+
+            for sym in self.symbol_index:
+                y_sym.append(self.jiangxi_symbol.index(labels[sym]))
+                y_sym_count += 1
+
+            x = self.__convertPoint__(image)
+            x_num_temp = x[np.array(self.number_index),]
+            x_sym_temp = x[np.array(self.symbol_index),]
+            if index == 0:
+                x_num = x_num_temp
+                x_sym = x_sym_temp
+            else:
+                x_num = np.append(x_num, x_num_temp, axis=0)
+                x_sym = np.append(x_sym, x_sym_temp, axis=0)
+
+            index += 1
+        print u"数据集已生成 共用时", datetime.datetime.now() - start, u"开始建模"
+
+        classifier = RandomForestClassifier(n_estimators=50, n_jobs=-1)
+
+        # number model
+        model_num = classifier.fit(x_num, y_num)
+        joblib.dump(model_num, self.model_path + "/number/model.m")
+
+        model_sym = classifier.fit(x_sym, y_sym)
+        joblib.dump(model_num, self.model_path + "/symbol/model.m")
+        return True

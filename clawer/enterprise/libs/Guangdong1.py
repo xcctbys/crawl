@@ -43,7 +43,7 @@ def get_cookie(url):
     """
     g = ghost.Ghost()
     cookiedict = {}
-    with g.start() as se:
+    with g.start(wait_timeout=30, download_images=False) as se:
         se.wait_timeout = 999
         mycookielist = []
         page, extra_resources = se.open(url)
@@ -58,7 +58,7 @@ class Crawler(object):
     analysis = None
 
     def __init__(self, req=None):
-        headers = {'Connetion': 'Keep-Alive',
+        self.headers = {'Connetion': 'Keep-Alive',
                    'Accept': 'text/html, application/xhtml+xml, */*',
                    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0",
@@ -69,12 +69,12 @@ class Crawler(object):
 
         else:
             self.request = requests.Session()
-            self.request.headers.update(headers)
+            self.request.headers.update(self.headers)
             adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
             self.request.mount('http://', adapter)
         self.ents = []
         self.json_dict = {}
-        self.timeout = (30, 20)
+        self.timeout = 15
 
     # 爬取 工商公示信息 页面
     @exe_time
@@ -322,6 +322,59 @@ class Crawler(object):
         # url = "http://gsxt.gdgs.gov.cn/aiccips/judiciaryAssist/judiciaryAssistInit.html"
         self.crawl_judical_assist_pub_pages(url, 2, post_data)
         return self.json_dict
+
+    def run_ghost(self, url):
+        g = ghost.Ghost()
+        threads=[]
+        with g.start(wait_timeout=20, download_images=False) as gh:
+            page, extra_resources= gh.open(url, headers=self.headers, timeout=self.timeout) # 第一次访问,不能获取到正确的内容,返回的是js代码
+            # print gh.cookies
+
+            page, extra_resources=gh.open(url , headers=self.headers, timeout=self.timeout) # 第二次访问,此次可以获取到正确的内容
+            page_entInfo=gh.content
+            self.gh = gh
+            if not page_entInfo:
+                logging.error("Can't get page %s ." % (url))
+                return {}
+            post_data = self.analysis.parse_page_data_2(page_entInfo)
+            body=reduce(lambda x, y: x+"&"+y, ["%s=%s"%(k,v) for k,v in post_data.items()])
+
+            # threads.append(gevent.spawn(self.crawl_ind_comm_pub_pages, url, 2, post_data))
+            # threads.append(gevent.spawn(self.crawl_ent_pub_pages, url, 2, post_data))
+            # threads.append(gevent.spawn(self.crawl_other_dept_pub_pages, url, 2, post_data))
+            # threads.append(gevent.spawn(self.crawl_judical_assist_pub_pages, url, 2, post_data))
+            # gevent.joinall(threads)
+            sub_json_dict = {}
+            prefix_GSpublicity = 'aiccips/GSpublicity/GSpublicityList.html'
+
+            # div_name = 'jibenxinxi'
+            # url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'entInfo')    # 登记信息
+            # gh.open(address=url, method='POST', body=body)
+            # page = gh.content
+            # print page
+            # dict_jiben = self.analysis.parse_page_2(page, div_name, post_data)
+            # sub_json_dict['ind_comm_pub_reg_modify'] = dict_jiben[u'变更信息'] if dict_jiben.has_key(u"变更信息") else {}
+            # sub_json_dict['ind_comm_pub_reg_basic'] = dict_jiben[u'基本信息'] if dict_jiben.has_key(u"基本信息") else []
+            # sub_json_dict['ind_comm_pub_reg_shareholder'] = dict_jiben[u'股东信息'] if dict_jiben.has_key(
+            #         u"股东信息") else []
+
+            # div_name = 'beian'
+            # url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'entCheckInfo')    #备案信息
+            # gh.open(method='POST',address=url, body=body )
+            # page = gh.content
+            # print page
+            # # print page.encode('utf8')
+            # dict_beian = self.analysis.parse_page_2(page, div_name, post_data)
+            # sub_json_dict['ind_comm_pub_arch_key_persons'] = dict_beian[u'主要人员信息'] if dict_beian.has_key(
+            #     u"主要人员信息") else []
+            # sub_json_dict['ind_comm_pub_arch_branch'] = dict_beian[u'分支机构信息'] if dict_beian.has_key(
+            #     u"分支机构信息") else []
+            # sub_json_dict['ind_comm_pub_arch_liquidation'] = dict_beian[u"清算信息"] if dict_beian.has_key(
+            #     u'清算信息') else []
+
+
+        return sub_json_dict
+        # return cookiedict
 
     def run_asyn(self, url):
         gevent.monkey.patch_socket()
@@ -907,16 +960,26 @@ class Guangdong1(object):
     def run_asyn(self, url):
         return self.crawler.run_asyn(url)
 
+    def run_ghost(self, url):
+        return self.crawler.run_ghost(url)
+
 class Guangdong1Test(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
 
-    # @unittest.skip("skipping")
+    @unittest.skip("skipping")
     def test_crawl_ind_comm_pub_pages(self):
         ent_str = "http://gsxt.gzaic.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_cPlFMHz7UORGuPsot6Ab+gyFHBRDGmiqdLAvpr4C7UU=-7PUW92vxF0RgKhiSE63aCw=="
         guangdong = Guangdong1()
         result = guangdong.run_asyn(ent_str)
+        self.assertTrue(result)
+        print result
+
+    def test_run_ghost(self):
+        ent_str = "http://gsxt.gzaic.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_cPlFMHz7UORGuPsot6Ab+gyFHBRDGmiqdLAvpr4C7UU=-7PUW92vxF0RgKhiSE63aCw=="
+        guangdong=Guangdong1()
+        result=guangdong.run_ghost(ent_str)
         self.assertTrue(result)
         print result
 

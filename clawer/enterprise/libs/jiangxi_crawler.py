@@ -33,20 +33,21 @@ class JiangxiCrawler(Crawler):
     write_file_mutex = threading.Lock()
     urls = {'host': 'http://gsxt.jxaic.gov.cn',
             'main': 'http://gsxt.jxaic.gov.cn/ECPS/',
-    # 'get_checkcode': 'http://gsxt.jxaic.gov.cn/ECPS/verificationCode.jsp?',
             'get_checkcode':
             "http://gsxt.jxaic.gov.cn:80/ECPS/common/common_getJjYzmImg.pt?yzmName=searchYzm&imgWidth=180&t=" +
             str(random.random()),
-            'post_checkCode': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_checkVerificationCode.action?',
-            'post_checkCode2': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_queryXyxx.action?',
-            'ind_comm_pub_reg_basic': 'http://gsxt.jxaic.gov.cn/ECPS/qyxxgsAction_initQyjbqk.action?',
-            'ind_comm_pub_reg_shareholder': 'http://gsxt.jxaic.gov.cn/ECPS/tzrczxxAction_init.action?',
-            'ind_comm_pub_reg_modify': 'http://gsxt.jxaic.gov.cn/ECPS/qybgxxAction_init.action?',
-            'ind_comm_pub_arch_key_persons': 'http://gsxt.jxaic.gov.cn/ECPS/qybaxxAction_zyryxx.action?',
-            'ind_comm_pub_arch_branch': 'http://gsxt.jxaic.gov.cn/ECPS/qybaxxAction_fgsxx.action?',
-            'ind_comm_pub_arch_liquidation': 'http://gsxt.jxaic.gov.cn/ECPS/qybaxxAction_qsxx.action?',
-            'ind_comm_pub_movable_property_reg': 'http://gsxt.jxaic.gov.cn/ECPS/dcdyxxAction_init.action?',
-            'ind_comm_pub_equity_ownership_reg': 'http://gsxt.jxaic.gov.cn/ECPS/gqczdjxxAction_gqczdjxx.action?',
+            'post_checkCode': 'http://gsxt.jxaic.gov.cn/ECPS/home/home_homeSearchYzm.pt',
+            'post_checkCode2': 'http://gsxt.jxaic.gov.cn/ECPS/home/home_homeSearch.pt?',
+            'ind_comm_pub_reg_basic': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewDjxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0&showgdxx=true
+            'ind_comm_pub_reg_shareholder': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewDjxxGdxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx2=11
+            'ind_comm_pub_reg_modify': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewDjxxBgxx.pt?', #qyid=3600006000054779
+
+            'ind_comm_pub_arch_key_persons': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewBaxx.pt?',#qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
+            'ind_comm_pub_arch_branch': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewBaxx.pt?',#qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
+            'ind_comm_pub_arch_liquidation': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewBaxx.pt?',#qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
+
+            'ind_comm_pub_movable_property_reg': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewDcdydjxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&num=0&showgdxx=true
+            'ind_comm_pub_equity_ownership_reg': 'http://gsxt.jxaic.gov.cn/ECPS/ccjcgs/gsgs_viewGqczdjxx.pt?', #qyid=3600006000054779&zch=913600007419861533&qylx=1190&showgdxx=true
             'ind_comm_pub_administration_sanction': 'http://gsxt.jxaic.gov.cn/ECPS/xzcfxxAction_initXzcfxx.action?',
             'ind_comm_pub_business_exception': 'http://gsxt.jxaic.gov.cn/ECPS/jyycxxAction_init.action?',
             'ind_comm_pub_serious_violate_law': 'http://gsxt.jxaic.gov.cn/ECPS/yzwfxxAction_init.action',
@@ -111,6 +112,7 @@ class JiangxiCrawler(Crawler):
     def analyze_showInfo(self, page):
         soup = BeautifulSoup(page, "html5lib")
         dl = soup.find('dl', attrs={'id': 'qyList'})
+        print dl
         if not dl:
             return False
         divs = dl.find_all('div', {'style': 'padding-top: 8px; font-size:14px;'})
@@ -123,7 +125,7 @@ class JiangxiCrawler(Crawler):
                 ent = ""
                 link = div.find('a')
                 if link and link.has_attr('href'):
-                    url = link.find('a')['href']
+                    url = link['href']
                 profile = div.find('span')
                 if profile:
                     ent = profile.get_text().strip()
@@ -148,33 +150,22 @@ class JiangxiCrawler(Crawler):
             count += 1
             ck_code = self.crack_checkcode()
 
-            data = {'password': ck_code}
+            data = {'yzm':ck_code, 'searchtext':self.ent_number}
             resp = self.reqst.post(JiangxiCrawler.urls['post_checkCode'], data=data, timeout=self.timeout)
             if resp.status_code != 200:
                 logging.error("crawl post check page failed!")
                 continue
             message_json = resp.content
             message = json.loads(str(message_json))
-            if message.get('message') not in 'ok':
+            if message.get('msg') == False:
                 logging.error('message is not ok')
                 time.sleep(random.uniform(1, 3))
                 continue
-            search_data = {}
-            search_data['isEntRecord'] = ''
-            search_data['password'] = ck_code
-            search_data['loginInfo.regno'] = ''
-            search_data['loginInfo.entname'] = ''
-            search_data['loginInfo.idNo'] = ''
-            search_data['loginInfo.mobile'] = ''
-            search_data['loginInfo.password'] = ''
-            search_data['loginInfo.verificationCode'] = ''
-            search_data['otherLoginInfo.name'] = ''
-            search_data['otherLoginInfo.password'] = ''
-            search_data['otherLoginInfo.verificationCode'] = ''
-            search_data['selectValue'] = self.ent_number
-            resp = self.reqst.post(JiangxiCrawler.urls['post_checkCode2'], data=search_data, timeout=self.timeout)
+            data = {'yzm':ck_code , 'search': self.ent_number}
+
+            resp = self.reqst.get(JiangxiCrawler.urls['post_checkCode2'], params=data, timeout=self.timeout)
             if resp.status_code != 200:
-                logging.error('message is not ok')
+                logging.error('message is not ok. status_code=%d.'%(resp.status_code))
                 time.sleep(random.uniform(1, 3))
                 continue
             if self.analyze_showInfo(resp.content):
@@ -205,8 +196,6 @@ class JiangxiCrawler(Crawler):
         except Exception as e:
             logging.warn('exception occured when crack checkcode')
             ckcode = ('', '')
-        finally:
-            pass
         self.write_file_mutex.release()
         print ckcode
         return ckcode[1]
