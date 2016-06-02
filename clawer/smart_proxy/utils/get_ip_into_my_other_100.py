@@ -132,7 +132,7 @@ class PaidProxy(BaseProxy):
             area= prodict.get(province,'北京')
             if province == 'SHANGHAI':
                 area = '上海,安徽，浙江，江苏'
-           
+
             print area
             print '-----area-----'
             self.urlget= self.url+para_url+'&area='+area
@@ -226,4 +226,11 @@ if __name__ == '__main__':
     ip_list = test.get_ipproxy()
     read = PutIntoMy()
     read.readLines(ip_list)
+    time.sleep(35)
+
+
+    test =PaidProxy(num=300,sortby= 'time',protocol= 'https',filter='off',province='SHANGHAI')
+    ip_list = test.get_ipproxy()
+    read = PutIntoMy()
+    read.readLines(ip_list,province='HTTPS')
 
