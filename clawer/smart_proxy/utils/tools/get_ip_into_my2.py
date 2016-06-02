@@ -11,7 +11,6 @@ import os
 import mysql.connector
 import time
 import random
-from django.conf import settings
 
 """
 
@@ -89,8 +88,6 @@ prov_choices = dict([
 ('ZHEJIANG',u'浙江'),
 ('XIZANG',u'西藏')])
 
-IPPROXY_TID='559326559297365'
-
 def test(prov_choices):
     print type(prov_choices)
     print prov_choices
@@ -112,12 +109,10 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=prov_choices, tid=IPPROXY_TID,num='100',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=prov_choices, tid='559326559297365',num='10',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         self.a_list=[]
         self.tid= tid
-        print self.tid
-        print '------tid---------'
         self.num = num
         self.filter=filter
         self.prot= protocol
@@ -127,16 +122,14 @@ class PaidProxy(BaseProxy):
         self.foreign=foreign
 
 
-        #self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby}
-
-        self.parameter = {'num':self.num,'tid':self.tid,'protocol':self.prot ,'longlife':20,'filter':self.filter}
+        self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby}
 
         para_url = urllib.urlencode(self.parameter)
 
         if province:
             area= prodict.get(province,'OTHER')
             if area == 'OTHER':
-                area = random.choice(["北京"])
+                area = random.choice(["北京","上海","广东","山东","浙江"])
             print area
             print '-----area-----'
             self.urlget= self.url+para_url+'&area='+area
@@ -180,17 +173,14 @@ class PutIntoMy:
 			print '-----cursor---------'
 			sql = "insert into smart_proxy_proxyip(ip_port,province,is_valid,create_datetime,update_datetime) values(%s,%s,%s,%s,%s)"
 			print sql
-			print '-----sql---------'
-			#if i>1:
-				#cursor.executemany(sql,list)
-				#cnx.commit()
-				#print("插入")
-				#i=0
-				#list=[]
+
+			if i>1:
+				cursor.executemany(sql,list)
+				cnx.commit()
+				print("插入")
+				i=0
+				list=[]
 			i=i+1
-        if i>1:
-            cursor.executemany(sql,list)
-            cnx.commit()
         #if i>0:
         #    cursor.executemany(sql,list)
         #    cnx.commit()
@@ -211,85 +201,22 @@ if __name__ == '__main__':
     # test(choices)
     #if DEBUG:
         #unittest.main()
-    t1=time.time()
-    cursor=cnx.cursor()
-    sql_count="select count(*) from smart_proxy_proxyip where province!='OTHER'"
-    count=cursor.execute(sql_count)
-    print count
-    print '--count-----'
-    fetch_list = cursor.fetchall()
-    print fetch_list
-    print '------fetchall----'
-    fetch_tuple=fetch_list[0]
-    num_old=fetch_tuple[0]
-    print num_old
-    print '----num_old---'
-
-
-
-    cursor=cnx.cursor()
-    sql_count_all="select count(*) from smart_proxy_proxyip where province='OTHER'"
-    count=cursor.execute(sql_count_all)
-    print count
-    print '--count-----'
-    fetch_list = cursor.fetchall()
-    print fetch_list
-    print '------fetchall----'
-    fetch_tuple=fetch_list[0]
-    num_other=fetch_tuple[0]
-    num_other=num_other-300
-
-
-
-
-    print '------------'
-    print "fetch all succeed."
     province_https=['SHANGHAI']
-    province_one=['GUANGDONG','BEIJING','JIANGSU','SHANDONG','OTHER']
-    province_two=['SICHUAN','HUBEI','HEBEI','TIANJIN']
-    province_three=['JIANGXI','SHAANXI','XINJIANG','GANSU','OTHER']
+    province_one=['GUANGDONG','BEIJING','ZHEJIANG','JIANGSU','SHANDONG','OTHER']
+    province_two=['SICHUAN','FUJIAN','HUBEI','ANHUI','HENAN','HUNAN','HEBEI','TIANJIN','CHONGQING']
+    province_three=['JIANGXI','SHAANXI','SHANXI','HEILONGJIANG','XINJIANG','GUANGXI','JILIN','YUNNAN','NEIMENGGU','GANSU','GUIZHOU','HAINAN','LIAONING','NINGXIA','QINGHAI','XIZANG','OTHER']
     province_list_all=[province_https,province_one,province_two,province_three]
     read = PutIntoMy()
     for province_list in province_list_all:
         for province_name in province_list:
             print '======province name=====', province_name
             prot = 'http'
-            nums=100
-            filter_old = 'off'
             if province_name == 'SHANGHAI':
                 prot='https'
-            if province_name == 'OTHER':
-                time.sleep(2)
-                nums=300
-            if province_name=='BEIJING':
-                filter_old = 'off'
-            # 北京filter on太少
-            test =PaidProxy(tid=IPPROXY_TID,num=nums,sortby= 'time',protocol= prot,filter=filter_old,province= province_name)
+            test =PaidProxy(tid='559326559297365',num=11,sortby= 'time',protocol= prot,filter='on',province= province_name)
             ip_list=test.get_ipproxy()
-            read.readLines(ip_list,province= province_name)
-            #read.readLines(ip_list)
-            time.sleep(1.6)
-    cursor=cnx.cursor()
-    sql_delete = "delete from smart_proxy_proxyip where province!= 'OTHER' order by update_datetime  limit %(nums)s "
-    print '---sql_delete----'
-    #sql_content = "insert into table(key1,key2,key3) values (%s,%s,%s)"%(value1,value2,value3)
-    data_limit={'nums':num_old}
+            #read.readLines(ip_list,province= province_name)
+            read.readLines(ip_list)
+            time.sleep(1.5)
 
-    cursor.execute(sql_delete,data_limit)
-    print "Delete province_num succeed."
-    cnx.commit()
-    cursor=cnx.cursor()
-    
-    sql_delete_other = "delete from smart_proxy_proxyip where province = 'OTHER' order by update_datetime  limit %(nums)s "
-    print '---sql_delete----'
-    #sql_content = "insert into table(key1,key2,key3) values (%s,%s,%s)"%(value1,value2,value3)
-    data_limit_other={'nums':num_other}
-    cursor.execute(sql_delete_other,data_limit_other)
-    print "Delete limit other  succeed."
-    print '--------222------------'
-    cnx.commit()
-    cnx.close()
-    t2=time.time()
-    timedur  =t2-t1
-    print timedur
 
