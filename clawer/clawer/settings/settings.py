@@ -1,4 +1,4 @@
-#encoding=utf-8
+# -*- coding: utf-8 -*-
 
 import os
 
@@ -59,7 +59,6 @@ STATICFILES_DIRS = (os.path.join(os.path.dirname(__file__), '../static').replace
 # various locations.
 STATICFILES_FINDERS = ('django.contrib.staticfiles.finders.FileSystemFinder',
                        'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
                        )
 
 # Make this unique, and don't share it with anybody.
@@ -68,7 +67,6 @@ SECRET_KEY = '_$56$ft*1=0s-428iey4*2&amp;oy*)$&amp;76f!(!l3(0m+ddl-7!+9s'
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = ('django.template.loaders.filesystem.Loader',
                     'django.template.loaders.app_directories.Loader',
-    #     'django.template.loaders.eggs.Loader',
                     )
 
 TEMPLATES = [
@@ -90,11 +88,8 @@ TEMPLATES = [
 
 MIDDLEWARE_CLASSES = ('django.middleware.common.CommonMiddleware',
                       'django.contrib.sessions.middleware.SessionMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
                       'django.contrib.auth.middleware.AuthenticationMiddleware',
                       'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
                       )
 
 ROOT_URLCONF = 'clawer.urls'
@@ -121,12 +116,8 @@ INSTALLED_APPS = ('django.contrib.auth',
                   'django.contrib.sites',
                   'django.contrib.messages',
                   'django.contrib.staticfiles',
-    # Uncomment the next line to enable the admin:
                   'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
                   'raven.contrib.django.raven_compat',
-    #myself
                   "html5helper",
                   "captcha",
                   "enterprise",
@@ -143,7 +134,7 @@ DOWNLOAD_JS = os.path.join(os.path.dirname(__file__), "../download.js")
 REDIS_DATA_COMPRESSED = True
 
 JSONS_URL = 'http://clawer.princetechs.com/media/clawer_result/enterprise/json'
-UPDATE_BY = "day"    # "hour" | "day"
+UPDATE_BY = "day"
 
 # JSONS_URL = "http://clawer.princetechs.com/media/clawer_result/4"
 # UPDATE_BY = "hour" # "hour" | "day"
@@ -152,20 +143,20 @@ MULTIPROCESS = True    # True | False
 
 MAX_PROXY_NUM = 500
 
-#### 在下载器中有用到
-MAX_TOTAL_DISPATCH_COUNT_ONCE = 5000    #设置一次分发的数量
-DISPATCH_USE_POOL_TIMEOUT = 300    #设置在分发过程中使用多进程的时间限制
-DISPATCH_BY_PRIORITY = True or False    #设置是只按优先级分发
-DISPATCH_BY_HOSTNAME = True or False    #设置是只按主机分发
+# 在下载器中有用到
+MAX_TOTAL_DISPATCH_COUNT_ONCE = 5000       # 设置一次分发的数量
+DISPATCH_USE_POOL_TIMEOUT = 300            # 设置在分发过程中使用多进程的时间限制
+DISPATCH_BY_PRIORITY = True or False       # 设置是只按优先级分发
+DISPATCH_BY_HOSTNAME = True or False       # 设置是只按主机分发
 RQ_DOWNLOAD_TASK_TIMEOUT = 180
-Q_DOWN_SUPER_LEN = 1000    #设置优先级队列的长度，防止队列无限增长并控制内存消耗。
+Q_DOWN_SUPER_LEN = 1000                    # 设置优先级队列的长度，防止队列无限增长并控制内存消耗。
 Q_DOWN_HIGH_LEN = 1000
 Q_DOWN_MID_LEN = 2000
 Q_DOWN_LOW_LEN = 3000
-CODE_PATH = '/tmp/my_code'    # 配置下载器 code(python or shell)的保存路径
-OPEN_CRAWLER_FAILED_ONLY = False and True    #是否一直分发失败的任务
+CODE_PATH = '/tmp/my_code'                 # 配置下载器 code(python or shell)的保存路径
+OPEN_CRAWLER_FAILED_ONLY = False and True  # 是否一直分发失败的任务
 
-###去重器初始化用户自定义
+# 去重器初始化用户自定义
 
-URI_NUM_SCALE = 1000000    #预计要去重的uri数量级和
-ACCEPT_ERROR_RATE = 0.0001    #能够接受的去重失误率
+URI_NUM_SCALE = 1000000     # 预计要去重的uri数量级和
+ACCEPT_ERROR_RATE = 0.0001  # 能够接受的去重失误率
