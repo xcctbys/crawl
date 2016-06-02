@@ -221,7 +221,7 @@ class GuangdongCrawler(object):
                         elif i==1:
                             logging.error(u"This %s enterprise is type 1"%(self.ent_num))
                             guangdong = Guangdong1(self.request)
-                            data =guangdong.run_asyn(url)
+                            data =guangdong.run(url)
                             print url
                             sub_json_list.append({ent: data})
                         # gsxt.gdgs.gov.cn/aiccips
