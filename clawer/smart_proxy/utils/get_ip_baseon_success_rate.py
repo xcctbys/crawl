@@ -255,7 +255,7 @@ if __name__ == '__main__':
             if province_name == 'OTHER':
                 time.sleep(2)
                 nums=300
-            test =PaidProxy(tid='559326559297365',num=nums,sortby= 'time',protocol= prot,filter='on',province= province_name)
+            test =PaidProxy(tid='559326559297365',num=nums,sortby= 'time',protocol= prot,filter='off',province= province_name)
             ip_list=test.get_ipproxy()
             read.readLines(ip_list,province= province_name)
             #read.readLines(ip_list)
@@ -270,11 +270,12 @@ if __name__ == '__main__':
     print "Delete province_num succeed."
     cnx.commit()
     cursor=cnx.cursor()
-    sql_delete = "delete from smart_proxy_proxyip where province= 'OTHER' order by update_datetime  limit %(nums)s "
+    
+    sql_delete_other = "delete from smart_proxy_proxyip where province = 'OTHER' order by update_datetime  limit %(nums)s "
     print '---sql_delete----'
     #sql_content = "insert into table(key1,key2,key3) values (%s,%s,%s)"%(value1,value2,value3)
-    data_limit={'nums':num_other}
-    cursor.execute(sql_delete,data_limit)
+    data_limit_other={'nums':num_other}
+    cursor.execute(sql_delete_other,data_limit_other)
     print "Delete limit other  succeed."
     print '--------222------------'
     cnx.commit()
