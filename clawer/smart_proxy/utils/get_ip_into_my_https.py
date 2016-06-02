@@ -228,14 +228,15 @@ if __name__ == '__main__':
     #if DEBUG:
         #unittest.main()
     ###
-    test =PaidProxy(num=300,sortby= 'time',protocol= 'http',filter='off',province='OTHER')
+
+
+
+
+
+
+
+    test =PaidProxy(num=300,sortby= 'time',protocol= 'https',filter='off',province='HTTPS')
     ip_list = test.get_ipproxy()
     read = PutIntoMy()
-    read.readLines(ip_list)
-
-
-
-
-
-
+    read.readLines(ip_list,province='HTTPS')
 
