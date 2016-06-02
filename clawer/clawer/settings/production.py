@@ -4,7 +4,6 @@
 import os
 from settings import *
 
-
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
@@ -20,14 +19,12 @@ DATABASES = {
             'sql_mode': 'TRADITIONAL',
             'charset': 'utf8',
             'init_command': 'SET '
-            'storage_engine=INNODB,'
+                            'storage_engine=INNODB,'
             'character_set_connection=utf8,'
             'collation_connection=utf8_bin'
         }
-
     }
 }
-
 
 CACHES = {
     'default': {
@@ -47,7 +44,7 @@ MEDIA_URL = "http://172.16.80.5/media/"
 PYTHON = "/usr/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE = os.path.join(os.path.dirname(__file__), "cron.f")
-URI_TTL = 60*60*24
+URI_TTL = 60 * 60 * 24
 
 CRONTAB_USER = "nginx"
 CRONTAB_HOME = "/home/webapps/cr-clawer/confs/cr"
@@ -69,21 +66,24 @@ HIGH_MAX_QUEUE_LENGTH = 2000
 MEDIUM_MAX_QUEUE_LENGTH = 3000
 LOW_MAX_QUEUE_LENGTH = 4000
 
-
 # for storage
 
 MongoDBS = {
     'default': {
-        'host': "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/default?replicaSet=mgset-1160325",
+        'host':
+        "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/default?replicaSet=mgset-1160325",
     },
     'log': {
-       'host': "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/log?replicaSet=mgset-1160325",
+        'host':
+        "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/log?replicaSet=mgset-1160325",
     },
     'source': {
-        'host': "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/source?replicaSet=mgset-1160325",
+        'host':
+        "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/source?replicaSet=mgset-1160325",
     },
     'structure': {
-       'host': "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/structure?replicaSet=mgset-1160325",
+        'host':
+        "mongodb://clawer:plkjplkj@dds-wz9a828f745eac341.mongodb.rds.aliyuncs.com:3717,dds-wz9a828f745eac342.mongodb.rds.aliyuncs.com:3717/structure?replicaSet=mgset-1160325",
     }
 }
 
@@ -94,7 +94,6 @@ for name, db in MongoDBS.iteritems():
 
 # captcha
 CAPTCHA_STORE = "/data/media/captcha"
-
 
 RAVEN_CONFIG = {
     'dsn': 'http://917b2f66b96f46b785f8a1e635712e45:556a6614fe28410dbf074552bd566750@sentry.princetechs.com//2',
