@@ -7,7 +7,7 @@ import MySQLdb as mdb
 
 def print_province_error(start_position):
     # 最多打印前多少类错误
-    MAX_ERROR_LENGTH = 10
+    MAX_ERROR_LENGTH = 100
     succeed_count, failed_count, analyzed_province_report, _, _, _ = analyze_logs(start_position)
     sorted_reasons = sorted(analyzed_province_report, key=lambda k: len(analyzed_province_report[k]), reverse=True)
     for reason in sorted_reasons[1:MAX_ERROR_LENGTH]:
@@ -24,9 +24,9 @@ def print_province_error(start_position):
 
 def print_company_error(start_position):
     # 最多打印前多少类错误
-    MAX_ERROR_LENGTH = 10
+    MAX_ERROR_LENGTH = 100
     # 最多打印出现该类错误公司次数
-    MAX_COMPANY_LENGTH = 20
+    MAX_COMPANY_LENGTH = 200
     succeed_count, failed_count, _, analyzed_company_report, _, _ = analyze_logs(start_position)
     sorted_reasons = sorted(analyzed_company_report, key=lambda k: len(analyzed_company_report[k]), reverse=True)
     print "总共下载失败{0}次".format(succeed_count + failed_count)
@@ -151,11 +151,11 @@ def analyze_uri(uri):
 
 
 if __name__ == '__main__':
-    # try:
-    #     start_position = int(sys.argv[1])
-    # except:
-    #     start_position = 0
-    # print_avg_time(start_position)
-    # print_province_error(start_position)
-    # print_company_error(start_position)
+    try:
+        start_position = int(sys.argv[1])
+    except:
+        start_position = 0
+    print_avg_time(start_position)
+    print_province_error(start_position)
+    print_company_error(start_position)
     analyze_province_mxb()
