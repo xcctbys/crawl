@@ -122,7 +122,7 @@ class PaidProxy(BaseProxy):
         self.foreign=foreign
 
 
-        self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby}
+        self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby,'longlife':20}
 
         para_url = urllib.urlencode(self.parameter)
 
