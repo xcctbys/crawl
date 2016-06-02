@@ -250,12 +250,15 @@ if __name__ == '__main__':
             print '======province name=====', province_name
             prot = 'http'
             nums=100
+            filter_old = 'off'
             if province_name == 'SHANGHAI':
                 prot='https'
             if province_name == 'OTHER':
                 time.sleep(2)
                 nums=300
-            test =PaidProxy(tid='559326559297365',num=nums,sortby= 'time',protocol= prot,filter='off',province= province_name)
+            if province_name='BEIJING':
+                filter_old = 'on'
+            test =PaidProxy(tid='559326559297365',num=nums,sortby= 'time',protocol= prot,filter=filter_old,province= province_name)
             ip_list=test.get_ipproxy()
             read.readLines(ip_list,province= province_name)
             #read.readLines(ip_list)

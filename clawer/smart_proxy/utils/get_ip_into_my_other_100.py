@@ -209,7 +209,7 @@ if __name__ == '__main__':
     #if DEBUG:
         #unittest.main()
     ###
-    test =PaidProxy(num=300,sortby= 'time',protocol= 'http',filter='on')
+    test =PaidProxy(num=300,sortby= 'time',protocol= 'http',filter='off')
     ip_list = test.get_ipproxy()
     read = PutIntoMy()
     read.readLines(ip_list)
