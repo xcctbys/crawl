@@ -55,7 +55,7 @@ logging.basicConfig(level=level, format="%(levelname)s %(asctime)s %(lineno)d:: 
 
 """
 主程序部分：
-    负责百度关键词搜索的主要功能，根据公司名搜索结果的抓取uri
+    负责百度关键词搜索的主要功能，公司名搜索结果的uri抓取
 """
 
 
@@ -70,13 +70,8 @@ KEYWORD = [
         u'清算'
 ]
 
+# 装饰器
 def exe_time(func):
-    """
-    计时器，通过装饰器调用计算部分功能运行时间
-    :param func:
-    :return:
-    """
-
     def fnc(*args, **kwargs):
         start = datetime.datetime.now()
         # print "call "+ func.__name__ + "()..."
@@ -85,6 +80,7 @@ def exe_time(func):
         end = datetime.datetime.now()
         print func.__name__ +" end :"+ str(end)
     return fnc
+
 
 class History(object):
     """
@@ -104,11 +100,10 @@ class History(object):
         导入分布任务执行记录
         :return:
         """
-
         # 阿里云服务器中使用用户密码连接Redis
         # r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_USER + ':' + REDIS_PWD)
 
-        r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+        r= redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
         if not r.hgetall(REDIS_TABLE):
             return
         r_dict = r.hgetall(REDIS_TABLE)
