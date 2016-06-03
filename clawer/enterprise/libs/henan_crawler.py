@@ -7,8 +7,7 @@ from common_func import get_proxy
 
 
 class HenanCrawler(HeilongjiangClawer):
-    """青海爬虫
-    """
+    """河南爬虫，与黑龙江爬虫一致"""
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 

@@ -6,7 +6,7 @@ from common_func import get_proxy
 
 
 class ShanghaiCrawler(HebeiCrawler):
-
+    """  上海爬虫，集成河北爬虫 """
     urls = {
         'host': 'http://www.sgs.gov.cn/notice/',
         'webroot': 'http://www.sgs.gov.cn/',

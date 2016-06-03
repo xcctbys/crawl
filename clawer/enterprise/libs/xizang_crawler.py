@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 #encoding=utf-8
-from . import settings
 import threading
 from heilongjiang_crawler import HeilongjiangClawer
 from heilongjiang_crawler import HeilongjiangParser
-from enterprise.libs.CaptchaRecognition import CaptchaRecognition
+# from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from common_func import get_proxy
 
 
 class XizangCrawler(HeilongjiangClawer):
-    """西藏爬虫
-    """
+    """西藏爬虫 , 继承黑龙江爬虫."""
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
-    # code_cracker = CaptchaRecognition('xizang')
 
     urls = {'host': 'www.xzaic.gov.cn',
             'get_checkcode': 'http://gsxt.xzaic.gov.cn/validateCode.jspx?type=0',

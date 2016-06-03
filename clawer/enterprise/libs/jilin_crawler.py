@@ -15,7 +15,7 @@ from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import random
 import hashlib    # MD5 encrypt
 
-from common_func import get_proxy, exe_time, json_dump_to_file
+from common_func import get_proxy, exe_time, json_dump_to_file, get_user_agent
 import gevent
 from gevent import Greenlet
 import gevent.monkey
@@ -29,7 +29,6 @@ urls = {
     'page_Captcha': 'http://211.141.74.198:8081/aiccips/securitycode',
     'checkcode': 'http://211.141.74.198:8081/aiccips/pub/indsearch',
 }
-
 
 def get_cookie(url):
     """
@@ -46,12 +45,11 @@ def get_cookie(url):
             mycookielist.append(element.toRawForm().split(";"))
         for item in mycookielist:
             cookiedict.update(reduce(lambda x, y: {x: y}, item[0].split("=")))
-        # print mycookielist
-        # cookiestr = reduce(lambda x, y: x[0]+ ";" + y[0], mycookielist)
     return cookiedict
 
 
 class JilinCrawler(object):
+    """ 吉林爬虫，单独爬取 """
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
@@ -60,7 +58,7 @@ class JilinCrawler(object):
                    'Host': '211.141.74.198:8081',
                    'Accept': 'text/html, application/xhtml+xml, */*',
                    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:43.0) Gecko/20100101 Firefox/43.0",
+                   "User-Agent": get_user_agent(),
                    'Referer': "http://211.141.74.198:8081/aiccips/", }
         self.CR = CaptchaRecognition("jilin")
         self.requests = requests.Session()

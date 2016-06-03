@@ -199,7 +199,7 @@ class JiangsuCrawler(Crawler):
                 continue
             data = {'name': self.ent_number, 'verifyCode': ckcode[1]}
             resp = self.request_by_method('POST', self.urls['post_checkcode'], data=data, timeout=self.timeout)
-            print resp
+            # print resp
             results = json.loads(resp)[0]
             if results['INFO']:
                 if self.analyze_showInfo(results['INFO']):

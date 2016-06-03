@@ -13,20 +13,31 @@ import datetime
 from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import random
+import threading
 
-from common_func import get_proxy, exe_time
+from common_func import get_proxy, exe_time, get_user_agent
 import gevent
 from gevent import Greenlet
 import gevent.monkey
 import traceback
 
+headers = {
+    'Connetion': 'Keep-Alive',
+    'Accept': 'text/html, application/xhtml+xml, */*',
+    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+    "User-Agent": get_user_agent()
+}
 
 class SichuanCrawler(object):
-    #write_file_mutex = threading.Lock()
+    """ 四川爬虫， 继承object， 验证码与陕西一致。"""
+    write_file_mutex = threading.Lock()
     def __init__(self, json_restore_path=None):
         self.pripid = None
         self.cur_time = str(int(time.time() * 1000))
         self.reqst = requests.Session()
+        self.reqst.headers.update(headers)
+        adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
+        self.reqst.mount('http://', adapter)
         self.json_restore_path = json_restore_path
         self.ckcode_image_path = self.json_restore_path + '/sichuan/ckcode.jpg'
         #html数据的存储路径
@@ -34,11 +45,7 @@ class SichuanCrawler(object):
         self.code_cracker = CaptchaRecognition('sichuan')
         self.result_json_dict = {}
         self.json_list = []
-        self.reqst.headers.update(
-            {'Accept': 'text/html, application/xhtml+xml, */*',
-             'Accept-Encoding': 'gzip, deflate',
-             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-             'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+
         proxies = get_proxy('shaanxi')
         if proxies:
             print proxies
@@ -144,6 +151,7 @@ class SichuanCrawler(object):
         count = 0
         while count < 20:
             yzm = self.get_check_num()
+            print yzm
             count += 1
             if yzm is None:
                 continue
@@ -152,13 +160,9 @@ class SichuanCrawler(object):
             resp = self.reqst.post(self.mydict['searchList'] + self.cur_time, data=data, timeout=self.timeout)
             if self.analyze_showInfo(resp.content):
                 return True
+            print "crawl %s times:%d"%(findCode, count)
             time.sleep(random.uniform(1, 4))
-        else:
-            return False
-
-    def get_re_list_from_content(self, content):
-
-        pass
+        return False
 
     def help_dcdy_get_dict(self, method, maent_pripid, maent_xh, random):
         data = {'method': method, 'maent.pripid': maent_pripid, 'maent.xh': maent_xh, 'random': random}

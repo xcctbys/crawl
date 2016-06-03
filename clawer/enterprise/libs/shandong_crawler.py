@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import hashlib    #验证码是MD5加密的，调用此包
 #
-from common_func import get_proxy, exe_time
+from common_func import get_proxy, exe_time, get_user_agent
 import datetime
 import gevent
 from gevent import Greenlet
@@ -32,6 +32,7 @@ urls = {
 
 
 class ShandongCrawler(object):
+    """ 山东爬虫，集成object """
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
@@ -39,8 +40,7 @@ class ShandongCrawler(object):
         headers = {    #'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
+            "User-Agent": get_user_agent(),
         }
         self.requests = requests.Session()
         self.requests.headers.update(headers)
@@ -125,6 +125,7 @@ class ShandongCrawler(object):
                     logging.error(u"crack Captcha failed, the %d time(s), ID= %s" % (count, textfield))
             else:
                 logging.error("Captcha is not saved successfully \n")
+            print "crack Captcha failed, the %d time(s), ID= %s" % (count, textfield)
             time.sleep(random.uniform(1, 4))
         return
 

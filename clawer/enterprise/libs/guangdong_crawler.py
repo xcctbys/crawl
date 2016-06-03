@@ -15,7 +15,7 @@ from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from Guangdong0 import Guangdong0
 from Guangdong1 import Guangdong1
 from Guangdong2 import Guangdong2
-from common_func import get_proxy, json_dump_to_file
+from common_func import get_proxy, json_dump_to_file, get_user_agent
 
 urls = {
     'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
@@ -29,15 +29,14 @@ headers = {
     'Connetion': 'Keep-Alive',
     'Accept': 'text/html, application/xhtml+xml, */*',
     'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-    "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
+    "User-Agent": get_user_agent()
 }
 
 HOSTS = ["www.szcredit.com.cn", "gsxt.gzaic.gov.cn", "gsxt.gdgs.gov.cn/aiccips"]
 
 
 class GuangdongCrawler(object):
-
+    """ 广东爬虫，单独爬取 """
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 

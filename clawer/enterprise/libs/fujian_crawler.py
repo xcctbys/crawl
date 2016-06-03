@@ -6,7 +6,7 @@ from common_func import get_proxy
 
 
 class FujianCrawler(HebeiCrawler):
-
+    """ 福建爬虫，与河北爬虫一致 """
     urls = {
         'host': 'http://wsgs.fjaic.gov.cn/creditpub/',
         'webroot': 'http://wsgs.fjaic.gov.cn/creditpub/',

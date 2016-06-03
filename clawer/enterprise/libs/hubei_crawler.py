@@ -9,8 +9,7 @@ from common_func import get_proxy
 
 
 class HubeiCrawler(HeilongjiangClawer):
-    """湖北爬虫
-    """
+    """湖北爬虫，与黑龙江爬虫一致"""
     # code_cracker = CaptchaRecognition('hubei')
 
     #多线程爬取时往最后的json文件中写时的加锁保护
