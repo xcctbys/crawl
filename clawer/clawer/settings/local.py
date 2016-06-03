@@ -1,19 +1,16 @@
-#encoding=utf-8
+# encoding=utf-8
 
 import os
 
-from settings import *
+from settings import *  # noqa
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',    # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'clawer',    # Or path to database file if using sqlite3.
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'clawer',
         "USER": "cacti",
         "PASSWORD": "cacti",
         "HOST": "127.0.0.1",
-        "OPTIONS": {
-            "init_command": "SET storage_engine=MyISAM",
-        },
         'TEST': {
             'CHARSET': "utf8",
             'COLLATION': "utf8_general_ci"
@@ -53,7 +50,7 @@ REDIS = "redis://localhost:6379/0"
 URL_REDIS = "redis://localhost:6379/0"
 MONITOR_REDIS = "redis://localhost:6379/0"
 
-#本地调试统一使用本地0号数据库--2016-05-17
+# 本地调试统一使用本地0号数据库--2016-05-17
 REDIS = "redis://127.0.0.1/0"
 GENERATOR_REDIS = "redis://127.0.0.1/0"
 DOWNLOADER_REDIS = "redis://127.0.0.1/0"
@@ -68,7 +65,7 @@ EMAIL_HOST_USER = 'robot@princetechs.com'
 EMAIL_HOST_PASSWORD = 'Robot0023'
 USE_TLS = True
 
-#captcha
+# captcha
 CAPTCHA_STORE = os.path.join(os.path.dirname(__file__), "captcha")
 
 # for storage
@@ -88,7 +85,7 @@ MongoDBS = {
     }
 }
 
-from mongoengine import connect
+from mongoengine import connect  # noqa
 
 for name, db in MongoDBS.iteritems():
     connect(host=db['host'], alias=name)
