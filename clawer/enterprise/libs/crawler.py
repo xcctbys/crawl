@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 import gevent
 from gevent import Greenlet
 import gevent.monkey
-
+from common_func import get_user_agent
 
 class Crawler(object):
     """爬虫的基类
@@ -33,7 +33,7 @@ class Crawler(object):
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+            'User-Agent': get_user_agent()
         })
         adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
         self.reqst.mount('http://', adapter)

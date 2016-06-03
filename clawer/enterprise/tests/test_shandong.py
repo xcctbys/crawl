@@ -978,6 +978,9 @@ class TestJiangxi(TestCase):
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中航证券有限公司')
 
+
+
+
     def test_run_with_proxy(self):
         """
             由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
