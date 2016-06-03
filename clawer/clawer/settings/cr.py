@@ -4,7 +4,6 @@
 from settings import *
 import os
 
-
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
@@ -20,14 +19,12 @@ DATABASES = {
             'sql_mode': 'TRADITIONAL',
             'charset': 'utf8',
             'init_command': 'SET '
-                'storage_engine=INNODB,'
+                            'storage_engine=INNODB,'
                 'character_set_connection=utf8,'
                 'collation_connection=utf8_bin'
         }
-
     }
 }
-
 
 CACHES = {
     'default': {
@@ -47,7 +44,7 @@ MEDIA_URL = "http://10.0.1.2/media/"
 PYTHON = "/usr/local/bin/python"
 SHELL = os.environ.get('SHELL', '/bin/bash')
 CRON_FILE = os.path.join(os.path.dirname(__file__), "cron.f")
-URI_TTL = 60*60*24
+URI_TTL = 60 * 60 * 24
 
 CRONTAB_USER = "nginx"
 CRONTAB_HOME = "/home/clawer/cr-clawer/confs/cr"
@@ -62,7 +59,6 @@ STRUCTURE_REDIS = "redis://10.0.1.3:6379/3"
 EXTRACTER_REDIS = "redis://10.0.1.3:6379/5"
 FILTER_REDIS = "redis://10.0.1.3:6379/4"
 
-
 MONITOR_REDIS = "redis://10.0.1.3:6379/0"
 
 # add my zhangyongming 2016.5.3
@@ -70,7 +66,6 @@ SUPER_MAX_QUEUE_LENGTH = 1000
 HIGH_MAX_QUEUE_LENGTH = 2000
 MEDIUM_MAX_QUEUE_LENGTH = 3000
 LOW_MAX_QUEUE_LENGTH = 4000
-
 
 # for storage
 MongoDBS = {
@@ -93,10 +88,8 @@ from mongoengine import connect
 for name, db in MongoDBS.iteritems():
     connect(host=db['host'], alias=name)
 
-
 # captcha
 CAPTCHA_STORE = "/data/media/captcha"
-
 
 RAVEN_CONFIG = {
     'dsn': 'http://917b2f66b96f46b785f8a1e635712e45:556a6614fe28410dbf074552bd566750@sentry.princetechs.com//2',

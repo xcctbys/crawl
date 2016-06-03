@@ -10,7 +10,7 @@ import urllib
 import os
 import mysql.connector
 import time
-
+import random
 
 """
 
@@ -87,6 +87,8 @@ prov_choices = dict([
 ('YUNNAN',u'云南'),
 ('ZHEJIANG',u'浙江'),
 ('XIZANG',u'西藏')])
+IPPROXY_TID='559326559297365'
+
 
 def test(prov_choices):
     print type(prov_choices)
@@ -109,7 +111,7 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=prov_choices, tid='559326559297365',num='100',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=prov_choices, tid=IPPROXY_TID,num='100',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         self.a_list=[]
         self.tid= tid
@@ -122,15 +124,25 @@ class PaidProxy(BaseProxy):
         self.foreign=foreign
 
 
-        self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby}
+        self.parameter = {'num':self.num, 'filter':self.filter,  'category':self.category, 'delay':self.delay,  'tid':self.tid,'protocol':self.prot,'sortby':self.sortby,'longlife':20}
 
         para_url = urllib.urlencode(self.parameter)
 
         if province:
             area= prodict.get(province,'北京')
+            if province == 'SHANGHAI':
+                area = random.choice(['北京','浙江'])
             print area
             print '-----area-----'
             self.urlget= self.url+para_url+'&area='+area
+
+            if province == 'HTTPS':
+                self.urlget = 'http://qsrdk.daili666api.com/ip/?&num=300&protocol=https&tid=559326559297365&area＝北京'
+
+
+
+
+
         else:
             self.urlget= self.url+para_url
         print self.urlget
@@ -160,6 +172,10 @@ class PutIntoMy:
         list=[]
         cursor=cnx.cursor()
         sql_count="select count(*) from smart_proxy_proxyip where province='OTHER'"
+        print province
+        if province =='HTTPS':
+            sql_count="select count(*) from smart_proxy_proxyip where province='HTTPS'"
+        print sql_count
         count=cursor.execute(sql_count)
         print count
         print '--count-----'
@@ -179,7 +195,7 @@ class PutIntoMy:
             print list
             cursor=cnx.cursor()
             sql = "insert into smart_proxy_proxyip(ip_port,province,is_valid,create_datetime,update_datetime) values(%s,%s,%s,%s,%s)"
-            if i>10:
+            if i>2:
                 cursor.executemany(sql,list)
                 cnx.commit()
                 print("插入")
@@ -192,9 +208,12 @@ class PutIntoMy:
         #sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' order by create_datetime limit %(nums)s"
         #data_limit={'nums':num_other_old}
         #cursor.execute(sql_delete,data_limit)
-        sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' order by create_datetime limit 300"
-        cursor.execute(sql_delete)
-        print "Delete limit 100 succeed."
+        sql_delete = "delete from smart_proxy_proxyip where province = 'OTHER' order by create_datetime limit %(nums)s"
+        if province == 'SHANGHAI':
+            sql_delete = "delete from smart_proxy_proxyip where province = 'HTTPS' order by create_datetime limit %(nums)s"
+        data_other_limit = {'nums':num_other_old}
+        cursor.execute(sql_delete,data_other_limit)
+        print "Delete limit old other succeed."
         cnx.commit()
         cnx.close()
         print("ok")
@@ -209,8 +228,14 @@ if __name__ == '__main__':
     #if DEBUG:
         #unittest.main()
     ###
-    test =PaidProxy(num=300,sortby= 'time',protocol= 'http')
+    test =PaidProxy(num=300,sortby= 'time',protocol= 'http',filter='off',province='OTHER')
     ip_list = test.get_ipproxy()
     read = PutIntoMy()
     read.readLines(ip_list)
+
+
+
+
+
+
 

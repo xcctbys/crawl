@@ -30,7 +30,7 @@ class Proxy(object):
 			if province == 'BEIJING':
 				backup = ['HEBEI','OTHER',]
 			if province == 'SHANGHAI':
-				backup = ['JIANGSU','OTHER']
+				backup = ['HTTPS']
 			for province in backup:
 				#temp_list = ProxyIp.objects.filter(province__icontains=province, is_valid=is_valid).order_by('-update_datetime')
 				temp_list = ProxyIp.objects.filter(province__icontains= province , is_valid=is_valid).order_by('?')
