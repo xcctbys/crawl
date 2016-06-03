@@ -6,7 +6,7 @@ from common_func import get_proxy
 
 
 class YunnanCrawler(HebeiCrawler):
-
+    """  云南爬虫，继承河北爬虫。 """
     urls = {
         'host': 'http://gsxt.ynaic.gov.cn/notice/',
         'webroot': 'http://gsxt.ynaic.gov.cn/',

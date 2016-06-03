@@ -15,8 +15,7 @@ from common_func import get_proxy, exe_time    #, json_dump_to_file
 
 
 class HeilongjiangClawer(Crawler):
-    """黑龙江工商公示信息网页爬虫
-    """
+    """黑龙江工商公示信息网页爬虫 """
 
     code_cracker = CaptchaRecognition('heilongjiang')
     # 多线程爬取时往最后的json文件中写时的加锁保护

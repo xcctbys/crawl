@@ -9,9 +9,7 @@ from common_func import get_proxy
 
 
 class ShanxiCrawler(HeilongjiangClawer):
-    """山西爬虫
-    """
-    # code_cracker = CaptchaRecognition('shanxi')
+    """山西爬虫, 集成黑龙江爬虫。"""
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 

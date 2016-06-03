@@ -21,7 +21,7 @@ import traceback
 
 
 class JiangxiCrawler(Crawler):
-    """江西工商公示信息网页爬虫 """
+    """江西工商公示信息网页爬虫，集成Crawler基类 """
     code_cracker = CaptchaRecognition('jiangxi')
 
     # 多线程爬取时往最后的json文件中写时的加锁保护

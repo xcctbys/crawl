@@ -14,13 +14,14 @@ from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from . import settings
 
-from common_func import get_proxy, exe_time, json_dump_to_file
+from common_func import get_proxy, exe_time, get_user_agent
 import gevent
 from gevent import Greenlet
 import gevent.monkey
 
 
 class HebeiCrawler(object):
+    """ 河北爬虫 """
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
@@ -37,8 +38,7 @@ class HebeiCrawler(object):
         headers = {    #'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
+            "User-Agent": get_user_agent()
         }
         self.CR = CaptchaRecognition("hebei")
         self.requests = requests.Session()
@@ -695,6 +695,4 @@ class HebeiCrawler(object):
         if not self.ents:
             return json.dumps([{self.ent_num: None}])
         data = self.crawl_page_main()
-        # path = os.path.join(os.getcwd(), 'hebei.json')
-        # json_dump_to_file(path, data)
         return json.dumps(data)

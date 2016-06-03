@@ -21,8 +21,7 @@ import gevent.monkey
 from common_func import get_user_agent
 
 class Crawler(object):
-    """爬虫的基类
-    """
+    """ 爬虫的基类 """
     code_cracker = None
 
     def __init__(self):

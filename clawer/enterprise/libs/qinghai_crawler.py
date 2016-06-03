@@ -5,14 +5,8 @@ from heilongjiang_crawler import HeilongjiangClawer
 from heilongjiang_crawler import HeilongjiangParser
 from common_func import get_proxy
 
-# from enterprise.libs.CaptchaRecognition import CaptchaRecognition
-
-
 class QinghaiCrawler(HeilongjiangClawer):
-    """青海爬虫
-    """
-    # code_cracker = CaptchaRecognition('qinghai')
-
+    """青海爬虫 , 集成黑龙江爬虫."""
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 

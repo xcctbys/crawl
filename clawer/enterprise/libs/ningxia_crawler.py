@@ -23,8 +23,7 @@ from common_func import get_proxy
 
 
 class NingxiaCrawler(Crawler):
-    """宁夏工商公示信息网页爬虫
-    """
+    """宁夏工商公示信息网页爬虫 , 集成 Crawler基类."""
     code_cracker = CaptchaRecognition('ningxia')
     # 多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
@@ -52,7 +51,7 @@ class NingxiaCrawler(Crawler):
             'ent_pub_administration_license': '',
             'ent_pub_knowledge_property': '',
             'ent_pub_administration_sanction': '',
-    # 'ent_pub_reg_modify': '',
+            # 'ent_pub_reg_modify': '',
             'other_dept_pub_main_page': 'http://gsxt.ngsh.gov.cn/ECPS/qtgsAction_initQtgsMain.action?',
             'other_dept_pub_administration_license': '',
             'other_dept_pub_administration_sanction': '',
