@@ -1,9 +1,9 @@
 # generator
-*/10    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh generator_install
-*/10    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh generator_dispatch
+*/5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh generator_install
+*/1    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh generator_dispatch
 
 # downloader
-*/5    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh downloader_dispatch
+*/2    *    *    *    * cd /home/webapps/cr-clawer/confs/cr;./bg_cmd.sh downloader_dispatch
 
 
 # structure
@@ -17,7 +17,7 @@
 */1    *    *    *    * cd /home/webapps/cr-clawer/clawer/smart_proxy/utils;python  get_ip_into_my_other_100.py>>get_other_test.log
 */1    *    *    *    * cd /home/webapps/cr-clawer/clawer/smart_proxy/utils;python  get_ip_baseon_success_rate.py >>sucess_rate_test.log
 */1    *    *    *    * cd /home/webapps/cr-clawer/clawer/smart_proxy/utils;python  province_watch.py >>province.log
-
+*/1    *    *    *    * cd /home/webapps/cr-clawer/clawer/smart_proxy/utils;python get_ip_into_my_https.py >>https.log
 
 
 

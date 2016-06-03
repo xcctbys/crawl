@@ -11,6 +11,7 @@ import os
 import mysql.connector
 import time
 import random
+from django.conf import settings
 
 """
 
@@ -88,6 +89,8 @@ prov_choices = dict([
 ('ZHEJIANG',u'浙江'),
 ('XIZANG',u'西藏')])
 
+IPPROXY_TID='559326559297365'
+
 def test(prov_choices):
     print type(prov_choices)
     print prov_choices
@@ -109,10 +112,12 @@ class BaseProxy(object):
 class PaidProxy(BaseProxy):
 
 
-    def __init__(self, prodict=prov_choices, tid='559326559297365',num='100',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
+    def __init__(self, prodict=prov_choices, tid=IPPROXY_TID,num='100',province='',filter= 'off',protocol='http',category='2',delay='1',sortby='speed',foreign='none'):
         BaseProxy.__init__(self)
         self.a_list=[]
         self.tid= tid
+        print self.tid
+        print '------tid---------'
         self.num = num
         self.filter=filter
         self.prot= protocol
@@ -256,9 +261,10 @@ if __name__ == '__main__':
             if province_name == 'OTHER':
                 time.sleep(2)
                 nums=300
-            if province_name='BEIJING':
-                filter_old = 'on'
-            test =PaidProxy(tid='559326559297365',num=nums,sortby= 'time',protocol= prot,filter=filter_old,province= province_name)
+            if province_name=='BEIJING':
+                filter_old = 'off'
+            # 北京filter on太少
+            test =PaidProxy(tid=IPPROXY_TID,num=nums,sortby= 'time',protocol= prot,filter=filter_old,province= province_name)
             ip_list=test.get_ipproxy()
             read.readLines(ip_list,province= province_name)
             #read.readLines(ip_list)
