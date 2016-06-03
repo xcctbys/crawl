@@ -6,7 +6,7 @@ from common_func import get_proxy
 
 
 class HunanCrawler(HebeiCrawler):
-
+    """ 湖南爬虫， 与河北爬虫一致 """
     urls = {
         'host': 'http://gsxt.hnaic.gov.cn/notice/',
         'webroot': 'http://gsxt.hnaic.gov.cn/notice/',

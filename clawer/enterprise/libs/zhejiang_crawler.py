@@ -15,7 +15,7 @@ from . import settings
 import random
 import datetime
 
-from common_func import get_proxy, exe_time, json_dump_to_file
+from common_func import get_proxy, exe_time, json_dump_to_file, get_user_agent
 import gevent
 from gevent import Greenlet
 import gevent.monkey
@@ -38,8 +38,7 @@ class ZhejiangCrawler(object):
             'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36",
+            "User-Agent": get_user_agent(),
     #在获取验证码图片的时候，构造请求头的时候，要添加Referer, 在各个TAB的页面也需要在请求头中构造Referer。
             "Referer": "http://gsxt.zjaic.gov.cn/zhejiang.jsp",
         }

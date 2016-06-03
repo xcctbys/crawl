@@ -13,20 +13,20 @@ from bs4 import BeautifulSoup
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 
 from Guangdong2 import Crawler, Analyze
-from common_func import get_proxy, json_dump_to_file
+from common_func import get_proxy, json_dump_to_file, get_user_agent
 
 headers = {
     'Connetion': 'Keep-Alive',
     'Accept': 'text/html, application/xhtml+xml, */*',
     'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-    "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
-}
+    "User-Agent": get_user_agent(),
+    }
 
 
 class NeimengguCrawler(object):
-
+    """ 内蒙古爬虫， 集成object，单独爬取 """
     #多线程爬取时往最后的json文件中写时的加锁保护
+    write_file_mutex = threading.Lock()
     urls = {
         'host': 'http://www.nmgs.gov.cn:7001/aiccips/',
         'page_search': 'http://www.nmgs.gov.cn:7001/aiccips/index',
@@ -34,7 +34,6 @@ class NeimengguCrawler(object):
         'page_showinfo': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/showInfo.html',
         'checkcode': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/checkCode.html',
     }
-    write_file_mutex = threading.Lock()
 
     def __init__(self, json_restore_path=None):
         self.html_showInfo = None

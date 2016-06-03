@@ -5,6 +5,7 @@ from common_func import get_proxy
 
 
 class XinjiangCrawler(ShaanxiCrawler):
+    """  新疆爬虫，继承陕西ShaanxiCrawler爬虫. """
     urls = {
         'host': 'http://gsxt.xjaic.gov.cn:7001/',
         'webroot': 'http://gsxt.xjaic.gov.cn:7001/',

@@ -4,17 +4,20 @@ import sys
 import requests
 import re
 import os, os.path
+import threading
 from bs4 import BeautifulSoup
 import time
 import json
 from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 import logging
 import random
+from common_func import get_user_agent
 
 
 class GuizhouCrawler(object):
+    """ 贵州省爬虫, 单独爬取 """
     #html数据的存储路径
-    #write_file_mutex = threading.Lock()
+    write_file_mutex = threading.Lock()
     def __init__(self, json_restore_path=None):
         self.cur_time = str(int(time.time() * 1000))
         self.nbxh = None
@@ -29,7 +32,7 @@ class GuizhouCrawler(object):
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+            'User-Agent': get_user_agent()
         })
 
         self.mydict = {'eareName': 'http://www.ahcredit.gov.cn',
@@ -342,7 +345,8 @@ class GuizhouCrawler(object):
                 continue
 
     def run(self, findCode):
-
+        print self.__class__.__name__
+        logging.error('crawl %s .', self.__class__.__name__)
         self.ent_number = str(findCode)
         if not os.path.exists(self.html_restore_path):
             os.makedirs(self.html_restore_path)

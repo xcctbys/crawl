@@ -165,7 +165,7 @@ class JsonToSql(object):
         self.data_sql.write(sql.encode('utf8'))
         return
 
-    def test_table(self, extracter_conf, export_file):
+    def run_generate_db_sql(self, extracter_conf, export_file):
         """
         生成创建表的sql文件
         :param extracter_conf: 配置
@@ -180,7 +180,7 @@ class JsonToSql(object):
         self.create_table_sql(export_file)
         return True
 
-    def test_get_data(self, extracter_conf, data, export_file):
+    def run_generate_data_sql(self, extracter_conf, data, export_file):
         """
         生成数据sql文件，用于向关系数据库中导入数据
         :param extracter_conf: 配置文件
@@ -207,7 +207,7 @@ class JsonToSql(object):
         self.data_sql.close()
         return True
 
-    def test_restore(self, sql_file):
+    def run_restore_db(self, sql_file):
         result = 'mysql %s < %s' % (self.create_commond(), sql_file)
         os.popen(result)
 
@@ -217,6 +217,6 @@ class JsonToSql(object):
 
 if __name__ == '__main__':
     json_to_sql = JsonToSql()
-    json_to_sql.test_get_data('gs_table_conf.json', 'guangxi.json', '/tmp/my_insert.sql')
-    json_to_sql.test_table('gs_table_conf.json', '/tmp/my_table.sql')
-    json_to_sql.test_restore('./my_table.sql')
+    json_to_sql.run_generate_data_sql('gs_table_conf.json', 'guangxi.json', '/tmp/my_insert.sql')
+    json_to_sql.run_generate_db_sql('gs_table_conf.json', '/tmp/my_table.sql')
+    json_to_sql.run_restore_db('./my_table.sql')

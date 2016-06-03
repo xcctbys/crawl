@@ -286,8 +286,8 @@ class ExtracterGenerator(StructureGenerator):
             sql_file_name = '/tmp/table_%s.sql' % sql_file_name
             if conf != self.configure:  # 如果配置文件发生变化，则重新建表
                 self.configure = conf
-                self.sqlgenerator.test_table(conf, sql_file_name)
-                self.sqlgenerator.test_restore(sql_file_name)
+                self.sqlgenerator.run_generate_db_sql(conf, sql_file_name)
+                self.sqlgenerator.run_restore_db(sql_file_name)
             extract_function = self.extracter
             try:
                 self.assign_extract_task(priority, extract_function, conf, data)
@@ -341,10 +341,10 @@ class ExtracterGenerator(StructureGenerator):
         try:
             sql_file_name = extracter_conf['database']['destination_db']['dbname']
             sql_file_name = '/tmp/data_%s.sql' % sql_file_name
-            result = self.sqlgenerator.test_get_data(extracter_conf, data, sql_file_name)
+            result = self.sqlgenerator.run_generate_data_sql(extracter_conf, data, sql_file_name)
             if not result:
                 return False
-            self.sqlgenerator.test_restore(sql_file_name)
+            self.sqlgenerator.run_restore_db(sql_file_name)
         except:
             return False
         return True

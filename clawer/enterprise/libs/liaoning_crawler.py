@@ -20,8 +20,7 @@ from common_func import get_proxy, exe_time    #, json_dump_to_file
 
 
 class LiaoningCrawler(Crawler):
-    """辽宁工商爬虫
-    """
+    """辽宁工商爬虫 , 集成Crawler基类 """
     code_cracker = CaptchaRecognition('liaoning')
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
@@ -40,12 +39,10 @@ class LiaoningCrawler(Crawler):
         self.ckcode_image_path = self.json_restore_path + '/liaoning/ckcode.jpg'
         self.parser = LiaoningParser(self)
         self.proxies = get_proxy('liaoning')
-
         self.timeout = (30, 20)
 
     def run(self, _ent):
-        """爬取的主函数
-        """
+        """爬取的主函数 """
         print self.__class__.__name__
         logging.error('crawl %s .', self.__class__.__name__)
         if self.proxies:

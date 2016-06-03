@@ -10,19 +10,17 @@ import threading
 from bs4 import BeautifulSoup
 import json
 import logging
-
 # from enterprise.libs.CaptchaRecognition import CaptchaRecognition
 from crawler import Crawler
 from crawler import Parser
 import traceback
 import unittest
 
-from common_func import get_proxy
+from common_func import get_proxy, get_user_agent
 
 
 class GansuCrawler(object):
-    """甘肃工商公示信息网页爬虫
-    """
+    """甘肃工商公示信息网页爬虫， 单独爬取"""
     # code_cracker = CaptchaRecognition('gansu')
     # 多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
@@ -49,7 +47,7 @@ class GansuCrawler(object):
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language':' en-US,en;q=0.5',
             'Accept-Encoding':"gzip, deflate",
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+            'User-Agent': get_user_agent(),
         }
         self.reqst = requests.Session()
         self.reqst.headers.update(self.headers)

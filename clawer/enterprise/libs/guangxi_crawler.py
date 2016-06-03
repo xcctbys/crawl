@@ -7,8 +7,7 @@ from common_func import get_proxy
 
 
 class GuangxiCrawler(HeilongjiangClawer):
-    """广西爬虫
-    """
+    """广西爬虫， 与黑龙江爬虫一致 """
 
     urls = {'host': 'http://gxqyxygs.gov.cn',
             'get_checkcode': 'http://gxqyxygs.gov.cn/validateCode.jspx?type=0',
