@@ -37,7 +37,7 @@
         "核准日期": "check_date",
         "经营状态": "management_status",
         "登记状态": "check_status",
-        "法人代表": "corporation"
+        "法定代表人": "corporation"
       }
     },
     "IndustryCommerceMainperson": {
