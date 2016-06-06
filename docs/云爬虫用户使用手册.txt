@@ -246,7 +246,7 @@
 	ind_comm_pub_business_exception			：工商公示-经营异常信息
 	ind_comm_pub_serious_violate_law		：工商公示-严重违法失信信息
 	ind_comm_pub_spot_check					：工商公示-抽查检查信息
-	ent_pub_shareholder_capital_contribution：企业公示-投资人及出资信息
+	ent_pub_shareholder_capital_contribution：企业公示-股东及出资信息
 	ent_pub_equity_change			：企业公示-股权变更信息
 	ent_pub_administration_license	：企业公示-行政许可信息
 	ent_pub_knowledge_property		：企业公示-知识产权出质登记信息
