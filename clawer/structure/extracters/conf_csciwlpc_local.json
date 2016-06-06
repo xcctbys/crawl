@@ -990,6 +990,11 @@
         "option": ""
       },
       {
+        "dest_field": "subscription_type",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
         "dest_field": "paid_amount",
         "datatype": "CHAR(30)",
         "option": ""
@@ -1043,12 +1048,12 @@
       },
       {
         "dest_field": "modify_after",
-        "datatype": "CHAR(100)",
+        "datatype": "CHAR(500)",
         "option": ""
       },
       {
         "dest_field": "modify_before",
-        "datatype": "CHAR(100)",
+        "datatype": "CHAR(500)",
         "option": ""
       }
     ],
