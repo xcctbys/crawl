@@ -36,7 +36,8 @@
         "登记机关": "register_gov",
         "核准日期": "check_date",
         "经营状态": "management_status",
-        "登记状态": "check_status"
+        "登记状态": "check_status",
+        "法人代表": "corporation"
       }
     },
     "IndustryCommerceMainperson": {
@@ -533,6 +534,11 @@
       {
         "dest_field": "business_scope",
         "datatype": "TEXT",
+        "option": ""
+      },
+      {
+        "dest_field": "corporation",
+        "datatype": "CHAR(20)",
         "option": ""
       }
     ],
