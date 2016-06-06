@@ -211,7 +211,7 @@ class JsonToSql(object):
         result = 'mysql %s < %s' % (self.create_commond(), sql_file)
         os.popen(result)
 
-    def test_backup(self, sql_file):
+    def run_backup_db(self, sql_file):
         result = 'mysqldump %s > %s' % (self.create_commond(), sql_file)
         os.popen(result)
 

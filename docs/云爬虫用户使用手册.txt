@@ -225,9 +225,9 @@
 
 	工商信息数据库结构：
 
-	Basi			：企业基本信息
+	Basic			：企业基本信息
 	IndustryCommerceMainperson	：企业主要员工信息
-	IndustryCommerceBranch		：企业登记信息
+	IndustryCommerceBranch		：分支机构信息
 	EnterAnnualReport			：年报基本信息
 	YearReportAssets			：年报-企业资产状况信息
 	YearReportSharechange		：年报-股权变更信息
