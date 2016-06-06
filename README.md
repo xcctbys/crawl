@@ -31,7 +31,7 @@ Install python. Install virtualenv.
 
     cd ~/Documents/gitroom
 
-    #clone code at here
+    # clone code at here
 
     cd cr-clawer/clawer && ~/Documents/pyenv/dj14/bin/pip install -r requirements.txt
 
