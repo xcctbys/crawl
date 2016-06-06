@@ -396,29 +396,43 @@ class GenerateCrawlerTask(object):
                                              content="The line %s is not dict or json" % (line),
                                              hostname=socket.gethostname()).save()
                     continue
+            uri_data = []
             try:
                 # validate uri
                 if js.has_key('uri'):
                     uri_de = js['uri'].encode("utf-8")
                     val(uri_de)
-                    uris.append(uri_de)
+                    uri_data.append(uri_de)
+                    if js.has_key("args"):
+                        uri_args = js['args'].encode("utf-8")
+                        uri_data.append(uri_args)
+                    uri_str = str(uri_data)
+                    uris.append(uri_str)
                 else:
                     CrawlerGeneratorErrorLog(name="ERROR_JSON",
                                              content="JSON ValidationError without key 'uri' : %s" % (js),
                                              hostname=socket.gethostname()).save()
+
             except ValidationError, e:
                 CrawlerGeneratorErrorLog(name="ERROR_URI",
-                                         content="URI ValidationError: %s" % (js['uri']),
+                                         content="URI ValidationError: %s " % (js['uri']),
                                          hostname=socket.gethostname()).save()
         out_f.close()
         os.remove(self.out_path)
         dereplicated_uris = dereplicate_uris(uris)
 
-        for uri in dereplicated_uris:
+        for uri_str in dereplicated_uris:
             try:
+                eval_uri = eval(uri_str)
+                uri = eval_uri[0]
+                try:
+                    args = eval_uri[1]
+                except IndexError:
+                    args = "No more args"
                 crawler_task = CrawlerTask(job=self.job,
                                            task_generator=self.task_generator,
                                            uri=uri,
+                                           args=args,
                                            from_host=socket.gethostname())
                 # crawler_task.args = ""
                 crawler_task.save()

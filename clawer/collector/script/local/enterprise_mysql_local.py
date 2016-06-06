@@ -225,4 +225,4 @@ if __name__ == "__main__":
     generator = Generator()
     generator.obtain_enterprises()
     for uri in generator.enterprise_urls:
-        print json.dumps({"uri":uri})
+        print json.dumps({"uri":uri, "args":'enterprise'})

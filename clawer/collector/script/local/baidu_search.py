@@ -138,7 +138,7 @@ class Generator(object):
         self.history.total_page = r['total_page']
         self.history.save()
 
-    @exe_time
+    # @exe_time
     def page_url(self, current_company, current_keyword):
         for page_num in range(0, 10, 10):  # 遍历实现baidu搜索结果页翻页（第一页为0，第二页为10，第三页为20...）
             params = {"wd": current_company.encode("gbk") + " " + current_keyword.encode("gbk"),
