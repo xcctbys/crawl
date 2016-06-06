@@ -85,7 +85,7 @@ use cmd to show help
 
        CREATE DATABASE `clawer` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
-       #create user
+       # create user
        CREATE USER 'cacti'@'localhost' IDENTIFIED BY 'cacti';
        GRANT ALL ON *.* TO 'cacti'@'localhost';
 
