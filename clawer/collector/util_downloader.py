@@ -10,13 +10,8 @@ import json
 import threading
 import random
 import traceback
-from collector.models import (
-    CrawlerTask,
-    CrawlerDownloadSetting,
-    CrawlerDownload,
-    CrawlerDownloadData,
-    CrawlerDownloadLog
-)
+from collector.models import (CrawlerTask, CrawlerDownloadSetting, CrawlerDownload, CrawlerDownloadData,
+                              CrawlerDownloadLog)
 from django.conf import settings
 from enterprise.utils import EnterpriseDownload
 
@@ -41,8 +36,6 @@ class Download(object):
         exec c
 
     def download_with_enterprise(self):
-        print 'i am come in enterprise download'
-        pass
         start_time = time.time()
 
         try:
@@ -112,7 +105,6 @@ class Download(object):
             self.download_with_enterprise()
             return
 
-        print 'come in download---------------------------'
         # 对该语言暂时还不支持时，直接任务失败，并写日志。
         if not self.crawler_download.types.is_support:
             cdl = CrawlerDownloadLog(job=self.task.job,
@@ -135,7 +127,6 @@ class Download(object):
 
         if self.crawler_download.types.language == 'python':
             start_time = time.time()
-            print 'it is python-------------------------'
             try:
                 # print 'save code from db;import crawler_download.code; run()'
                 sys.path.append(settings.CODE_PATH)
