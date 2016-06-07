@@ -25,33 +25,57 @@ class BeijingCrawler(Crawler):
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    urls = {'host': 'http://qyxy.baic.gov.cn',
-            'official_site': 'http://qyxy.baic.gov.cn/beijing',
-            'get_checkcode': 'http://qyxy.baic.gov.cn',
-            'post_checkcode': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!checkCode.dhtml',
-            'open_info_entry': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!getBjQyList.dhtml',
-            'ind_comm_pub_reg_basic': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!openEntInfo.dhtml?',
-            'ind_comm_pub_reg_shareholder': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!tzrFrame.dhtml?',
-            'ind_comm_pub_reg_modify': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!biangengFrame.dhtml?',
-            'ind_comm_pub_arch_key_persons': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!zyryFrame.dhtml?',
-            'ind_comm_pub_arch_branch': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!fzjgFrame.dhtml?',
-            'ind_comm_pub_arch_liquidation': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!qsxxFrame.dhtml?',
-            'ind_comm_pub_movable_property_reg':
-            'http://qyxy.baic.gov.cn/gjjbjTab/gjjTabQueryCreditAction!dcdyFrame.dhtml?',
-            'ind_comm_pub_equity_ownership_reg': 'http://qyxy.baic.gov.cn/gdczdj/gdczdjAction!gdczdjFrame.dhtml?',
-            'ind_comm_pub_administration_sanction': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list.dhtml?',
-            'ind_comm_pub_business_exception': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_jyycxx.dhtml?',
-            'ind_comm_pub_serious_violate_law': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_yzwfxx.dhtml?',
-            'ind_comm_pub_spot_check': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_ccjcxx.dhtml?',
-            'ent_pub_ent_annual_report': 'http://qyxy.baic.gov.cn/qynb/entinfoAction!qyxx.dhtml?',
-            'ent_pub_shareholder_capital_contribution': 'http://qyxy.baic.gov.cn/gdcz/gdczAction!list_index.dhtml?',
-            'ent_pub_equity_change': 'http://qyxy.baic.gov.cn/gdgq/gdgqAction!gdgqzrxxFrame.dhtml?',
-            'ent_pub_administration_license': 'http://qyxy.baic.gov.cn/xzxk/xzxkAction!list_index.dhtml?',
-            'ent_pub_knowledge_property': 'http://qyxy.baic.gov.cn/zscqczdj/zscqczdjAction!list_index.dhtml?',
-            'ent_pub_administration_sanction': 'http://qyxy.baic.gov.cn/gdgq/gdgqAction!qyxzcfFrame.dhtml?',
-            'other_dept_pub_administration_license': 'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzxk.dhtml?',
-            'other_dept_pub_administration_sanction': 'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzcf.dhtml?',
-            'shareholder_detail': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!touzirenInfo.dhtml?'}
+    urls = {
+        'host': 'http://qyxy.baic.gov.cn',
+        'official_site': 'http://qyxy.baic.gov.cn/beijing',
+        'get_checkcode': 'http://qyxy.baic.gov.cn',
+        'post_checkcode':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!checkCode.dhtml',
+        'open_info_entry':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!getBjQyList.dhtml',
+        'ind_comm_pub_reg_basic':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!openEntInfo.dhtml?',
+        'ind_comm_pub_reg_shareholder':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!tzrFrame.dhtml?',
+        'ind_comm_pub_reg_modify':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!biangengFrame.dhtml?',
+        'ind_comm_pub_arch_key_persons':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!zyryFrame.dhtml?',
+        'ind_comm_pub_arch_branch':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!fzjgFrame.dhtml?',
+        'ind_comm_pub_arch_liquidation':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!qsxxFrame.dhtml?',
+        'ind_comm_pub_movable_property_reg':
+        'http://qyxy.baic.gov.cn/gjjbjTab/gjjTabQueryCreditAction!dcdyFrame.dhtml?',
+        'ind_comm_pub_equity_ownership_reg':
+        'http://qyxy.baic.gov.cn/gdczdj/gdczdjAction!gdczdjFrame.dhtml?',
+        'ind_comm_pub_administration_sanction':
+        'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list.dhtml?',
+        'ind_comm_pub_business_exception':
+        'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_jyycxx.dhtml?',
+        'ind_comm_pub_serious_violate_law':
+        'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_yzwfxx.dhtml?',
+        'ind_comm_pub_spot_check':
+        'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_ccjcxx.dhtml?',
+        'ent_pub_ent_annual_report':
+        'http://qyxy.baic.gov.cn/qynb/entinfoAction!qyxx.dhtml?',
+        'ent_pub_shareholder_capital_contribution':
+        'http://qyxy.baic.gov.cn/gdcz/gdczAction!list_index.dhtml?',
+        'ent_pub_equity_change':
+        'http://qyxy.baic.gov.cn/gdgq/gdgqAction!gdgqzrxxFrame.dhtml?',
+        'ent_pub_administration_license':
+        'http://qyxy.baic.gov.cn/xzxk/xzxkAction!list_index.dhtml?',
+        'ent_pub_knowledge_property':
+        'http://qyxy.baic.gov.cn/zscqczdj/zscqczdjAction!list_index.dhtml?',
+        'ent_pub_administration_sanction':
+        'http://qyxy.baic.gov.cn/gdgq/gdgqAction!qyxzcfFrame.dhtml?',
+        'other_dept_pub_administration_license':
+        'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzxk.dhtml?',
+        'other_dept_pub_administration_sanction':
+        'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzcf.dhtml?',
+        'shareholder_detail':
+        'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!touzirenInfo.dhtml?'
+    }
 
     def __init__(self, json_restore_path=None):
         self.json_restore_path = json_restore_path
@@ -626,4 +650,3 @@ class BeijingParser(Parser):
             next_url = self.crawler.urls['host'] + bs4_tag['href']
 
         return next_url
-

@@ -31,11 +31,14 @@ class YunnanCrawler(object):
             os.makedirs(os.path.dirname(self.ckcode_image_path))
         self.result_json_dict = {}
         self.code_cracker = CaptchaRecognition('yunnan')
-        self.reqst.headers.update(
-            {'Accept': 'text/html, application/xhtml+xml, */*',
-             'Accept-Encoding': 'gzip, deflate',
-             'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-             'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+        self.reqst.headers.update({
+            'Accept': 'text/html, application/xhtml+xml, */*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent':
+            'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+        })
 
         useproxy = UseProxy()
         is_use_proxy = useproxy.get_province_is_use_proxy(province='guangxi')
@@ -43,17 +46,21 @@ class YunnanCrawler(object):
             self.proxies = []
         else:
             proxy = Proxy()
-            self.proxies = {'http': 'http://' + random.choice(proxy.get_proxy(num=5,
-                                                                              province='guangxi')),
-                            'https': 'https://' + random.choice(proxy.get_proxy(num=5,
-                                                                                province='guangxi'))}
+            self.proxies = {
+                'http': 'http://' + random.choice(proxy.get_proxy(num=5, province='guangxi')),
+                'https': 'https://' + random.choice(proxy.get_proxy(num=5, province='guangxi'))
+            }
         print 'self.proxies:', self.proxies
         # self.proxies = []
 
-        self.mydict = {'eareName': 'http://www.ahcredit.gov.cn',
-                       'search': 'http://gsxt.ynaic.gov.cn/notice/',
-                       'searchList': 'http://gsxt.ynaic.gov.cn/notice/search/ent_info_list',
-                       'validateCode': 'http://gsxt.ynaic.gov.cn/notice/captcha?preset=&ra=0.06570781518790503'}
+        self.mydict = {
+            'eareName': 'http://www.ahcredit.gov.cn',
+            'search': 'http://gsxt.ynaic.gov.cn/notice/',
+            'searchList':
+            'http://gsxt.ynaic.gov.cn/notice/search/ent_info_list',
+            'validateCode':
+            'http://gsxt.ynaic.gov.cn/notice/captcha?preset=&ra=0.06570781518790503'
+        }
 
         self.one_dict = {u'基本信息': 'ind_comm_pub_reg_basic',
                          u'股东信息': 'ind_comm_pub_reg_shareholder',
@@ -72,22 +79,25 @@ class YunnanCrawler(object):
                          u'严重违法信息': 'ind_comm_pub_serious_violate_law',
                          u'抽查检查信息': 'ind_comm_pub_spot_check'}
 
-        self.two_dict = {u'企业年报': 'ent_pub_ent_annual_report',
-                         u'企业投资人出资比例': 'ent_pub_shareholder_capital_contribution',
-                         u'股东（发起人）及出资信息': 'ent_pub_shareholder_capital_contribution',
-                         u'股东及出资信息（币种与注册资本一致）': 'ent_pub_shareholder_capital_contribution',
-                         u'股权变更信息': 'ent_pub_equity_change',
-                         u'行政许可信息': 'ent_pub_administration_license',
-                         u'知识产权出资登记': 'ent_pub_knowledge_property',
-                         u'知识产权出质登记信息': 'ent_pub_knowledge_property',
-                         u'行政处罚信息': 'ent_pub_administration_sanction',
-                         u'变更信息': 'ent_pub_shareholder_modify'}
+        self.two_dict = {
+            u'企业年报': 'ent_pub_ent_annual_report',
+            u'企业投资人出资比例': 'ent_pub_shareholder_capital_contribution',
+            u'股东（发起人）及出资信息': 'ent_pub_shareholder_capital_contribution',
+            u'股东及出资信息（币种与注册资本一致）': 'ent_pub_shareholder_capital_contribution',
+            u'股权变更信息': 'ent_pub_equity_change',
+            u'行政许可信息': 'ent_pub_administration_license',
+            u'知识产权出资登记': 'ent_pub_knowledge_property',
+            u'知识产权出质登记信息': 'ent_pub_knowledge_property',
+            u'行政处罚信息': 'ent_pub_administration_sanction',
+            u'变更信息': 'ent_pub_shareholder_modify'
+        }
         self.three_dict = {u'行政许可信息': 'other_dept_pub_administration_license',
                            u'行政处罚信息': 'other_dept_pub_administration_sanction'}
         self.four_dict = {u'股权冻结信息': 'judical_assist_pub_equity_freeze',
                           u'司法股权冻结信息': 'judical_assist_pub_equity_freeze',
                           u'股东变更信息': 'judical_assist_pub_shareholder_modify',
-                          u'司法股东变更登记信息': 'judical_assist_pub_shareholder_modify'}
+                          u'司法股东变更登记信息':
+                          'judical_assist_pub_shareholder_modify'}
         self.result_json_dict = {}
 
     def get_check_num(self):
@@ -356,8 +366,7 @@ class YunnanCrawler(object):
                 return json.dumps({self.ent_number: {}})
             self.result_json_dict_list = []
             for div in BeautifulSoup(self.after_crack_checkcode_page,
-                                     'html.parser').find_all('div',
-                                                             attrs={'class': 'list-item'}):
+                                     'html.parser').find_all('div', attrs={'class': 'list-item'}):
                 hrefa = div.find_all('a', attrs={'target': '_blank'})[0]
                 if hrefa:
                     self.uuid = hrefa['href'].split('&')[0]

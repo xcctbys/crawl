@@ -76,10 +76,12 @@ class CaptchaRecognition(object):
 
         captcha_type = captcha_type.lower()
         self.captcha_type = captcha_type
-        if captcha_type not in ["jiangsu", "beijing", "zongju", "liaoning", "guangdong", "hubei", "tianjin", "qinghai",
-                                "shanxi", "henan", "guangxi", "xizang", "heilongjiang", "anhui", "shaanxi", "chongqing",
-                                "sichuan", "hunan", "gansu", "xinjiang", "guizhou", "shandong", "neimenggu", "zhejiang",
-                                "heibei", "jilin", "yunnan", "fujian", "hebei", "shanghai", "jiangxi", "ningxia"]:
+        if captcha_type not in [
+                "jiangsu", "beijing", "zongju", "liaoning", "guangdong", "hubei", "tianjin", "qinghai", "shanxi",
+                "henan", "guangxi", "xizang", "heilongjiang", "anhui", "shaanxi", "chongqing", "sichuan", "hunan",
+                "gansu", "xinjiang", "guizhou", "shandong", "neimenggu", "zhejiang", "heibei", "jilin", "yunnan",
+                "fujian", "hebei", "shanghai", "jiangxi", "ningxia"
+        ]:
             raise Exception("unknown province %s" % captcha_type)
         elif captcha_type in ["jiangsu", "beijing", "liaoning"]:
             self.label_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "q", "w", "e", "r", "t", "y", "u", "i",
@@ -98,7 +100,7 @@ class CaptchaRecognition(object):
             self.label_list = [u"零", u"壹", u"贰", u"叁", u"肆", u"伍", u"陆", u"柒", u"捌", u"玖", u"拾", u"加", u"减", u"乘", u"除",
                                u"等", u"于", u"以", u"上", u"去", u"?", u"0", u"1", u"2", u"3", u"4", u"5", u"6", u"7", u"8",
                                u"9", u"的", u"一", u"二", u"三", u"四", u"五", u"六", u"七", u"八", u"九", u"十", u"〇", u"是", u"=",
-                               u"*", u"+",u"-",u"?"]
+                               u"*", u"+", u"-", u"?"]
         if captcha_type == "jiangsu":
             self.image_label_count = 6
             self.image_start = 0
@@ -481,12 +483,11 @@ class CaptchaRecognition(object):
                 print u"数据集已完成:", round(float(i) / len(image_label_pair), 4) * 100, "%", u"所用时间:", end_time - start_time
                 start_time = datetime.datetime.now()
         print u"数据集已生成 共用时", datetime.datetime.now() - start, u"开始建模"
-        rbm = BernoulliRBM(random_state=0,
-                           verbose=True,
-                           learning_rate=0.02,
-                           n_iter=400,
-                           n_components=650,
-                           batch_size=12)
+        rbm = BernoulliRBM(
+            random_state=0,
+            verbose=True, learning_rate=0.02,
+            n_iter=400, n_components=650,
+            batch_size=12)
         svm = SVC(kernel="linear", tol=5e-14, class_weight="balanced")
         classifier = Pipeline(steps=[("rbm", rbm), ("svm", svm)])
         model = classifier.fit(x, y)
@@ -618,7 +619,6 @@ class CaptchaRecognition(object):
         if self.captcha_type == "jiangxi":
             return self.__predict_result_jiangxi__(image_path)
 
-
         if os.path.isfile(self.model_file):
             self.clf = joblib.load(self.model_file)
         else:
@@ -744,8 +744,8 @@ class CaptchaRecognition(object):
                 y_sym_count += 1
 
             x = self.__convertPoint__(image)
-            x_num_temp = x[np.array(self.number_index),]
-            x_sym_temp = x[np.array(self.symbol_index),]
+            x_num_temp = x[np.array(self.number_index), ]
+            x_sym_temp = x[np.array(self.symbol_index), ]
             if index == 0:
                 x_num = x_num_temp
                 x_sym = x_sym_temp

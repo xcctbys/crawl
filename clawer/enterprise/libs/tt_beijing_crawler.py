@@ -47,33 +47,58 @@ class InitInfo(object):
             'host': 'http://qyxy.baic.gov.cn',
             'official_site': 'http://qyxy.baic.gov.cn/beijing',
             'get_checkcode': 'http://qyxy.baic.gov.cn',
-            'post_checkcode': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!checkCode.dhtml',
-            'open_info_entry': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!getBjQyList.dhtml',
-            'ind_comm_pub_reg_basic': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!openEntInfo.dhtml?',
-            'ind_comm_pub_reg_shareholder': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!tzrFrame.dhtml?',
-            'ind_comm_pub_reg_modify': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!biangengFrame.dhtml?',
-            'ind_comm_pub_arch_key_persons': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!zyryFrame.dhtml?',
-            'ind_comm_pub_arch_branch': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!fzjgFrame.dhtml?',
-            'ind_comm_pub_arch_liquidation': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!qsxxFrame.dhtml?',
+            'post_checkcode':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!checkCode.dhtml',
+            'open_info_entry':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!getBjQyList.dhtml',
+            'ind_comm_pub_reg_basic':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!openEntInfo.dhtml?',
+            'ind_comm_pub_reg_shareholder':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!tzrFrame.dhtml?',
+            'ind_comm_pub_reg_modify':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!biangengFrame.dhtml?',
+            'ind_comm_pub_arch_key_persons':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!zyryFrame.dhtml?',
+            'ind_comm_pub_arch_branch':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!fzjgFrame.dhtml?',
+            'ind_comm_pub_arch_liquidation':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!qsxxFrame.dhtml?',
             'ind_comm_pub_movable_property_reg':
             'http://qyxy.baic.gov.cn/gjjbjTab/gjjTabQueryCreditAction!dcdyFrame.dhtml?',
-            'ind_comm_pub_equity_ownership_reg': 'http://qyxy.baic.gov.cn/gdczdj/gdczdjAction!gdczdjFrame.dhtml?',
-            'ind_comm_pub_administration_sanction': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list.dhtml?',
-            'ind_comm_pub_business_exception': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_jyycxx.dhtml?',
-            'ind_comm_pub_serious_violate_law': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_yzwfxx.dhtml?',
-            'ind_comm_pub_spot_check': 'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_ccjcxx.dhtml?',
-            'ent_pub_ent_annual_report': 'http://qyxy.baic.gov.cn/qynb/entinfoAction!qyxx.dhtml?',
-            'ent_pub_shareholder_capital_contribution': 'http://qyxy.baic.gov.cn/gdcz/gdczAction!list_index.dhtml?',
-            'ent_pub_equity_change': 'http://qyxy.baic.gov.cn/gdgq/gdgqAction!gdgqzrxxFrame.dhtml?',
-            'ent_pub_administration_license': 'http://qyxy.baic.gov.cn/xzxk/xzxkAction!list_index.dhtml?',
-            'ent_pub_knowledge_property': 'http://qyxy.baic.gov.cn/zscqczdj/zscqczdjAction!list_index.dhtml?',
-            'ent_pub_administration_sanction': 'http://qyxy.baic.gov.cn/gdgq/gdgqAction!qyxzcfFrame.dhtml?',
-            'other_dept_pub_administration_license': 'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzxk.dhtml?',
-            'other_dept_pub_administration_sanction': 'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzcf.dhtml?',
-            'shareholder_detail': 'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!touzirenInfo.dhtml?',
-            'annual_report_detail': 'http://qyxy.baic.gov.cn/entPub/entPubAction!gdcz_bj.dhtml',
-            'annual_report_detail_for_fro': 'http://qyxy.baic.gov.cn/entPub/entPubAction!qydwdb_bj.dhtml',
-            'annual_report_detail_change': 'http://qyxy.baic.gov.cn/entPub/entPubAction!qybg_bj.dhtml',
+            'ind_comm_pub_equity_ownership_reg':
+            'http://qyxy.baic.gov.cn/gdczdj/gdczdjAction!gdczdjFrame.dhtml?',
+            'ind_comm_pub_administration_sanction':
+            'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list.dhtml?',
+            'ind_comm_pub_business_exception':
+            'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_jyycxx.dhtml?',
+            'ind_comm_pub_serious_violate_law':
+            'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_yzwfxx.dhtml?',
+            'ind_comm_pub_spot_check':
+            'http://qyxy.baic.gov.cn/gsgs/gsxzcfAction!list_ccjcxx.dhtml?',
+            'ent_pub_ent_annual_report':
+            'http://qyxy.baic.gov.cn/qynb/entinfoAction!qyxx.dhtml?',
+            'ent_pub_shareholder_capital_contribution':
+            'http://qyxy.baic.gov.cn/gdcz/gdczAction!list_index.dhtml?',
+            'ent_pub_equity_change':
+            'http://qyxy.baic.gov.cn/gdgq/gdgqAction!gdgqzrxxFrame.dhtml?',
+            'ent_pub_administration_license':
+            'http://qyxy.baic.gov.cn/xzxk/xzxkAction!list_index.dhtml?',
+            'ent_pub_knowledge_property':
+            'http://qyxy.baic.gov.cn/zscqczdj/zscqczdjAction!list_index.dhtml?',
+            'ent_pub_administration_sanction':
+            'http://qyxy.baic.gov.cn/gdgq/gdgqAction!qyxzcfFrame.dhtml?',
+            'other_dept_pub_administration_license':
+            'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzxk.dhtml?',
+            'other_dept_pub_administration_sanction':
+            'http://qyxy.baic.gov.cn/qtbm/qtbmAction!list_xzcf.dhtml?',
+            'shareholder_detail':
+            'http://qyxy.baic.gov.cn/gjjbj/gjjQueryCreditAction!touzirenInfo.dhtml?',
+            'annual_report_detail':
+            'http://qyxy.baic.gov.cn/entPub/entPubAction!gdcz_bj.dhtml',
+            'annual_report_detail_for_fro':
+            'http://qyxy.baic.gov.cn/entPub/entPubAction!qydwdb_bj.dhtml',
+            'annual_report_detail_change':
+            'http://qyxy.baic.gov.cn/entPub/entPubAction!qybg_bj.dhtml',
         }
 
 
@@ -216,10 +241,10 @@ class MyCrawler(Crawler):
             self.proxies = []
         else:
             proxy = Proxy()
-            self.proxies = {'http': 'http://' + random.choice(proxy.get_proxy(num=5,
-                                                                              province='beijing')),
-                            'https': 'https://' + random.choice(proxy.get_proxy(num=5,
-                                                                                province='beijing'))}
+            self.proxies = {
+                'http': 'http://' + random.choice(proxy.get_proxy(num=5, province='beijing')),
+                'https': 'https://' + random.choice(proxy.get_proxy(num=5, province='beijing'))
+            }
         print 'self.proxies:', self.proxies
         # self.proxies = []
 
@@ -230,8 +255,10 @@ class MyCrawler(Crawler):
         self.reqst.headers.update({
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent':
+            'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
         })
 
     def crawl_page_by_url(self, url, *args, **kwargs):
@@ -355,11 +382,8 @@ class MyParser(Parser):
             print td
         return (ths, tds)
 
-    def parser_ent_pub_ent_annual_report_for_detail(self,
-                                                    what=None,
-                                                    content=None,
-                                                    element=None,
-                                                    attrs=None):    #返回企业年报的每一个表。
+    def parser_ent_pub_ent_annual_report_for_detail(
+            self, what=None, content=None, element=None, attrs=None):    #返回企业年报的每一个表。
         table = content
         ths = [th.get_text().strip() for th in table.find_all('th') if th.get_text()]
         for i, th in enumerate(ths):
@@ -389,11 +413,8 @@ class MyParser(Parser):
                     my_tds.append(None)
         return my_tds
 
-    def parser_classic_ths_tds_data_for_ind_comm_pub(self,
-                                                     what=None,
-                                                     content=None,
-                                                     element=None,
-                                                     attrs=None):    #单独处理变更信息的详细页面地址。
+    def parser_classic_ths_tds_data_for_ind_comm_pub(
+            self, what=None, content=None, element=None, attrs=None):    #单独处理变更信息的详细页面地址。
         table = content
         ths = [th.get_text().strip() for th in table.find_all('th') if th.get_text()]
         tds = [td.get_text().strip() if td.get_text() else None for td in table.find_all('td')][1:]
@@ -492,8 +513,7 @@ class IndustrialPubliction(object):
                 # print tds[i]
                 tds[i + 1] = self.parser.parser_classic_ths_tds_data_for_ind_comm_pub(
                     what='parser_ind_comm_pub_reg_modify',
-                    content=tables[1],
-                    element='table')
+                    content=tables[1], element='table')
                 # print tds[i+1]
             else:
                 pass
@@ -852,10 +872,11 @@ class BeijingCrawler(object):
         print '------------------------------------crack_spent_time:%s--------------------' % (end_time - start_time)
         self.info.result_json_list = []
         try:
-            for item_page in BeautifulSoup(self.info.after_crack_checkcode_page, 'html.parser').find_all(
-                    'div',
-                    attrs={'class': "list",
-                           'style': "min-height: 400px;"})[0].find_all('ul')[0:3]:
+            for item_page in BeautifulSoup(self.info.after_crack_checkcode_page,
+                                           'html.parser').find_all('div',
+                                                                   attrs={'class': "list",
+                                                                          'style':
+                                                                          "min-height: 400px;"})[0].find_all('ul')[0:3]:
                 self.info.result_json = {}
                 self.crack.parser.parse_post_check_page(item_page)
                 start_time = time.time()
@@ -910,8 +931,9 @@ if __name__ == '__main__':
     if DEBUG:
         unittest.main()
     crawler = BeijingCrawler('./enterprise_crawler/beijing.json')
-    ent_list = [u'110116015763249'
-                ]    #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
+    ent_list = [
+        u'110116015763249'
+    ]    #, u'110113014453083', u'110000005791844', u'110000007977503', u'110000007552812']
     # ent_list = [u'创业投资中心']
     # ent_list = [u'北京仙瞳创业投资中心（有限合伙）']
     for ent_number in ent_list:

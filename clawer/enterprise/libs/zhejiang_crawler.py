@@ -28,16 +28,20 @@ class ZhejiangCrawler(object):
         'host': 'http://gsxt.zjaic.gov.cn/',
         'webroot': 'http://gsxt.zjaic.gov.cn',
         'page_search': 'http://gsxt.zjaic.gov.cn/zhejiang.jsp',
-        'page_Captcha': 'http://gsxt.zjaic.gov.cn/common/captcha/doReadKaptcha.do',
-        'page_showinfo': 'http://gsxt.zjaic.gov.cn/search/doGetAppSearchResult.do',
-        'checkcode': 'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
+        'page_Captcha':
+        'http://gsxt.zjaic.gov.cn/common/captcha/doReadKaptcha.do',
+        'page_showinfo':
+        'http://gsxt.zjaic.gov.cn/search/doGetAppSearchResult.do',
+        'checkcode':
+        'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
     }
 
     def __init__(self, json_restore_path=None):
         headers = {
             'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent": get_user_agent(),
     #在获取验证码图片的时候，构造请求头的时候，要添加Referer, 在各个TAB的页面也需要在请求头中构造Referer。
             "Referer": "http://gsxt.zjaic.gov.cn/zhejiang.jsp",
@@ -774,8 +778,8 @@ class ZhejiangCrawler(object):
 
     def selectModItem(self, modItem, modContentBefore, modContentAfter):
         """ 企业年报 修改记录, item 选择"""
-        if (modItem == "guarDateStart" or modItem == "guarDateEnd" or modItem == "conInfoPayDate" or
-                modItem == "conInfoActDate" or modItem == "stockChangeDate"):
+        if (modItem == "guarDateStart" or modItem == "guarDateEnd" or modItem == "conInfoPayDate"
+                or modItem == "conInfoActDate" or modItem == "stockChangeDate"):
             if modContentBefore != "":
                 modContentBefore = time.strftime(u"%Y年%m月%d日", time.localtime(modContentBefore['time'] / 1000))
             if modContentAfter != "":
@@ -1154,9 +1158,8 @@ class ZhejiangCrawler(object):
                                 col_count = 0
                     #this case is for the ind-comm-pub-reg-shareholders----details'table
                     #a fucking dog case!!!!!!
-                    elif tr.find_all('td') and len(
-                            tr.find_all('td',
-                                        recursive=False)) == col_span and col_span != column_size:
+                    elif tr.find_all('td') and len(tr.find_all(
+                            'td', recursive=False)) == col_span and col_span != column_size:
                         col_count = 0
                         sub_col_index = 0
                         item = {}
@@ -1270,8 +1273,8 @@ class ZhejiangCrawler(object):
             return columns
 
     def get_detail_link(self, bs4_tag):
-        if bs4_tag.has_attr('href') and (bs4_tag['href'] != '###' and bs4_tag['href'] != '#' and
-                                         bs4_tag['href'] != 'javascript:void(0);'):
+        if bs4_tag.has_attr('href') and (bs4_tag['href'] != '###' and bs4_tag['href'] != '#'
+                                         and bs4_tag['href'] != 'javascript:void(0);'):
             if bs4_tag['href'].find('http') != -1:
                 return bs4_tag['href']
             return self.urls['webroot'] + bs4_tag['href']

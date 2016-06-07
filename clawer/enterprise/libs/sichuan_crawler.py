@@ -28,9 +28,11 @@ headers = {
     "User-Agent": get_user_agent()
 }
 
+
 class SichuanCrawler(object):
     """ 四川爬虫， 继承object， 验证码与陕西一致。"""
     write_file_mutex = threading.Lock()
+
     def __init__(self, json_restore_path=None):
         self.pripid = None
         self.cur_time = str(int(time.time() * 1000))
@@ -53,10 +55,13 @@ class SichuanCrawler(object):
         self.timeout = (30, 20)
         self.ents = {}
 
-        self.mydict = {'eareName': 'http://www.ahcredit.gov.cn',
-                       'search': 'http://gsxt.scaic.gov.cn/ztxy.do?method=index&random=',
-                       'searchList': 'http://gsxt.scaic.gov.cn/ztxy.do?method=list&djjg=&random=',
-                       'validateCode': 'http://gsxt.scaic.gov.cn/ztxy.do?method=createYzm'}
+        self.mydict = {
+            'eareName': 'http://www.ahcredit.gov.cn',
+            'search': 'http://gsxt.scaic.gov.cn/ztxy.do?method=index&random=',
+            'searchList':
+            'http://gsxt.scaic.gov.cn/ztxy.do?method=list&djjg=&random=',
+            'validateCode': 'http://gsxt.scaic.gov.cn/ztxy.do?method=createYzm'
+        }
 
         self.one_dict = {u'基本信息': 'ind_comm_pub_reg_basic',
                          u'股东信息': 'ind_comm_pub_reg_shareholder',
@@ -74,23 +79,26 @@ class SichuanCrawler(object):
                          u'严重违法信息': 'ind_comm_pub_serious_violate_law',
                          u'抽查检查信息': 'ind_comm_pub_spot_check'}
 
-        self.two_dict = {u'企业年报': 'ent_pub_ent_annual_report',
-                         u'企业投资人出资比例': 'ent_pub_shareholder_capital_contribution',
-                         u'股东（发起人）及出资信息': 'ent_pub_shareholder_capital_contribution',
-                         u'股东及出资信息（币种与注册资本一致）': 'ent_pub_shareholder_capital_contribution',
-                         u'股东及出资信息': 'ent_pub_shareholder_capital_contribution',
-                         u'股权变更信息': 'ent_pub_equity_change',
-                         u'行政许可信息': 'ent_pub_administration_license',
-                         u'知识产权出资登记': 'ent_pub_knowledge_property',
-                         u'知识产权出质登记信息': 'ent_pub_knowledge_property',
-                         u'行政处罚信息': 'ent_pub_administration_sanction',
-                         u'变更信息': 'ent_pub_shareholder_modify'}
+        self.two_dict = {
+            u'企业年报': 'ent_pub_ent_annual_report',
+            u'企业投资人出资比例': 'ent_pub_shareholder_capital_contribution',
+            u'股东（发起人）及出资信息': 'ent_pub_shareholder_capital_contribution',
+            u'股东及出资信息（币种与注册资本一致）': 'ent_pub_shareholder_capital_contribution',
+            u'股东及出资信息': 'ent_pub_shareholder_capital_contribution',
+            u'股权变更信息': 'ent_pub_equity_change',
+            u'行政许可信息': 'ent_pub_administration_license',
+            u'知识产权出资登记': 'ent_pub_knowledge_property',
+            u'知识产权出质登记信息': 'ent_pub_knowledge_property',
+            u'行政处罚信息': 'ent_pub_administration_sanction',
+            u'变更信息': 'ent_pub_shareholder_modify'
+        }
         self.three_dict = {u'行政许可信息': 'other_dept_pub_administration_license',
                            u'行政处罚信息': 'other_dept_pub_administration_sanction'}
         self.four_dict = {u'股权冻结信息': 'judical_assist_pub_equity_freeze',
                           u'司法股权冻结信息': 'judical_assist_pub_equity_freeze',
                           u'股东变更信息': 'judical_assist_pub_shareholder_modify',
-                          u'司法股东变更登记信息': 'judical_assist_pub_shareholder_modify'}
+                          u'司法股东变更登记信息':
+                          'judical_assist_pub_shareholder_modify'}
 
     def get_check_num(self):
         # print self.mydict['search']+self.cur_time
@@ -116,7 +124,10 @@ class SichuanCrawler(object):
     def analyze_showInfo(self, page):
         soup = BeautifulSoup(page, 'html.parser')
         divs = soup.find_all('div',
-                             attrs={"style": "width:950px; padding:25px 20px 0px; overflow: hidden;float: left;"})
+                             attrs={
+                                 "style":
+                                 "width:950px; padding:25px 20px 0px; overflow: hidden;float: left;"
+                             })
         if divs:
             try:
                 Ent = {}
@@ -160,7 +171,7 @@ class SichuanCrawler(object):
             resp = self.reqst.post(self.mydict['searchList'] + self.cur_time, data=data, timeout=self.timeout)
             if self.analyze_showInfo(resp.content):
                 return True
-            print "crawl %s times:%d"%(findCode, count)
+            print "crawl %s times:%d" % (findCode, count)
             time.sleep(random.uniform(1, 4))
         return False
 

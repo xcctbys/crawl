@@ -9,10 +9,14 @@ class XinjiangCrawler(ShaanxiCrawler):
     urls = {
         'host': 'http://gsxt.xjaic.gov.cn:7001/',
         'webroot': 'http://gsxt.xjaic.gov.cn:7001/',
-        'page_search': 'http://gsxt.xjaic.gov.cn:7001/ztxy.do?method=index&random=%d',
-        'page_Captcha': 'http://gsxt.xjaic.gov.cn:7001/ztxy.do?method=createYzm&dt=%d&random=%d',
-        'page_showinfo': 'http://gsxt.xjaic.gov.cn:7001/ztxy.do?method=list&djjg=&random=%d',
-        'checkcode': 'http://gsxt.xjaic.gov.cn:7001/ztxy.do?method=list&djjg=&random=%d',
+        'page_search':
+        'http://gsxt.xjaic.gov.cn:7001/ztxy.do?method=index&random=%d',
+        'page_Captcha':
+        'http://gsxt.xjaic.gov.cn:7001/ztxy.do?method=createYzm&dt=%d&random=%d',
+        'page_showinfo':
+        'http://gsxt.xjaic.gov.cn:7001/ztxy.do?method=list&djjg=&random=%d',
+        'checkcode':
+        'http://gsxt.xjaic.gov.cn:7001/ztxy.do?method=list&djjg=&random=%d',
     }
 
     def __init__(self, json_restore_path=None):

@@ -20,7 +20,7 @@ headers = {
     'Accept': 'text/html, application/xhtml+xml, */*',
     'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
     "User-Agent": get_user_agent(),
-    }
+}
 
 
 class NeimengguCrawler(object):
@@ -31,8 +31,10 @@ class NeimengguCrawler(object):
         'host': 'http://www.nmgs.gov.cn:7001/aiccips/',
         'page_search': 'http://www.nmgs.gov.cn:7001/aiccips/index',
         'page_captcha': 'http://www.nmgs.gov.cn:7001/aiccips/verify.html',
-        'page_showinfo': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/showInfo.html',
-        'checkcode': 'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/checkCode.html',
+        'page_showinfo':
+        'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/showInfo.html',
+        'checkcode':
+        'http://www.nmgs.gov.cn:7001/aiccips/CheckEntContext/checkCode.html',
     }
 
     def __init__(self, json_restore_path=None):
@@ -102,12 +104,10 @@ class NeimengguCrawler(object):
         self.ents = Ent
 
     # 破解验证码页面
-    def crawl_page_captcha(self,
-                           url_page_search,
-                           url_captcha,
-                           url_CheckCode,
-                           url_showInfo,
-                           textfield='440301102739085'):
+    def crawl_page_captcha(
+            self, url_page_search,
+            url_captcha, url_CheckCode,
+            url_showInfo, textfield='440301102739085'):
         html = self.crawl_page_search(url_page_search)
         count = 0
         while count < 20:

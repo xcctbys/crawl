@@ -57,13 +57,16 @@ class Crawler(object):
     analysis = None
 
     def __init__(self, req=None):
-        self.headers = {'Connetion': 'Keep-Alive',
-                   'Accept': 'text/html, application/xhtml+xml, */*',
-                   'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0",
+        self.headers = {
+            'Connetion': 'Keep-Alive',
+            'Accept': 'text/html, application/xhtml+xml, */*',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0",
 
     # "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
-                   }
+        }
         if req:
             self.request = req
 
@@ -81,7 +84,7 @@ class Crawler(object):
     def crawl_ind_comm_pub_pages(self, url, types, post_data):
         sub_json_dict = {}
         prefix_GSpublicity = 'aiccips/GSpublicity/GSpublicityList.html'
-        body=reduce(lambda x, y: x+"&"+y, ["%s=%s"%(k,v) for k,v in post_data.items()])
+        body = reduce(lambda x, y: x + "&" + y, ["%s=%s" % (k, v) for k, v in post_data.items()])
         try:
 
             @exe_time
@@ -89,7 +92,14 @@ class Crawler(object):
                 div_name = 'jibenxinxi'
                 url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'entInfo')    # 登记信息
                 # page = self.request_by_method('POST', url, data=post_data)
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 dict_jiben = self.analysis.parse_page_2(page, div_name, post_data)
                 sub_json_dict['ind_comm_pub_reg_modify'] = dict_jiben[u'变更信息'] if dict_jiben.has_key(u"变更信息") else {}
@@ -102,7 +112,14 @@ class Crawler(object):
                 div_name = 'beian'
                 url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'entCheckInfo')    #备案信息
                 # page = self.request_by_method('POST', url, data=post_data)
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 dict_beian = self.analysis.parse_page_2(page, div_name, post_data)
                 sub_json_dict['ind_comm_pub_arch_key_persons'] = dict_beian[u'主要人员信息'] if dict_beian.has_key(
@@ -117,7 +134,14 @@ class Crawler(object):
                 div_name = 'guquanchuzhi'
                 url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'curStoPleInfo')    #股权出质
                 # page = self.request_by_method('POST', url, data=post_data)
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 dj = self.analysis.parse_page_2(page, div_name, post_data)
                 sub_json_dict['ind_comm_pub_equity_ownership_reg'] = dj[u'股权出质登记信息'] if dj.has_key(u'股权出质登记信息') else []
@@ -127,7 +151,14 @@ class Crawler(object):
                 div_name = 'dongchandiya'
                 url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'pleInfo')    #动产抵押登记信息
                 # page = self.request_by_method('POST', url, data=post_data)
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 dj = self.analysis.parse_page_2(page, div_name, post_data)
                 sub_json_dict['ind_comm_pub_movable_property_reg'] = dj[u'动产抵押信息'] if dj.has_key(u'动产抵押信息') else []
@@ -137,7 +168,14 @@ class Crawler(object):
                 div_name = 'xingzhengchufa'
                 url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'cipPenaltyInfo')    #行政处罚
                 # page = self.request_by_method('POST', url, data=post_data)
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 dj = self.analysis.parse_page_2(page, div_name, post_data)
                 sub_json_dict['ind_comm_pub_administration_sanction'] = dj[u'行政处罚信息'] if dj.has_key(u'行政处罚信息') else []
@@ -147,7 +185,14 @@ class Crawler(object):
                 div_name = 'jingyingyichang'
                 url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'cipUnuDirInfo')    #经营异常
                 # page = self.request_by_method('POST', url, data=post_data)
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 dj = self.analysis.parse_page_2(page, div_name, post_data)
                 sub_json_dict['ind_comm_pub_business_exception'] = dj[u'经营异常信息'] if dj.has_key(u'经营异常信息') else []
@@ -157,7 +202,14 @@ class Crawler(object):
                 div_name = 'yanzhongweifa'
                 url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'cipBlackInfo')    #严重违法
                 # page = self.request_by_method('POST', url, data=post_data)
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 dj = self.analysis.parse_page_2(page, div_name, post_data)
                 sub_json_dict['ind_comm_pub_serious_violate_law'] = dj[u'严重违法信息'] if dj.has_key(u'严重违法信息') else []
@@ -167,7 +219,14 @@ class Crawler(object):
                 div_name = 'chouchajiancha'
                 url = "%s/%s?service=%s" % (self.urls['host'], prefix_GSpublicity, 'cipSpotCheInfo')    #抽查检查
                 # page = self.request_by_method('POST', url, data=post_data)
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 dj = self.analysis.parse_page_2(page, div_name, post_data)
                 sub_json_dict['ind_comm_pub_spot_check'] = dj[u'抽查检查信息'] if dj.has_key(u'抽查检查信息') else []
@@ -192,13 +251,20 @@ class Crawler(object):
     @exe_time
     def crawl_ent_pub_pages(self, url, types, post_data):
         sub_json_dict = {}
-        body=reduce(lambda x, y: x+"&"+y, ["%s=%s"%(k,v) for k,v in post_data.items()])
+        body = reduce(lambda x, y: x + "&" + y, ["%s=%s" % (k, v) for k, v in post_data.items()])
         try:
 
             @exe_time
             def report():
                 url = "%s/%s" % (self.urls['host'], "aiccips/BusinessAnnals/BusinessAnnalsList.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 p = self.analysis.parse_page_2(page, 'qiyenianbao', post_data)
                 sub_json_dict['ent_pub_ent_annual_report'] = p[u'企业年报'] if p.has_key(u'企业年报') else []
@@ -206,7 +272,14 @@ class Crawler(object):
             @exe_time
             def permission():
                 url = "%s/%s" % (self.urls['host'], "aiccips/AppPerInformation.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 p = self.analysis.parse_page_2(page, 'appPer', post_data)
                 sub_json_dict['ent_pub_administration_license'] = p[u'行政许可情况'] if p.has_key(u'行政许可情况') else []
@@ -214,7 +287,14 @@ class Crawler(object):
             @exe_time
             def sanction():
                 url = "%s/%s" % (self.urls['host'], "aiccips/XZPunishmentMsg.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 p = self.analysis.parse_page_2(page, 'xzpun', post_data)
                 sub_json_dict['ent_pub_administration_sanction'] = p[u'行政处罚情况'] if p.has_key(u'行政处罚情况') else []
@@ -222,7 +302,14 @@ class Crawler(object):
             @exe_time
             def shareholder():
                 url = "%s/%s" % (self.urls['host'], "aiccips/ContributionCapitalMsg.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 p = self.analysis.parse_page(page, 'sifapanding', post_data)
                 sub_json_dict['ent_pub_shareholder_capital_contribution'] = p[u'股东及出资信息'] if p.has_key(
@@ -232,7 +319,14 @@ class Crawler(object):
             @exe_time
             def change():
                 url = "%s/%s" % (self.urls['host'], "aiccips/GDGQTransferMsg/shareholderTransferMsg.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 p = self.analysis.parse_page_2(page, 'guquanbiangeng', post_data)
                 sub_json_dict['ent_pub_equity_change'] = p[u'股权变更信息'] if p.has_key(u'股权变更信息') else []
@@ -240,7 +334,14 @@ class Crawler(object):
             @exe_time
             def properties():
                 url = "%s/%s" % (self.urls['host'], "aiccips/intPropertyMsg.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 p = self.analysis.parse_page_2(page, 'inproper', post_data)
                 sub_json_dict['ent_pub_knowledge_property'] = p[u'知识产权出质登记信息'] if p.has_key(u'知识产权出质登记信息') else []
@@ -263,19 +364,33 @@ class Crawler(object):
     @exe_time
     def crawl_other_dept_pub_pages(self, url, types, post_data):
         sub_json_dict = {}
-        body=reduce(lambda x, y: x+"&"+y, ["%s=%s"%(k,v) for k,v in post_data.items()])
+        body = reduce(lambda x, y: x + "&" + y, ["%s=%s" % (k, v) for k, v in post_data.items()])
         try:
 
             def permission():
                 url = "%s/%s" % (self.urls['host'], "aiccips/OtherPublicity/environmentalProtection.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 xk = self.analysis.parse_page_2(page, "xzxk", post_data)
                 sub_json_dict["other_dept_pub_administration_license"] = xk[u'行政许可信息'] if xk.has_key(u'行政许可信息') else []
 
             def sanction():
                 url = "%s/%s" % (self.urls['host'], "aiccips/OtherPublicity/environmentalProtection.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 xk = self.analysis.parse_page_2(page, "czcf", post_data)
                 sub_json_dict["other_dept_pub_administration_sanction"] = xk[u'行政处罚信息'] if xk.has_key(u'行政处罚信息') else [
@@ -295,19 +410,33 @@ class Crawler(object):
     @exe_time
     def crawl_judical_assist_pub_pages(self, url, types, post_data):
         sub_json_dict = {}
-        body=reduce(lambda x, y: x+"&"+y, ["%s=%s"%(k,v) for k,v in post_data.items()])
+        body = reduce(lambda x, y: x + "&" + y, ["%s=%s" % (k, v) for k, v in post_data.items()])
         try:
 
             def freezeInfo():
                 url = "%s/%s" % (self.urls['host'], "aiccips/judiciaryAssist/judiciaryAssistInit.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 xz = self.analysis.parse_page_2(page, 'guquandongjie', post_data)
                 sub_json_dict['judical_assist_pub_equity_freeze'] = xz[u'司法股权冻结信息'] if xz.has_key(u'司法股权冻结信息') else []
 
             def modifyInfo():
                 url = "%s/%s" % (self.urls['host'], "aiccips/sfGuQuanChange/guQuanChange.html")
-                self.gh.open(address=url, method='POST', body=body, timeout=self.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                self.gh.open(address=url,
+                             method='POST',
+                             body=body,
+                             timeout=self.timeout,
+                             headers={
+                                 'Content-Type':
+                                 'application/x-www-form-urlencoded; charset=UTF-8',
+                             })
                 page = self.gh.content
                 xz = self.analysis.parse_page_2(page, 'gudongbiangeng', post_data)
                 sub_json_dict['judical_assist_pub_shareholder_modify'] = xz[u'司法股东变更登记信息'] if xz.has_key(
@@ -338,15 +467,14 @@ class Crawler(object):
             return False
         return r.text
 
-
     def run_ghost(self, url):
         g = ghost.Ghost()
-        threads=[]
+        threads = []
         with g.start(wait_timeout=20, download_images=False) as gh:
-            gh.open(url, headers=self.headers, timeout=self.timeout) # 第一次访问,不能获取到正确的内容,返回的是js代码
+            gh.open(url, headers=self.headers, timeout=self.timeout)    # 第一次访问,不能获取到正确的内容,返回的是js代码
 
-            gh.open(url , headers=self.headers, timeout=self.timeout) # 第二次访问,此次可以获取到正确的内容
-            page_entInfo=gh.content
+            gh.open(url, headers=self.headers, timeout=self.timeout)    # 第二次访问,此次可以获取到正确的内容
+            page_entInfo = gh.content
 
             if not page_entInfo:
                 logging.error("Can't get page %s ." % (url))
@@ -368,7 +496,9 @@ class Crawler(object):
         gevent.monkey.patch_socket()
         threads = []
         # cookies = get_cookie(url)
-        cookies = {"__jsluid":"e35a7efec69d7c078c30cd4c511ec550" , "__jsl_clearance":"1464433646.938|0|Tt9O%2BHzg50l6JRyOQq%2BcHSs9I7s%3D"}
+        cookies = {"__jsluid": "e35a7efec69d7c078c30cd4c511ec550",
+                   "__jsl_clearance":
+                   "1464433646.938|0|Tt9O%2BHzg50l6JRyOQq%2BcHSs9I7s%3D"}
         print cookies
 
         self.request.cookies.clear()
@@ -781,17 +911,28 @@ class Analyze(object):
                         "regOrg": post_data["regOrg"],
                         "entType": post_data["entType"].encode('utf-8'),
                     }
-                    body=reduce(lambda x, y: x+"&"+y, ["%s=%s"%(k,v) for k,v in data.items()])
+                    body = reduce(lambda x, y: x + "&" + y, ["%s=%s" % (k, v) for k, v in data.items()])
 
-                    self.crawler.gh.open(address=url, method='POST', body=body, timeout=self.crawler.timeout, headers={'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', 'Accept-Encoding':"gzip, deflate", 'Accept':"application/json, text/javascript, */*; q=0.01", 'X-Requested-With':"XMLHttpRequest"})
+                    self.crawler.gh.open(address=url,
+                                         method='POST',
+                                         body=body,
+                                         timeout=self.crawler.timeout,
+                                         headers={
+                                             'Content-Type':
+                                             'application/x-www-form-urlencoded; charset=utf-8',
+                                             'Accept-Encoding': "gzip, deflate",
+                                             'Accept':
+                                             "application/json, text/javascript, */*; q=0.01",
+                                             'X-Requested-With': "XMLHttpRequest"
+                                         })
                     page = self.crawler.gh.content
 
                     res = BeautifulSoup(page, 'html5lib').get_text()
                     # res = self.crawler.request_by_method(
-                        # 'POST',
-                        # url,
-                        # data=data,
-                        # headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                    # 'POST',
+                    # url,
+                    # data=data,
+                    # headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
                     if table_name == u"变更信息":
                         # chaToPage
                         d = json.loads(res)
@@ -804,7 +945,7 @@ class Analyze(object):
                         d = json.loads(res)
                         titles = [column[0] for column in columns]
                         for i, model in enumerate(d['list']):
-                            data = [i + 1, model['name'], model['position'].encode('utf-8') ]
+                            data = [i + 1, model['name'], model['position'].encode('utf-8')]
                             item_array.append(dict(zip(titles, data)))
 
                     elif table_name == u"分支机构信息":
@@ -849,7 +990,9 @@ class Analyze(object):
                                     # print next_url
                                     if re.match(r"http", next_url):
                                         # detail_page = self.crawler.request_by_method('GET', next_url)
-                                        self.crawler.gh.open(address=next_url, method='GET', timeout=self.crawler.timeout)
+                                        self.crawler.gh.open(address=next_url,
+                                                             method='GET',
+                                                             timeout=self.crawler.timeout)
                                         detail_page = self.crawler.gh.content
                                         if table_name == u'企业年报':
                                             #logging.error(u"next_url = %s, table_name= %s\n", detail_page['url'], table_name)
@@ -872,9 +1015,8 @@ class Analyze(object):
                                     item_array.append(item.copy())
                                     col_count = 0
                         #this case is for the ind-comm-pub-reg-shareholders----details'table
-                        elif tr.find('td') and len(
-                                tr.find_all('td',
-                                            recursive=False)) == col_span and col_span != column_size:
+                        elif tr.find('td') and len(tr.find_all(
+                                'td', recursive=False)) == col_span and col_span != column_size:
                             col_count = 0
                             sub_col_index = 0
                             item = {}
@@ -885,7 +1027,9 @@ class Analyze(object):
                                     next_url = self.get_detail_link(td.find('a'))
                                     if next_url:
                                         # detail_page = self.crawler.request_by_method('GET', next_url)
-                                        self.crawler.gh.open(address=next_url, method='GET', timeout=self.crawler.timeout)
+                                        self.crawler.gh.open(address=next_url,
+                                                             method='GET',
+                                                             timeout=self.crawler.timeout)
                                         detail_page = self.crawler.gh.content
                                         if table_name == u'企业年报':
                                             #logging.error(u"2next_url = %s, table_name= %s\n", next_url, table_name)
@@ -959,8 +1103,8 @@ class Guangdong1(object):
     def run(self, url):
         return self.crawler.run_ghost(url)
 
-class Guangdong1Test(unittest.TestCase):
 
+class Guangdong1Test(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
 
@@ -974,10 +1118,11 @@ class Guangdong1Test(unittest.TestCase):
 
     def test_run_ghost(self):
         ent_str = "http://gsxt.gzaic.gov.cn/aiccips/GSpublicity/GSpublicityList.html?service=entInfo_cPlFMHz7UORGuPsot6Ab+gyFHBRDGmiqdLAvpr4C7UU=-7PUW92vxF0RgKhiSE63aCw=="
-        guangdong=Guangdong1()
-        result=guangdong.run_ghost(ent_str)
+        guangdong = Guangdong1()
+        result = guangdong.run_ghost(ent_str)
         self.assertTrue(result)
         print result
+
 
 if __name__ == "__main__":
     unittest.main()

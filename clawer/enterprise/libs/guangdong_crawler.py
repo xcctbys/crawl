@@ -21,8 +21,10 @@ urls = {
     'host': 'http://gsxt.gdgs.gov.cn/aiccips/',
     'page_search': 'http://gsxt.gdgs.gov.cn/aiccips/index',
     'page_captcha': 'http://gsxt.gdgs.gov.cn/aiccips/verify.html',
-    'page_showinfo': 'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/showInfo.html',
-    'checkcode': 'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/checkCode.html',
+    'page_showinfo':
+    'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/showInfo.html',
+    'checkcode':
+    'http://gsxt.gdgs.gov.cn/aiccips/CheckEntContext/checkCode.html',
 }
 
 headers = {
@@ -107,12 +109,10 @@ class GuangdongCrawler(object):
         self.ents = Ent
 
     # 破解验证码页面
-    def crawl_page_captcha(self,
-                           url_page_search,
-                           url_captcha,
-                           url_CheckCode,
-                           url_showInfo,
-                           textfield='440301102739085'):
+    def crawl_page_captcha(
+            self, url_page_search,
+            url_captcha, url_CheckCode,
+            url_showInfo, textfield='440301102739085'):
         html = self.crawl_page_search(url_page_search)
         count = 0
         while count < 20:
@@ -217,15 +217,15 @@ class GuangdongCrawler(object):
                             data = guangdong.run_asyn(url)
                             sub_json_list.append({ent: data})
                         # gsxt.gzaic.gov.cn
-                        elif i==1:
-                            logging.error(u"This %s enterprise is type 1"%(self.ent_num))
+                        elif i == 1:
+                            logging.error(u"This %s enterprise is type 1" % (self.ent_num))
                             guangdong = Guangdong1(self.request)
-                            data =guangdong.run(url)
+                            data = guangdong.run(url)
                             print url
                             sub_json_list.append({ent: data})
                         # gsxt.gdgs.gov.cn/aiccips
-                        elif i==2:
-                            logging.error(u"This %s enterprise is type 2"%(self.ent_num))
+                        elif i == 2:
+                            logging.error(u"This %s enterprise is type 2" % (self.ent_num))
                             guangdong = Guangdong2(self.request)
                             data = guangdong.run_asyn(url)
                             sub_json_list.append({ent: data})

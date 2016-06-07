@@ -20,6 +20,7 @@ from gevent import Greenlet
 import gevent.monkey
 from common_func import get_user_agent
 
+
 class Crawler(object):
     """ 爬虫的基类 """
     code_cracker = None
@@ -28,9 +29,11 @@ class Crawler(object):
         self.reqst = requests.Session()
         self.reqst.headers.update({
             'Connection': "keep-alive",
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept':
+            'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             'Content-Type': 'application/x-www-form-urlencoded',
             'User-Agent': get_user_agent()
         })
@@ -423,8 +426,10 @@ class CrawlerUtils(object):
     def make_opener(head={
             'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent':
+            'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
     }):
 
         cj = cookielib.CookieJar()

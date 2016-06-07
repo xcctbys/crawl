@@ -12,7 +12,7 @@ PATH = '/data/clawer/html/'
 
 
 def get_user_agent():
-    agents=[
+    agents = [
         "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36",
         "Mozilla/5.0 (Linux; Android 6.0.1; ALCATEL ONETOUCH POP? 7 LTE Build/MMB29M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.91 Safari/537.36",
         "Mozilla/5.0 (Linux; Android 6.0.1; en-us;ALCATEL ONETOUCH POP 7 LTE Build/MMB29M) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/42.0.2311.154 Mobile Safari/537.36",
@@ -54,11 +54,9 @@ def get_user_agent():
         "Mozilla/5.0 (compatible; NetSeer crawler/2.0; +http://www.netseer.com/crawler.html; crawler@netseer.com)",
         "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1.16) Gecko/20080716 (Gentoo) Galeon/2.0.6",
         "Mozilla/5.0 (X11; Linux i686; rv:14.0) Gecko/20100101 Firefox/14.0.1 Iceweasel/14.0.1",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36",]
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36",
+    ]
     return random.choice(agents)
-
-
-
 
 
 # PATH = '/Users/princetechs5/'
@@ -136,7 +134,7 @@ def get_proxy(province=''):
         proxies = {}
     else:
         proxy = Proxy()
-        proxies = {'http': 'http://' + random.choice(proxy.get_proxy(num=5,province=province))}
+        proxies = {'http': 'http://' + random.choice(proxy.get_proxy(num=5, province=province))}
         if province.lower() == 'shanghai':
-            proxies={'https':'https://'+random.choice(proxy.get_proxy(num=5, province = province))}
+            proxies = {'https': 'https://' + random.choice(proxy.get_proxy(num=5, province=province))}
     return proxies

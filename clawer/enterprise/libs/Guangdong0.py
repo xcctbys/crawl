@@ -31,7 +31,8 @@ class Crawler(object):
         headers = {
             'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent":
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
         }
@@ -61,7 +62,8 @@ class Crawler(object):
                                 timeout=self.timeout,
                                 headers={'X-Requested-With': 'XMLHttpRequest',
                                          'X-MicrosoftAjax': 'Delta=true',
-                                         'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', })
+                                         'Content-Type':
+                                         'application/x-www-form-urlencoded; charset=utf-8', })
         if r2.status_code != 200:
             return False
         return r2.text
@@ -446,9 +448,8 @@ class Analyze(object):
                     records_tag = tbody
                 for tr in records_tag.find_all('tr'):
 
-                    if tr.find('td') and col_span == column_size and len(
-                            tr.find_all('td',
-                                        recursive=False)) % column_size == 0:
+                    if tr.find('td') and col_span == column_size and len(tr.find_all(
+                            'td', recursive=False)) % column_size == 0:
                         col_count = 0
                         item = {}
                         for td in tr.find_all('td', recursive=False):
@@ -527,9 +528,8 @@ class Analyze(object):
                                 item_array.append(item.copy())
                                 col_count = 0
                     # 我给跪了，数据表无缘无故最后的多出一空列
-                    elif tr.find('td') and len(
-                            tr.find_all('td',
-                                        recursive=False)) == col_span + 1 and col_span != column_size:
+                    elif tr.find('td') and len(tr.find_all(
+                            'td', recursive=False)) == col_span + 1 and col_span != column_size:
                         col_count = 0
                         sub_col_index = 0
                         item = {}

@@ -11,8 +11,10 @@ class HunanCrawler(HebeiCrawler):
         'host': 'http://gsxt.hnaic.gov.cn/notice/',
         'webroot': 'http://gsxt.hnaic.gov.cn/notice/',
         'page_search': 'http://gsxt.hnaic.gov.cn/notice/home',
-        'page_Captcha': 'http://gsxt.hnaic.gov.cn/notice/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
-        'page_showinfo': 'http://gsxt.hnaic.gov.cn/notice/search/ent_info_list',
+        'page_Captcha':
+        'http://gsxt.hnaic.gov.cn/notice/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
+        'page_showinfo':
+        'http://gsxt.hnaic.gov.cn/notice/search/ent_info_list',
         'checkcode': 'http://gsxt.hnaic.gov.cn/notice/security/verify_captcha',
     }
 

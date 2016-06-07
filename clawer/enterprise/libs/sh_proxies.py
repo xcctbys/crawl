@@ -23,10 +23,13 @@ set_path = '/tmp/proxies/proxies.pik'    # pickle 文件保存位置
 http_list = []    #用于保存最终有效 ip代理，元素为 'http://x.x.x.x:x'
 
 reqst = requests.Session()
-reqst.headers.update({'Accept': 'text/html, application/xhtml+xml, */*',
-                      'Accept-Encoding': 'gzip, deflate',
-                      'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                      'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'})
+reqst.headers.update({
+    'Accept': 'text/html, application/xhtml+xml, */*',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+    'User-Agent':
+    'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+})
 
 
 def get_proxy_from_proxy_url(proxy_url):

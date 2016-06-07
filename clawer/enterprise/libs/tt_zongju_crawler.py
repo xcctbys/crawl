@@ -40,7 +40,8 @@ class InitInfo(object):
             'host': 'http://qyxy.baic.gov.cn',
             'official_site': 'http://gsxt.saic.gov.cn/zjgs/',
             'get_checkcode': 'http://gsxt.saic.gov.cn/zjgs/captcha?preset=',
-            'post_checkcode': 'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',
+            'post_checkcode':
+            'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',
     # 'get_info_entry': 'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',  # 获得企业入口
             'open_info_entry': 'http://gsxt.saic.gov.cn/zjgs/notice/view?',
     # 获得企业信息页面的url，通过指定不同的tab=1-4来选择不同的内容（工商公示，企业公示...）
@@ -173,10 +174,10 @@ class MyCrawler(Crawler):
             self.proxies = []
         else:
             proxy = Proxy()
-            self.proxies = {'http': 'http://' + random.choice(proxy.get_proxy(num=5,
-                                                                              province='shanghai')),
-                            'https': 'https://' + random.choice(proxy.get_proxy(num=5,
-                                                                                province='shanghai'))}
+            self.proxies = {
+                'http': 'http://' + random.choice(proxy.get_proxy(num=5, province='shanghai')),
+                'https': 'https://' + random.choice(proxy.get_proxy(num=5, province='shanghai'))
+            }
         print 'self.proxies:', self.proxies
 
         # self.proxies = []
@@ -186,10 +187,12 @@ class MyCrawler(Crawler):
         self.write_file_mutex = threading.Lock()
         self.reqst = requests.Session()
         self.reqst.headers.update({
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept':
+            'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0'
+            'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0'
         })
 
     def crawl_page_by_url(self, url):
@@ -316,8 +319,8 @@ class MyParser(Parser):
         all_tables = self.info.source_code_soup.find_all('table')
         for table in all_tables:
             ths = table.find_all('th')
-            if ths and ths[0].get_text().strip() == table_head or (ths and
-                                                                   ths[0].get_text().strip().find(table_head) != -1):
+            if ths and ths[0].get_text().strip() == table_head or (
+                    ths and ths[0].get_text().strip().find(table_head) != -1):
                 return table
         else:
             return None
@@ -666,8 +669,7 @@ class ZongjuCrawler(object):
         # print self.info.after_crack_checkcode_page
 
         for item_page in BeautifulSoup(self.info.after_crack_checkcode_page,
-                                       'html.parser').find_all('div',
-                                                               attrs={'class': 'list-item'}):
+                                       'html.parser').find_all('div', attrs={'class': 'list-item'}):
 
             self.crack.parser.parse_post_check_page(str(item_page.find_all('a')[0]))
             self.info.ent_number = item_page.find_all('span')[0].get_text().strip()

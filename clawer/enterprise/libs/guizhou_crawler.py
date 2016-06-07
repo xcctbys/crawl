@@ -18,6 +18,7 @@ class GuizhouCrawler(object):
     """ 贵州省爬虫, 单独爬取 """
     #html数据的存储路径
     write_file_mutex = threading.Lock()
+
     def __init__(self, json_restore_path=None):
         self.cur_time = str(int(time.time() * 1000))
         self.nbxh = None
@@ -31,14 +32,18 @@ class GuizhouCrawler(object):
             'Connection': "keep-alive",
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             'User-Agent': get_user_agent()
         })
 
-        self.mydict = {'eareName': 'http://www.ahcredit.gov.cn',
-                       'search': 'http://gsxt.gzgs.gov.cn/',
-                       'searchList': 'http://gsxt.gzgs.gov.cn/search!searchSczt.shtml',
-                       'validateCode': 'http://gsxt.gzgs.gov.cn/search!generateCode.shtml?validTag=searchImageCode&'}
+        self.mydict = {
+            'eareName': 'http://www.ahcredit.gov.cn',
+            'search': 'http://gsxt.gzgs.gov.cn/',
+            'searchList': 'http://gsxt.gzgs.gov.cn/search!searchSczt.shtml',
+            'validateCode':
+            'http://gsxt.gzgs.gov.cn/search!generateCode.shtml?validTag=searchImageCode&'
+        }
 
         self.one_dict = {u'基本信息': 'ind_comm_pub_reg_basic',
                          u'股东信息': 'ind_comm_pub_reg_shareholder',
@@ -56,23 +61,26 @@ class GuizhouCrawler(object):
                          u'严重违法信息': 'ind_comm_pub_serious_violate_law',
                          u'抽查检查信息': 'ind_comm_pub_spot_check'}
 
-        self.two_dict = {u'企业年报': 'ent_pub_ent_annual_report',
-                         u'企业投资人出资比例': 'ent_pub_shareholder_capital_contribution',
-                         u'股东（发起人）及出资信息': 'ent_pub_shareholder_capital_contribution',
-                         u'股东及出资信息（币种与注册资本一致）': 'ent_pub_shareholder_capital_contribution',
-                         u'股东及出资信息': 'ent_pub_shareholder_capital_contribution',
-                         u'股权变更信息': 'ent_pub_equity_change',
-                         u'行政许可信息': 'ent_pub_administration_license',
-                         u'知识产权出资登记': 'ent_pub_knowledge_property',
-                         u'知识产权出质登记信息': 'ent_pub_knowledge_property',
-                         u'行政处罚信息': 'ent_pub_administration_sanction',
-                         u'变更信息': 'ent_pub_shareholder_modify'}
+        self.two_dict = {
+            u'企业年报': 'ent_pub_ent_annual_report',
+            u'企业投资人出资比例': 'ent_pub_shareholder_capital_contribution',
+            u'股东（发起人）及出资信息': 'ent_pub_shareholder_capital_contribution',
+            u'股东及出资信息（币种与注册资本一致）': 'ent_pub_shareholder_capital_contribution',
+            u'股东及出资信息': 'ent_pub_shareholder_capital_contribution',
+            u'股权变更信息': 'ent_pub_equity_change',
+            u'行政许可信息': 'ent_pub_administration_license',
+            u'知识产权出资登记': 'ent_pub_knowledge_property',
+            u'知识产权出质登记信息': 'ent_pub_knowledge_property',
+            u'行政处罚信息': 'ent_pub_administration_sanction',
+            u'变更信息': 'ent_pub_shareholder_modify'
+        }
         self.three_dict = {u'行政许可信息': 'other_dept_pub_administration_license',
                            u'行政处罚信息': 'other_dept_pub_administration_sanction'}
         self.four_dict = {u'股权冻结信息': 'judical_assist_pub_equity_freeze',
                           u'司法股权冻结信息': 'judical_assist_pub_equity_freeze',
                           u'股东变更信息': 'judical_assist_pub_shareholder_modify',
-                          u'司法股东变更登记信息': 'judical_assist_pub_shareholder_modify'}
+                          u'司法股东变更登记信息':
+                          'judical_assist_pub_shareholder_modify'}
         self.result_json_dict = {}
 
     def get_check_num(self):
@@ -155,12 +163,12 @@ class GuizhouCrawler(object):
         result_dict = self.send_post_for_enter('http://gsxt.gzgs.gov.cn/nzgs/search!searchNbxx.shtml', self.nbxh, '0',
                                                '14', lsh)
         # print result_dict
-        value = self.get_dict_enter(
-            allths=[u'注册号/统一社会信用代码', u'企业名称', u'企业联系电话', u'邮政编码', u'企业通信地址', u'企业电子邮箱', u'有限责任公司本年度是否发生股东股权转让',
-                    u'企业经营状态', u'是否有网站或网店', u'是否有投资信息或购买其他公司股权', u'从业人数'],
-            alltds=result_dict,
-            alltds_keys=[u'zch', u'qymc', u'lxdh', u'yzbm', u'dz', u'dzyx', u'sfzr', u'jyzt', u'sfww', u'sfdw', u'cyrs'
-                         ], )
+        value = self.get_dict_enter(allths=[u'注册号/统一社会信用代码', u'企业名称', u'企业联系电话', u'邮政编码', u'企业通信地址', u'企业电子邮箱',
+                                            u'有限责任公司本年度是否发生股东股权转让', u'企业经营状态', u'是否有网站或网店', u'是否有投资信息或购买其他公司股权',
+                                            u'从业人数'],
+                                    alltds=result_dict,
+                                    alltds_keys=[u'zch', u'qymc', u'lxdh', u'yzbm', u'dz', u'dzyx', u'sfzr', u'jyzt',
+                                                 u'sfww', u'sfdw', u'cyrs'], )
         needdict[u'企业基本信息'] = value[0]
 
         result_dict = self.send_post_for_enter('http://gsxt.gzgs.gov.cn/nzgs/search!searchNbxx.shtml', self.nbxh, '0',
@@ -170,18 +178,20 @@ class GuizhouCrawler(object):
 
         result_dict = self.send_post_for_enter('http://gsxt.gzgs.gov.cn/nzgs/search!searchNbxx.shtml', self.nbxh, '0',
                                                '19', lsh)
-        value = self.get_dict_enter(
-            allths=[u'注册号/股东', u'认缴出资额（万元）', u'认缴出资时间', u'认缴出资方式', u'实缴出资额（万元）', u'出资时间', u'出资方式'],
-            alltds=result_dict,
-            alltds_keys=[u'tzr', u'rjcze', u'rjczrq', u'rjczfs', u'sjcze', u'sjczrq', u'sjczfs'])
+        value = self.get_dict_enter(allths=[u'注册号/股东', u'认缴出资额（万元）', u'认缴出资时间', u'认缴出资方式', u'实缴出资额（万元）', u'出资时间',
+                                            u'出资方式'],
+                                    alltds=result_dict,
+                                    alltds_keys=[u'tzr', u'rjcze', u'rjczrq', u'rjczfs', u'sjcze', u'sjczrq',
+                                                 u'sjczfs'])
         needdict[u'股东及出资信息'] = value
 
         result_dict = self.send_post_for_enter('http://gsxt.gzgs.gov.cn/nzgs/search!searchNbxx.shtml', self.nbxh, '0',
                                                '16', lsh)
-        value = self.get_dict_enter(
-            allths=[u'资产总额', u'所有者权益合计', u'销售总额', u'利润总额', u'销售总额中主营业务收入', u'净利润', u'纳税总额', u'负债总额'],
-            alltds=result_dict,
-            alltds_keys=[u'zcze', u'qyhj', u'xsze', u'lrze', u'zysr', u'lrze', u'nsze', u'fzze'])
+        value = self.get_dict_enter(allths=[u'资产总额', u'所有者权益合计', u'销售总额', u'利润总额', u'销售总额中主营业务收入', u'净利润', u'纳税总额',
+                                            u'负债总额'],
+                                    alltds=result_dict,
+                                    alltds_keys=[u'zcze', u'qyhj', u'xsze', u'lrze', u'zysr', u'lrze', u'nsze',
+                                                 u'fzze'])
         needdict[u'企业资产状况信息'] = value[0]
 
         result_dict = self.send_post_for_enter('http://gsxt.gzgs.gov.cn/nzgs/search!searchNbxx.shtml', self.nbxh, '0',
@@ -449,12 +459,12 @@ class GuizhouCrawler(object):
                               head='ent_pub_equity_change')
             result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml', self.nbxh, '0', '20')
             # print result_dict
-            self.get_json_two(
-                allths=[u'序号', u'许可文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'许可机关', u'许可内容', u'状态', u'公示日期', u'详情'],
-                alltds=result_dict,
-                alltds_keys=[u'rownum', u'xkwjbh', u'xkwjmc', u'ksyxqx', u'jsyxqx', u'xkjg', u'xknr', u'zt', u'gsrq',
-                             u'lsh'],
-                head='ent_pub_administration_license')
+            self.get_json_two(allths=[u'序号', u'许可文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'许可机关', u'许可内容', u'状态', u'公示日期',
+                                      u'详情'],
+                              alltds=result_dict,
+                              alltds_keys=[u'rownum', u'xkwjbh', u'xkwjmc', u'ksyxqx', u'jsyxqx', u'xkjg', u'xknr',
+                                           u'zt', u'gsrq', u'lsh'],
+                              head='ent_pub_administration_license')
             result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchData.shtml', self.nbxh, '0', '21')
             # print result_dict
             self.get_json_two(allths=[], alltds=result_dict, alltds_keys=[], head='ent_pub_knowledge_property')
@@ -465,11 +475,12 @@ class GuizhouCrawler(object):
             result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchOldData.shtml', self.nbxh, '0',
                                          '37')
             # print result_dict
-            self.get_json_three(
-                allths=[u'序号', u'许可文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'有效期', u'许可机关', u'许可内容', u'状态', u'详情'],
-                alltds=result_dict,
-                alltds_keys=[u'rownum', u'xkwjbh', u'xkwjmc', u'yxq1', u'yxq2', u'yxq', u'xkjg', u'xknr', u'zt', u'zt'],
-                head='other_dept_pub_administration_license')
+            self.get_json_three(allths=[u'序号', u'许可文件编号', u'许可文件名称', u'有效期自', u'有效期至', u'有效期', u'许可机关', u'许可内容', u'状态',
+                                        u'详情'],
+                                alltds=result_dict,
+                                alltds_keys=[u'rownum', u'xkwjbh', u'xkwjmc', u'yxq1', u'yxq2', u'yxq', u'xkjg',
+                                             u'xknr', u'zt', u'zt'],
+                                head='other_dept_pub_administration_license')
             result_dict = self.send_post('http://gsxt.gzgs.gov.cn/nzgs/search!searchOldData.shtml', self.nbxh, '0',
                                          '38')
             # print result_dict

@@ -53,6 +53,7 @@ import re
 
 # gevent.monkey.patch_socket()
 
+
 class TestJiangsu(TestCase):
     def setUp(self):
         TestCase.setUp(self)
@@ -84,9 +85,7 @@ class TestJiangsu(TestCase):
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'华泰证券股份有限公司')
 
     def test_run_ent(self):
-        ent_list=(
-            u'华泰证券股份有限公司',
-            )
+        ent_list = (u'华泰证券股份有限公司', )
         Jiangsu = JiangsuCrawler(self.path)
         for ent in ent_list:
             result = Jiangsu.run(ent)
@@ -98,7 +97,6 @@ class TestJiangsu(TestCase):
                     self.assertTrue(v.get('ind_comm_pub_reg_basic'))
                     self.assertTrue(v.get('ind_comm_pub_reg_basic').get(u'名称'))
                     self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], ent)
-
 
     def test_run_without_result(self):
         # 华泰证券股份有限公司,江苏,320000000000192
@@ -140,23 +138,23 @@ class TestJiangsu(TestCase):
 
 
 class TestGuangdong(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
         self.path = os.path.join(os.getcwd(), 'Guangdong')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
     def tearDown(self):
         TestCase.tearDown(self)
 
     def test_run(self):
         # 广发证券股份有限公司,广东,222400000001337
         ent_str = '310000000016182'
-        start =  time.time()
+        start = time.time()
         Guangdong = GuangdongCrawler(self.path)
         result = Guangdong.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -168,14 +166,15 @@ class TestGuangdong(TestCase):
                 self.assertEqual(k, u'310000000016182')
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'海通证券股份有限公司')
+
     def test_run_2(self):
         # 广发证券股份有限公司,广东,222400000001337
         ent_str = '222400000001337'
-        start =  time.time()
+        start = time.time()
         Guangdong = GuangdongCrawler(self.path)
         result = Guangdong.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -191,11 +190,11 @@ class TestGuangdong(TestCase):
     def test_run_0(self):
         # 世纪证券有限责任公司,广东,440301102739085
         ent_str = '440301102739085'
-        start =  time.time()
+        start = time.time()
         Guangdong = GuangdongCrawler(self.path)
         result = Guangdong.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -211,11 +210,11 @@ class TestGuangdong(TestCase):
     def test_run_1(self):
         # 万联证券有限责任公司,广东,440101000017862
         ent_str = '440101000017862'
-        start =  time.time()
+        start = time.time()
         Guangdong = GuangdongCrawler(self.path)
         result = Guangdong.run(ent_str)
         ent = time.time()
-        print ent-start
+        print ent - start
         print result
         self.assertTrue(result)
         self.assertEqual(type(result), str)
@@ -298,11 +297,11 @@ class TestShanghai(TestCase):
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'海通证券股份有限公司')
 
     def test_run_ent(self):
-        ent_list=(
-            # u'上海银行股份有限公司虹口支行',
+        ent_list = (
+    # u'上海银行股份有限公司虹口支行',
             u'中国农业银行股份有限公司上海黄路支行',
             u'招商银行股份有限公司上海闵行支行',
-            # u'上海悦禄资产管理中心(有限合伙)',
+    # u'上海悦禄资产管理中心(有限合伙)',
             u'交通银行股份有限公司上海六里支行',
             u'上海证券有限责任公司嘉定证券营业部',
             u'中国银行股份有限公司上海市中山北路支行',
@@ -318,8 +317,7 @@ class TestShanghai(TestCase):
             u'上海秀界投资管理中心(有限合伙)',
             u'上海复鑫股权投资基金合伙企业(有限合伙)',
             u'上海琪韵投资管理事务所(普通合伙)',
-            u'上海长鹰创业投资中心(有限合伙)',
-            )
+            u'上海长鹰创业投资中心(有限合伙)', )
         Shanghai = ShanghaiCrawler(self.path)
         for ent in ent_list:
             result = Shanghai.run(ent)
@@ -331,7 +329,6 @@ class TestShanghai(TestCase):
                     self.assertTrue(v.get('ind_comm_pub_reg_basic'))
                     self.assertTrue(v.get('ind_comm_pub_reg_basic').get(u'名称'))
                     self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], ent)
-
 
     def test_run_without_result(self):
         # 海通证券股份有限公司,上海,310000000016182
@@ -840,7 +837,6 @@ class TestGansu(TestCase):
         result = json.loads(result)
         self.assertEqual(len(result), 3)
 
-
     def test_run_with_proxy(self):
         """
             由于使用python manage.py test 命令无法获取mysql中代理的数据，所以就通过python manage.py shell 命令执行。
@@ -977,9 +973,6 @@ class TestJiangxi(TestCase):
                 self.assertEqual(k, u'913600007419861533')
                 self.assertTrue(v['ind_comm_pub_reg_basic'])
                 self.assertEqual(v['ind_comm_pub_reg_basic'][u'名称'], u'中航证券有限公司')
-
-
-
 
     def test_run_with_proxy(self):
         """
@@ -2028,10 +2021,14 @@ class TestShaanxi(TestCase):
         urls = {
             'host': 'http://xygs.snaic.gov.cn/',
             'webroot': 'http://xygs.snaic.gov.cn/',
-            'page_search': 'http://xygs.snaic.gov.cn/ztxy.do?method=index&random=%d',
-            'page_Captcha': 'http://xygs.snaic.gov.cn/ztxy.do?method=createYzm&dt=%d&random=%d',
-            'page_showinfo': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
-            'checkcode': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
+            'page_search':
+            'http://xygs.snaic.gov.cn/ztxy.do?method=index&random=%d',
+            'page_Captcha':
+            'http://xygs.snaic.gov.cn/ztxy.do?method=createYzm&dt=%d&random=%d',
+            'page_showinfo':
+            'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
+            'checkcode':
+            'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
         }
 
         ent_num = "610000400000319"
@@ -2143,9 +2140,12 @@ class TestHebei(TestCase):
             'host': 'http://www.hebscztxyxx.gov.cn/notice/',
             'webroot': 'http://www.hebscztxyxx.gov.cn/',
             'page_search': 'http://www.hebscztxyxx.gov.cn/notice/',
-            'page_Captcha': 'http://www.hebscztxyxx.gov.cn/notice/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
-            'page_showinfo': 'http://www.hebscztxyxx.gov.cn/notice/search/ent_info_list',
-            'checkcode': 'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
+            'page_Captcha':
+            'http://www.hebscztxyxx.gov.cn/notice/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
+            'page_showinfo':
+            'http://www.hebscztxyxx.gov.cn/notice/search/ent_info_list',
+            'checkcode':
+            'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
         }
 
         ent_num = "130000000021709"
@@ -2362,10 +2362,13 @@ class TestZhejiang(TestCase):
             'host': 'http://gsxt.zjaic.gov.cn/',
             'webroot': 'http://gsxt.zjaic.gov.cn',
             'page_search': 'http://gsxt.zjaic.gov.cn/zhejiang.jsp',
-            'page_Captcha': 'http://gsxt.zjaic.gov.cn/common/captcha/doReadKaptcha.do',
-            'page_showinfo': 'http://gsxt.zjaic.gov.cn/search/doGetAppSearchResult.do',
+            'page_Captcha':
+            'http://gsxt.zjaic.gov.cn/common/captcha/doReadKaptcha.do',
+            'page_showinfo':
+            'http://gsxt.zjaic.gov.cn/search/doGetAppSearchResult.do',
             'prefix_url_0': 'http://gsxt.zjaic.gov.cn/appbasicinfo/',
-            'checkcode': 'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
+            'checkcode':
+            'http://gsxt.zjaic.gov.cn//search/doValidatorVerifyCode.do',
         }
 
         ent_num = "330000000050426"
@@ -2500,8 +2503,10 @@ class TestShandong(TestCase):
 
     def test_main_page(self):
         shandong = ShandongCrawler(self.path)
-        shandong.ents = {'91370000729246347A':
-                         'gsgsdetail/1223/6e0948678bfeed4ac8115d5cafef819ad6951a24f0c0188cd6c047570329c9b6'}
+        shandong.ents = {
+            '91370000729246347A':
+            'gsgsdetail/1223/6e0948678bfeed4ac8115d5cafef819ad6951a24f0c0188cd6c047570329c9b6'
+        }
         data = shandong.crawl_page_main()
         self.assertEqual(type(data), list)
         self.assertTrue(data[0].has_key('91370000729246347A'))
