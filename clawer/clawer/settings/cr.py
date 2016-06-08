@@ -1,8 +1,7 @@
-#encoding=utf-8
-"""中证信用的配置
-"""
-from settings import *
+# -*- coding: utf-8 -*-
+
 import os
+from common import *  # noqa
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -83,7 +82,7 @@ MongoDBS = {
     }
 }
 
-from mongoengine import connect
+from mongoengine import connect  # noqa
 
 for name, db in MongoDBS.iteritems():
     connect(host=db['host'], alias=name)

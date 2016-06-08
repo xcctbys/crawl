@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os
-from settings import *
+from common import *  # noqa
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -87,7 +86,7 @@ MongoDBS = {
     }
 }
 
-from mongoengine import connect
+from mongoengine import connect  # noqa
 
 for name, db in MongoDBS.iteritems():
     connect(host=db['host'], alias=name)
@@ -162,8 +161,5 @@ LOGGING = {
 }
 
 
-#付费代理ip 的订单号
+# 付费代理ip 的订单号
 IPPROXY_TID = '559326559297365'
-
-
-

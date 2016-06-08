@@ -1,8 +1,7 @@
-# encoding=utf-8
+# -*- coding: utf-8 -*-
 
 import os
-
-from settings import *  # noqa
+from common import *  # noqa
 
 DATABASES = {
     'default': {

@@ -129,21 +129,11 @@ INSTALLED_APPS = ('django.contrib.auth',
                   'smart_proxy',
                   "uri_filter", )
 
-CLAWER_TASK_URL_MULTIPLE_DAY = 7
 DOWNLOAD_JS = os.path.join(os.path.dirname(__file__), "../download.js")
 REDIS_DATA_COMPRESSED = True
 
-JSONS_URL = 'http://clawer.princetechs.com/media/clawer_result/enterprise/json'
-UPDATE_BY = "day"
-
-# JSONS_URL = "http://clawer.princetechs.com/media/clawer_result/4"
-# UPDATE_BY = "hour" # "hour" | "day"
-
-MULTIPROCESS = True    # True | False
-
 MAX_PROXY_NUM = 500
 
-# 在下载器中有用到
 MAX_TOTAL_DISPATCH_COUNT_ONCE = 5000       # 设置一次分发的数量
 DISPATCH_USE_POOL_TIMEOUT = 300            # 设置在分发过程中使用多进程的时间限制
 DISPATCH_BY_PRIORITY = True or False       # 设置是只按优先级分发
@@ -155,8 +145,6 @@ Q_DOWN_MID_LEN = 2000
 Q_DOWN_LOW_LEN = 3000
 CODE_PATH = '/tmp/my_code'                 # 配置下载器 code(python or shell)的保存路径
 OPEN_CRAWLER_FAILED_ONLY = False and True  # 是否一直分发失败的任务
-
-# 去重器初始化用户自定义
 
 URI_NUM_SCALE = 1000000     # 预计要去重的uri数量级和
 ACCEPT_ERROR_RATE = 0.0001  # 能够接受的去重失误率
