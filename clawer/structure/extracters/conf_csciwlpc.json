@@ -70,6 +70,7 @@
       "associated_field_source_path": [ "" ],
       "dest_field": {
         "主键": "company_key",
+        "序号": "year_report_id",
         "报送年度": "report_year",
         "发布日期": "publicity_date"
       }
@@ -206,6 +207,25 @@
         "股东": "shareholder_name",
         "认缴出资额（万元）": "subscription_money_amount",
         "证照/证件号码": "certificate_number",
+        "实缴出资额（万元）": "paid_money_amount",
+        "实缴出资日期": "paid_date",
+        "认缴额（万元）": "subscription_amount"
+      }
+    },
+    "ind_comm_pub_reg_shareholder_detail": {
+      "dest_table": "ind_comm_pub_reg_shareholder_detail",
+      "source_path": [ "ind_comm_pub_reg_shareholder", "详情" ],
+      "associated_field_source_path": [ "", "" ],
+      "dest_field": {
+        "主键": "company_key",
+        "实缴出资方式": "paid_type",
+        "股东（发起人）类型": "shareholder_type",
+        "认缴出资日期": "subscription_date",
+        "实缴额（万元）": "paid_amount",
+        "认缴出资方式": "subscription_type",
+        "股东": "shareholder_name",
+        "股东（发起人）": "shareholder_name",
+        "认缴出资额（万元）": "subscription_money_amount",
         "实缴出资额（万元）": "paid_money_amount",
         "实缴出资日期": "paid_date",
         "认缴额（万元）": "subscription_amount"
@@ -596,6 +616,11 @@
       {
         "dest_field": "company_key",
         "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(10)",
         "option": ""
       },
       {
@@ -1018,6 +1043,63 @@
         "option": ""
       }
     ],
+    "ind_comm_pub_reg_shareholder_detail": [
+      {
+        "dest_field": "year_report_id",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "company_key",
+        "datatype": "CHAR(50)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_type",
+        "datatype": "CHAR(100)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_date",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_type",
+        "datatype": "CHAR(20)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_amount",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "shareholder_name",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_money_amount",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_money_amount",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "paid_date",
+        "datatype": "CHAR(30)",
+        "option": ""
+      },
+      {
+        "dest_field": "subscription_amount",
+        "datatype": "CHAR(30)",
+        "option": ""
+      }
+    ],
     "ind_comm_pub_reg_modify": [
       {
         "dest_field": "company_key",
@@ -1036,12 +1118,12 @@
       },
       {
         "dest_field": "modify_after",
-        "datatype": "CHAR(500)",
+        "datatype": "TEXT",
         "option": ""
       },
       {
         "dest_field": "modify_before",
-        "datatype": "CHAR(500)",
+        "datatype": "TEXT",
         "option": ""
       }
     ],
