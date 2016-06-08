@@ -30,6 +30,7 @@ urls = {
     'checkcode': 'http://211.141.74.198:8081/aiccips/pub/indsearch',
 }
 
+
 def get_cookie(url):
     """
         获取浏览的cookie信息
@@ -57,7 +58,8 @@ class JilinCrawler(object):
         headers = {'Connetion': 'Keep-Alive',
                    'Host': '211.141.74.198:8081',
                    'Accept': 'text/html, application/xhtml+xml, */*',
-                   'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+                   'Accept-Language':
+                   'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
                    "User-Agent": get_user_agent(),
                    'Referer': "http://211.141.74.198:8081/aiccips/", }
         self.CR = CaptchaRecognition("jilin")
@@ -322,11 +324,10 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/jyyc/1219"
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_abn = l['abntime']
@@ -348,11 +349,10 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/gsxzcfxx"
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_abn = l['pendecissdate']
@@ -381,11 +381,10 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/ccjcxx"
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_abn = l['insdate']
@@ -404,11 +403,10 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/yzwfqy"
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_abn = l['abntime']
@@ -431,11 +429,10 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/gsgqcz"
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_dict = l['equpledate']
@@ -463,11 +460,10 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/gsdcdy"
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_dict = l['regidate']
@@ -486,11 +482,10 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/gsfzjg/1219"
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 datas = [i + 1, l['regno'], l['brname'], l['regorg']]
@@ -508,11 +503,10 @@ class JilinCrawler(object):
             titles = [column[0] for column in columns]
             url = "http://211.141.74.198:8081/aiccips/pub/gsryxx/1219"
             #print post_data
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 datas = [i + 1, l['name'], l['position']]
@@ -711,14 +705,16 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "qygsjsxxxzcfxx"
-            res = self.request_by_method(
-                'POST',
-                url,
-                data=post_data,
-                headers={'X-CSRF-TOKEN': self.csrf,
-                         'X-Requested-With': 'XMLHttpRequest',
-                         'Referer': "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid},
-                timeout=self.timeout)
+            res = self.request_by_method('POST',
+                                         url,
+                                         data=post_data,
+                                         headers={
+                                             'X-CSRF-TOKEN': self.csrf,
+                                             'X-Requested-With': 'XMLHttpRequest',
+                                             'Referer':
+                                             "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid
+                                         },
+                                         timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_from = l['pendecissdate']
@@ -739,14 +735,16 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "qygsjsxxzscqcz"
-            res = self.request_by_method(
-                'POST',
-                url,
-                data=post_data,
-                headers={'X-CSRF-TOKEN': self.csrf,
-                         'X-Requested-With': 'XMLHttpRequest',
-                         'Referer': "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid},
-                timeout=self.timeout)
+            res = self.request_by_method('POST',
+                                         url,
+                                         data=post_data,
+                                         headers={
+                                             'X-CSRF-TOKEN': self.csrf,
+                                             'X-Requested-With': 'XMLHttpRequest',
+                                             'Referer':
+                                             "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid
+                                         },
+                                         timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_from = l['pleregperfrom']
@@ -779,9 +777,12 @@ class JilinCrawler(object):
                 'POST',
                 url,
                 data=post_data,
-                headers={'X-CSRF-TOKEN': self.csrf,
-                         'X-Requested-With': 'XMLHttpRequest',
-                         'Referer': "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid, },
+                headers={
+                    'X-CSRF-TOKEN': self.csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer':
+                    "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid,
+                },
                 timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -810,14 +811,16 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/qygsJsxxgqbg"
-            res = self.request_by_method(
-                'POST',
-                url,
-                data=post_data,
-                headers={'X-CSRF-TOKEN': self.csrf,
-                         'X-Requested-With': 'XMLHttpRequest',
-                         'Referer': "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid},
-                timeout=self.timeout)
+            res = self.request_by_method('POST',
+                                         url,
+                                         data=post_data,
+                                         headers={
+                                             'X-CSRF-TOKEN': self.csrf,
+                                             'X-Requested-With': 'XMLHttpRequest',
+                                             'Referer':
+                                             "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid
+                                         },
+                                         timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 date_from = l['altdate']
@@ -837,14 +840,16 @@ class JilinCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = urls['host'] + "/qygsjsxxczxxbgsx"
-            res = self.request_by_method(
-                'POST',
-                url,
-                data=post_data,
-                headers={'X-CSRF-TOKEN': self.csrf,
-                         'X-Requested-With': 'XMLHttpRequest',
-                         'Referer': "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid},
-                timeout=self.timeout)
+            res = self.request_by_method('POST',
+                                         url,
+                                         data=post_data,
+                                         headers={
+                                             'X-CSRF-TOKEN': self.csrf,
+                                             'X-Requested-With': 'XMLHttpRequest',
+                                             'Referer':
+                                             "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid
+                                         },
+                                         timeout=self.timeout)
             ls = json.loads(res)
             for rows in ls:
                 for i, l in enumerate(rows['bgxx']):
@@ -864,14 +869,16 @@ class JilinCrawler(object):
         try:
             logging.info(u"parse qygs table 股东及出资信息 ")
             url = urls['host'] + "/qygsjsxxxzczxx"
-            res = self.request_by_method(
-                'POST',
-                url,
-                data=post_data,
-                headers={'X-CSRF-TOKEN': self.csrf,
-                         'X-Requested-With': 'XMLHttpRequest',
-                         'Referer': "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid},
-                timeout=self.timeout)
+            res = self.request_by_method('POST',
+                                         url,
+                                         data=post_data,
+                                         headers={
+                                             'X-CSRF-TOKEN': self.csrf,
+                                             'X-Requested-With': 'XMLHttpRequest',
+                                             'Referer':
+                                             "http://211.141.74.198:8081/aiccips/pub/qygsdetail/1219/" + self.encrpripid
+                                         },
+                                         timeout=self.timeout)
             ls = json.loads(res)
             for i, l in enumerate(ls):
                 czxx = l['czxx']
@@ -1329,9 +1336,8 @@ class JilinCrawler(object):
                                 col_count = 0
                     #this case is for the ind-comm-pub-reg-shareholders----details'table
                     #a fucking dog case!!!!!!
-                    elif tr.find_all('td') and len(
-                            tr.find_all('td',
-                                        recursive=False)) == col_span and col_span != column_size:
+                    elif tr.find_all('td') and len(tr.find_all(
+                            'td', recursive=False)) == col_span and col_span != column_size:
                         col_count = 0
                         sub_col_index = 0
                         item = {}

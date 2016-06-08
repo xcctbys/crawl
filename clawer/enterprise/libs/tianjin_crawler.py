@@ -47,7 +47,8 @@ class TianjinCrawler(object):
         headers = {
             'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent": get_user_agent(),
         }
         self.CR = CaptchaRecognition("tianjin")
@@ -99,7 +100,8 @@ class TianjinCrawler(object):
 
     # 破解验证码页面
     def crawl_page_captcha(self, url_search, url_Captcha, url_CheckCode, url_showInfo, textfield='120000000000165'):
-        if not self.request_by_method('GET', url_search, timeout=self.timeout): return
+        if not self.request_by_method('GET', url_search, timeout=self.timeout):
+            return
         count = 0
         while count < 15:
             count += 1
@@ -523,15 +525,15 @@ class TianjinCrawler(object):
                     bs_table.find_all('tr')[0].find_all('th')) > 1:
                 tr = bs_table.find_all('tr')[0]
             elif bs_table.find_all('tr')[0].find(
-                    'td', {'class': 'bg title'
-                           }) and len(bs_table.find_all('tr')[0].find_all('td', {'class': 'bg title'})) > 1:
+                    'td', {'class':
+                           'bg title'}) and len(bs_table.find_all('tr')[0].find_all('td', {'class': 'bg title'})) > 1:
                 tr = bs_table.find_all('tr')[0]
             elif bs_table.find_all('tr')[1].find('th') and not bs_table.find_all('tr')[1].find('td') and len(
                     bs_table.find_all('tr')[1].find_all('th')) > 1:
                 tr = bs_table.find_all('tr')[1]
             elif bs_table.find_all('tr')[1].find(
-                    'td', {'class': 'bg title'
-                           }) and len(bs_table.find_all('tr')[1].find_all('td', {'class': 'bg title'})) > 1:
+                    'td', {'class':
+                           'bg title'}) and len(bs_table.find_all('tr')[1].find_all('td', {'class': 'bg title'})) > 1:
                 tr = bs_table.find_all('tr')[1]
         ret_val = self.get_record_table_columns_by_tr(tr, table_name)
         return ret_val
@@ -542,9 +544,8 @@ class TianjinCrawler(object):
             return columns
         try:
             sub_col_index = 0
-            if len(tr_tag.find_all('th')) == 0 and (len(tr_tag.find_all('td', {'class': 'bg title'})) == 0 and
-                                                    len(tr_tag.find_all('td',
-                                                                        attrs={'class': 'bg'})) == 0):
+            if len(tr_tag.find_all('th')) == 0 and (len(tr_tag.find_all('td', {'class': 'bg title'})) == 0
+                                                    and len(tr_tag.find_all('td', attrs={'class': 'bg'})) == 0):
                 logging.error(u"The table %s has no columns" % table_name)
                 return columns
             count = 0
@@ -685,10 +686,10 @@ class TianjinCrawler(object):
                 sub_list = None
                 item = None
                 for tr in records_tag.find_all('tr'):
-                    if tr.find_all('td',
-                                   attrs={'class': None,
-                                          'class': ""}) and len(tr.find_all('td',
-                                                                            recursive=False)) % column_size == 0:
+                    if tr.find_all('td', attrs={
+                            'class': None,
+                            'class': ""
+                    }) and len(tr.find_all('td', recursive=False)) % column_size == 0:
                         col_count = 0
                         item = {}
                         for td in tr.find_all('td', recursive=False):
@@ -715,11 +716,10 @@ class TianjinCrawler(object):
                                 col_count = 0
                     #this case is for the ind-comm-pub-reg-shareholders----details'table
                     #a fucking dog case!!!!!!
-                    elif tr.find_all('td',
-                                     attrs={'class': None,
-                                            'class': ""}) and len(
-                                                tr.find_all('td',
-                                                            recursive=False)) == col_span and col_span != column_size:
+                    elif tr.find_all('td', attrs={
+                            'class': None,
+                            'class': ""
+                    }) and len(tr.find_all('td', recursive=False)) == col_span and col_span != column_size:
                         col_count = 0
                         sub_col_index = 0
                         item = {}

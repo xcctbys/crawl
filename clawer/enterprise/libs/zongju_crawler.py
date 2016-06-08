@@ -27,8 +27,10 @@ class ZongjuCrawler(Crawler):
     urls = {'host': 'http://qyxy.saic.gov.cn',
             'official_site': 'http://gsxt.saic.gov.cn/zjgs/',
             'get_checkcode': 'http://gsxt.saic.gov.cn/zjgs/captcha?preset=',
-            'post_checkcode': 'http://gsxt.saic.gov.cn/zjgs/security/verify_captcha',
-            'get_info_entry': 'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',    # 获得企业入口
+            'post_checkcode':
+            'http://gsxt.saic.gov.cn/zjgs/security/verify_captcha',
+            'get_info_entry':
+            'http://gsxt.saic.gov.cn/zjgs/search/ent_info_list',    # 获得企业入口
             'open_info_entry': 'http://gsxt.saic.gov.cn/zjgs/notice/view?',
     # 获得企业信息页面的url，通过指定不同的tab=1-4来选择不同的内容（工商公示，企业公示...）
             }

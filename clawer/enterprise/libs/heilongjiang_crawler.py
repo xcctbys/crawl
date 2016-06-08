@@ -21,25 +21,40 @@ class HeilongjiangClawer(Crawler):
     # 多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    urls = {'host': 'www.hljaic.gov.cn',
-            'get_checkcode': 'http://gsxt.hljaic.gov.cn/validateCode.jspx?type=0',
-            'post_checkcode': 'http://gsxt.hljaic.gov.cn/checkCheckNo.jspx',
-            'get_info_entry': 'http://gsxt.hljaic.gov.cn/searchList.jspx',
-            'ind_comm_pub_skeleton': 'http://gsxt.hljaic.gov.cn/businessPublicity.jspx?id=',
-            'ent_pub_skeleton': 'http://gsxt.hljaic.gov.cn/enterprisePublicity.jspx?id=',
-            'other_dept_pub_skeleton': 'http://gsxt.hljaic.gov.cn/otherDepartment.jspx?id=',
-            'judical_assist_skeleton': 'http://gsxt.hljaic.gov.cn/justiceAssistance.jspx?id=',
-            'ind_comm_pub_reg_shareholder': 'http://gsxt.hljaic.gov.cn/QueryInvList.jspx?',    # 股东信息
-            'ind_comm_pub_reg_modify': 'http://gsxt.hljaic.gov.cn/QueryAltList.jspx?',    # 变更信息翻页
-            'ind_comm_pub_arch_key_persons': 'http://gsxt.hljaic.gov.cn/QueryMemList.jspx?',    # 主要人员信息翻页
-            'ind_comm_pub_spot_check': 'http://gsxt.hljaic.gov.cn/QuerySpotCheckList.jspx?',    # 抽样检查信息翻页
-            'ind_comm_pub_movable_property_reg': 'http://gsxt.hljaic.gov.cn/QueryMortList.jspx?',    # 动产抵押登记信息翻页
-            'ind_comm_pub_business_exception': 'http://gsxt.hljaic.gov.cn/QueryExcList.jspx?',    # 经营异常信息
-            'ent_pub_administration_license': 'http://gsxt.hljaic.gov.cn/QueryLicenseRegList.jspx?',    # 行政许可信息
-            'shareholder_detail': 'http://gsxt.hljaic.gov.cn/queryInvDetailAction.jspx?id=',    # 投资人详情
-            'movable_property_reg_detail': 'http://gsxt.hljaic.gov.cn/mortInfoDetail.jspx?id=',    # 动产抵押登记详情
-            'annual_report': 'http://gsxt.hljaic.gov.cn/QueryYearExamineDetail.jspx?id=',    # 企业年报详情
-            }
+    urls = {
+        'host': 'www.hljaic.gov.cn',
+        'get_checkcode': 'http://gsxt.hljaic.gov.cn/validateCode.jspx?type=0',
+        'post_checkcode': 'http://gsxt.hljaic.gov.cn/checkCheckNo.jspx',
+        'get_info_entry': 'http://gsxt.hljaic.gov.cn/searchList.jspx',
+        'ind_comm_pub_skeleton':
+        'http://gsxt.hljaic.gov.cn/businessPublicity.jspx?id=',
+        'ent_pub_skeleton':
+        'http://gsxt.hljaic.gov.cn/enterprisePublicity.jspx?id=',
+        'other_dept_pub_skeleton':
+        'http://gsxt.hljaic.gov.cn/otherDepartment.jspx?id=',
+        'judical_assist_skeleton':
+        'http://gsxt.hljaic.gov.cn/justiceAssistance.jspx?id=',
+        'ind_comm_pub_reg_shareholder':
+        'http://gsxt.hljaic.gov.cn/QueryInvList.jspx?',    # 股东信息
+        'ind_comm_pub_reg_modify':
+        'http://gsxt.hljaic.gov.cn/QueryAltList.jspx?',    # 变更信息翻页
+        'ind_comm_pub_arch_key_persons':
+        'http://gsxt.hljaic.gov.cn/QueryMemList.jspx?',    # 主要人员信息翻页
+        'ind_comm_pub_spot_check':
+        'http://gsxt.hljaic.gov.cn/QuerySpotCheckList.jspx?',    # 抽样检查信息翻页
+        'ind_comm_pub_movable_property_reg':
+        'http://gsxt.hljaic.gov.cn/QueryMortList.jspx?',    # 动产抵押登记信息翻页
+        'ind_comm_pub_business_exception':
+        'http://gsxt.hljaic.gov.cn/QueryExcList.jspx?',    # 经营异常信息
+        'ent_pub_administration_license':
+        'http://gsxt.hljaic.gov.cn/QueryLicenseRegList.jspx?',    # 行政许可信息
+        'shareholder_detail':
+        'http://gsxt.hljaic.gov.cn/queryInvDetailAction.jspx?id=',    # 投资人详情
+        'movable_property_reg_detail':
+        'http://gsxt.hljaic.gov.cn/mortInfoDetail.jspx?id=',    # 动产抵押登记详情
+        'annual_report':
+        'http://gsxt.hljaic.gov.cn/QueryYearExamineDetail.jspx?id=',    # 企业年报详情
+    }
 
     def __init__(self, json_restore_path=None):
         # Crawler.__init__(self)
@@ -401,7 +416,8 @@ class HeilongjiangParser(Parser):
         """
         soup = BeautifulSoup(page, "html5lib")
         id_table_map = {
-            'licenseRegDiv': 'other_dept_pub_administration_license',    # 行政许可信息
+            'licenseRegDiv':
+            'other_dept_pub_administration_license',    # 行政许可信息
             'xzcfDiv': 'other_dept_pub_administration_sanction',    # 行政处罚信息
         }
         table_ids = id_table_map.keys()
@@ -422,7 +438,8 @@ class HeilongjiangParser(Parser):
         """
         soup = BeautifulSoup(page, "html5lib")
         id_table_map = {
-            'EquityFreezeDiv': 'judical_assist_pub_shareholder_modify',    # 股东变更信息
+            'EquityFreezeDiv':
+            'judical_assist_pub_shareholder_modify',    # 股东变更信息
             'xzcfDiv': 'judical_assist_pub_equity_freeze',    # 股权冻结信息
         }
         table_ids = id_table_map.keys()

@@ -27,17 +27,22 @@ class ShaanxiCrawler(object):
     urls = {
         'host': 'http://xygs.snaic.gov.cn/',
         'webroot': 'http://xygs.snaic.gov.cn/',
-        'page_search': 'http://xygs.snaic.gov.cn/ztxy.do?method=index&random=%d',
-        'page_Captcha': 'http://xygs.snaic.gov.cn/ztxy.do?method=createYzm&dt=%d&random=%d',
-        'page_showinfo': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
-        'checkcode': 'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
+        'page_search':
+        'http://xygs.snaic.gov.cn/ztxy.do?method=index&random=%d',
+        'page_Captcha':
+        'http://xygs.snaic.gov.cn/ztxy.do?method=createYzm&dt=%d&random=%d',
+        'page_showinfo':
+        'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
+        'checkcode':
+        'http://xygs.snaic.gov.cn/ztxy.do?method=list&djjg=&random=%d',
     }
 
     def __init__(self, json_restore_path):
         headers = {
             'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent": get_user_agent(),
         }
         self.CR = CaptchaRecognition("shaanxi")
@@ -455,8 +460,8 @@ class ShaanxiCrawler(object):
             return td_text
 
     def get_detail_link(self, bs4_tag):
-        if bs4_tag.has_attr('href') and (bs4_tag['href'] != '###' and bs4_tag['href'] != '#' and
-                                         bs4_tag['href'] != 'javascript:void(0);'):
+        if bs4_tag.has_attr('href') and (bs4_tag['href'] != '###' and bs4_tag['href'] != '#'
+                                         and bs4_tag['href'] != 'javascript:void(0);'):
             pattern = re.compile(r'http')
             if pattern.search(bs4_tag['href']):
                 return {'method': 'GET', 'url': bs4_tag['href']}
@@ -783,9 +788,8 @@ class ShaanxiCrawler(object):
                                 if detail_link:
 
                                     if detail_link['method'] == 'GET':
-                                        detail_page = self.request_by_method('GET',
-                                                                             detail_link['url'],
-                                                                             timeout=self.timeout)
+                                        detail_page = self.request_by_method(
+                                            'GET', detail_link['url'], timeout=self.timeout)
                                     elif detail_link['method'] == 'POST':
                                         detail_page = self.request_by_method('POST',
                                                                              detail_link['url'],
@@ -816,9 +820,8 @@ class ShaanxiCrawler(object):
                                 col_count = 0
                     #this case is for the ind-comm-pub-reg-shareholders----details'table
                     #a fucking dog case!!!!!!
-                    elif tr.find_all('td') and len(
-                            tr.find_all('td',
-                                        recursive=False)) == col_span and col_span != column_size:
+                    elif tr.find_all('td') and len(tr.find_all(
+                            'td', recursive=False)) == col_span and col_span != column_size:
                         col_count = 0
                         sub_col_index = 0
                         item = {}

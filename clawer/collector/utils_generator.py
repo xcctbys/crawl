@@ -1,30 +1,28 @@
-#encoding=utf-8
+# encoding=utf-8
 
-import logging
 import os
-import time
-import subprocess
-import socket
-import traceback
-import threading
-import json
-import redis
 import rq
-import codecs
-from datetime import datetime
-from croniter import croniter
-import multiprocessing
+import re
 import ast
 import time
-import re
+import json
+import redis
+import socket
+import random
+import logging
 import dateutil
-
+import traceback
+import threading
+import subprocess
+import multiprocessing
+from datetime import datetime
+from croniter import croniter
+from django.conf import settings
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-
-from collector.models import Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorErrorLog, CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorDispatchLog
+from collector.models import (Job, CrawlerTask, CrawlerTaskGenerator, CrawlerGeneratorLog, CrawlerGeneratorErrorLog,
+                              CrawlerGeneratorAlertLog, CrawlerGeneratorCronLog, CrawlerGeneratorDispatchLog)
 from collector.utils_cron import CronTab, CronSlices
-from django.conf import settings
 from uri_filter.api.api_filter_timing import timing_filter_api
 
 pool = None
@@ -143,20 +141,18 @@ class DataPreprocess(object):
             else return True
         """
         if script is None:
-            content = "ScriptError : Error occured when saving script with job :%s !" % (job.id)
+            content = "ScriptError : Error occured when saving script with job!"
             CrawlerGeneratorErrorLog(name="ERROR_SAVE", content=content, hostname=socket.gethostname()).save()
             return False
         if not CronSlices.is_valid(cron):
-            # logging.error("CronSlices is not valid!")
-            content = "CronError : Error occured when saving cron with job :%s !" % (job.id)
+            content = "CronError : Error occured when saving cron with job!"
             CrawlerGeneratorErrorLog(name="ERROR_SAVE", content=content, hostname=socket.gethostname()).save()
             return False
         self.extend_schemes(schemes)
         try:
             CrawlerTaskGenerator(job=self.job, code=script, cron=cron, code_type=code_type, schemes=self.schemes).save()
         except Exception as e:
-            content = "%s : Error occured when saving script with job :%s !" % (type(e), job.id)
-            # logging.error(content)
+            content = "%s : Error occured when saving script with job!" % (e)
             CrawlerGeneratorErrorLog(name="ERROR_SAVE", content=content, hostname=socket.gethostname()).save()
             return False
         return True
@@ -171,16 +167,13 @@ class DataPreprocess(object):
                 assert self.save_text(text, schemes)
             except AssertionError as e:
                 content = "%s : Error occured when saving text" % (type(e))
-                # logging.error("Error occured when saving text")
                 CrawlerGeneratorErrorLog(name="ERROR_SAVE", content=content, hostname=socket.gethostname()).save()
         elif script is not None:
-            if not settings.has_key('cron'):
-                # logging.error("cron is not found in settings")
+            if 'cron' not in settings:
                 content = "cron is not found in settings"
                 CrawlerGeneratorErrorLog(name="ERROR_SAVE", content=content, hostname=socket.gethostname()).save()
                 return
-            if not settings.has_key('code_type'):
-                # logging.error("code_type is not found in settings")
+            if 'code_type' not in settings:
                 content = "code type is not found in settings"
                 CrawlerGeneratorErrorLog(name="ERROR_SAVE", content=content, hostname=socket.gethostname()).save()
                 return
@@ -188,12 +181,10 @@ class DataPreprocess(object):
                 schemes = settings.pop('schemes', None)
                 assert self.save_script(script, settings['cron'], settings['code_type'], schemes)
             except AssertionError:
-                # logging.error("Error occured when saving script")
                 CrawlerGeneratorErrorLog(name="ERROR_SAVE",
                                          content="Error occured when saving script ",
                                          hostname=socket.gethostname()).save()
         else:
-            # logging.error("Please input text or script!")
             CrawlerGeneratorErrorLog(name="ERROR_SAVE",
                                      content="No text or script found .",
                                      hostname=socket.gethostname()).save()
@@ -208,32 +199,28 @@ class GeneratorQueue(object):
     HIGHT_QUEUE = "uri_high"
     MEDIUM_QUEUE = "uri_medium"
     LOW_QUEUE = "uri_low"
-    #MAX_COUNT = 1000
 
     SUPER_MAX_COUNT = 1000
     HIGH_MAX_COUNT = 2000
     MEDIUM_MAX_COUNT = 3000
     LOW_MAX_COUNT = 4000
 
-    def __init__( self, redis_url= settings.GENERATOR_REDIS, \
-                  super_queue_length=settings.SUPER_MAX_QUEUE_LENGTH, \
-                  high_queue_length=settings.HIGH_MAX_QUEUE_LENGTH, \
-                  medium_queue_length=settings.MEDIUM_MAX_QUEUE_LENGTH, \
-                  low_queue_length=settings.LOW_MAX_QUEUE_LENGTH):
+    def __init__(self,
+                 redis_url=settings.GENERATOR_REDIS,
+                 super_queue_length=settings.SUPER_MAX_QUEUE_LENGTH,
+                 high_queue_length=settings.HIGH_MAX_QUEUE_LENGTH,
+                 medium_queue_length=settings.MEDIUM_MAX_QUEUE_LENGTH,
+                 low_queue_length=settings.LOW_MAX_QUEUE_LENGTH):
 
         self.connection = redis.Redis.from_url(redis_url) if redis_url else redis.Redis()
         self.super_queue = rq.Queue(self.SUPER_QUEUE, connection=self.connection)
         self.high_queue = rq.Queue(self.HIGHT_QUEUE, connection=self.connection)
         self.medium_queue = rq.Queue(self.MEDIUM_QUEUE, connection=self.connection)
         self.low_queue = rq.Queue(self.LOW_QUEUE, connection=self.connection)
-        #self.max_queue_length = queue_length if queue_length is not None else self.MAX_COUNT
-
         self.super_max_queue_length = super_queue_length if super_queue_length is not None else self.SUPER_MAX_COUNT
         self.high_max_queue_length = high_queue_length if high_queue_length is not None else self.HIGH_MAX_COUNT
         self.medium_max_queue_length = medium_queue_length if medium_queue_length is not None else self.MEDIUM_MAX_COUNT
         self.low_max_queue_length = low_queue_length if low_queue_length is not None else self.LOW_MAX_COUNT
-
-        # self.jobs = []
 
     def enqueue(self, priority, func, *args, **kwargs):
         q = None
@@ -276,7 +263,6 @@ class GeneratorQueue(object):
 
         kwargs['at_front'] = at_front
         job = q.enqueue(func, *args, **kwargs)
-        # self.jobs.append(job)
         return job.id
 
 
@@ -320,7 +306,7 @@ class GenerateCrawlerTask(object):
         self.task_generator = task_generator
         try:
             self.job = task_generator.job
-        except Exception, e:
+        except Exception:
             CrawlerGeneratorErrorLog(name="ERROR_JOB",
                                      content="Can't find job id in task generator document!",
                                      hostname=socket.gethostname()).save()
@@ -388,7 +374,7 @@ class GenerateCrawlerTask(object):
             self.content_bytes += len(line)
             try:
                 js = json.loads(line)
-            except ValueError, e:
+            except ValueError:
                 js = ast.literal_eval(line)
                 if not isinstance(js, dict):
                     # logging.error("The line %s is not dict or json"%(line))
@@ -399,11 +385,11 @@ class GenerateCrawlerTask(object):
             uri_data = []
             try:
                 # validate uri
-                if js.has_key('uri'):
+                if 'uri' not in js:
                     uri_de = js['uri'].encode("utf-8")
                     val(uri_de)
                     uri_data.append(uri_de)
-                    if js.has_key("args"):
+                    if 'args' not in js:
                         uri_args = js['args'].encode("utf-8")
                         uri_data.append(uri_args)
                     uri_str = str(uri_data)
@@ -412,8 +398,7 @@ class GenerateCrawlerTask(object):
                     CrawlerGeneratorErrorLog(name="ERROR_JSON",
                                              content="JSON ValidationError without key 'uri' : %s" % (js),
                                              hostname=socket.gethostname()).save()
-
-            except ValidationError, e:
+            except ValidationError:
                 CrawlerGeneratorErrorLog(name="ERROR_URI",
                                          content="URI ValidationError: %s " % (js['uri']),
                                          hostname=socket.gethostname()).save()
@@ -450,7 +435,7 @@ class GenerateCrawlerTask(object):
         elif status == CrawlerGeneratorLog.STATUS_SUCCESS:
             self.generate_log.status = CrawlerGeneratorLog.STATUS_SUCCESS
 
-        self.generate_log.failed_reason = reason    #[:1024]
+        self.generate_log.failed_reason = reason
         self.generate_log.content_bytes = self.content_bytes
         self.generate_log.spend_msecs = int(1000 * (self.end_time - self.start_time))
         self.generate_log.save()
@@ -474,8 +459,7 @@ class GeneratorDispatch(object):
         super(GeneratorDispatch, self).__init__()
         try:
             job_doc = Job.objects.with_id(job_id)
-        except Exception as e:
-            # logging.error("Can't find job_id: %s in mongodb!"%(job_id))
+        except Exception:
             CrawlerGeneratorErrorLog(name="ERROR_JOB",
                                      content="Can't find job_id: %s in mongodb!" % (job_id),
                                      hostname=socket.gethostname()).save()
@@ -488,7 +472,7 @@ class GeneratorDispatch(object):
         try:
             generator_object = CrawlerTaskGenerator.objects(job=self.job_id,
                                                             status=CrawlerTaskGenerator.STATUS_ON).first()
-        except Exception as e:
+        except Exception:
             logging.error("Something wrong when getting generating objects")
         return generator_object
 
@@ -504,8 +488,8 @@ class GeneratorDispatch(object):
                 if priority in (4, 5):
                     CrawlerGeneratorAlertLog(
                         name="QUEUES_FILLED_UP",
-                        content="Low queues is full. Discard the generator(%s) from priority %d Exit!" % (str(
-                            generator_object.id), generator_object.job.priority),
+                        content="Low queues is full. Discard the generator(%s) from priority %d Exit!" % (
+                            str(generator_object.id), generator_object.job.priority),
                         hostname=socket.gethostname()).save()
                     break
                 else:
@@ -533,14 +517,12 @@ class CrawlerCronTab(object):
             logging.error("The cron file %s is not exist!" % (filename))
             if not os.path.exists(os.path.dirname(filename)):
                 os.mkdir(os.path.dirname(filename))
-            with open(filename, 'w') as f:
-                pass
         self.crontab = CronTab(tabfile=filename)
         self.cron_timeout = 60
         self.exe_number = 0
 
     def remove_all_jobs_from_crontab(self):
-        count = self.crontab.remove_all()
+        self.crontab.remove_all()
 
     def remove_offline_jobs_from_crontab(self):
         jobs = Job.objects(status=Job.STATUS_OFF)
@@ -549,7 +531,7 @@ class CrawlerCronTab(object):
             if not generator:
                 continue
             comment = self._task_generator_cron_comment(job)
-            count = self.crontab.remove_all(comment=comment)
+            self.crontab.remove_all(comment=comment)
 
     def update_online_jobs(self):
         jobs = Job.objects(status=Job.STATUS_ON).order_by("+priority")
@@ -570,8 +552,7 @@ class CrawlerCronTab(object):
 
             generator.status = CrawlerTaskGenerator.STATUS_ON
             generator.save()
-            CrawlerTaskGenerator.objects(job=job,
-                                         status=CrawlerTaskGenerator.STATUS_ON,
+            CrawlerTaskGenerator.objects(job=job, status=CrawlerTaskGenerator.STATUS_ON,
                                          id__ne=generator.id).update(status=CrawlerTaskGenerator.STATUS_OFF)
 
     def save_cron_to_file(self, filename=None):
@@ -622,14 +603,11 @@ class CrawlerCronTab(object):
         return True
 
     def exec_and_save_current_crons(self):
-        # 获取出当前分钟 需要执行的任务列表
-        last_time = datetime.now()
         # 定时任务，到时间强制退出。
         timer = threading.Timer(self.cron_timeout, force_exit)
         timer.start()
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
         self.exe_number = 0
-        # time.sleep(50)
         for job in self.crontab.crons:
             # 获得当前需要运行的cron任务
             now = datetime.now()

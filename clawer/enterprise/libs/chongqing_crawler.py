@@ -27,7 +27,8 @@ class ChongqingCrawler(Crawler):
     # 多线程爬取时往最后的json文件中写时的加锁保护
     urls = {
         'host': 'http://gsxt.cqgs.gov.cn',
-        'get_checkcode': 'http://gsxt.cqgs.gov.cn/sc.action?width=130&height=40',
+        'get_checkcode':
+        'http://gsxt.cqgs.gov.cn/sc.action?width=130&height=40',
         'repost_checkcode': 'http://gsxt.cqgs.gov.cn/search_research.action',
     # 获得查询页面
         'post_checkcode': 'http://gsxt.cqgs.gov.cn/search.action',
@@ -36,9 +37,11 @@ class ChongqingCrawler(Crawler):
     # 年报
         'year_report': 'http://gsxt.cqgs.gov.cn/search_getYearReport.action',
     # 年报详情
-        'year_report_detail': 'http://gsxt.cqgs.gov.cn/search_getYearReportDetail.action',
+        'year_report_detail':
+        'http://gsxt.cqgs.gov.cn/search_getYearReportDetail.action',
     # 股权变更
-        'year_daily_transinfo': 'http://gsxt.cqgs.gov.cn/search_getDaily.action',
+        'year_daily_transinfo':
+        'http://gsxt.cqgs.gov.cn/search_getDaily.action',
     # 股东出资信息
         'year_daily_invsub': 'http://gsxt.cqgs.gov.cn/search_getDaily.action',
     # 行政处罚
@@ -48,9 +51,11 @@ class ChongqingCrawler(Crawler):
     # 知识产权出质登记
         'year_daily_pleinfo': 'http://gsxt.cqgs.gov.cn/search_getDaily.action',
     # 其他行政许可信息
-        'other_qlicinfo': 'http://gsxt.cqgs.gov.cn/search_getOtherSectors.action',
+        'other_qlicinfo':
+        'http://gsxt.cqgs.gov.cn/search_getOtherSectors.action',
     # 其他行政处罚
-        'other_qpeninfo': 'http://gsxt.cqgs.gov.cn/search_getOtherSectors.action',
+        'other_qpeninfo':
+        'http://gsxt.cqgs.gov.cn/search_getOtherSectors.action',
     # 股权冻结信息
         'sfxz_page': 'http://gsxt.cqgs.gov.cn/search_getSFXZ.action',
     # 股东变更信息

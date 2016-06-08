@@ -26,13 +26,13 @@ class GansuCrawler(object):
     write_file_mutex = threading.Lock()
 
     urls = {
-            'host': 'http://xygs.gsaic.gov.cn/',
-            'first': 'http://xygs.gsaic.gov.cn/gsxygs/',
-            'main': "http://xygs.gsaic.gov.cn/gsxygs/main.jsp",
-            'get_checkcode': 'http://xygs.gsaic.gov.cn/gsxygs/securitycode.jpg?',
-            'post_checkCode': 'http://xygs.gsaic.gov.cn/gsxygs/pub!list.do',
-            'post_all_page': 'http://xygs.gsaic.gov.cn/gsxygs/pub!view.do',
-            }
+        'host': 'http://xygs.gsaic.gov.cn/',
+        'first': 'http://xygs.gsaic.gov.cn/gsxygs/',
+        'main': "http://xygs.gsaic.gov.cn/gsxygs/main.jsp",
+        'get_checkcode': 'http://xygs.gsaic.gov.cn/gsxygs/securitycode.jpg?',
+        'post_checkCode': 'http://xygs.gsaic.gov.cn/gsxygs/pub!list.do',
+        'post_all_page': 'http://xygs.gsaic.gov.cn/gsxygs/pub!view.do',
+    }
 
     def __init__(self, json_restore_path):
         """
@@ -44,9 +44,10 @@ class GansuCrawler(object):
         """
         self.headers = {
             'Connection': "keep-alive",
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language':' en-US,en;q=0.5',
-            'Accept-Encoding':"gzip, deflate",
+            'Accept':
+            'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': ' en-US,en;q=0.5',
+            'Accept-Encoding': "gzip, deflate",
             'User-Agent': get_user_agent(),
         }
         self.reqst = requests.Session()
@@ -175,20 +176,20 @@ class GansuCrawler(object):
             data = {'authCodeQuery': ck_code, 'queryVal': self.ent_number}
             print data
             time.sleep(2)
-            resp = requests.request('POST', GansuCrawler.urls['post_checkCode'],
-                                   data=data,
-                                   timeout=self.timeout,
-                                   cookies=self.cookies)
+            resp = requests.request('POST',
+                                    GansuCrawler.urls['post_checkCode'],
+                                    data=data,
+                                    timeout=self.timeout,
+                                    cookies=self.cookies)
             if resp.status_code != 200:
                 logging.error("crawl post check page failed!")
                 time.sleep(random.uniform(1, 3))
                 continue
             if self.analyze_showInfo(resp.content):
                 return True
-            print "crawl counts = %d."%(count)
+            print "crawl counts = %d." % (count)
             time.sleep(random.uniform(1, 3))
         return False
-
 
     def crack_checkcode(self):
         """破解验证码
@@ -198,13 +199,11 @@ class GansuCrawler(object):
         params = {}
         params['v'] = times
 
-        resp = requests.request('GET', GansuCrawler.urls['get_checkcode'],
-                              timeout=self.timeout
-                            )
+        resp = requests.request('GET', GansuCrawler.urls['get_checkcode'], timeout=self.timeout)
         if resp.status_code != 200:
             logging.error('failed to get get_checkcode')
             return None
-        self.cookies=resp.cookies.get_dict()
+        self.cookies = resp.cookies.get_dict()
         self.write_file_mutex.acquire()
         if not path.isdir(self.ckcode_image_dir_path):
             os.makedirs(self.ckcode_image_dir_path)
@@ -538,11 +537,9 @@ class GansuParser(Parser):
                     if len(tds) <= 0:
                         break
                     detail_business_exception_info[u'序号'] = (tds[0].get_text().strip())
-                    detail_business_exception_info[u'列入经营异常名录原因'] = (tds[1].get_text.strip()(
-                    ))
+                    detail_business_exception_info[u'列入经营异常名录原因'] = (tds[1].get_text.strip()())
                     detail_business_exception_info[u'列入日期'] = (tds[2].get_text().strip())
-                    detail_business_exception_info[u'移出经营异常名录原因'] = (tds[3].get_text.strip()(
-                    ))
+                    detail_business_exception_info[u'移出经营异常名录原因'] = (tds[3].get_text.strip()())
                     detail_business_exception_info[u'移出日期'] = (tds[4].get_text().strip())
                     detail_business_exception_info[u'作出决定机关'] = (tds[5].get_text().strip())
                     detail_business_exception_infoes.append(detail_business_exception_info)
@@ -668,7 +665,7 @@ class GansuParser(Parser):
                         break
                     ent_pub_ent_annual_report = {}
                     ent_pub_ent_annual_report[u'序号'] = (tds[0].get_text().strip())
-                    ent_pub_ent_annual_report[u'报送年度'] = ((tds[1].get_text().strip()) )
+                    ent_pub_ent_annual_report[u'报送年度'] = ((tds[1].get_text().strip()))
                     ent_pub_ent_annual_report[u'发布日期'] = (tds[2].get_text().strip())
                     a_link = tds[1].find('a')
                     if a_link is None:
@@ -677,8 +674,8 @@ class GansuParser(Parser):
                     a_click = a_link.get('onclick')
                     m = re.search("\'.*?\'", a_click)
                     if m:
-                        postfix_url=m.group(0).strip("'")
-                        detail_url = self.crawler.urls['host']+ postfix_url
+                        postfix_url = m.group(0).strip("'")
+                        detail_url = self.crawler.urls['host'] + postfix_url
 
                     print detail_url
                     detail_page = self.crawler.reqst.get(detail_url,
@@ -770,24 +767,33 @@ class GansuParser(Parser):
 
                     detail_state_of_enterprise_assets_infoes = {}
                     state_of_enterprise_assets_info = soup_reoprt.find_all('table', {'class': 'detailsList'})[4]
-                    if state_of_enterprise_assets_info and state_of_enterprise_assets_info.find('tr').get_text().strip() == u'企业资产状况信息':
+                    if state_of_enterprise_assets_info and state_of_enterprise_assets_info.find('tr').get_text().strip(
+                    ) == u'企业资产状况信息':
                         state_of_enterprise_assets_trs = state_of_enterprise_assets_info.find_all('tr')
                         detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
-                            0].get_text().strip()] = (state_of_enterprise_assets_trs[1].find_all('td')[0].get_text().strip())
+                            0].get_text().strip()] = (
+                                state_of_enterprise_assets_trs[1].find_all('td')[0].get_text().strip())
                         detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[1].find_all('th')[
-                            1].get_text().strip()] = (state_of_enterprise_assets_trs[1].find_all('td')[1].get_text().strip())
+                            1].get_text().strip()] = (
+                                state_of_enterprise_assets_trs[1].find_all('td')[1].get_text().strip())
                         detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
-                            0].get_text().strip()] = (state_of_enterprise_assets_trs[2].find_all('td')[0].get_text().strip())
+                            0].get_text().strip()] = (
+                                state_of_enterprise_assets_trs[2].find_all('td')[0].get_text().strip())
                         detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[2].find_all('th')[
-                            1].get_text().strip()] = (state_of_enterprise_assets_trs[2].find_all('td')[1].get_text().strip())
+                            1].get_text().strip()] = (
+                                state_of_enterprise_assets_trs[2].find_all('td')[1].get_text().strip())
                         detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
-                            0].get_text().strip()] = (state_of_enterprise_assets_trs[3].find_all('td')[0].get_text().strip())
+                            0].get_text().strip()] = (
+                                state_of_enterprise_assets_trs[3].find_all('td')[0].get_text().strip())
                         detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[3].find_all('th')[
-                            1].get_text().strip()] = (state_of_enterprise_assets_trs[3].find_all('td')[1].get_text().strip())
+                            1].get_text().strip()] = (
+                                state_of_enterprise_assets_trs[3].find_all('td')[1].get_text().strip())
                         detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
-                            0].get_text().strip()] = (state_of_enterprise_assets_trs[4].find_all('td')[0].get_text().strip())
+                            0].get_text().strip()] = (
+                                state_of_enterprise_assets_trs[4].find_all('td')[0].get_text().strip())
                         detail_state_of_enterprise_assets_infoes[state_of_enterprise_assets_trs[4].find_all('th')[
-                            1].get_text().strip()] = (state_of_enterprise_assets_trs[4].find_all('td')[1].get_text().strip())
+                            1].get_text().strip()] = (
+                                state_of_enterprise_assets_trs[4].find_all('td')[1].get_text().strip())
                         detail[u'企业资产状况信息'] = detail_state_of_enterprise_assets_infoes
 
                     provide_guarantee_to_the_outside_info = soup_reoprt.find('table', {'id': 'guaTab'})
@@ -809,7 +815,8 @@ class GansuParser(Parser):
                                 detail_provide_guarantee_to_the_outside_info[u'保证的期间'] = (tds[5].get_text().strip())
                                 detail_provide_guarantee_to_the_outside_info[u'保证的方式'] = (tds[6].get_text().strip())
                                 detail_provide_guarantee_to_the_outside_info[u'保证担保的范围'] = (tds[7].get_text().strip())
-                                detail_provide_guarantee_to_the_outside_infoes.append(detail_provide_guarantee_to_the_outside_info)
+                                detail_provide_guarantee_to_the_outside_infoes.append(
+                                    detail_provide_guarantee_to_the_outside_info)
                                 i += 1
                     detail[u'对外提供保证担保信息'] = detail_provide_guarantee_to_the_outside_infoes
 
@@ -1051,7 +1058,6 @@ class GansuParser(Parser):
 
 
 class GeneratorTest(unittest.TestCase):
-
     def setUp(self):
         unittest.TestCase.setUp(self)
 
@@ -1064,6 +1070,7 @@ class GeneratorTest(unittest.TestCase):
             print res.content
         except Exception as e:
             print traceback.format_exc()
+
     @unittest.skip("skipping read from file")
     def test_crawl(self):
         captcha = 'http://xygs.gsaic.gov.cn/gsxygs/securitycode.jpg?v=1464660204507'
@@ -1071,16 +1078,15 @@ class GeneratorTest(unittest.TestCase):
         path = os.path.join(os.getcwd(), 'captcha.jpeg')
         with open(path, 'w') as f:
             f.write(res.content)
-        Cookie =res.cookies.get_dict()
+        Cookie = res.cookies.get_dict()
         # 休息2秒, 这个操蛋的问题困扰我2天了。永不为奴。
         time.sleep(2)
         print Cookie
         # Cookie = {'session_authcode': '6', 'JSESSIONID':'42B4333B56682B9C7965DF31D8B452E9'}
         url = 'http://xygs.gsaic.gov.cn/gsxygs/pub!list.do'
-        data = {'queryVal':'620000000001727' , 'authCodeQuery' : Cookie.get('session_authcode', 0)}
+        data = {'queryVal': '620000000001727', 'authCodeQuery': Cookie.get('session_authcode', 0)}
         print data
-        self.request_without_session('POST',url, data = data, cookies=Cookie)
-
+        self.request_without_session('POST', url, data=data, cookies=Cookie)
 
     # @unittest.skip("ere")
     def test_gansu(self):
@@ -1107,7 +1113,6 @@ class GeneratorTest(unittest.TestCase):
         result = json.loads(result)
         self.assertEqual(len(result), 3)
         print result
-
 
 
 if __name__ == '__main__':

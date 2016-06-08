@@ -29,17 +29,25 @@ class InitInfo(object):
         self.code_cracker = CaptchaRecognition('qinghai')
         if not os.path.exists(os.path.dirname(self.ckcode_image_path)):
             os.makedirs(os.path.dirname(self.ckcode_image_path))
-        self.urls = {'eareName': 'http://www.ahcredit.gov.cn',
-                     'search': 'http://www.ahcredit.gov.cn/search.jspx',
-                     'checkCheckNo': 'http://www.ahcredit.gov.cn/checkCheckNo.jspx',
-                     'searchList': 'http://www.ahcredit.gov.cn/searchList.jspx',
-                     'validateCode': 'http://www.ahcredit.gov.cn/validateCode.jspx?type=0&id=0.22788021906613765',
-                     'QueryInvList': 'http://www.ahcredit.gov.cn/QueryInvList.jspx?',
-                     'queryInvDetailAction': 'http://www.ahcredit.gov.cn/queryInvDetailAction.jspx?',
-                     'businessPublicity': 'http://www.ahcredit.gov.cn/businessPublicity.jspx?',
-                     'enterprisePublicity': 'http://www.ahcredit.gov.cn/enterprisePublicity.jspx?',
-                     'otherDepartment': 'http://www.ahcredit.gov.cn/otherDepartment.jspx?',
-                     'justiceAssistance': 'http://www.ahcredit.gov.cn/justiceAssistance.jspx?'}
+        self.urls = {
+            'eareName': 'http://www.ahcredit.gov.cn',
+            'search': 'http://www.ahcredit.gov.cn/search.jspx',
+            'checkCheckNo': 'http://www.ahcredit.gov.cn/checkCheckNo.jspx',
+            'searchList': 'http://www.ahcredit.gov.cn/searchList.jspx',
+            'validateCode':
+            'http://www.ahcredit.gov.cn/validateCode.jspx?type=0&id=0.22788021906613765',
+            'QueryInvList': 'http://www.ahcredit.gov.cn/QueryInvList.jspx?',
+            'queryInvDetailAction':
+            'http://www.ahcredit.gov.cn/queryInvDetailAction.jspx?',
+            'businessPublicity':
+            'http://www.ahcredit.gov.cn/businessPublicity.jspx?',
+            'enterprisePublicity':
+            'http://www.ahcredit.gov.cn/enterprisePublicity.jspx?',
+            'otherDepartment':
+            'http://www.ahcredit.gov.cn/otherDepartment.jspx?',
+            'justiceAssistance':
+            'http://www.ahcredit.gov.cn/justiceAssistance.jspx?'
+        }
         self.timeout = 30
         self.result_json = {}
         self.result_json_list = []
@@ -134,10 +142,12 @@ class MyCrawler(Crawler):
         self.parser = MyParser(info=self.info)
         self.reqst = requests.Session()
         self.reqst.headers.update({
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept':
+            'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0'
+            'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0'
         })
 
     def crawl_page_by_url(self, url):
@@ -701,8 +711,7 @@ class AnhuiCrawler(object):
         # print 'self.info.mainId:', self.info.mainId
         self.info.result_json_list = []
         for item_page in BeautifulSoup(self.info.after_crack_checkcode_page,
-                                       'html.parser').find_all('div',
-                                                               attrs={'class': 'list'})[0:3]:
+                                       'html.parser').find_all('div', attrs={'class': 'list'})[0:3]:
             # print item_page
             print self.info.ent_number
             self.info.result_json = {}

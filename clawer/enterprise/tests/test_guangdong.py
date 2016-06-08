@@ -7,7 +7,7 @@ import time
 from django.test import TestCase
 import unittest
 
-from enterprise.libs.guangdong_crawler import GuangdongCrawler #, Crawler, Analyze
+from enterprise.libs.guangdong_crawler import GuangdongCrawler    #, Crawler, Analyze
 from enterprise.libs.Guangdong0 import Guangdong0
 from enterprise.libs.Guangdong1 import Guangdong1
 from enterprise.libs.Guangdong2 import Guangdong2

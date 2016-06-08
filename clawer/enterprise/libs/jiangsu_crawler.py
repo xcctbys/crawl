@@ -26,22 +26,32 @@ class JiangsuCrawler(Crawler):
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    urls = {'host': 'www.jsgsj.gov.cn',
-            'official_site': 'http://www.jsgsj.gov.cn:58888/province/',
-            'get_checkcode': 'http://www.jsgsj.gov.cn:58888/province/rand_img.jsp?type=7',
-            'post_checkcode': 'http://www.jsgsj.gov.cn:58888/province/infoQueryServlet.json?query_info=true',
-            'ind_comm_pub_skeleton':
-            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfor_gsRelease.jsp',
-            'ent_pub_skeleton': 'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qyRelease.jsp',
-            'other_dept_pub_skeleton':
-            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qtbmRelease.jsp',
-            'judical_assist_pub_skeleton':
-            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryJudicialAssistance.jsp',
-            'annual_report_skeleton': 'http://www.jsgsj.gov.cn:58888/ecipplatform/reportCheck/company/cPublic.jsp',
-            'ci_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciEnter=true',
-            'common_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true',
-            'nb_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/nbServlet.json?nbEnter=true',
-            'ci_detail': 'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciDetail=true'}
+    urls = {
+        'host': 'www.jsgsj.gov.cn',
+        'official_site': 'http://www.jsgsj.gov.cn:58888/province/',
+        'get_checkcode':
+        'http://www.jsgsj.gov.cn:58888/province/rand_img.jsp?type=7',
+        'post_checkcode':
+        'http://www.jsgsj.gov.cn:58888/province/infoQueryServlet.json?query_info=true',
+        'ind_comm_pub_skeleton':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfor_gsRelease.jsp',
+        'ent_pub_skeleton':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qyRelease.jsp',
+        'other_dept_pub_skeleton':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qtbmRelease.jsp',
+        'judical_assist_pub_skeleton':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryJudicialAssistance.jsp',
+        'annual_report_skeleton':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/reportCheck/company/cPublic.jsp',
+        'ci_enter':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciEnter=true',
+        'common_enter':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true',
+        'nb_enter':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/nbServlet.json?nbEnter=true',
+        'ci_detail':
+        'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciDetail=true'
+    }
 
     def __init__(self, json_restore_path=None):
         """
@@ -58,7 +68,6 @@ class JiangsuCrawler(Crawler):
 
         #验证码图片的存储路径
         self.ckcode_image_path = self.json_restore_path + '/jiangsu/ckcode.jpg'
-
 
         # self.proxies = {}
         proxies = get_proxy('jiangsu')
@@ -78,46 +87,58 @@ class JiangsuCrawler(Crawler):
             'ind_comm_pub_reg_basic': {'url_type': 'ci_enter',
                                        'post_type': 'ci_enter',
                                        'specificQuery': 'basicInfo'},
-            'ind_comm_pub_reg_shareholder': {'url_type': 'ci_enter',
-                                             'post_type': 'ci_enter_with_recordline',
-                                             'specificQuery': 'investmentInfor'},
+            'ind_comm_pub_reg_shareholder':
+            {'url_type': 'ci_enter',
+             'post_type': 'ci_enter_with_recordline',
+             'specificQuery': 'investmentInfor'},
             'ind_comm_pub_reg_modify': {'url_type': 'common_enter',
                                         'post_type': 'common_enter',
                                         'propertiesName': 'biangeng'},
             'ind_comm_pub_arch_key_persons': {'url_type': 'ci_enter',
-                                              'post_type': 'ci_enter_with_recordline',
-                                              'specificQuery': 'personnelInformation'},
+                                              'post_type':
+                                              'ci_enter_with_recordline',
+                                              'specificQuery':
+                                              'personnelInformation'},
             'ind_comm_pub_arch_branch': {'url_type': 'ci_enter',
-                                         'post_type': 'ci_enter_with_recordline',
+                                         'post_type':
+                                         'ci_enter_with_recordline',
                                          'specificQuery': 'branchOfficeInfor'},
     #'ind_comm_pub_arch_liquadition': {'url_type': 'ci_enter', 'post_type': 'common_enter', 'specificQuery': 'qsfzr'},
             'ind_comm_pub_movable_property_reg': {'url_type': 'common_enter',
                                                   'post_type': 'common_enter',
-                                                  'propertiesName': 'dongchan'},
+                                                  'propertiesName':
+                                                  'dongchan'},
             'ind_comm_pub_equity_ownership_reg': {'url_type': 'common_enter',
                                                   'post_type': 'common_enter',
-                                                  'propertiesName': 'guquanchuzhi'},
-            'ind_comm_pub_administration_sanction': {'url_type': 'common_enter',
-                                                     'post_type': 'common_enter',
-                                                     'propertiesName': 'chufa'},
+                                                  'propertiesName':
+                                                  'guquanchuzhi'},
+            'ind_comm_pub_administration_sanction': {
+                'url_type': 'common_enter',
+                'post_type': 'common_enter',
+                'propertiesName': 'chufa'
+            },
             'ind_comm_pub_business_exception': {'url_type': 'common_enter',
                                                 'post_type': 'common_enter',
-                                                'propertiesName': 'abnormalInfor'},
+                                                'propertiesName':
+                                                'abnormalInfor'},
     #'ind_comm_pub_serious_violate_law': {'url_type': 'common_enter', 'post_type': 'common_enter', 'propertiesName': 'xxx'},
             'ind_comm_pub_spot_check': {'url_type': 'common_enter',
                                         'post_type': 'common_enter',
                                         'propertiesName': 'checkup'},
             'ind_comm_pub_reg_shareholder_detail': {'url_type': 'ci_detail',
                                                     'post_type': 'ci_detail',
-                                                    'specificQuery': 'investorInfor'},
+                                                    'specificQuery':
+                                                    'investorInfor'},
             'ent_pub_annual_report': {'url_type': 'nb_enter',
                                       'post_type': 'nb_enter',
                                       'propertiesName': 'query_report_list'},
             'annual_report_detail': {'url_type': 'nb_enter',
                                      'post_type': 'nb_enter'},
-            'ent_pub_shareholder_capital_contribution': {'url_type': 'nb_enter',
-                                                         'post_type': 'nb_enter',
-                                                         'propertiesName': 'query_tzcz'},
+            'ent_pub_shareholder_capital_contribution': {
+                'url_type': 'nb_enter',
+                'post_type': 'nb_enter',
+                'propertiesName': 'query_tzcz'
+            },
             'ent_pub_administrative_license': {'url_type': 'nb_enter',
                                                'post_type': 'nb_enter',
                                                'propertiesName': 'query_xzxk'},
@@ -126,19 +147,26 @@ class JiangsuCrawler(Crawler):
                                            'propertiesName': 'query_zscq'},
             'ent_pub_administration_sanction': {'url_type': 'nb_enter',
                                                 'post_type': 'nb_enter',
-                                                'propertiesName': 'query_xzcf'},
-            'other_dept_pub_administration_license': {'url_type': 'common_enter',
-                                                      'post_type': 'common_enter',
-                                                      'propertiesName': 'xingzheng'},
-            'other_dept_pub_administration_sanction': {'url_type': 'common_enter',
-                                                       'post_type': 'common_enter',
-                                                       'propertiesName': 'xingzhengchufa'},
+                                                'propertiesName':
+                                                'query_xzcf'},
+            'other_dept_pub_administration_license': {
+                'url_type': 'common_enter',
+                'post_type': 'common_enter',
+                'propertiesName': 'xingzheng'
+            },
+            'other_dept_pub_administration_sanction': {
+                'url_type': 'common_enter',
+                'post_type': 'common_enter',
+                'propertiesName': 'xingzhengchufa'
+            },
             'judical_assist_pub_equity_freeze': {'url_type': 'common_enter',
                                                  'post_type': 'common_enter',
                                                  'propertiesName': 'gqdjList'},
-            'judical_assist_pub_shareholder_modify': {'url_type': 'common_enter',
-                                                      'post_type': 'common_enter',
-                                                      'propertiesName': 'gdbgList'}
+            'judical_assist_pub_shareholder_modify': {
+                'url_type': 'common_enter',
+                'post_type': 'common_enter',
+                'propertiesName': 'gdbgList'
+            }
         }
 
     def run(self, ent_number):
@@ -923,4 +951,3 @@ class JiangsuParser(Parser):
                 result[column] = CrawlerUtils.get_raw_text_in_bstag(tds[index])
             shareholder_info.append(result)
         return shareholder_info
-

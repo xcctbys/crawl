@@ -60,12 +60,15 @@ class Crawler(object):
     analysis = None
 
     def __init__(self, req=None):
-        headers = {'Connetion': 'Keep-Alive',
-                   'Accept': 'text/html, application/xhtml+xml, */*',
-                   'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-                   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0",
+        headers = {
+            'Connetion': 'Keep-Alive',
+            'Accept': 'text/html, application/xhtml+xml, */*',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:46.0) Gecko/20100101 Firefox/46.0",
     # "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36"
-                   }
+        }
         if req:
             self.request = req
 
@@ -737,11 +740,13 @@ class Analyze(object):
                         "regOrg": post_data["regOrg"],
                         "entType": post_data["entType"].encode('utf-8'),
                     }
-                    res = self.crawler.request_by_method(
-                        'POST',
-                        url,
-                        data=data,
-                        headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', })
+                    res = self.crawler.request_by_method('POST',
+                                                         url,
+                                                         data=data,
+                                                         headers={
+                                                             'Content-Type':
+                                                             'application/x-www-form-urlencoded; charset=UTF-8',
+                                                         })
                     if table_name == u"变更信息":
                         # chaToPage
                         d = json.loads(res)
@@ -818,9 +823,8 @@ class Analyze(object):
                                     item_array.append(item.copy())
                                     col_count = 0
                         #this case is for the ind-comm-pub-reg-shareholders----details'table
-                        elif tr.find('td') and len(
-                                tr.find_all('td',
-                                            recursive=False)) == col_span and col_span != column_size:
+                        elif tr.find('td') and len(tr.find_all(
+                                'td', recursive=False)) == col_span and col_span != column_size:
                             col_count = 0
                             sub_col_index = 0
                             item = {}

@@ -39,7 +39,8 @@ class ShandongCrawler(object):
     def __init__(self, json_restore_path=None):
         headers = {    #'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent": get_user_agent(),
         }
         self.requests = requests.Session()
@@ -773,11 +774,10 @@ class ShandongCrawler(object):
         sub_json_list = []
         try:
             url = self.dicts_qygs[table_name]
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -826,11 +826,10 @@ class ShandongCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = self.dicts_qygs[table_name]
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             #print type(res)
             ls = json.loads(res)
@@ -853,11 +852,10 @@ class ShandongCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = self.dicts_qygs[table_name]
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             #print type(res)
             ls = json.loads(res)
@@ -887,11 +885,10 @@ class ShandongCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = self.dicts_qygs[table_name]
-            res = self.request_by_method("POST",
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                "POST", url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -911,11 +908,10 @@ class ShandongCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = self.dicts_qygs[table_name]
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -937,11 +933,10 @@ class ShandongCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = self.dicts_qygs[table_name]
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -1029,11 +1024,10 @@ class ShandongCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = self.dicts[table_name]
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -1054,11 +1048,10 @@ class ShandongCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = self.dicts[table_name]
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -1109,11 +1102,10 @@ class ShandongCrawler(object):
             columns = self.get_columns_of_record_table(bs_table, page, table_name)
             titles = [column[0] for column in columns]
             url = self.dicts[table_name]
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -1133,11 +1125,10 @@ class ShandongCrawler(object):
             titles = [column[0] for column in columns]
             url = self.dicts[table_name]
             #print post_data
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             #print type(res)
             ls = json.loads(res)
@@ -1182,11 +1173,10 @@ class ShandongCrawler(object):
             titles = [column[0] for column in columns]
             url = self.dicts[table_name]
             #print post_data
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             #print type(res)
             ls = json.loads(res)
@@ -1217,11 +1207,10 @@ class ShandongCrawler(object):
             titles = [column[0] for column in columns]
             url = self.dicts[table_name]    #"http://218.57.139.24/pub/gsfzjg/1223"
             #print post_data
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             #print type(res)
             ls = json.loads(res)
@@ -1243,11 +1232,10 @@ class ShandongCrawler(object):
             titles = [column[0] for column in columns]
             url = self.dicts[table_name]    #"http://218.57.139.24/pub/gsfzjg/1223"
             #print post_data
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             #print type(res)
             ls = json.loads(res)
@@ -1266,11 +1254,10 @@ class ShandongCrawler(object):
             titles = [column[0] for column in columns]
             url = self.dicts[table_name]    #"http://218.57.139.24/pub/gsryxx/1223"
             #print post_data
-            res = self.request_by_method('POST',
-                                         url,
-                                         data=post_data,
-                                         headers={'X-CSRF-TOKEN': self.csrf},
-                                         timeout=self.timeout)
+            res = self.request_by_method(
+                'POST', url, data=post_data,
+                headers={'X-CSRF-TOKEN': self.csrf},
+                timeout=self.timeout)
             if not res: return []
             ls = json.loads(res)
             for i, l in enumerate(ls):
@@ -1457,9 +1444,8 @@ class ShandongCrawler(object):
                                 col_count = 0
                     #this case is for the ind-comm-pub-reg-shareholders----details'table
                     #a fucking dog case!!!!!!
-                    elif tr.find_all('td') and len(
-                            tr.find_all('td',
-                                        recursive=False)) == col_span and col_span != column_size:
+                    elif tr.find_all('td') and len(tr.find_all(
+                            'td', recursive=False)) == col_span and col_span != column_size:
                         col_count = 0
                         sub_col_index = 0
                         item = {}

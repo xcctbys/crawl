@@ -42,24 +42,32 @@ class InitInfo(object):
         #多线程爬取时往最后的json文件中写时的加锁保护
         self.write_file_mutex = threading.Lock()
 
-        self.urls = {'host': 'www.jsgsj.gov.cn',
-                     'official_site': 'http://www.jsgsj.gov.cn:58888/province/',
-                     'get_checkcode': 'http://www.jsgsj.gov.cn:58888/province/rand_img.jsp?type=7',
-                     'post_checkcode': 'http://www.jsgsj.gov.cn:58888/province/infoQueryServlet.json?queryCinfo=true',
-                     'ind_comm_pub_skeleton':
-                     'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfor_gsRelease.jsp',
-                     'ent_pub_skeleton':
-                     'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qyRelease.jsp',
-                     'other_dept_pub_skeleton':
-                     'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qtbmRelease.jsp',
-                     'judical_assist_pub_skeleton':
-                     'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryJudicialAssistance.jsp',
-                     'annual_report_skeleton':
-                     'http://www.jsgsj.gov.cn:58888/ecipplatform/reportCheck/company/cPublic.jsp',
-                     'ci_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciEnter=true',
-                     'common_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true',
-                     'nb_enter': 'http://www.jsgsj.gov.cn:58888/ecipplatform/nbServlet.json?nbEnter=true',
-                     'ci_detail': 'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciDetail=true'}
+        self.urls = {
+            'host': 'www.jsgsj.gov.cn',
+            'official_site': 'http://www.jsgsj.gov.cn:58888/province/',
+            'get_checkcode':
+            'http://www.jsgsj.gov.cn:58888/province/rand_img.jsp?type=7',
+            'post_checkcode':
+            'http://www.jsgsj.gov.cn:58888/province/infoQueryServlet.json?queryCinfo=true',
+            'ind_comm_pub_skeleton':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfor_gsRelease.jsp',
+            'ent_pub_skeleton':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qyRelease.jsp',
+            'other_dept_pub_skeleton':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryCorpInfo_qtbmRelease.jsp',
+            'judical_assist_pub_skeleton':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/inner_ci/ci_queryJudicialAssistance.jsp',
+            'annual_report_skeleton':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/reportCheck/company/cPublic.jsp',
+            'ci_enter':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciEnter=true',
+            'common_enter':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/commonServlet.json?commonEnter=true',
+            'nb_enter':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/nbServlet.json?nbEnter=true',
+            'ci_detail':
+            'http://www.jsgsj.gov.cn:58888/ecipplatform/ciServlet.json?ciDetail=true'
+        }
         self.result_json = {}
         self.result_json_list = []
 
@@ -141,8 +149,8 @@ class CrackCheckcode(object):
             self.info.corp_seq_id = m[3]
             self.info.register_num = m[4]
             print 'self.info.ent_number:', self.info.ent_number
-            if not (self.info.ent_number.isdigit() or
-                    (self.info.ent_number[:-1].isdigit() and self.info.ent_number[-1:].isalpha())):
+            if not (self.info.ent_number.isdigit() or (self.info.ent_number[:-1].isdigit() and
+                                                       self.info.ent_number[-1:].isalpha())):
                 self.info.ent_number = self.info.register_num
             print self.info.corp_org, self.info.corp_id, self.info.corp_seq_id, self.info.ent_number
 
@@ -232,18 +240,20 @@ class MyCrawler(Crawler):
             self.proxies = []
         else:
             proxy = Proxy()
-            self.proxies = {'http': 'http://' + random.choice(proxy.get_proxy(num=5,
-                                                                              province='jiangsu')),
-                            'https': 'https://' + random.choice(proxy.get_proxy(num=5,
-                                                                                province='jiangsu'))}
+            self.proxies = {
+                'http': 'http://' + random.choice(proxy.get_proxy(num=5, province='jiangsu')),
+                'https': 'https://' + random.choice(proxy.get_proxy(num=5, province='jiangsu'))
+            }
         print 'self.proxies:', self.proxies
         # self.proxies = []
         self.reqst = requests.Session()
         self.reqst.headers.update({
             'Accept': 'text/html, application/xhtml+xml, */*',
             'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'User-Agent':
+            'Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:39.0) Gecko/20100101 Firefox/39.0'
         })
 
     def crawl_page_by_url(self, url):
@@ -406,9 +416,7 @@ class IndustrialPubliction(object):
         ths = [u'合伙人类型', u'合伙人', u'证照/证件类型', u'证照/证件号码']
         tds = [u'C1', u'C2', u'C3', u'C4']
         self.info.result_json['ind_comm_pub_reg_shareholder'] = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         page = self.crawler.crawl_page_by_url_post(
@@ -417,9 +425,7 @@ class IndustrialPubliction(object):
         ths = [u'变更事项', u'变更事项', u'变更事项', u'变更事项']
         tds = []
         self.info.result_json['ind_comm_pub_reg_modify'] = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         # 备案信息
@@ -438,9 +444,7 @@ class IndustrialPubliction(object):
         ths = [u'序号', u'注册号/统一社会信用代码', u'名称', u'登记机关']
         tds = []
         self.info.result_json['ind_comm_pub_arch_branch'] = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         self.info.industrial_shorehold_info_post_data['specificQuery'] = 'qsfzr'
@@ -463,9 +467,7 @@ class IndustrialPubliction(object):
         ths = [u'序号', u'登记编号', u'登记日期', u'登记机关', u'被担保债权数额', u'状态', u'详情']
         tds = []
         self.info.result_json['ind_comm_pub_movable_property_reg'] = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         # 股权出质登记信息
@@ -487,9 +489,7 @@ class IndustrialPubliction(object):
         tds = []
         self.info.result_json[
             'ind_comm_pub_administration_sanction'] = self.parser.get_result_json_for_classic_dict_info(
-                json.loads(page).get('items'),
-                ths=ths,
-                tds=tds)
+                json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         # 经营异常信息
@@ -502,9 +502,7 @@ class IndustrialPubliction(object):
         ths = [u'序号', u'列入经营异常名录原因', u'列入日期', u'移出经营异常名录原因', u'移出日期', u'作出决定机关']
         tds = [u'RN', u'C1', u'C2', u'C3', u'C4', u'C5']
         self.info.result_json['ind_comm_pub_business_exception'] = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         # 严重违法信息
@@ -517,9 +515,7 @@ class IndustrialPubliction(object):
         ths = [u'序号', u'列入经营异常名录原因', u'列入日期', u'移出经营异常名录原因', u'移出日期', u'作出决定机关']
         tds = []
         self.info.result_json['ind_comm_pub_serious_violate_law'] = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         # 抽查检查信息
@@ -532,9 +528,7 @@ class IndustrialPubliction(object):
         ths = [u'检查实施机关', u'类型', u'日期', u'结果']
         tds = [u'C1', u'C2', u'C3', u'C4']
         self.info.result_json['ind_comm_pub_spot_check'] = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         for i, item in enumerate(self.info.result_json['ind_comm_pub_spot_check']):
             item[u'序号'] = str(i + 1)
         # print self.info.result_json
@@ -567,9 +561,7 @@ class EnterprisePubliction(object):
         tds = []
         self.info.result_json[
             'ind_comm_pub_reg_shareholder_detail'] = self.parser.get_result_json_for_corporate_annual_reports_info(
-                json.loads(page),
-                ths=ths,
-                tds=tds)
+                json.loads(page), ths=ths, tds=tds)
         # print self.info.result_json
 
         # 股东及出资信息
@@ -593,9 +585,7 @@ class EnterprisePubliction(object):
         tds = []
         if page != "":
             self.info.result_json['ent_pub_administrative_license'] = self.parser.get_result_json_for_classic_dict_info(
-                json.loads(page),
-                ths=ths,
-                tds=tds)
+                json.loads(page), ths=ths, tds=tds)
             # print self.info.result_json
 
             # 知识产权出质登记信息
@@ -609,9 +599,7 @@ class EnterprisePubliction(object):
         tds = []
         if page != "":
             self.info.result_json['ent_pub_knowledge_property'] = self.parser.get_result_json_for_classic_dict_info(
-                json.loads(page),
-                ths=ths,
-                tds=tds)
+                json.loads(page), ths=ths, tds=tds)
             # print self.info.result_json
             # 行政处罚信息
     def get_administrative_punishment_info(self, *args, **kwargs):
@@ -625,9 +613,7 @@ class EnterprisePubliction(object):
         if page != "":
             self.info.result_json[
                 'ent_pub_administration_sanction'] = self.parser.get_result_json_for_classic_dict_info(
-                    json.loads(page),
-                    ths=ths,
-                    tds=tds)
+                    json.loads(page), ths=ths, tds=tds)
             # print self.info.result_json
 
             # 运行逻辑
@@ -657,9 +643,7 @@ class OtherDepartmentsPubliction(object):
         tds = []
         self.info.result_json[
             'other_dept_pub_administration_license'] = self.parser.get_result_json_for_classic_dict_info(
-                json.loads(page).get('items'),
-                ths=ths,
-                tds=tds)
+                json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
         # 行政处罚信息
     def get_administrative_punishment_info(self, *args, **kwargs):
@@ -671,9 +655,7 @@ class OtherDepartmentsPubliction(object):
         tds = []
         self.info.result_json[
             'other_dept_pub_administration_sanction'] = self.parser.get_result_json_for_classic_dict_info(
-                json.loads(page).get('items'),
-                ths=ths,
-                tds=tds)
+                json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
     def get_major_tax_list_info(self, *args, **kwargs):
         page = self.crawler.crawl_page_by_url_post(
@@ -683,9 +665,7 @@ class OtherDepartmentsPubliction(object):
         ths = [u'序号', u'案件性质', u'主要违法事实', u'实施检查的单位', u'详情']
         tds = []
         self.info.result_json = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
         # 运行逻辑
     def run(self, *args, **kwargs):
@@ -710,9 +690,7 @@ class JudicialAssistancePubliction(object):
         ths = [u'序号', u'被执行人', u'股权数额', u'执行法院', u'协助公示通知书文号', u'状态', u'详情']
         tds = []
         self.info.result_json['judical_assist_pub_equity_freeze'] = self.parser.get_result_json_for_classic_dict_info(
-            json.loads(page).get('items'),
-            ths=ths,
-            tds=tds)
+            json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         # 股东变更信息
@@ -726,9 +704,7 @@ class JudicialAssistancePubliction(object):
         tds = []
         self.info.result_json[
             'judical_assist_pub_shareholder_modify'] = self.parser.get_result_json_for_classic_dict_info(
-                json.loads(page).get('items'),
-                ths=ths,
-                tds=tds)
+                json.loads(page).get('items'), ths=ths, tds=tds)
         # print self.info.result_json
 
         # 运行逻辑

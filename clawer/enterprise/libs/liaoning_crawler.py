@@ -25,9 +25,13 @@ class LiaoningCrawler(Crawler):
     #多线程爬取时往最后的json文件中写时的加锁保护
     write_file_mutex = threading.Lock()
 
-    urls = {'host': 'http://www.lngs.gov.cn/ecdomain/framework/lngs/index.jsp',
-            'get_checkcode': 'http://gsxt.lngs.gov.cn/saicpub/commonsSC/loginDC/securityCode.action?',
-            'post_checkcode': 'http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/lngsSearchFpc.action', }
+    urls = {
+        'host': 'http://www.lngs.gov.cn/ecdomain/framework/lngs/index.jsp',
+        'get_checkcode':
+        'http://gsxt.lngs.gov.cn/saicpub/commonsSC/loginDC/securityCode.action?',
+        'post_checkcode':
+        'http://gsxt.lngs.gov.cn/saicpub/entPublicitySC/entPublicityDC/lngsSearchFpc.action',
+    }
 
     def __init__(self, json_restore_path=None):
         super(LiaoningCrawler, self).__init__()
@@ -806,7 +810,8 @@ class LiaoningParser(Parser):
 
         id_table_map = {
             's_qt_xzxkxx': 'other_dept_pub_administration_license',    # 行政许可信息
-            's_qt_xzcfxx': 'other_dept_pub_administration_sanction',    # 行政处罚信息
+            's_qt_xzcfxx':
+            'other_dept_pub_administration_sanction',    # 行政处罚信息
             's_qt_bgxx': 'other_dept_pub_reg_modify',    # 变更信息
         }
         table_ids = id_table_map.keys()

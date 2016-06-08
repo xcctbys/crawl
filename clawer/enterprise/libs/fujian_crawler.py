@@ -11,9 +11,12 @@ class FujianCrawler(HebeiCrawler):
         'host': 'http://wsgs.fjaic.gov.cn/creditpub/',
         'webroot': 'http://wsgs.fjaic.gov.cn/creditpub/',
         'page_search': 'http://wsgs.fjaic.gov.cn/creditpub/home',
-        'page_Captcha': 'http://wsgs.fjaic.gov.cn/creditpub/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
-        'page_showinfo': 'http://wsgs.fjaic.gov.cn/creditpub/search/ent_info_list',
-        'checkcode': 'http://wsgs.fjaic.gov.cn/creditpub/security/verify_captcha',
+        'page_Captcha':
+        'http://wsgs.fjaic.gov.cn/creditpub/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
+        'page_showinfo':
+        'http://wsgs.fjaic.gov.cn/creditpub/search/ent_info_list',
+        'checkcode':
+        'http://wsgs.fjaic.gov.cn/creditpub/security/verify_captcha',
     }
 
     def __init__(self, json_restore_path=None):

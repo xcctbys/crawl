@@ -29,15 +29,19 @@ class HebeiCrawler(object):
         'host': 'http://www.hebscztxyxx.gov.cn/notice/',
         'webroot': 'http://www.hebscztxyxx.gov.cn/',
         'page_search': 'http://www.hebscztxyxx.gov.cn/notice/',
-        'page_Captcha': 'http://www.hebscztxyxx.gov.cn/notice/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
-        'page_showinfo': 'http://www.hebscztxyxx.gov.cn/notice/search/ent_info_list',
-        'checkcode': 'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
+        'page_Captcha':
+        'http://www.hebscztxyxx.gov.cn/notice/captcha?preset=&ra=',    # preset 有数字的话，验证码会是字母+数字的组合
+        'page_showinfo':
+        'http://www.hebscztxyxx.gov.cn/notice/search/ent_info_list',
+        'checkcode':
+        'http://www.hebscztxyxx.gov.cn/notice/security/verify_captcha',
     }
 
     def __init__(self, json_restore_path=None):
         headers = {    #'Connetion': 'Keep-Alive',
             'Accept': 'text/html, application/xhtml+xml, */*',
-            'Accept-Language': 'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+            'Accept-Language':
+            'en-US, en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
             "User-Agent": get_user_agent()
         }
         self.CR = CaptchaRecognition("hebei")
@@ -97,7 +101,8 @@ class HebeiCrawler(object):
         datas = {
     #'searchType' : 1,
             'captcha': None,
-            'session.token': form.find('input', {'name': 'session.token'})['value'],
+            'session.token':
+            form.find('input', {'name': 'session.token'})['value'],
     #'condition.keyword': textfield,
         }
         count = 0
@@ -619,9 +624,8 @@ class HebeiCrawler(object):
                                 col_count = 0
                     #this case is for the ind-comm-pub-reg-shareholders----details'table
                     #a fucking dog case!!!!!!
-                    elif tr.find_all('td') and len(
-                            tr.find_all('td',
-                                        recursive=False)) == col_span and col_span != column_size:
+                    elif tr.find_all('td') and len(tr.find_all(
+                            'td', recursive=False)) == col_span and col_span != column_size:
                         col_count = 0
                         sub_col_index = 0
                         item = {}
