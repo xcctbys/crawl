@@ -237,6 +237,7 @@
 	YearReportWarrandice		：年报-对外提供保证担保信息
 	YearReportShareholder		：年报-股东及出资信息
 	YearReportBasic				：年报-企业基本信息
+	
 	ind_comm_pub_reg_shareholder	：工商公示-投资人信息明细
 	ind_comm_pub_reg_modify			：工商公示-企业变更信息
 	ind_comm_pub_arch_liquidation	：工商公示-清算信息
@@ -246,13 +247,17 @@
 	ind_comm_pub_business_exception			：工商公示-经营异常信息
 	ind_comm_pub_serious_violate_law		：工商公示-严重违法失信信息
 	ind_comm_pub_spot_check					：工商公示-抽查检查信息
+	ind_comm_pub_reg_shareholder_detail		：工商公示-投资人信息明细详情
+	
 	ent_pub_shareholder_capital_contribution：企业公示-股东及出资信息
 	ent_pub_equity_change			：企业公示-股权变更信息
 	ent_pub_administration_license	：企业公示-行政许可信息
 	ent_pub_knowledge_property		：企业公示-知识产权出质登记信息
 	ent_pub_administration_sanction	：企业公示-行政处罚信息
+	
 	other_dept_pub_administration_license	：其他部门公示-行政许可信息
 	other_dept_pub_administration_sanction	：其他部门公示-行政处罚信息
+	
 	judical_assist_pub_equity_freeze		：司法协助公示-股权冻结信息
 	judical_assist_pub_shareholder_modify	：司法协助公示-股权变更信息
 	
