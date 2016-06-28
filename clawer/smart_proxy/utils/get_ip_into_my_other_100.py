@@ -11,7 +11,7 @@ import os
 import mysql.connector
 import time
 import random
-
+from django.conf import settings
 """
 
 tid	 订单号	123456768123121
